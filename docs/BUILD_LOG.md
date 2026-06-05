@@ -19,26 +19,29 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
-## 2026-06-05 — Phase 1 IN PROGRESS — domain verified on Cloudflare, Netlify deploy pending
+## 2026-06-05 — PHASE 1 COMPLETE — URL live over HTTPS, wildcard working
 
-**Status.** Phase 1 (Domain & hosting, Option C) started, not complete.
+**Status.** Phase 1 (Domain & hosting, Option C) DoD met. Verified externally:
+- `https://cheeseshoptech.com` → 200, serves coming-soon page.
+- `https://www.cheeseshoptech.com` → 301 redirect (healthy).
+- `https://montitrentini.cheeseshoptech.com` (wildcard test) → resolves over HTTPS, 404 (expected — no tenant app yet; Phase 4). Confirms zero-per-client-DNS routing works.
 
-**Done.** `cheeseshoptech.com` confirmed on Cloudflare — nameservers verified
-(`dalary.ns.cloudflare.com` / `maciej.ns.cloudflare.com`). External DNS lookups confirm the zone
-is authoritative on Cloudflare.
+**Setup.** Coming-soon deployed to Netlify at `cheeseshoptech.netlify.app`. Three proxied CNAMEs
+in Cloudflare (`@`, `www`, `*`) → `cheeseshoptech.netlify.app`. TXT google-site-verification retained.
 
-**Pending / next sit-down.**
-1. Deploy `public/coming-soon/` to Netlify (drag-drop via app.netlify.com/drop) → capture the `*.netlify.app` URL.
-2. Add 3 CNAMEs in Cloudflare DNS (`@`, `www`, `*`) → that Netlify URL, proxy ON. *(Records table currently empty — none saved yet; correct, since there was no Netlify target to point at.)*
-3. Upload Cloudflare Origin Certificate (apex + wildcard) to Netlify; set SSL/TLS = Full (strict).
-4. Verify `https://cheeseshoptech.com` loads the coming-soon page over HTTPS = Phase 1 DoD.
+**Open hardening item.** Confirm Cloudflare SSL/TLS mode = Full (strict) and (optional) upload
+Origin Certificate. Site serves fine on Universal SSL edge cert today; Full (strict) is the
+chosen secure config.
 
-**Gotcha logged for next time.** DNS records can't be added until the Netlify site exists (the
-CNAME target is the `*.netlify.app` hostname). Deploy first, then wire DNS.
+**Gotchas hit (logged so we never repeat them).**
+1. Adding the domain in Netlify dumps you on an "Activate Netlify DNS / update nameservers"
+   screen offering `dns#.p08.nsone.net`. That is Option B — do NOT use it; click Done and ignore.
+   It nearly got pasted into the CNAME targets.
+2. CNAME target is the `*.netlify.app` site address (`cheeseshoptech.netlify.app`), NOT a
+   nameserver. Watch spelling: n-e-t-l-i-f-y dot app.
+3. Deploy the Netlify site BEFORE wiring DNS (the CNAME target doesn't exist until then).
 
-**Note.** With Cloudflare proxy ON, Netlify may persistently show an "awaiting external DNS / not
-pointing to Netlify" warning — this is expected in Option C and should be ignored. The Origin
-Cert is what validates the connection. Do NOT switch to Netlify DNS.
+**Unblocks.** Phase 2 — Design system & white-label shell.
 
 ---
 
