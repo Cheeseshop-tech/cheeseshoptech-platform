@@ -19,6 +19,19 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-05 — Phase 0 foundations: accounts live, Netlify tier = PRO
+
+**Status.** Cloudflare, Netlify, GitHub, Cloudinary, Make.com, and HubSpot accounts all set up.
+**Netlify plan tier = PRO** — unlocks automatic wildcard preview subdomains (OM §5), useful for
+per-client UAT previews during onboarding.
+
+**Remaining before Phase 0 DoD passes.** GitHub repo `cheeseshoptech-platform` push — no git
+remote is configured yet; local commit `491792c` (full scaffold) is waiting on `git push`.
+
+**Unblocks.** Once pushed, Phase 1 (Domain & hosting, Option C) can begin.
+
+---
+
 ## 2026-06-05 — Project repository & docs scaffolded
 
 **Action.** Created the `cheeseshoptech-platform` project folder with:
