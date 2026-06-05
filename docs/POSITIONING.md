@@ -13,6 +13,29 @@ that *serves* this mission; it is not the business itself.
 > storefronts"), which is too narrow. The storefront is the conversion endpoint and data hub —
 > the sales engine is the product.
 
+## Business model: coordinated services brokerage
+
+CheeseShop TECH is a **brokerage that bundles services** a brand would otherwise outsource
+piecemeal — sales, social, content production, media management, and the storefront — into one
+coordinated offering. The **portal is the center** of that brokerage.
+
+The value to the client is three things at once:
+
+1. **Lower cost.** One bundled partner beats four separately-outsourced, separately-marked-up
+   vendors (PR firm + content creator + social manager + web dev).
+2. **Continuity of timing.** Campaigns land in sync because one team coordinates them — no
+   waiting on disconnected vendors who don't talk to each other.
+3. **Consistent vision execution.** One brand vision executed coherently, not four vendors each
+   interpreting it differently.
+
+This **fragmentation-vs-coordination** story is the real moat — more than the storefront tech.
+
+## Target client (v1)
+
+Small-to-medium specialty food brands with **2–3 operators**, of whom **~2 actually use the
+portal**. Implication: the access model can stay **lightweight** for v1 — a handful of users per
+client, not enterprise RBAC. Build simple; defer heavy permissioning until client size demands it.
+
 ## The three pillars
 
 1. **Sales (the engine).** Coordinated campaigns that drive sell-through across BOTH retail
@@ -42,9 +65,11 @@ Cloudinary per-client media layer (Ops Manual §6); what's new is **external use
 permissions + an access portal**. Connects the chain: content studio (produce) → media hub
 (store, permission, distribute) → campaigns (deploy across retail + social).
 
-**Implications:** access-control model must support multiple external roles per client (not just
-client logins); approval/state on assets (draft vs. approved-for-press vs. approved-for-influencers);
-audit of who pulled/contributed what. Feeds the Phase 3 (auth) and design-system scope.
+**Implications (right-sized for v1):** access-control needs multiple external roles per client
+(client, PR, influencer, creator) and asset approval states (draft → approved-for-press →
+approved-for-influencers), but **user counts are small** (target clients have ~2 portal users),
+so keep it lightweight — basic roles + approval flags, not enterprise RBAC. Scale the
+permissioning later if client size grows. Feeds Phase 3 (auth) scope.
 
 ## How the platform fits
 
