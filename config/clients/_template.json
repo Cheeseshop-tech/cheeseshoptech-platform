@@ -1,0 +1,14 @@
+{
+  "id": "",
+  "subdomain": "",
+  "brand": {
+    "name": "",
+    "logo": "",
+    "colors": { "primary": "", "accent": "" },
+    "fonts": { "heading": "", "body": "" },
+    "radius": "md"
+  },
+  "cloudinaryFolder": "clients/<client>",
+  "crm": "",
+  "modules": []
+}

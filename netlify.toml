@@ -1,0 +1,12 @@
+# CheeseShop TECH — Netlify build & routing config
+# See OPERATIONS_MANUAL.md §5 (Deployment Pipeline)
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# SPA routing — all paths resolve to the React shell so client-side routing works.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

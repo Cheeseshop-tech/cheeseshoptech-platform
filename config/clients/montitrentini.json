@@ -1,0 +1,14 @@
+{
+  "id": "montitrentini",
+  "subdomain": "montitrentini",
+  "brand": {
+    "name": "Monti Trentini",
+    "logo": "https://res.cloudinary.com/<cloud>/clients/montitrentini/brand/logo.svg",
+    "colors": { "primary": "#7A1F2B", "accent": "#C9A227" },
+    "fonts": { "heading": "Playfair Display", "body": "Inter" },
+    "radius": "md"
+  },
+  "cloudinaryFolder": "clients/montitrentini",
+  "crm": "hubspot",
+  "modules": ["catalog", "orders", "crm"]
+}
