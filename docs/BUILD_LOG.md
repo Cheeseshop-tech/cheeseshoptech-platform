@@ -19,16 +19,19 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
-## 2026-06-05 — Phase 0 foundations: accounts live, Netlify tier = PRO
+## 2026-06-05 — PHASE 0 COMPLETE — repo pushed to GitHub
 
-**Status.** Cloudflare, Netlify, GitHub, Cloudinary, Make.com, and HubSpot accounts all set up.
-**Netlify plan tier = PRO** — unlocks automatic wildcard preview subdomains (OM §5), useful for
-per-client UAT previews during onboarding.
+**Status.** Phase 0 DoD passed. Repo `cheeseshoptech-platform` is live and **private** at
+github.com/cheeseshop-tech; `main` pushed and tracking `origin/main` (commits `491792c` scaffold
++ `885b371` build-log). `.env` gitignored and absent from history — verified.
 
-**Remaining before Phase 0 DoD passes.** GitHub repo `cheeseshoptech-platform` push — no git
-remote is configured yet; local commit `491792c` (full scaffold) is waiting on `git push`.
+**Accounts.** Cloudflare, Netlify, GitHub, Cloudinary, Make.com, HubSpot — all set up.
+**Netlify plan tier = PRO** — unlocks automatic wildcard preview subdomains (OM §5) for per-client UAT previews.
 
-**Unblocks.** Once pushed, Phase 1 (Domain & hosting, Option C) can begin.
+**Note.** GitHub normalizes the org to `Cheeseshop-tech` (capital C); the lowercase remote redirects
+fine but prints a "repository moved" notice each push. Optional: repoint remote to the capitalized URL.
+
+**Unblocks.** Phase 1 — Domain & hosting (Option C: Cloudflare wildcard + proxy → Netlify).
 
 ---
 
