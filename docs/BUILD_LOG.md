@@ -19,6 +19,29 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-05 — Phase 1 IN PROGRESS — domain verified on Cloudflare, Netlify deploy pending
+
+**Status.** Phase 1 (Domain & hosting, Option C) started, not complete.
+
+**Done.** `cheeseshoptech.com` confirmed on Cloudflare — nameservers verified
+(`dalary.ns.cloudflare.com` / `maciej.ns.cloudflare.com`). External DNS lookups confirm the zone
+is authoritative on Cloudflare.
+
+**Pending / next sit-down.**
+1. Deploy `public/coming-soon/` to Netlify (drag-drop via app.netlify.com/drop) → capture the `*.netlify.app` URL.
+2. Add 3 CNAMEs in Cloudflare DNS (`@`, `www`, `*`) → that Netlify URL, proxy ON. *(Records table currently empty — none saved yet; correct, since there was no Netlify target to point at.)*
+3. Upload Cloudflare Origin Certificate (apex + wildcard) to Netlify; set SSL/TLS = Full (strict).
+4. Verify `https://cheeseshoptech.com` loads the coming-soon page over HTTPS = Phase 1 DoD.
+
+**Gotcha logged for next time.** DNS records can't be added until the Netlify site exists (the
+CNAME target is the `*.netlify.app` hostname). Deploy first, then wire DNS.
+
+**Note.** With Cloudflare proxy ON, Netlify may persistently show an "awaiting external DNS / not
+pointing to Netlify" warning — this is expected in Option C and should be ignored. The Origin
+Cert is what validates the connection. Do NOT switch to Netlify DNS.
+
+---
+
 ## 2026-06-05 — PHASE 0 COMPLETE — repo pushed to GitHub
 
 **Status.** Phase 0 DoD passed. Repo `cheeseshoptech-platform` is live and **private** at
