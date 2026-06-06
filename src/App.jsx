@@ -36,6 +36,7 @@ import { MediaHub } from "@/components/media/media-hub.jsx";
 import { ToolsPage } from "@/components/tools/tools-page.jsx";
 import { CampaignsPage } from "@/components/campaigns/campaigns-page.jsx";
 import { FeaturedTool } from "@/components/tools/featured-tool.jsx";
+import { PricingTool } from "@/components/tools/pricing-tool.jsx";
 import { toolIcon } from "@/lib/icons.js";
 import { OrdersPage } from "@/components/crm/crm-dashboard.jsx";
 import { HomeDashboard } from "@/components/home/home-dashboard.jsx";
@@ -145,7 +146,9 @@ export default function App({ initialResolved }) {
       breadcrumb={<Breadcrumb items={[{ label: resolved.brand.name, href: "#" }, { label: nav.find((n) => n.key === effectivePage)?.label }]} />}
     >
       {activeFeatured ? (
-        <FeaturedTool tool={activeFeatured} resolved={resolved} />
+        activeFeatured.route === "pricing"
+          ? <PricingTool resolved={resolved} />
+          : <FeaturedTool tool={activeFeatured} resolved={resolved} />
       ) : effectivePage === "media" ? (
         <MediaHub resolved={resolved} />
       ) : effectivePage === "campaigns" ? (

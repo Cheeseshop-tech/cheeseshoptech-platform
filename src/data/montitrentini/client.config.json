@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "1.2",
+  "clientId": "monti-trentini",
+
+  "brand": {
+    "name": "Monti Trentini",
+    "tagline": "Italian Alpine Cheese · since 1925",
+    "accent": "#009640",
+    "logo": "monti/brand/logo"
+  },
+
+  "currency": "USD",
+
+  "images": { "provider": "cloudinary", "cloud": "sofcvmwa", "folder": "monti" },
+
+  "pricing": {
+    "costBasis": "FOB SEAFRIGO",
+    "defaultTier": "distributor",
+    "_note": "The price list is HQ/Stefano's numbers — the engine does NOT invent pricing strategy. Class-of-trade only applies to DIRECT sales (Monti absorbs the distributor margin but holds market value to protect the channel). Distributor sales = base list price + delivery/minimum/fees. Real %s pending Stefano review (post first team review).",
+
+    "tiers": [
+      { "id": "distributor",     "label": "Wholesale / Distributor (price list)", "adjustPct": 0,  "public": false,
+        "_note": "Base FOB price as set by HQ — no class-of-trade markup; the distributor adds their own margin downstream." },
+      { "id": "direct-retail",   "label": "Direct to Retail",   "adjustPct": 15, "public": true,
+        "_note": "Monti selling direct to a retailer — absorbs distributor margin, holds market value at +15%." },
+      { "id": "direct-consumer", "label": "Direct to Consumer", "adjustPct": 35, "public": true,
+        "_note": "DTC e-comm — +35% over the e-comm baseline, market value protected." }
+    ],
+
+    "volumeBreaks": [
+      { "id": "under1500", "label": "Under 1,500 lb", "maxLb": 1500,        "adjustPct": 0   },
+      { "id": "over1500",  "label": "1,500 lb +",     "minLb": 1500,        "adjustPct": -5  },
+      { "id": "pallet",    "label": "Full pallet",    "unit": "pallet",     "adjustPct": -8  },
+      { "id": "container", "label": "Full container", "unit": "container",  "adjustPct": -12 }
+    ],
+
+    "freight": {
+      "thresholdLb": 1500,
+      "_note": "Freight/handling are SEPARATE LINE ITEMS on the proforma — NEVER folded into $/lb. 1,500 lb is the gate. Pickup (EXW SEAFRIGO) = no freight line.",
+      "delivered": {
+        "atOrAboveThreshold": {
+          "perLb": 0.30,
+          "label": "Trucking line = $0.30/lb × order lbs (orders ≥ 1,500 lb)"
+        },
+        "belowThreshold": {
+          "truckingFlat": 300,
+          "truckingVariable": true,
+          "truckingNote": "$300 baseline OR the going rate by distance — rep confirms with carrier",
+          "processingFlat": 135
+        }
+      }
+    },
+
+    "fees": [
+      { "id": "trucking",   "label": "Trucking",       "scope": "order", "default": 0, "perLb": false,
+        "_note": "Auto-suggested from freight rules above; rep overrides with the real distance rate." },
+      { "id": "processing", "label": "Processing fee", "scope": "order", "default": 0, "perLb": false }
+    ]
+  }
+}

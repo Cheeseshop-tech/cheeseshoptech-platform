@@ -35,12 +35,13 @@
     },
     {
       "key": "price-list",
-      "label": "Price list calculator",
-      "description": "Custom Price List Creator (not yet hosted).",
+      "label": "Pricing & Inventory",
+      "description": "Wholesale quoting, movement planning, and commitments — on the canonical data layer.",
       "icon": "calculator",
-      "type": "external",
-      "url": "",
-      "status": "coming-soon"
+      "type": "internal",
+      "route": "pricing",
+      "status": "live",
+      "featured": true
     }
   ]
 }

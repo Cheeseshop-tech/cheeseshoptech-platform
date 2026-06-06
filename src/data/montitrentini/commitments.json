@@ -1,0 +1,992 @@
+{
+  "schemaVersion": "1.2",
+  "clientId": "monti-trentini",
+  "generatedFrom": "Availability of items and pending orders-2026-06-04.xlsx",
+  "commitments": [
+    {
+      "skuCode": "20150",
+      "note": "average purchase TONY 55 per month",
+      "noteEn": "",
+      "_source": "master comment",
+      "id": "20150-tony-monthly",
+      "kind": "standing_plan",
+      "status": "active",
+      "customer": "Tony",
+      "cadence": "monthly",
+      "casesPerPeriod": 55,
+      "alsoBuy": [],
+      "reorderBelowCases": null
+    },
+    {
+      "skuCode": "01021",
+      "note": "prodotto senza mercato",
+      "noteEn": "No market for this product",
+      "_source": "master comment",
+      "id": "01021-inactive",
+      "kind": "inactive",
+      "status": "inactive",
+      "lastMovementYear": null
+    },
+    {
+      "skuCode": "01126",
+      "note": "prodotto senza mercato, ultimo movimento 2015",
+      "noteEn": "No market — last movement 2015",
+      "_source": "master comment",
+      "id": "01126-inactive",
+      "kind": "inactive",
+      "status": "inactive",
+      "lastMovementYear": 2015
+    },
+    {
+      "skuCode": "02073",
+      "note": "Cowbell monthly plan 50x, average purchase TONY 10x, ACE Endico sometimes, Baldor 108x",
+      "noteEn": "",
+      "_source": "master comment",
+      "id": "02073-cowbell-monthly",
+      "kind": "standing_plan",
+      "status": "active",
+      "customer": "Cowbell",
+      "cadence": "monthly",
+      "casesPerPeriod": 50,
+      "alsoBuy": [
+        "Tony",
+        "ACE Endico",
+        "Baldor"
+      ],
+      "reorderBelowCases": null
+    },
+    {
+      "skuCode": "02302",
+      "note": "prodotto senza mercato",
+      "noteEn": "No market for this product",
+      "_source": "master comment",
+      "id": "02302-inactive",
+      "kind": "inactive",
+      "status": "inactive",
+      "lastMovementYear": null
+    },
+    {
+      "skuCode": "03003",
+      "note": "De Kalb 30 per month, next container if we go down <30",
+      "noteEn": "",
+      "_source": "master comment",
+      "id": "03003-dekalb-monthly",
+      "kind": "standing_plan",
+      "status": "active",
+      "customer": "DeKalb",
+      "cadence": "monthly",
+      "casesPerPeriod": 30,
+      "alsoBuy": [],
+      "reorderBelowCases": 30
+    },
+    {
+      "skuCode": "03057",
+      "note": "prodotto senza mercato",
+      "noteEn": "No market for this product",
+      "_source": "master comment",
+      "id": "03057-inactive",
+      "kind": "inactive",
+      "status": "inactive",
+      "lastMovementYear": null
+    },
+    {
+      "skuCode": "04181",
+      "note": "CowBell 5x per monthly plan",
+      "noteEn": "",
+      "_source": "master comment",
+      "id": "04181-cowbell-monthly",
+      "kind": "standing_plan",
+      "status": "active",
+      "customer": "Cowbell",
+      "cadence": "monthly",
+      "casesPerPeriod": 5,
+      "alsoBuy": [],
+      "reorderBelowCases": null
+    },
+    {
+      "skuCode": "20229",
+      "note": "10-15x monthly plan Cowbell",
+      "noteEn": "",
+      "_source": "master comment",
+      "id": "20229-cowbell-monthly",
+      "kind": "standing_plan",
+      "status": "active",
+      "customer": "Cowbell",
+      "cadence": "monthly",
+      "casesPerPeriod": 15,
+      "alsoBuy": [],
+      "reorderBelowCases": null
+    },
+    {
+      "skuCode": "05411",
+      "note": "Greg 12x monthly plan and ACE, we monitor, next",
+      "noteEn": "",
+      "_source": "master comment",
+      "id": "05411-greg-monthly",
+      "kind": "standing_plan",
+      "status": "active",
+      "customer": "Greg",
+      "cadence": "monthly",
+      "casesPerPeriod": 12,
+      "alsoBuy": [],
+      "reorderBelowCases": null
+    },
+    {
+      "skuCode": "20450",
+      "note": "prodotto senza mercato",
+      "noteEn": "No market for this product",
+      "_source": "master comment",
+      "id": "20450-inactive",
+      "kind": "inactive",
+      "status": "inactive",
+      "lastMovementYear": null
+    },
+    {
+      "skuCode": "20451",
+      "note": "prodotto senza mercato?",
+      "noteEn": "No market for this product?",
+      "_source": "master comment",
+      "id": "20451-inactive",
+      "kind": "inactive",
+      "status": "inactive",
+      "lastMovementYear": null
+    },
+    {
+      "skuCode": "20452",
+      "note": "prodotto senza mercato",
+      "noteEn": "No market for this product",
+      "_source": "master comment",
+      "id": "20452-inactive",
+      "kind": "inactive",
+      "status": "inactive",
+      "lastMovementYear": null
+    },
+    {
+      "skuCode": "20453",
+      "note": "prodotto senza mercato?",
+      "noteEn": "No market for this product?",
+      "_source": "master comment",
+      "id": "20453-inactive",
+      "kind": "inactive",
+      "status": "inactive",
+      "lastMovementYear": null
+    },
+    {
+      "skuCode": "20700",
+      "note": "prodotto senza mercato",
+      "noteEn": "No market for this product",
+      "_source": "master comment",
+      "id": "20700-inactive",
+      "kind": "inactive",
+      "status": "inactive",
+      "lastMovementYear": null
+    },
+    {
+      "skuCode": "20701",
+      "note": "prodotto senza mercato - CHIEDERE PER DETWILER A STEFANO",
+      "noteEn": "No market — ASK STEFANO ABOUT DETWILER",
+      "_source": "master comment",
+      "id": "20701-inactive",
+      "kind": "inactive",
+      "status": "inactive",
+      "lastMovementYear": null
+    },
+    {
+      "skuCode": "20702",
+      "note": "prodotto senza mercato",
+      "noteEn": "No market for this product",
+      "_source": "master comment",
+      "id": "20702-inactive",
+      "kind": "inactive",
+      "status": "inactive",
+      "lastMovementYear": null
+    },
+    {
+      "skuCode": "20703",
+      "note": "prodotto senza mercato",
+      "noteEn": "No market for this product",
+      "_source": "master comment",
+      "id": "20703-inactive",
+      "kind": "inactive",
+      "status": "inactive",
+      "lastMovementYear": null
+    },
+    {
+      "skuCode": "20719",
+      "note": "prodotto senza mercato",
+      "noteEn": "No market for this product",
+      "_source": "master comment",
+      "id": "20719-inactive",
+      "kind": "inactive",
+      "status": "inactive",
+      "lastMovementYear": null
+    },
+    {
+      "skuCode": "20720",
+      "note": "prodotto senza mercato",
+      "noteEn": "No market for this product",
+      "_source": "master comment",
+      "id": "20720-inactive",
+      "kind": "inactive",
+      "status": "inactive",
+      "lastMovementYear": null
+    },
+    {
+      "skuCode": "40140",
+      "note": "prodotto senza mercato",
+      "noteEn": "No market for this product",
+      "_source": "master comment",
+      "id": "40140-inactive",
+      "kind": "inactive",
+      "status": "inactive",
+      "lastMovementYear": null
+    }
+  ],
+  "_needsReview": [
+    {
+      "skuCode": "01032",
+      "note": "lo comprano solo Cowbell e Dekalb, 18? prossimo container?",
+      "noteEn": "",
+      "_source": "master comment",
+      "guess": {
+        "customer": "Cowbell",
+        "casesPerPeriod": null,
+        "reorderBelowCases": null,
+        "alsoBuy": [
+          "DeKalb"
+        ]
+      }
+    },
+    {
+      "skuCode": "01034",
+      "note": "only for SK Food when ordered",
+      "noteEn": "Only for SK Food when ordered",
+      "_source": "master comment",
+      "guess": {
+        "customer": "SK Food",
+        "casesPerPeriod": null,
+        "reorderBelowCases": null,
+        "alsoBuy": []
+      }
+    },
+    {
+      "skuCode": "01101",
+      "note": "2x al mese Olio e Olive",
+      "noteEn": "2× per month Olio e Olive",
+      "_source": "master comment",
+      "guess": {}
+    },
+    {
+      "skuCode": "20162",
+      "note": "15x Greg monthly plan, we monitor",
+      "noteEn": "",
+      "_source": "master comment",
+      "guess": {
+        "customer": "Greg",
+        "casesPerPeriod": null,
+        "reorderBelowCases": null,
+        "alsoBuy": []
+      }
+    },
+    {
+      "skuCode": "01154",
+      "note": "senza ordini in mano, non lo facciamo spedire",
+      "noteEn": "No orders on hand — not shipping",
+      "_source": "master comment",
+      "guess": {}
+    },
+    {
+      "skuCode": "20163",
+      "note": "only for TJ",
+      "noteEn": "",
+      "_source": "master comment",
+      "guess": {
+        "customer": "TJ",
+        "casesPerPeriod": null,
+        "reorderBelowCases": null,
+        "alsoBuy": []
+      }
+    },
+    {
+      "skuCode": "01155",
+      "note": "Lettieri? he asked last time on 19 August 2025",
+      "noteEn": "",
+      "_source": "master comment",
+      "guess": {
+        "customer": "Lettieri",
+        "casesPerPeriod": null,
+        "reorderBelowCases": null,
+        "alsoBuy": []
+      }
+    },
+    {
+      "skuCode": "01174",
+      "note": "2x al mese Olio e Olive",
+      "noteEn": "2× per month Olio e Olive",
+      "_source": "master comment",
+      "guess": {}
+    },
+    {
+      "skuCode": "01186",
+      "note": "always 1 pallet available, not more. Veroni-Creminelli preorder",
+      "noteEn": "",
+      "_source": "master comment",
+      "guess": {
+        "customer": "Veroni",
+        "casesPerPeriod": null,
+        "reorderBelowCases": null,
+        "alsoBuy": [
+          "Creminelli"
+        ]
+      }
+    },
+    {
+      "skuCode": "01190",
+      "note": "no project in working",
+      "noteEn": "",
+      "_source": "master comment",
+      "guess": {}
+    },
+    {
+      "skuCode": "01269",
+      "note": "only for Cheese Importers, was the first order good?  He needs more?",
+      "noteEn": "",
+      "_source": "master comment",
+      "guess": {}
+    },
+    {
+      "skuCode": "01299",
+      "note": "solo per Levoni su ordinazione",
+      "noteEn": "Only for Levoni on order",
+      "_source": "master comment",
+      "guess": {
+        "customer": "Levoni",
+        "casesPerPeriod": null,
+        "reorderBelowCases": null,
+        "alsoBuy": []
+      }
+    },
+    {
+      "skuCode": "02005",
+      "note": "Alma, < 33?",
+      "noteEn": "",
+      "_source": "master comment",
+      "guess": {
+        "customer": "Alma",
+        "casesPerPeriod": null,
+        "reorderBelowCases": 33,
+        "alsoBuy": []
+      }
+    },
+    {
+      "skuCode": "02091",
+      "note": "2x month Olio e Olive",
+      "noteEn": "",
+      "_source": "master comment",
+      "guess": {
+        "customer": null,
+        "casesPerPeriod": 2,
+        "reorderBelowCases": null,
+        "alsoBuy": []
+      }
+    },
+    {
+      "skuCode": "02206",
+      "note": "3x CowBell monthly plan?",
+      "noteEn": "",
+      "_source": "master comment",
+      "guess": {
+        "customer": "Cowbell",
+        "casesPerPeriod": null,
+        "reorderBelowCases": null,
+        "alsoBuy": []
+      }
+    },
+    {
+      "skuCode": "03010",
+      "note": "ACE Endico? DeKalb?",
+      "noteEn": "",
+      "_source": "master comment",
+      "guess": {
+        "customer": "ACE Endico",
+        "casesPerPeriod": null,
+        "reorderBelowCases": null,
+        "alsoBuy": [
+          "DeKalb"
+        ]
+      }
+    },
+    {
+      "skuCode": "03014",
+      "note": "Selected, <24?",
+      "noteEn": "",
+      "_source": "master comment",
+      "guess": {
+        "customer": "Selected",
+        "casesPerPeriod": null,
+        "reorderBelowCases": 24,
+        "alsoBuy": []
+      }
+    },
+    {
+      "skuCode": "03023",
+      "note": "occasionally DeKalb, as long as we are >20, no thanks",
+      "noteEn": "",
+      "_source": "master comment",
+      "guess": {
+        "customer": "DeKalb",
+        "casesPerPeriod": null,
+        "reorderBelowCases": null,
+        "alsoBuy": []
+      }
+    },
+    {
+      "skuCode": "03044",
+      "note": "2x mese Olio e Olive",
+      "noteEn": "2× per month Olio e Olive",
+      "_source": "master comment",
+      "guess": {
+        "customer": null,
+        "casesPerPeriod": 2,
+        "reorderBelowCases": null,
+        "alsoBuy": []
+      }
+    },
+    {
+      "skuCode": "03073",
+      "note": "2x al mese Olio e Olive",
+      "noteEn": "2× per month Olio e Olive",
+      "_source": "master comment",
+      "guess": {}
+    },
+    {
+      "skuCode": "04028",
+      "note": "monitor <60?",
+      "noteEn": "",
+      "_source": "master comment",
+      "guess": {
+        "customer": null,
+        "casesPerPeriod": null,
+        "reorderBelowCases": 60,
+        "alsoBuy": []
+      }
+    },
+    {
+      "skuCode": "04046",
+      "note": "Selected - Tama - ACE ENDICO",
+      "noteEn": "Selected · Tama · ACE Endico",
+      "_source": "master comment",
+      "guess": {
+        "customer": "Selected",
+        "casesPerPeriod": null,
+        "reorderBelowCases": null,
+        "alsoBuy": [
+          "Tama",
+          "ACE Endico"
+        ]
+      }
+    },
+    {
+      "skuCode": "04067",
+      "note": "product without a market, last movement 2019",
+      "noteEn": "",
+      "_source": "master comment",
+      "guess": {}
+    },
+    {
+      "skuCode": "04145",
+      "note": "Lettieri doesn't order much",
+      "noteEn": "",
+      "_source": "master comment",
+      "guess": {
+        "customer": "Lettieri",
+        "casesPerPeriod": null,
+        "reorderBelowCases": null,
+        "alsoBuy": []
+      }
+    },
+    {
+      "skuCode": "04154",
+      "note": "It doesn't sell much, Cowbell buys a little bit, <8",
+      "noteEn": "",
+      "_source": "master comment",
+      "guess": {
+        "customer": "Cowbell",
+        "casesPerPeriod": null,
+        "reorderBelowCases": 8,
+        "alsoBuy": []
+      }
+    },
+    {
+      "skuCode": "04165",
+      "note": "no sales at the moment",
+      "noteEn": "",
+      "_source": "master comment",
+      "guess": {}
+    },
+    {
+      "skuCode": "04168",
+      "note": "product without a market, last movement 2020",
+      "noteEn": "",
+      "_source": "master comment",
+      "guess": {}
+    },
+    {
+      "skuCode": "20228",
+      "note": "GFI, situazione?",
+      "noteEn": "GFI — what's the status?",
+      "_source": "master comment",
+      "guess": {
+        "customer": "GFI",
+        "casesPerPeriod": null,
+        "reorderBelowCases": null,
+        "alsoBuy": []
+      }
+    },
+    {
+      "skuCode": "04176",
+      "note": "KeHE + Olio&Olive",
+      "noteEn": "KeHE + Olio & Olive",
+      "_source": "master comment",
+      "guess": {
+        "customer": "KeHE",
+        "casesPerPeriod": null,
+        "reorderBelowCases": null,
+        "alsoBuy": []
+      }
+    },
+    {
+      "skuCode": "04182",
+      "note": "no ongoing projects",
+      "noteEn": "",
+      "_source": "master comment",
+      "guess": {}
+    },
+    {
+      "skuCode": "20423",
+      "note": "2x al mese Olio e Olive",
+      "noteEn": "2× per month Olio e Olive",
+      "_source": "master comment",
+      "guess": {}
+    },
+    {
+      "skuCode": "04197",
+      "note": "product without a market, last movement 2023",
+      "noteEn": "",
+      "_source": "master comment",
+      "guess": {}
+    },
+    {
+      "skuCode": "20424",
+      "note": "2x al mese Olio e Olive",
+      "noteEn": "2× per month Olio e Olive",
+      "_source": "master comment",
+      "guess": {}
+    },
+    {
+      "skuCode": "04208",
+      "note": "product without a market",
+      "noteEn": "",
+      "_source": "master comment",
+      "guess": {}
+    },
+    {
+      "skuCode": "20438",
+      "note": "Veroni",
+      "noteEn": "",
+      "_source": "master comment",
+      "guess": {
+        "customer": "Veroni",
+        "casesPerPeriod": null,
+        "reorderBelowCases": null,
+        "alsoBuy": []
+      }
+    },
+    {
+      "skuCode": "04211",
+      "note": "no ongoing projects",
+      "noteEn": "",
+      "_source": "master comment",
+      "guess": {}
+    },
+    {
+      "skuCode": "05001",
+      "note": "we're monitoring, maybe next time",
+      "noteEn": "",
+      "_source": "master comment",
+      "guess": {}
+    },
+    {
+      "skuCode": "20480",
+      "note": "2x al mese Olio e Olive",
+      "noteEn": "2× per month Olio e Olive",
+      "_source": "master comment",
+      "guess": {}
+    },
+    {
+      "skuCode": "05012",
+      "note": "we're monitoring, maybe next time",
+      "noteEn": "",
+      "_source": "master comment",
+      "guess": {}
+    },
+    {
+      "skuCode": "05018",
+      "note": "Product without a market? Last move 2024, ACE ENDICO",
+      "noteEn": "",
+      "_source": "master comment",
+      "guess": {
+        "customer": "ACE Endico",
+        "casesPerPeriod": null,
+        "reorderBelowCases": null,
+        "alsoBuy": []
+      }
+    },
+    {
+      "skuCode": "20481",
+      "note": "2x al mese Olio e Olive",
+      "noteEn": "2× per month Olio e Olive",
+      "_source": "master comment",
+      "guess": {}
+    },
+    {
+      "skuCode": "20511",
+      "note": "Lettieri",
+      "noteEn": "Lettieri",
+      "_source": "master comment",
+      "guess": {
+        "customer": "Lettieri",
+        "casesPerPeriod": null,
+        "reorderBelowCases": null,
+        "alsoBuy": []
+      }
+    },
+    {
+      "skuCode": "05033",
+      "note": "Di Palo",
+      "noteEn": "Di Palo",
+      "_source": "master comment",
+      "guess": {
+        "customer": "Di Palo",
+        "casesPerPeriod": null,
+        "reorderBelowCases": null,
+        "alsoBuy": []
+      }
+    },
+    {
+      "skuCode": "05091",
+      "note": "4x per month Oil and Olives",
+      "noteEn": "",
+      "_source": "master comment",
+      "guess": {
+        "customer": null,
+        "casesPerPeriod": 4,
+        "reorderBelowCases": null,
+        "alsoBuy": []
+      }
+    },
+    {
+      "skuCode": "20519",
+      "note": "<15?",
+      "noteEn": "<15 cs?",
+      "_source": "master comment",
+      "guess": {
+        "customer": null,
+        "casesPerPeriod": null,
+        "reorderBelowCases": 15,
+        "alsoBuy": []
+      }
+    },
+    {
+      "skuCode": "05095",
+      "note": "no need to reorder it until September 2026",
+      "noteEn": "",
+      "_source": "master comment",
+      "guess": {}
+    },
+    {
+      "skuCode": "20520",
+      "note": "<10?",
+      "noteEn": "<10 cs?",
+      "_source": "master comment",
+      "guess": {
+        "customer": null,
+        "casesPerPeriod": null,
+        "reorderBelowCases": 10,
+        "alsoBuy": []
+      }
+    },
+    {
+      "skuCode": "05600",
+      "note": "4x per month Oil and Olives",
+      "noteEn": "",
+      "_source": "master comment",
+      "guess": {
+        "customer": null,
+        "casesPerPeriod": 4,
+        "reorderBelowCases": null,
+        "alsoBuy": []
+      }
+    },
+    {
+      "skuCode": "20533",
+      "note": "Baldor, non possiamo restare senza,",
+      "noteEn": "Baldor — can't run out",
+      "_source": "master comment",
+      "guess": {
+        "customer": "Baldor",
+        "casesPerPeriod": null,
+        "reorderBelowCases": null,
+        "alsoBuy": []
+      }
+    },
+    {
+      "skuCode": "05417",
+      "note": "ACE Endico",
+      "noteEn": "ACE Endico",
+      "_source": "master comment",
+      "guess": {
+        "customer": "ACE Endico",
+        "casesPerPeriod": null,
+        "reorderBelowCases": null,
+        "alsoBuy": []
+      }
+    },
+    {
+      "skuCode": "20569",
+      "note": "Cowbell",
+      "noteEn": "",
+      "_source": "master comment",
+      "guess": {
+        "customer": "Cowbell",
+        "casesPerPeriod": null,
+        "reorderBelowCases": null,
+        "alsoBuy": []
+      }
+    },
+    {
+      "skuCode": "20724",
+      "note": "monitoriamo, ACE? finito l' inventario da Musco?",
+      "noteEn": "Monitoring — ACE? Has Musco's inventory finished?",
+      "_source": "master comment",
+      "guess": {
+        "customer": "Musco",
+        "casesPerPeriod": null,
+        "reorderBelowCases": null,
+        "alsoBuy": []
+      }
+    },
+    {
+      "skuCode": "20141",
+      "note": "product without a market, last movement 2023",
+      "noteEn": "",
+      "_source": "master comment",
+      "guess": {}
+    },
+    {
+      "skuCode": "40020",
+      "note": "monitoriamo <25?",
+      "noteEn": "Monitoring — <25?",
+      "_source": "master comment",
+      "guess": {
+        "customer": null,
+        "casesPerPeriod": null,
+        "reorderBelowCases": 25,
+        "alsoBuy": []
+      }
+    },
+    {
+      "skuCode": "20142",
+      "note": "product without a market, last movement 2023",
+      "noteEn": "",
+      "_source": "master comment",
+      "guess": {}
+    },
+    {
+      "skuCode": "20144",
+      "note": "It turns little",
+      "noteEn": "",
+      "_source": "master comment",
+      "guess": {}
+    },
+    {
+      "skuCode": "40104",
+      "note": "20x piano mensile di Greg",
+      "noteEn": "20 cs Greg monthly plan",
+      "_source": "master comment",
+      "guess": {
+        "customer": "Greg",
+        "casesPerPeriod": null,
+        "reorderBelowCases": null,
+        "alsoBuy": []
+      }
+    },
+    {
+      "skuCode": "20161",
+      "note": "product without a market, just a little something DeKalb",
+      "noteEn": "",
+      "_source": "master comment",
+      "guess": {
+        "customer": "DeKalb",
+        "casesPerPeriod": null,
+        "reorderBelowCases": null,
+        "alsoBuy": []
+      }
+    },
+    {
+      "skuCode": "40105",
+      "note": "Selected",
+      "noteEn": "Selected",
+      "_source": "master comment",
+      "guess": {
+        "customer": "Selected",
+        "casesPerPeriod": null,
+        "reorderBelowCases": null,
+        "alsoBuy": []
+      }
+    },
+    {
+      "skuCode": "40169",
+      "note": "<4?",
+      "noteEn": "",
+      "_source": "master comment",
+      "guess": {
+        "customer": null,
+        "casesPerPeriod": null,
+        "reorderBelowCases": 4,
+        "alsoBuy": []
+      }
+    },
+    {
+      "skuCode": "20282",
+      "note": "solo per TJ",
+      "noteEn": "Only for TJ",
+      "_source": "master comment",
+      "guess": {
+        "customer": "TJ",
+        "casesPerPeriod": null,
+        "reorderBelowCases": null,
+        "alsoBuy": []
+      }
+    },
+    {
+      "skuCode": "40174",
+      "note": "Selected?",
+      "noteEn": "Selected?",
+      "_source": "master comment",
+      "guess": {
+        "customer": "Selected",
+        "casesPerPeriod": null,
+        "reorderBelowCases": null,
+        "alsoBuy": []
+      }
+    },
+    {
+      "skuCode": "20313",
+      "note": "min 12 mo aged (richiesta di Stefano)",
+      "noteEn": "Min 12 mo aged (per Stefano's request)",
+      "_source": "master comment",
+      "guess": {
+        "customer": "Stefano",
+        "casesPerPeriod": null,
+        "reorderBelowCases": null,
+        "alsoBuy": []
+      }
+    },
+    {
+      "skuCode": "40175",
+      "note": "Selected?",
+      "noteEn": "Selected?",
+      "_source": "master comment",
+      "guess": {
+        "customer": "Selected",
+        "casesPerPeriod": null,
+        "reorderBelowCases": null,
+        "alsoBuy": []
+      }
+    },
+    {
+      "skuCode": "20464",
+      "note": "<20? Ordina di nuovo",
+      "noteEn": "<20 cs? Reorder",
+      "_source": "master comment",
+      "guess": {
+        "customer": null,
+        "casesPerPeriod": null,
+        "reorderBelowCases": 20,
+        "alsoBuy": []
+      }
+    },
+    {
+      "skuCode": "20567",
+      "note": "fornitore non registrato a FDA, non importabile",
+      "noteEn": "Supplier not FDA-registered — not importable",
+      "_source": "master comment",
+      "guess": {}
+    },
+    {
+      "skuCode": "20584",
+      "note": "<30?",
+      "noteEn": "<30 cs?",
+      "_source": "master comment",
+      "guess": {
+        "customer": null,
+        "casesPerPeriod": null,
+        "reorderBelowCases": 30,
+        "alsoBuy": []
+      }
+    },
+    {
+      "skuCode": "20586",
+      "note": "non gira, e' stato in giacenza 1,5 anni",
+      "noteEn": "Doesn't move — sat in stock 1.5 years",
+      "_source": "master comment",
+      "guess": {}
+    },
+    {
+      "skuCode": "20717",
+      "note": "per Selected tramite container",
+      "noteEn": "For Selected via container",
+      "_source": "master comment",
+      "guess": {
+        "customer": "Selected",
+        "casesPerPeriod": null,
+        "reorderBelowCases": null,
+        "alsoBuy": []
+      }
+    },
+    {
+      "skuCode": "40086",
+      "note": "2x al mese Olio e Olive, articolo con etichetta non conforme, non ancora ok ricevuto",
+      "noteEn": "2× per month Olio e Olive; label non-compliant, not yet approved",
+      "_source": "master comment",
+      "guess": {}
+    },
+    {
+      "skuCode": "40130",
+      "note": "Ace Endico, siamo scesi <17? La prima spedizione e' andata bene, la seconda ancora in magazzino, scende lentamente",
+      "noteEn": "ACE Endico, dropped <17? First shipment went well; second still in warehouse, moving slowly",
+      "_source": "master comment",
+      "guess": {
+        "customer": "ACE Endico",
+        "casesPerPeriod": null,
+        "reorderBelowCases": 17,
+        "alsoBuy": []
+      }
+    },
+    {
+      "skuCode": "40163",
+      "note": "2x al mese Olio e Olive",
+      "noteEn": "2× per month Olio e Olive",
+      "_source": "master comment",
+      "guess": {}
+    },
+    {
+      "skuCode": "40167",
+      "note": "4x al mese Olio e Olive",
+      "noteEn": "4× per month Olio e Olive",
+      "_source": "master comment",
+      "guess": {}
+    }
+  ]
+}

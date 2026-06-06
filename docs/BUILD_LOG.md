@@ -19,6 +19,31 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-06 — Pricing & Inventory native tool (closes the price-list gap)
+
+**Action.** Added a native Pricing & Inventory tool for the Monti tenant — the platform's first
+real B2B pricing capability, replacing the `price-list` "coming-soon" stub. Branch `pricing-module`.
+
+- **Engines** (`src/lib/pricing-core.js`, `src/lib/forecast-core.js`): portable, framework-free
+  quote/freight/allocation + demand-vs-supply forecast logic (ESM ports of the engines proven
+  19/19 in the storefront build). Verified here: 6/6 logic checks on real data.
+- **Data seam** `src/lib/pricing.js` (`getPricingData(resolved)`, mock-bundled now via
+  `src/data/montitrentini/*.json` — canonical catalog/inventory/commitments/config from the
+  adapters; real Netlify-function backend deferred, same shape). Movement capture → localStorage
+  ledger (`mt-movement-ledger`).
+- **UI** `src/components/tools/pricing-tool.jsx`: token-themed (no hardcoded brand — inherits
+  tenant theme), three tabs (Proforma live quoting + Record-sale capture · Movement report ·
+  Commitments). Uses platform UI components.
+- **Wiring**: `montitrentini.json` price-list tool → `type:internal, route:"pricing", featured`,
+  status live; `App.jsx` dispatches featured `route:"pricing"` → `<PricingTool>`.
+
+**Decision.** Class-of-trade reflects the real model: distributor 0% (HQ list) / direct-retail +15%
+/ direct-consumer +35% — provisional, config-tunable, pending Stefano.
+
+**Status.** Config validates; all files parse clean; engine logic verified. **Full `npm run build`
+NOT run** (this dev machine's node_modules is Linux-only / no native Mac node) — build + render
+must be confirmed in a real env before merging `pricing-module` → `phase-2-6-build`. **Not deployed.**
+
 ## 2026-06-06 — 🟢 MEDIA HUB LIVE ON REAL CLOUDINARY (first real backend)
 
 **Verified working in production.** Direct call to the deployed function
