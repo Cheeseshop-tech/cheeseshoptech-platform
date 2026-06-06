@@ -19,6 +19,21 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-06 — "Ledger" design pass (house-wide, via shared layer)
+
+**Action (Rick).** Bring the editorial "Ledger" feel Rick liked from the Monti portal into the
+PLATFORM — applied through shared tokens/components so it cascades to every tenant + module, colors
+stay per-tenant (no per-client forks; DESIGN_SYSTEM Part E).
+- Type: load Fraunces **italic** axis; `h1,h2` + `CardTitle` render italic-serif (base layer).
+  Tables get `tabular-nums`. New utilities `.cs-display`/`.cs-num`/`.cs-eyebrow` (index.css).
+- Components: `ui/table.jsx` (finer tracked heads), `ui/badge.jsx` (uppercase tracked tags),
+  `ui/card.jsx` (italic title, flatter shadow-sm), `layout/app-shell.jsx` (italic brand + eyebrow
+  footer). New shared `ui/stat.jsx` (big italic-serif figure + eyebrow). Migrated inline stat tiles
+  in App.jsx + pricing-tool.jsx. Documented in DESIGN_SYSTEM (A3 + B4 table).
+- Verified: validate + build clean; rendered house catalog + Monti pricing — cohesive editorial look,
+  per-tenant green retained. **Open:** sweep remaining module page headers/stat tiles to shared Stat
+  in a follow-up; consider an agency-vs-client distinguishing treatment (both green now).
+
 ## 2026-06-06 — Pricing tool: fee line items + lot/expiry on the price list + Print/PDF
 
 **Decision (Rick).** (1) Freight/handling are SEPARATE LINE ITEMS on the proforma, added at

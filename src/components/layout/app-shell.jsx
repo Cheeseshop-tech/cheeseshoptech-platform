@@ -24,7 +24,7 @@ function Sidebar({ brand, nav, activeKey, onNavigate }) {
         {brand?.logo ? (
           <img src={brand.logo} alt={brand?.name || "Logo"} className="h-7 w-auto" />
         ) : (
-          <span className="font-heading text-lg text-brand-primary">{brand?.name}</span>
+          <span className="font-heading italic text-lg text-brand-primary">{brand?.name}</span>
         )}
       </div>
       <nav className="flex-1 space-y-1 p-3">
@@ -50,7 +50,7 @@ function Sidebar({ brand, nav, activeKey, onNavigate }) {
           );
         })}
       </nav>
-      <div className="border-t border-border p-4 text-xs text-fg-muted">
+      <div className="cs-eyebrow border-t border-border p-4 text-fg-muted">
         Powered by CheeseShop TECH
       </div>
     </aside>

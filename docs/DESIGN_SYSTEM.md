@@ -52,6 +52,17 @@ House palette. Hex is the source of truth; the token names below are what the co
 - **Body / UI:** **Inter**. Fallback `system-ui, sans-serif`.
 - **Mono (data/code):** **JetBrains Mono**. Fallback `ui-monospace, monospace`.
 
+**"Ledger" display treatment (added 2026-06-06).** The editorial house signature, applied via the
+shared layer so it cascades to every tenant + module (never per-client):
+- **Page titles + section heads (`h1`,`h2`) render italic** Fraunces (base layer in `index.css`).
+  Fraunces is loaded with the italic axis. `CardTitle` is also italic.
+- **Tabular figures:** all `table`s use `font-variant-numeric: tabular-nums`; numeric/code cells use
+  the mono token (`font-mono`) so columns align.
+- **Helper utilities** (`index.css @layer components`): `.cs-display` (italic-serif display),
+  `.cs-num` (mono tabular), `.cs-eyebrow` (10px uppercase tracked label). Use these, don't re-derive.
+- **Stat tiles, tables, badges** were tightened to the Ledger feel (big italic-serif figures over
+  eyebrow labels; finer tracked column heads; uppercase badge tags; flatter card elevation).
+
 | Step | Token | rem / px | Use |
 |---|---|---|---|
 | xs | `font.size.xs` | 0.75 / 12 | Labels, captions |
@@ -185,6 +196,7 @@ Base library pattern: **shadcn/ui** (Radix primitives + `cva` + `tailwind-merge`
 | Breadcrumb | `ui/breadcrumb.jsx` | `items=[{label, href}]`, `aria-current` on last |
 | EmptyState | `ui/empty-state.jsx` | icon + title + description + action |
 | Skeleton | `ui/skeleton.jsx` | pulse; auto-disables under reduced-motion |
+| Stat | `ui/stat.jsx` | Ledger metric tile: big italic-serif figure + `.cs-eyebrow` label (+ optional badge) |
 | AppShell (Sidebar + Topbar) | `layout/app-shell.jsx` | Portal layout; branding flows via tokens |
 
 States covered per component: default/hover/active/disabled/loading/error as applicable. New components must follow this same pattern and be added to this table before shipping (Part E).

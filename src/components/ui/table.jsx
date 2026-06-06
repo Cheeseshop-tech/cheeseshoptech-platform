@@ -24,7 +24,7 @@ export function TableRow({ className, ...props }) {
 export function TableHead({ className, ...props }) {
   return (
     <th
-      className={cn("px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-fg-muted", className)}
+      className={cn("px-4 py-3 text-left text-[10px] font-bold uppercase tracking-[0.09em] text-fg-muted", className)}
       {...props}
     />
   );

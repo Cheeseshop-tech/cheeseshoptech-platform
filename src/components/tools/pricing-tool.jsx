@@ -396,8 +396,8 @@ function Commitments({ data }) {
 function Stat({ label, value }) {
   return (
     <Card><CardContent className="p-4">
-      <p className="font-heading text-2xl text-fg">{value}</p>
-      <p className="mt-0.5 text-[11px] font-semibold uppercase tracking-wide text-fg-muted">{label}</p>
+      <p className="cs-display text-3xl text-fg">{value}</p>
+      <p className="cs-eyebrow mt-1.5 text-fg-muted">{label}</p>
     </CardContent></Card>
   );
 }

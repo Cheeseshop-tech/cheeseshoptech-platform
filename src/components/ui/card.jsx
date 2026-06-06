@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils.js";
 export function Card({ className, ...props }) {
   return (
     <div
-      className={cn("rounded-base border border-border bg-surface shadow-md", className)}
+      className={cn("rounded-base border border-border bg-surface shadow-sm", className)}
       {...props}
     />
   );
@@ -15,7 +15,7 @@ export function CardHeader({ className, ...props }) {
 }
 
 export function CardTitle({ className, ...props }) {
-  return <h3 className={cn("font-heading text-xl text-fg", className)} {...props} />;
+  return <h3 className={cn("font-heading italic text-xl text-fg", className)} {...props} />;
 }
 
 export function CardDescription({ className, ...props }) {

@@ -49,6 +49,14 @@
   h1, h2, h3, h4 {
     font-family: var(--cs-font-heading);
   }
+  /* "Ledger" display: page titles + section heads are italic serif (editorial signature). */
+  h1, h2 {
+    font-style: italic;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+  /* Tabular figures everywhere numbers line up in columns. */
+  table { font-variant-numeric: tabular-nums; }
   /* Accessible focus ring (Part D) */
   :focus-visible {
     outline: 2px solid var(--cs-color-brand-primary);
@@ -60,4 +68,11 @@
       transition-duration: 0.01ms !important;
     }
   }
+}
+
+@layer components {
+  /* Ledger helpers (DESIGN_SYSTEM Part A3). */
+  .cs-display { font-family: var(--cs-font-heading); font-style: italic; font-weight: 500; line-height: 1.05; letter-spacing: -0.01em; }
+  .cs-num     { font-family: var(--cs-font-mono); font-variant-numeric: tabular-nums; }
+  .cs-eyebrow { font-size: 0.625rem; text-transform: uppercase; letter-spacing: 0.09em; font-weight: 700; }
 }

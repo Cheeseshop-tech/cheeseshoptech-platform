@@ -259,10 +259,10 @@ function UserMenu({ user, onLogout }) {
 function StatCard({ label, value, badge }) {
   return (
     <Card>
-      <CardContent className="flex items-center justify-between p-5">
+      <CardContent className="flex items-start justify-between p-5">
         <div>
-          <p className="text-sm text-fg-muted">{label}</p>
-          <p className="mt-1 font-heading text-2xl text-fg">{value}</p>
+          <p className="cs-display text-3xl text-fg">{value}</p>
+          <p className="cs-eyebrow mt-2 text-fg-muted">{label}</p>
         </div>
         {badge}
       </CardContent>
