@@ -83,6 +83,32 @@
       "uniqueItems": true,
       "default": []
     },
+    "home": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Landing-page (home hub) content: masthead + footer. The stat row is computed from the tenant's canonical data unless an explicit `stats` array is given.",
+      "properties": {
+        "eyebrow": { "type": "string", "description": "Small italic motto, top-right of the masthead." },
+        "title": { "type": "string", "description": "Masthead display title (e.g. 'Operations Portal')." },
+        "tagline": { "type": "string" },
+        "footer": { "type": "string", "description": "Italic tagline in the footer." },
+        "footerNote": { "type": "string" },
+        "stats": {
+          "type": "array",
+          "description": "Optional explicit stat tiles. Omit to compute from data.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["value", "label"],
+            "properties": {
+              "value": { "type": ["string", "number"] },
+              "label": { "type": "string" },
+              "accent": { "type": "string", "enum": ["brand", "accent", "info", "warning", "success", "error", "fg"] }
+            }
+          }
+        }
+      }
+    },
     "tools": {
       "type": "array",
       "description": "The client's existing tools, surfaced as launch tiles on the Tools page.",
@@ -99,6 +125,7 @@
           "url": { "type": "string", "description": "Required for type=external (opens in a new tab)." },
           "route": { "type": "string", "description": "Internal nav key for type=internal (e.g. media)." },
           "status": { "type": "string", "enum": ["live", "coming-soon"], "default": "live" },
+          "tag": { "type": "string", "description": "Optional status eyebrow shown on the home-hub tool card (e.g. 'Quoting · priority #1')." },
           "featured": { "type": "boolean", "description": "Promote to its own top-level nav tab with a full page.", "default": false },
           "embed": { "type": "boolean", "description": "If featured + external, embed the tool in an iframe (only for framing-friendly sites).", "default": false },
           "admin": { "type": "boolean", "description": "If true, the featured page adds a Live/Admin toggle with a store back-office (admin/client only).", "default": false }

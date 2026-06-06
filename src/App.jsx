@@ -40,7 +40,7 @@ import { FeaturedTool } from "@/components/tools/featured-tool.jsx";
 import { PricingTool } from "@/components/tools/pricing-tool.jsx";
 import { toolIcon } from "@/lib/icons.js";
 import { OrdersPage } from "@/components/crm/crm-dashboard.jsx";
-import { HomeDashboard } from "@/components/home/home-dashboard.jsx";
+import { HomeHub } from "@/components/home/home-hub.jsx";
 import { ComingSoon } from "@/components/marketing/coming-soon.jsx";
 import { RequireAuth, RoleGate } from "@/components/auth/require-auth.jsx";
 import { SetPassword } from "@/components/auth/set-password.jsx";
@@ -67,7 +67,7 @@ const PRODUCTS = [
 
 export default function App({ initialResolved }) {
   const [resolved, setResolved] = useState(initialResolved);
-  const [page, setPage] = useState("catalog");
+  const [page, setPage] = useState("dashboard");
   const clients = listClients();
   const { toast } = useToast();
   const { user, logout } = useAuth();
@@ -158,7 +158,7 @@ export default function App({ initialResolved }) {
       ) : effectivePage === "tools" ? (
         <ToolsPage resolved={resolved} onNavigate={setPage} />
       ) : effectivePage === "dashboard" ? (
-        <HomeDashboard resolved={resolved} onNavigate={setPage} />
+        <HomeHub resolved={resolved} onNavigate={setPage} />
       ) : effectivePage === "orders" ? (
         <OrdersPage resolved={resolved} />
       ) : (

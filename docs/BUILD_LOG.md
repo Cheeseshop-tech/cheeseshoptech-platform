@@ -19,6 +19,34 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-06 — Home hub: Operations-Portal composition becomes the standard landing
+
+**Decision (Rick).** Adopt the Monti **Operations Portal** hub composition (the
+`mt-e-comm.netlify.app/portal/` page he liked — green textured masthead + overlapping stat
+rollup + tinted tool-launch cards) as the **standard home/landing for every client** in the
+platform, CheeseShop-TECH-branded for the house. Hub **replaces** the old data-dashboard as the
+home; tool cards click into the sidebar app. Solves the empty-house-dashboard gap at the same time.
+
+**Action.** Ported it into the SHARED layer (no per-client code; differentiation = content + tokens):
+- New `components/home/home-hub.jsx` — masthead (brand-primary gradient that darkens toward the
+  corner so any tenant color works + cross-hatch + logo chip + italic motto eyebrow + display
+  title/tagline), stat row pulled up to overlap the masthead, tinted tool cards w/ status-eyebrow tags.
+- New `lib/hub-stats.js` — stat rollup: explicit config stats → house cross-tenant rollup
+  (tenants/tools/modules) → tenant ops rollup (products / cases on hand / on the water / SKUs
+  arriving / standing commitments, from the canonical `getPricingData` bundle — same logic as the
+  static portal) → none.
+- Content is config-driven: new `home` block (eyebrow/title/tagline/footer/optional stats) + tool
+  `tag` field added to `client.schema.json`, `montitrentini.json` (Operations Portal copy), and
+  `HOUSE` defaults in `tokens.js` (“Command Center”). Resolver surfaces `home` with house fallback.
+- Extended the shared `ui/stat.jsx` with an `accent` prop (token-driven figure color) so the
+  multi-color stat row stays on the ONE shared component. `App.jsx` lands on `dashboard` → `HomeHub`.
+
+**Status.** validate + build clean; **browser-verified** both views — Monti renders the Operations
+Portal faithfully inside the shell (34 / 3,921 / 1,908 / 18 / 6, real data); house renders a
+CheeseShop-branded “Command Center” rollup (no longer empty). **Open:** house rollup is lightweight
+(counts, not live cross-tenant metrics); old `home-dashboard.jsx` (pipeline/campaign cards) is now
+unused — fold the best of it into the hub or a secondary section later if wanted.
+
 ## 2026-06-06 — Brand reconciliation: terracotta kept as the house wordmark signature
 
 **Decision (Rick).** Spotted that the wordmark + favicon were still **Terracotta `#9A3B1B`** (the

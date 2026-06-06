@@ -11,7 +11,34 @@
   "cloudinaryFolder": "monti-trentini",
   "crm": "hubspot",
   "modules": ["catalog", "orders", "crm", "campaigns"],
+  "home": {
+    "eyebrow": "Casa Finco, casari dal 1925",
+    "title": "Operations Portal",
+    "tagline": "One source of truth — catalog, inventory, pricing and commitments — feeding every Monti Trentini tool. Wholesale-first.",
+    "footer": "A hundred-year-long story does not happen by chance."
+  },
   "tools": [
+    {
+      "key": "price-list",
+      "label": "Pricing & Inventory",
+      "description": "Wholesale quoting, movement planning, and commitments — on the canonical data layer.",
+      "icon": "calculator",
+      "type": "internal",
+      "route": "pricing",
+      "status": "live",
+      "featured": true,
+      "tag": "Quoting · priority #1"
+    },
+    {
+      "key": "image-catalog",
+      "label": "Image catalog",
+      "description": "Product & brand media library.",
+      "icon": "images",
+      "type": "internal",
+      "route": "media",
+      "status": "live",
+      "tag": "Media"
+    },
     {
       "key": "shopify",
       "label": "Storefront",
@@ -22,26 +49,8 @@
       "status": "live",
       "featured": true,
       "embed": true,
-      "admin": true
-    },
-    {
-      "key": "image-catalog",
-      "label": "Image catalog",
-      "description": "Product & brand media library.",
-      "icon": "images",
-      "type": "internal",
-      "route": "media",
-      "status": "live"
-    },
-    {
-      "key": "price-list",
-      "label": "Pricing & Inventory",
-      "description": "Wholesale quoting, movement planning, and commitments — on the canonical data layer.",
-      "icon": "calculator",
-      "type": "internal",
-      "route": "pricing",
-      "status": "live",
-      "featured": true
+      "admin": true,
+      "tag": "DTC · live"
     }
   ]
 }

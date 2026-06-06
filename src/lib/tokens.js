@@ -11,6 +11,15 @@ export const HOUSE = {
     fonts: { heading: "Fraunces", body: "Inter" },
     radius: "md",
   },
+  // Landing-hub content for the agency house view (tenants supply their own in config).
+  // Stats here are computed (cross-tenant rollup) — see lib/hub-stats.js.
+  home: {
+    eyebrow: "Multi-tenant platform · Posada & Co.",
+    title: "Command Center",
+    tagline:
+      "Every client portal, tool, and campaign on one canonical platform — themed per tenant, owned by CheeseShop TECH.",
+    footer: "One platform. Every client, their own brand.",
+  },
 };
 
 // Named radius step -> CSS length, matching index.css scale.
