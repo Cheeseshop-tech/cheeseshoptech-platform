@@ -98,7 +98,9 @@
           "type": { "type": "string", "enum": ["external", "internal"] },
           "url": { "type": "string", "description": "Required for type=external (opens in a new tab)." },
           "route": { "type": "string", "description": "Internal nav key for type=internal (e.g. media)." },
-          "status": { "type": "string", "enum": ["live", "coming-soon"], "default": "live" }
+          "status": { "type": "string", "enum": ["live", "coming-soon"], "default": "live" },
+          "featured": { "type": "boolean", "description": "Promote to its own top-level nav tab with a full page.", "default": false },
+          "embed": { "type": "boolean", "description": "If featured + external, embed the tool in an iframe (only for framing-friendly sites).", "default": false }
         }
       },
       "default": []

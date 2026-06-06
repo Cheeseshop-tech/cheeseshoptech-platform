@@ -19,6 +19,22 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-06 — Storefront promoted to a featured tab (embedded)
+
+**Change.** A tool can now be `featured: true` → it gets its own top-level nav tab (placed right after
+Dashboard) with a full page (`src/components/tools/featured-tool.jsx`): hero header, prominent
+"Open full store" button, and — when `embed: true` — a **live in-portal iframe preview** of the tool
+(with a framing fallback note + full-screen link). Featured tools are excluded from the Tools grid.
+Shared icon map added (`src/lib/icons.js`). Schema gained `featured` + `embed` booleans.
+
+**Monti.** Shopify tool → `featured:true, embed:true, icon:store, label:"Storefront"` → it's now a
+"Storefront" tab embedding `mt-e-comm.netlify.app` live in the portal. Per Rick: make the store feel
+like a first-class feature, not a tile.
+
+`npm run validate:clients` passes; `vite build` clean. Not pushed yet.
+
+---
+
 ## 2026-06-06 — Tools module — surface a client's existing tools (launch tiles)
 
 **Built.** Config-driven "Tools" page: each client lists existing tools in a `tools[]` array; the

@@ -14,12 +14,14 @@
   "tools": [
     {
       "key": "shopify",
-      "label": "Shopify storefront",
-      "description": "Monti Trentini's online store.",
-      "icon": "shopping-bag",
+      "label": "Storefront",
+      "description": "Monti Trentini's online store — browse the live shop or open it full-screen.",
+      "icon": "store",
       "type": "external",
       "url": "https://mt-e-comm.netlify.app/ui_kits/shopify-store/",
-      "status": "live"
+      "status": "live",
+      "featured": true,
+      "embed": true
     },
     {
       "key": "image-catalog",

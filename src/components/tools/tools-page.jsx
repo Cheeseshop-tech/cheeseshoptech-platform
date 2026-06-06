@@ -1,19 +1,14 @@
-import { ShoppingBag, Images, Calculator, ExternalLink, Wrench, ArrowRight } from "lucide-react";
+import { ExternalLink, Wrench, ArrowRight } from "lucide-react";
 import { Card } from "@/components/ui/card.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
 import { EmptyState } from "@/components/ui/empty-state.jsx";
-
-// Map config icon names (kebab) -> lucide components. Extend as new tools appear.
-const ICONS = {
-  "shopping-bag": ShoppingBag,
-  images: Images,
-  calculator: Calculator,
-};
+import { toolIcon } from "@/lib/icons.js";
 
 // A client's existing tools, surfaced as launch tiles (config-driven, per DESIGN_SYSTEM scaling rule).
 // external -> open in a new tab; internal -> navigate within the portal; coming-soon -> disabled.
+// Featured tools are excluded here — they get their own top-level nav tab/page.
 export function ToolsPage({ resolved, onNavigate }) {
-  const tools = resolved.tools || [];
+  const tools = (resolved.tools || []).filter((t) => !t.featured);
 
   function openTool(tool) {
     if (tool.status === "coming-soon") return;
@@ -34,7 +29,7 @@ export function ToolsPage({ resolved, onNavigate }) {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {tools.map((tool) => {
-            const Icon = ICONS[tool.icon] || Wrench;
+            const Icon = toolIcon(tool.icon);
             const soon = tool.status === "coming-soon";
             const internal = tool.type === "internal";
             return (

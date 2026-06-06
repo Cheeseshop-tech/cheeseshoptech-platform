@@ -33,6 +33,8 @@ import {
 import { useToast } from "@/components/ui/toast.jsx";
 import { MediaHub } from "@/components/media/media-hub.jsx";
 import { ToolsPage } from "@/components/tools/tools-page.jsx";
+import { FeaturedTool } from "@/components/tools/featured-tool.jsx";
+import { toolIcon } from "@/lib/icons.js";
 import { CrmDashboard, OrdersPage } from "@/components/crm/crm-dashboard.jsx";
 import { ComingSoon } from "@/components/marketing/coming-soon.jsx";
 import { RequireAuth, RoleGate } from "@/components/auth/require-auth.jsx";
@@ -81,8 +83,15 @@ export default function App({ initialResolved }) {
 
   // Role-based nav: external collaborators (pr/influencer/creator) see only the Media hub.
   const userRoles = rolesOf(user);
-  const nav = NAV.filter((n) => n.allowed.some((r) => userRoles.includes(r)));
+  // Featured tools get their own top-level tab, placed right after Dashboard.
+  const featuredTools = (resolved.tools || []).filter((t) => t.featured);
+  const featuredNav = featuredTools.map((t) => ({
+    key: `tool:${t.key}`, label: t.label, icon: toolIcon(t.icon), allowed: ["admin", "client"],
+  }));
+  const baseNav = [NAV[0], ...featuredNav, ...NAV.slice(1)];
+  const nav = baseNav.filter((n) => n.allowed.some((r) => userRoles.includes(r)));
   const effectivePage = nav.some((n) => n.key === page) ? page : nav[0]?.key;
+  const activeFeatured = featuredTools.find((t) => `tool:${t.key}` === effectivePage);
 
   function switchTenant(subdomain) {
     const next = resolveClient(subdomain || "house");
@@ -131,7 +140,9 @@ export default function App({ initialResolved }) {
       topbarRight={<div className="flex items-center gap-4">{tenantSwitcher}{userMenu}</div>}
       breadcrumb={<Breadcrumb items={[{ label: resolved.brand.name, href: "#" }, { label: nav.find((n) => n.key === effectivePage)?.label }]} />}
     >
-      {effectivePage === "media" ? (
+      {activeFeatured ? (
+        <FeaturedTool tool={activeFeatured} />
+      ) : effectivePage === "media" ? (
         <MediaHub resolved={resolved} />
       ) : effectivePage === "tools" ? (
         <ToolsPage resolved={resolved} onNavigate={setPage} />
