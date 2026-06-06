@@ -24,3 +24,43 @@ export function cldUrl(publicId, preset = "card", cloud = CLOUD_NAME) {
 export function clientFolder(resolved) {
   return resolved?.cloudinaryFolder || `clients/${resolved?.id || "house"}`;
 }
+
+// Unsigned upload preset (configured in Cloudinary, set as a build env). Enables direct
+// browser → Cloudinary uploads with NO API secret in the client.
+export const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || "";
+
+/**
+ * Upload a file straight to Cloudinary via the unsigned preset. Places it under the tenant's
+ * folder/<subfolder>, tags it `draft` (new assets start unapproved), and stores the filename
+ * as caption. Returns the new asset mapped to the media.js shape. No secret involved.
+ */
+export async function uploadAsset({ file, tenantFolder, subfolder = "raw", cloud = CLOUD_NAME }) {
+  if (!UPLOAD_PRESET) throw new Error("No upload preset configured");
+  const folder = `${tenantFolder}/${subfolder}`;
+  const form = new FormData();
+  form.append("file", file);
+  form.append("upload_preset", UPLOAD_PRESET);
+  form.append("folder", folder);
+  form.append("tags", "draft");
+  form.append("context", `caption=${file.name}`);
+
+  const res = await fetch(`https://api.cloudinary.com/${"v1_1"}/${cloud}/image/upload`, {
+    method: "POST",
+    body: form,
+  });
+  if (!res.ok) {
+    const msg = await res.text().catch(() => "");
+    throw new Error(`Upload failed (${res.status}) ${msg}`);
+  }
+  const r = await res.json();
+  return {
+    publicId: r.public_id,
+    sku: "",
+    folder: subfolder,
+    title: file.name,
+    approvalState: "draft",
+    format: r.format,
+    width: r.width,
+    height: r.height,
+  };
+}

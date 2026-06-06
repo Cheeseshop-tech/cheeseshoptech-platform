@@ -46,13 +46,25 @@ delivery URLs → cldUrl(publicId, preset)                 ← src/lib/cloudinar
 Switch backends with `VITE_MEDIA_BACKEND=cloudinary`. The Admin API call (which needs the secret)
 runs **server-side in a Netlify function** — secrets never reach the browser.
 
-## Going live (also in LAUNCH_AND_MAINTENANCE.md §4)
+## Going live — code is DONE; remaining steps are Cloudinary/Netlify config
 
-1. **[Rick]** Create `clients/montitrentini/{products,brand,raw}` in Cloudinary.
-2. **[Rick]** Set `VITE_CLOUDINARY_CLOUD` (Netlify env) to the real cloud name.
-3. **[Rick]** For uploads: create an unsigned upload preset → set `VITE_CLOUDINARY_UPLOAD_PRESET`.
-4. **[Rick]** Put the Cloudinary API key/secret in Netlify env.
-5. **[Claude]** Build the `media-list` function; map `approvalState` from Cloudinary tags; set `VITE_MEDIA_BACKEND=cloudinary`.
+Read path (`media-list` function, paginated) and upload path (unsigned-preset, browser→Cloudinary,
+no secret) are both built. To switch the Media Hub from mock to real:
+
+1. **[Rick] Cloudinary → Settings → Upload → Add folder:** create `clients/montitrentini/products`,
+   `/brand`, `/raw` (and upload a few images so the grid isn't empty).
+2. **[Rick] Cloudinary → Settings → Upload → Upload presets → Add:** an **Unsigned** preset.
+   Note its name. (Optionally restrict allowed folders to `clients/`.)
+3. **[Rick] Cloudinary → Settings → API Keys:** copy the **Cloud name**, **API Key**, **API Secret**.
+4. **[Rick] Netlify → cheeseshoptech-platform → Project configuration → Environment variables**, add:
+   - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` (server-side, for the function)
+   - `VITE_CLOUDINARY_CLOUD` = the cloud name (build-time, for delivery URLs)
+   - `VITE_CLOUDINARY_UPLOAD_PRESET` = the unsigned preset name
+   - `VITE_MEDIA_BACKEND` = `cloudinary`  ← flips read from mock to the live function
+5. **Redeploy** (any push, or Netlify "Trigger deploy" — VITE_* vars bake in at build).
+6. Verify: Media Hub lists real assets; Upload adds a file (tagged `draft`); approval badges reflect tags.
+
+**Secrets reminder:** Rick enters the API key/secret in Netlify (never committed; Claude does not enter secrets).
 
 ## Dev preview
 

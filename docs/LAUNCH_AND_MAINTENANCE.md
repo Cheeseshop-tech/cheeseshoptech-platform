@@ -32,13 +32,12 @@ The docs' "commit + push → Netlify auto-deploys" describes the *intended* setu
 - [ ] **[Rick]** Invite a test user; after they accept, set `app_metadata`: `roles` + `tenant` (e.g. `["client"]`, `"montitrentini"`). Set yourself `["admin"]`.
 - [ ] **[Rick]** Verify over HTTPS: test user logs in, sees only their tenant; admin can switch tenants; bad-tenant user is denied.
 
-### 4. Media — Cloudinary (code is built against a mock; see MEDIA_HUB.md)
-- [ ] **[Rick]** Create the per-client folders: `clients/montitrentini/{products,brand,raw}`.
-- [ ] **[Rick]** Set `VITE_CLOUDINARY_CLOUD` = the CheeseShop TECH cloud name (Netlify env var).
-- [ ] **[Rick]** (For uploads) create an **unsigned upload preset**, set `VITE_CLOUDINARY_UPLOAD_PRESET` (Netlify env). Until then the portal shows "upload not configured".
-- [ ] **[Rick]** Store the Cloudinary **API key/secret** in Netlify env (never committed) — needed for the server-side list/sync function.
-- [x] **[Claude]** `media-list` Netlify function built (`netlify/functions/media-list.js`, Cloudinary Admin API → asset list, approvalState from tags). To activate: set the env vars above + `VITE_MEDIA_BACKEND=cloudinary`.
-- [ ] Verify: real Monti media loads from `clients/montitrentini/...`; transforms (thumb/card/hero) applied at delivery.
+### 4. Media — Cloudinary — CODE DONE; needs config to flip on (see MEDIA_HUB.md)
+- [x] **[Claude]** `media-list` function (paginated, Admin API, approvalState from tags) + real browser upload (unsigned preset, no secret) wired into the Media Hub.
+- [ ] **[Rick]** Create folders `clients/montitrentini/{products,brand,raw}` + upload a few images.
+- [ ] **[Rick]** Create an **unsigned upload preset**; note its name.
+- [ ] **[Rick]** Netlify env: `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` (server) + `VITE_CLOUDINARY_CLOUD`, `VITE_CLOUDINARY_UPLOAD_PRESET`, `VITE_MEDIA_BACKEND=cloudinary` (build). Redeploy.
+- [ ] Verify: real Monti media lists; upload works (tagged draft); transforms applied at delivery.
 
 ### 5. Domain / SSL hardening (carry-over from Phase 1)
 - [ ] **[Rick]** Confirm Cloudflare SSL/TLS = **Full (strict)**; optionally upload the Origin Certificate (OM §2.1).

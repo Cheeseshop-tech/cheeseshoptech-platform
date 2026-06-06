@@ -19,6 +19,24 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-06 — Real media backend (Cloudinary read + upload)
+
+**Built (first real backend).** Media is now wired for live Cloudinary, not just mock:
+- **Read:** `media-list` Netlify function hardened with `next_cursor` pagination (≤5 pages) — server-side
+  Admin API, secret never in the browser. Maps folder/sku/approval-tag/title.
+- **Upload:** `uploadAsset()` in `cloudinary.js` does a direct browser→Cloudinary POST via an **unsigned
+  upload preset** (no secret), into `clients/<id>/<subfolder>`, tagged `draft`. Media Hub upload button
+  now opens a real file picker, uploads (multi-file), shows progress, and prepends results to the grid.
+
+**To flip from mock to live (Rick — config only):** create Cloudinary folders + an unsigned preset,
+set Netlify env (`CLOUDINARY_CLOUD_NAME/API_KEY/API_SECRET` server; `VITE_CLOUDINARY_CLOUD`,
+`VITE_CLOUDINARY_UPLOAD_PRESET`, `VITE_MEDIA_BACKEND=cloudinary` build), redeploy. Steps in
+`docs/MEDIA_HUB.md` + LAUNCH §4. Secrets entered by Rick (Claude never enters credentials).
+
+`node --check` passes on the function; `vite build` clean. Not pushed yet.
+
+---
+
 ## 2026-06-06 — Home dashboard (cross-module command center)
 
 **Built.** The `Dashboard` tab now renders a new `HomeDashboard`

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Upload, Copy, Image as ImageIcon, Lock } from "lucide-react";
 import { Card } from "@/components/ui/card.jsx";
 import { Button } from "@/components/ui/button.jsx";
@@ -11,10 +11,8 @@ import {
 } from "@/components/ui/dialog.jsx";
 import { useToast } from "@/components/ui/toast.jsx";
 import { useAuth } from "@/lib/auth-context.jsx";
-import { cldUrl } from "@/lib/cloudinary.js";
+import { cldUrl, uploadAsset, UPLOAD_PRESET } from "@/lib/cloudinary.js";
 import { listAssets, FOLDERS, APPROVAL, canUpload, canManageMedia } from "@/lib/media.js";
-
-const UPLOAD_ENABLED = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET ? true : false;
 
 export function MediaHub({ resolved }) {
   const { user } = useAuth();
@@ -22,6 +20,8 @@ export function MediaHub({ resolved }) {
   const [folder, setFolder] = useState("products");
   const [assets, setAssets] = useState(null);
   const [active, setActive] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef(null);
 
   useEffect(() => {
     let alive = true;
@@ -33,15 +33,36 @@ export function MediaHub({ resolved }) {
   }, [folder, resolved.cloudinaryFolder, user]);
 
   function onUpload() {
-    if (!UPLOAD_ENABLED) {
+    if (!UPLOAD_PRESET) {
       toast({
         title: "Upload not configured",
-        description: "Set a Cloudinary unsigned upload preset to enable in-portal uploads.",
+        description: "Set a Cloudinary unsigned upload preset (VITE_CLOUDINARY_UPLOAD_PRESET) to enable uploads.",
         tone: "warning",
       });
       return;
     }
-    toast({ title: "Upload", description: "Cloudinary upload widget would open here.", tone: "info" });
+    fileRef.current?.click();
+  }
+
+  async function onFilesSelected(e) {
+    const files = Array.from(e.target.files || []);
+    e.target.value = ""; // allow re-selecting the same file
+    if (!files.length) return;
+    setUploading(true);
+    try {
+      const uploaded = [];
+      for (const file of files) {
+        const asset = await uploadAsset({ file, tenantFolder: resolved.cloudinaryFolder, subfolder: folder });
+        uploaded.push(asset);
+      }
+      // New uploads are tagged "draft" — show them if the current role can see drafts.
+      setAssets((list) => [...uploaded, ...(list || [])]);
+      toast({ title: `Uploaded ${uploaded.length} file${uploaded.length > 1 ? "s" : ""}`, description: "Tagged draft — set approval to publish.", tone: "success" });
+    } catch (err) {
+      toast({ title: "Upload failed", description: String(err?.message || err), tone: "error" });
+    } finally {
+      setUploading(false);
+    }
   }
 
   return (
@@ -54,9 +75,12 @@ export function MediaHub({ resolved }) {
           </p>
         </div>
         {canUpload(user) && (
-          <Button variant="primary" onClick={onUpload}>
-            <Upload className="h-4 w-4" /> Upload
-          </Button>
+          <>
+            <input ref={fileRef} type="file" accept="image/*" multiple hidden onChange={onFilesSelected} />
+            <Button variant="primary" onClick={onUpload} disabled={uploading}>
+              <Upload className="h-4 w-4" /> {uploading ? "Uploading…" : "Upload"}
+            </Button>
+          </>
         )}
       </div>
 

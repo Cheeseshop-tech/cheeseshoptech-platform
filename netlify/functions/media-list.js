@@ -19,16 +19,26 @@ export const handler = async (event) => {
   if (!folderPrefix) return json(400, { error: "Missing folder" });
 
   const auth = Buffer.from(`${key}:${secret}`).toString("base64");
-  const url =
+  const base =
     `https://api.cloudinary.com/v1_1/${cloud}/resources/image` +
     `?type=upload&prefix=${encodeURIComponent(folderPrefix)}&max_results=100&tags=true&context=true`;
 
   try {
-    const res = await fetch(url, { headers: { Authorization: `Basic ${auth}` } });
-    if (!res.ok) return json(res.status, { error: `Cloudinary ${res.status}` });
-    const data = await res.json();
+    // Page through next_cursor (cap at ~500 assets / 5 pages) so we don't truncate a folder.
+    let resources = [];
+    let cursor = null;
+    for (let page = 0; page < 5; page++) {
+      const res = await fetch(cursor ? `${base}&next_cursor=${encodeURIComponent(cursor)}` : base, {
+        headers: { Authorization: `Basic ${auth}` },
+      });
+      if (!res.ok) return json(res.status, { error: `Cloudinary ${res.status}` });
+      const data = await res.json();
+      resources = resources.concat(data.resources || []);
+      cursor = data.next_cursor;
+      if (!cursor) break;
+    }
 
-    const assets = (data.resources || []).map((r) => {
+    const assets = resources.map((r) => {
       const segs = r.public_id.split("/");
       const folder = FOLDERS.find((f) => segs.includes(f)) || "raw";
       const tags = r.tags || [];
