@@ -1,5 +1,5 @@
-// House default tokens (Forest Green house; terracotta survives only on the wordmark/favicon
-// asset — see DESIGN_SYSTEM A2). Single source of truth for fallbacks.
+// House default tokens (warm artisanal: Terracotta + Cellar Olive — see DESIGN_SYSTEM A2).
+// Tenants override primary/accent with their own brand. Single source of truth for fallbacks.
 // Locked tokens are baked into src/index.css; these are the values the resolver
 // falls back to when a client config omits an overridable field.
 
@@ -7,7 +7,7 @@ export const HOUSE = {
   brand: {
     name: "CheeseShop TECH",
     logo: "/brand/cstech-wordmark.svg",
-    colors: { primary: "#064E22", accent: "#009640" },
+    colors: { primary: "#9A3B1B", accent: "#5F6B2E" }, // Terracotta + Cellar Olive (house brand)
     fonts: { heading: "Fraunces", body: "Inter" },
     radius: "md",
   },

@@ -19,6 +19,20 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-06 — House brand → its own Terracotta + Cellar Olive (clients keep their color)
+
+**Decision (Rick).** Swap the HOUSE brand back to the real CheeseShop TECH palette — **Terracotta
+`#9A3B1B` primary + Cellar Olive `#5F6B2E` accent** (matching the wordmark) — so the agency reads
+distinct from green clients like Monti. Supersedes the earlier "house → Forest Green" decision. The
+green was only ever the *house* default; **tenants override their own color, so Monti stays fully
+green** (montitrentini.json unchanged).
+
+**Action.** Token-only: `src/lib/tokens.js` HOUSE.brand.colors + `src/index.css` :root house
+fallback (primary `#9a3b1b`, accent `#5f6b2e`; on-primary/on-accent stay white, AA ✓). Updated
+DESIGN_SYSTEM A (intro/A2/A5) to "warm artisanal house, tenants set their own." **Status.** validate
++ build clean; **browser-verified** — house hub now renders terracotta masthead/nav/figures
+(Command Center); Monti hub still green. No per-client code touched.
+
 ## 2026-06-06 — Home hub: Operations-Portal composition becomes the standard landing
 
 **Decision (Rick).** Adopt the Monti **Operations Portal** hub composition (the
