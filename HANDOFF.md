@@ -1,6 +1,15 @@
 # HANDOFF — CheeseShop TECH platform build
 
-**Last updated:** 2026-06-05 · **Last chat:** Phase 6 + apex coming-soon route (deploy now safe)
+**Last updated:** 2026-06-05 (eve) · **Last chat:** Phases 2–6 built + pushed; git-connected staging site live
+
+## Live now
+
+- **Staging site:** https://cheeseshoptech-platform.netlify.app — new git-connected Netlify site, auto-deploys from branch `phase-2-6-build`. App serves (Monti login renders). `cheeseshoptech.com` (Drop coming-soon) untouched.
+- **Code:** pushed to branch `phase-2-6-build`; PR #1 open vs `main` (not merged).
+
+## Resume in the AM — next step: enable Netlify Identity
+
+On the **`cheeseshoptech-platform`** site: Site config → Identity → Enable (Invite-only) → invite yourself (`admin`) + a Monti test user (`roles:["client"]`, `tenant:"montitrentini"`). Steps in `docs/AUTH_AND_ROLES.md`; full runbook in `docs/LAUNCH_AND_MAINTENANCE.md`. Then Cloudinary (Step 4) + Make (Step 5). Quick win available too: fix the `montitrentini.json` placeholder logo.
 
 ## Where we are
 

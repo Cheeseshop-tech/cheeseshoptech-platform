@@ -19,6 +19,40 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-05 — Git-connected staging site live (cheeseshoptech-platform)
+
+**Done.** Created a NEW git-connected Netlify site **`cheeseshoptech-platform`**
+(https://cheeseshoptech-platform.netlify.app) from the repo. Production branch = `phase-2-6-build`,
+build `npm run build` → `dist`, functions dir `netlify/functions` (auto-detected from netlify.toml).
+First deploy published in ~20s; verified live — the Monti tenant login screen renders
+(`?client=montitrentini`), burgundy-skinned with the co-brand footer. CI now works:
+pushes to `phase-2-6-build` auto-publish. `cheeseshoptech.com` (Drop coming-soon) left untouched.
+
+**This is the staging/preview site.** At launch: merge to `main`, set production branch = `main`,
+point the `cheeseshoptech.com` domain + `*` wildcard at this site.
+
+**Next:** enable Netlify Identity on THIS site (login renders but can't auth yet). Minor cleanup:
+`montitrentini.json` logo is a placeholder `<cloud>` URL → broken image on login; set real or clear.
+
+---
+
+## 2026-06-05 — CORRECTION — cheeseshoptech.com is a Netlify Drop site, not git-connected
+
+**Finding (verified in the Netlify dashboard).** The live `cheeseshoptech.com` project shows
+"Last deployed from Netlify Drop" — a manual drag-and-drop deploy, **NOT connected to the GitHub
+repo.** Therefore git pushes/PRs trigger no build and produce no deploy preview (PR #1 has 0 checks).
+This **corrects** the assumption (from the walkthrough/OM) that "commit + push → Netlify auto-deploys"
+— that's the intended design, not the current wiring. Implication: earlier deploy-risk warnings about
+pushing to `main` replacing the apex were moot — the site isn't linked.
+
+**Other Netlify projects present:** `monti-trentini-catalog`, `mt-e-comm` (both "Deploys from GitHub"),
+`super-platypus-…` (Drop). Likely earlier experiments — flagged for cleanup.
+
+**Decision pending (Rick).** How to host/CI the platform: connect cheeseshoptech.com to the repo, or
+a new git-connected site, or keep local dev + Drop for now. Tracked in LAUNCH_AND_MAINTENANCE.md §1b.
+
+---
+
 ## 2026-06-05 — Netlify functions built (media-list, crm)
 
 **Built.** `netlify/functions/media-list.js` (Cloudinary Admin API → asset list, approvalState from

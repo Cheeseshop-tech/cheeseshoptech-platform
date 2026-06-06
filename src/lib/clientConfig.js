@@ -43,7 +43,9 @@ export function resolveClient(explicitSubdomain) {
 
   const brand = {
     name: client?.brand?.name ?? HOUSE.brand.name,
-    logo: client?.brand?.logo || HOUSE.brand.logo,
+    // House falls back to the house wordmark; a tenant with no logo renders its brand NAME
+    // (text) instead — never the house wordmark, which would be brand confusion.
+    logo: client?.brand?.logo || (isHouse ? HOUSE.brand.logo : ""),
     colors: {
       primary: client?.brand?.colors?.primary || HOUSE.brand.colors.primary,
       accent: client?.brand?.colors?.accent || HOUSE.brand.colors.accent,
