@@ -19,6 +19,31 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-06 — 🟢 MEDIA HUB LIVE ON REAL CLOUDINARY (first real backend)
+
+**Verified working in production.** Direct call to the deployed function
+`GET /.netlify/functions/media-list?folder=monti-trentini` returns **103 real Monti Trentini assets**
+from the Cloudinary `monti-trentini` folder (Apericheese, Asiago Antico Maso/Casetta/di Alpeggio, …),
+with titles from Cloudinary captions, mapped to the `products` tab, `approvalState: draft`.
+
+**Chain confirmed end to end:** function authenticated to Cloudinary Admin API (server-side
+key/secret env vars work) → correct folder → delivery via cloud `sofcvmwa`. Mock is off
+(`VITE_MEDIA_BACKEND=cloudinary`). This is the platform's **first real (non-mock) backend**.
+
+**Config that made it work (commit `9197234` on `phase-2-6-build`):** `montitrentini.json`
+`cloudinaryFolder` → `monti-trentini`; `media-list` default folder → `products`. Netlify env set:
+`CLOUDINARY_CLOUD_NAME/API_KEY/API_SECRET`, `VITE_CLOUDINARY_CLOUD=sofcvmwa`,
+`VITE_CLOUDINARY_UPLOAD_PRESET=cstech_unsigned`, `VITE_MEDIA_BACKEND=cloudinary`.
+
+**Note.** All 103 assets are `draft` (untagged) → admin/client see all; PR/influencer see none until
+tagged `approved-for-press` / `approved-for-influencers`. Tagging workflow is the next media refinement.
+
+**Process note.** Git from the Cowork sandbox is unreliable (stray `.git/*.lock`, no push creds) —
+commit/push done from the native terminal (needed `sudo rm -f .git/HEAD.lock`). Going forward, do git
+in Claude Code per `TOOL_ROUTING.md`.
+
+---
+
 ## 2026-06-06 — Real media backend (Cloudinary read + upload)
 
 **Built (first real backend).** Media is now wired for live Cloudinary, not just mock:

@@ -8,6 +8,13 @@
 - **Auth LIVE:** Netlify Identity enabled (invite-only); admin `Rick.posada@outlook.com` active. Login at `/?app=1` (house) or `/?client=montitrentini` (Monti).
 - **Deployed:** through commit `672a167` (Tools module + Monti Shopify URL). `cheeseshoptech.com` (Drop coming-soon) untouched.
 
+## 🟢 Media hub LIVE on real Cloudinary (2026-06-06)
+
+First real backend is live: `media-list` function returns **103 real Monti images** from the
+`monti-trentini` Cloudinary folder (cloud `sofcvmwa`); `VITE_MEDIA_BACKEND=cloudinary`. Deployed at
+commit `9197234`. All assets `draft` (admin/client see all; tag for press/influencer visibility later).
+Other modules (CRM, campaigns, store, home) still mock behind their seams.
+
 ## Deployed through `017750f` (Storefront + Admin live)
 
 ## NOT pushed yet (local, committed-ready)
