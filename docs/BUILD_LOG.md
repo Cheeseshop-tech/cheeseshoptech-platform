@@ -19,6 +19,26 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-06 — Home hub: "At a glance" command center + mock-seam audit
+
+**Action.** Folded the (now-orphaned) `home-dashboard.jsx` content into the hub as an **"At a glance"**
+section below the tool cards — new `components/home/command-center.jsx` (pipeline by stage, active
+campaigns, recent activity, overdue invoices), rendered only for tenants with a CRM
+(`hasCrm`), so the agency house hub stays clean. Deleted `home-dashboard.jsx` (superseded). The home
+is now a true intro **and** command center. Verified: validate + build clean; browser-checked Monti
+(full composition) — house unaffected.
+
+**Mock-seam audit (the "off mock" reality).** Checked the three remaining mock seams — they're
+already architected to flip to real via env flags, so "off mock" is mostly launch wiring + backend
+choices, not new code:
+- **CRM = code-complete.** `netlify/functions/crm.js` already proxies a Make webhook server-side;
+  client flips on `VITE_CRM_BACKEND=make`. **Needs [Rick]: build the Make scenario + set
+  `MAKE_WEBHOOK_URL` + `VITE_CRM_BACKEND=make` in Netlify.** No code left.
+- **Storefront / Campaigns = stubbed real path, no backend yet.** `getStore`/`saveStore` +
+  campaigns have the seam but the non-mock branch is a stub because there's no backend to point at.
+  **Needs a decision first:** which commerce engine for the store (Shopify/Stripe/Medusa per
+  STOREFRONT_STRATEGY) and where campaigns data lives — then the Netlify function mirrors the CRM one.
+
 ## 2026-06-06 — House brand → its own Terracotta + Cellar Olive (clients keep their color)
 
 **Decision (Rick).** Swap the HOUSE brand back to the real CheeseShop TECH palette — **Terracotta

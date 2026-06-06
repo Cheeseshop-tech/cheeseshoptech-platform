@@ -16,12 +16,13 @@
 - **Design — "Ledger" pass COMPLETE (increments 1 + 2).** Editorial italic-serif display house-wide via shared layer (DESIGN_SYSTEM A3+B4): h1/h2 + CardTitle italic, tabular figures, refined Table/Badge/Card/Stat. **Inc 2:** all KPI/stat tiles now use the one shared `ui/stat.jsx` (gained `icon`/`onClick`/`tone` props; 5 local copies deleted); the agency **house** reads distinct from a tenant via an "Agency Console" eyebrow under the wordmark (type/layout signal, gated on `isHouse` — both stay green). Colors stay per-tenant.
 - **Branch hygiene — clean.** `phase-2-6-build` canonical + synced. `main` = stale scaffold (untouched). No sprawl.
 
-## In flight / not done — "finish the build" (Rick, in order)
-- **[done] Home hub** — Operations-Portal composition is now the standard landing (see above). ✓
-- **Home hub polish (next):** house rollup is lightweight (counts); decide whether to fold the old `home-dashboard` pipeline/campaign cards in as a secondary "at a glance" section; tune tool-card set per tenant.
-- **CRM / Campaigns / Storefront off mock** — the backend seams (needs backend choices + Rick's secrets, e.g. Make webhook).
+## In flight / not done — "finish the build"
+- **[done] Home hub** — Operations-Portal composition is the standard landing; **+ "At a glance" command center** (pipeline/campaigns/activity/overdue) folded in for CRM tenants; `home-dashboard.jsx` deleted. ✓
+- **Off mock = launch wiring, not code (audited):**
+  - **CRM** — *code-complete.* `netlify/functions/crm.js` proxies a Make webhook; flips on `VITE_CRM_BACKEND=make`. **[Rick]: build the Make scenario + set `MAKE_WEBHOOK_URL` + `VITE_CRM_BACKEND=make`.**
+  - **Storefront / Campaigns** — seam ready, real path stubbed (no backend yet). **Decision needed:** commerce engine for the store + campaigns data source → then mirror the CRM function.
 - **Pricing backend** — still mock-bundled JSON; real Netlify-function backend deferred (same shape).
-- **Phase 7 — Monti pilot** — operational launch wiring (Identity test user, Cloudinary verify, Make CRM webhook, SSL) in `docs/LAUNCH_AND_MAINTENANCE.md`. **Rick's dashboard/secret actions**, not code.
+- **Phase 7 — Monti pilot** — operational launch wiring (Identity test user, Cloudinary verify, Make CRM webhook, SSL) in `docs/LAUNCH_AND_MAINTENANCE.md`. **Rick's dashboard/secret actions.**
 
 ## Open threads
 - Real **class-of-trade %s** + the two freight confirmations → pending Stefano (placeholders in now; config-tunable).

@@ -4,6 +4,8 @@ import { Card } from "@/components/ui/card.jsx";
 import { Stat } from "@/components/ui/stat.jsx";
 import { toolIcon } from "@/lib/icons.js";
 import { getHubStats } from "@/lib/hub-stats.js";
+import { hasCrm } from "@/lib/crm.js";
+import { CommandCenter } from "@/components/home/command-center.jsx";
 
 // The landing "hub" — the standard client intro page (ported from the Monti Operations Portal,
 // now shared + token-themed so every tenant gets it in their brand and the house gets a
@@ -126,6 +128,10 @@ export function HomeHub({ resolved, onNavigate }) {
           </div>
         </>
       )}
+
+      {/* Command-center "at a glance" — pipeline, campaigns, activity, overdue (CRM tenants only;
+          the agency house has no CRM, so its hub stays clean). */}
+      {hasCrm(resolved) && <CommandCenter resolved={resolved} onNavigate={onNavigate} />}
 
       {home.footer && (
         <div className="mt-12 flex flex-wrap justify-between gap-2 border-t border-border pt-5">

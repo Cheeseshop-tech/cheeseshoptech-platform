@@ -1,80 +1,44 @@
 import { useEffect, useState } from "react";
-import {
-  TrendingUp, Megaphone, Users, ShoppingCart, AlertCircle, Images, ArrowRight,
-} from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card.jsx";
 import { Button } from "@/components/ui/button.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
-import { Stat } from "@/components/ui/stat.jsx";
 import { Skeleton } from "@/components/ui/skeleton.jsx";
-import { useAuth } from "@/lib/auth-context.jsx";
-import { getCrmData, summarize as crmSummarize, hasCrm, money, PIPELINE_STAGES } from "@/lib/crm.js";
-import { getCampaigns, summarize as campSummarize, STATUS_TONE, CHANNELS, compact } from "@/lib/campaigns.js";
-import { listAssets } from "@/lib/media.js";
-import { getStore } from "@/lib/store.js";
+import { getCrmData, hasCrm, money, PIPELINE_STAGES } from "@/lib/crm.js";
+import { getCampaigns, CHANNELS, compact } from "@/lib/campaigns.js";
 
-// Command-center landing page: aggregates campaigns, CRM, media, and the store into one view.
-// Each section deep-links into its full module. Gated to admin/client by the nav.
-export function HomeDashboard({ resolved, onNavigate }) {
-  const { user } = useAuth();
+// "At a glance" command-center strip for the home hub — pipeline by stage, active campaigns,
+// recent activity, and overdue invoices. Rendered below the hub's tool cards for tenants with a
+// CRM (the agency house has none, so its hub stays clean). Data via the same mock-or-real seams.
+export function CommandCenter({ resolved, onNavigate }) {
   const [data, setData] = useState(undefined);
 
   useEffect(() => {
     let alive = true;
     setData(undefined);
-    Promise.all([
-      getCrmData(resolved),
-      getCampaigns(resolved),
-      listAssets({ tenantFolder: resolved.cloudinaryFolder, user }),
-      Promise.resolve(getStore(resolved)),
-    ]).then(([crm, campaigns, assets, store]) => {
-      if (alive) setData({ crm, campaigns, assets, store });
+    Promise.all([getCrmData(resolved), getCampaigns(resolved)]).then(([crm, campaigns]) => {
+      if (alive) setData({ crm, campaigns });
     });
     return () => { alive = false; };
-  }, [resolved, user]);
+  }, [resolved]);
 
   if (data === undefined) {
     return (
-      <div className="space-y-6">
-        <Skeleton className="h-9 w-64" />
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-24 w-full" />)}</div>
+      <div className="mt-12 grid gap-6 lg:grid-cols-2">
+        <Skeleton className="h-56 w-full" />
         <Skeleton className="h-56 w-full" />
       </div>
     );
   }
 
-  const { crm, campaigns, assets, store } = data;
-  const crmS = crm ? crmSummarize(crm) : null;
-  const campS = campSummarize(campaigns);
-  const activeCampaigns = campaigns.filter((c) => c.status === "active");
+  const { crm, campaigns } = data;
+  const activeCampaigns = (campaigns || []).filter((c) => c.status === "active");
   const overdue = crm?.invoices?.filter((i) => i.status === "Overdue") || [];
-  const openOrders = store?.orders?.length ?? crmS?.openOrders ?? 0;
   const maxStage = crm ? Math.max(...crm.pipeline.map((p) => p.value), 1) : 1;
-  const name = user?.user_metadata?.full_name?.split(" ")[0] || "there";
 
   return (
-    <div>
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="font-heading text-3xl text-fg">Welcome back, {name}</h1>
-          <p className="mt-1 text-fg-muted">{resolved.brand.name} · here's everything at a glance.</p>
-        </div>
-        {store && (
-          <Badge variant={store.settings.status === "live" ? "success" : "warning"}>
-            Store {store.settings.status === "live" ? "live" : "in maintenance"}
-          </Badge>
-        )}
-      </div>
-
-      <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <Stat icon={TrendingUp} label="Pipeline value" value={crmS ? money(crmS.pipelineValue) : "—"} onClick={() => onNavigate?.("dashboard")} />
-        <Stat icon={Megaphone} label="Active campaigns" value={campS.active} onClick={() => onNavigate?.("campaigns")} />
-        <Stat icon={Users} label="Campaign reach" value={compact(campS.reach)} onClick={() => onNavigate?.("campaigns")} />
-        <Stat icon={ShoppingCart} label="Open orders" value={openOrders} onClick={() => onNavigate?.("orders")} />
-        <Stat icon={AlertCircle} label="Overdue invoices" value={overdue.length} tone={overdue.length ? "error" : undefined} />
-        <Stat icon={Images} label="Media assets" value={assets.length} onClick={() => onNavigate?.("media")} />
-      </div>
-
+    <>
+      <h2 className="cs-display mb-4 mt-12 text-2xl text-brand-primary">At a glance</h2>
       <div className="grid gap-6 lg:grid-cols-2">
         {crm && hasCrm(resolved) && (
           <Card>
@@ -158,7 +122,6 @@ export function HomeDashboard({ resolved, onNavigate }) {
           </Card>
         )}
       </div>
-    </div>
+    </>
   );
 }
-
