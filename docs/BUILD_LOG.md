@@ -19,6 +19,27 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-06 — Storefront → Shopify headless: products read path built (ready to flip)
+
+**Decision (Rick).** Storefront commerce engine = **Shopify (headless)** — Shopify owns products +
+checkout/payments/tax/inventory; the portal owns the experience + admin content. Reuses Monti's
+existing Shopify rather than rebuilding commerce.
+
+**Action.** Built the products read path, code-complete + env-gated (mirrors the CRM function;
+secrets server-side; mock default — no live verification possible without Rick's token, same as CRM):
+- `netlify/functions/store.js` — Shopify **Storefront API** GraphQL products proxy; maps to the
+  portal store-product shape; needs `SHOPIFY_STORE_DOMAIN` + `SHOPIFY_STOREFRONT_TOKEN`.
+- `src/lib/store.js` — added `fetchStoreProducts()` (async; Shopify when `VITE_STORE_BACKEND=shopify`,
+  else seed products, with fallback). `getStore()` stays sync (portal-owned theme/content/settings).
+- `.env.example` — Shopify secrets + all backend switches documented. `STOREFRONT_STRATEGY.md` —
+  wiring-status table (what Shopify owns vs the portal; what's built vs deferred).
+
+**Status.** validate + build clean; **frontend bundle byte-identical** (helper tree-shaken until
+consumed → zero regression); function syntax-checked. **To go live [Rick]:** a real Shopify store
+with Storefront API enabled (current mt-e-comm shopify-store is a static mock) + set the 3 env vars.
+**Remaining code (small, post-token):** hydrate the Storefront Admin product list via
+`fetchStoreProducts()`; Admin-API orders read. Campaigns mirror this once a data source is chosen.
+
 ## 2026-06-06 — Home hub: "At a glance" command center + mock-seam audit
 
 **Action.** Folded the (now-orphaned) `home-dashboard.jsx` content into the hub as an **"At a glance"**

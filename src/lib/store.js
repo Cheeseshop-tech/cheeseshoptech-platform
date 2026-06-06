@@ -48,13 +48,30 @@ const MOCK = {
   },
 };
 
-const USE_MOCK = (import.meta.env.VITE_STORE_BACKEND || "mock") === "mock";
+const BACKEND = import.meta.env.VITE_STORE_BACKEND || "mock";
+const USE_MOCK = BACKEND === "mock";
+const USE_SHOPIFY = BACKEND === "shopify";
 
-/** Load the store model for a tenant. Returns null if none. */
+/** Load the store model for a tenant. Returns null if none. Synchronous: returns the portal-owned
+ *  model (theme/content/settings + seed products). In Shopify mode, hydrate the products list with
+ *  fetchStoreProducts() — Shopify owns products/checkout; the portal owns theme/content/admin. */
 export function getStore(resolved) {
-  if (USE_MOCK) return structuredClone(MOCK[resolved.id] || null);
-  // Real adapter (deferred): GET /.netlify/functions/store?tenant=<id>
-  return null;
+  return structuredClone(MOCK[resolved.id] || null);
+}
+
+/** Live product list for a tenant. Shopify (headless) when VITE_STORE_BACKEND=shopify, else the
+ *  portal-owned seed products. Falls back to the seed list if the Storefront fetch fails. */
+export async function fetchStoreProducts(resolved) {
+  const seed = getStore(resolved)?.products || [];
+  if (!USE_SHOPIFY) return seed;
+  try {
+    const res = await fetch(`/.netlify/functions/store?tenant=${encodeURIComponent(resolved.id)}`);
+    if (!res.ok) return seed;
+    const data = await res.json();
+    return Array.isArray(data.products) && data.products.length ? data.products : seed;
+  } catch {
+    return seed;
+  }
 }
 
 /** Persist store changes. Mock = no-op (UI shows a saved toast). Real = publish to the store. */

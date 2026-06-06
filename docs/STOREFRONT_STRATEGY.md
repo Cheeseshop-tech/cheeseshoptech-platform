@@ -48,6 +48,25 @@ Netlify function that talks to the commerce API (secrets server-side), replacing
 - **Build discipline:** the rebuilt store is the shared shell skinned by tokens + fed by config/APIs — never a forked per-client codebase.
 - **Next build step (when a real client signs):** the `media-list`/`crm`-style Netlify function for commerce (`store`), wired to the client's chosen engine; flip `VITE_STORE_BACKEND` off mock.
 
+## Wiring status — Shopify headless (2026-06-06, decision: Rick)
+
+**Engine = Shopify (headless).** Shopify owns products + checkout/payments/tax/inventory; the portal
+owns the experience + admin content. Split, so it's clear what lives where:
+
+| Concern | Owner | Status |
+|---|---|---|
+| Products (catalog read) | **Shopify Storefront API** | **Built** — `netlify/functions/store.js` (GraphQL products proxy, server-side token) + `fetchStoreProducts()` in `src/lib/store.js`; flips on `VITE_STORE_BACKEND=shopify`. |
+| Checkout / payments / tax / inventory | **Shopify** | Already external (embedded store tool / Shopify hosted checkout). |
+| Theme · hero · banners · pages · settings | **Portal** (admin back-office) | Mock/portal-owned — NOT a Shopify concept. Stays in the portal store model. |
+| Web orders | Shopify **Admin** API | **Deferred** — needs an Admin token + read_orders scope (different from the Storefront token). |
+
+**To go live [Rick]:** ensure Monti has a real Shopify store with the **Storefront API enabled**
+(the current `mt-e-comm` shopify-store is a static UI mock), then set `SHOPIFY_STORE_DOMAIN` +
+`SHOPIFY_STOREFRONT_TOKEN` (server-side) + `VITE_STORE_BACKEND=shopify` in Netlify.
+**Remaining code (small, after a token exists + verified live):** hydrate the Storefront Admin
+product list via `fetchStoreProducts()` (currently uses seed products); add the Admin-API orders
+read. Campaigns mirror this once a data source is chosen.
+
 ---
 
 *CheeseShop TECH · CheeseShopTECH.com · Posada & Co.*

@@ -20,7 +20,8 @@
 - **[done] Home hub** — Operations-Portal composition is the standard landing; **+ "At a glance" command center** (pipeline/campaigns/activity/overdue) folded in for CRM tenants; `home-dashboard.jsx` deleted. ✓
 - **Off mock = launch wiring, not code (audited):**
   - **CRM** — *code-complete.* `netlify/functions/crm.js` proxies a Make webhook; flips on `VITE_CRM_BACKEND=make`. **[Rick]: build the Make scenario + set `MAKE_WEBHOOK_URL` + `VITE_CRM_BACKEND=make`.**
-  - **Storefront / Campaigns** — seam ready, real path stubbed (no backend yet). **Decision needed:** commerce engine for the store + campaigns data source → then mirror the CRM function.
+  - **Storefront → Shopify headless (Rick's pick).** Products read path **built + ready to flip**: `netlify/functions/store.js` (Storefront API) + `fetchStoreProducts()`; needs **[Rick]** a real Shopify store w/ Storefront API + `SHOPIFY_STORE_DOMAIN`/`SHOPIFY_STOREFRONT_TOKEN`/`VITE_STORE_BACKEND=shopify`. Remaining code (post-token): hydrate admin product list, Admin-API orders. Shopify owns products/checkout; portal owns theme/content. See STOREFRONT_STRATEGY.
+  - **Campaigns** — seam ready, real path stubbed; mirror the CRM/store pattern once a data source is chosen.
 - **Pricing backend** — still mock-bundled JSON; real Netlify-function backend deferred (same shape).
 - **Phase 7 — Monti pilot** — operational launch wiring (Identity test user, Cloudinary verify, Make CRM webhook, SSL) in `docs/LAUNCH_AND_MAINTENANCE.md`. **Rick's dashboard/secret actions.**
 
