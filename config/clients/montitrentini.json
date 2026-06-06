@@ -8,7 +8,7 @@
     "fonts": { "heading": "Playfair Display", "body": "Inter" },
     "radius": "md"
   },
-  "cloudinaryFolder": "clients/montitrentini",
+  "cloudinaryFolder": "monti-trentini",
   "crm": "hubspot",
   "modules": ["catalog", "orders", "crm", "campaigns"],
   "tools": [

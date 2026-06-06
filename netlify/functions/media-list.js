@@ -40,7 +40,9 @@ export const handler = async (event) => {
 
     const assets = resources.map((r) => {
       const segs = r.public_id.split("/");
-      const folder = FOLDERS.find((f) => segs.includes(f)) || "raw";
+      // Assets sitting at the tenant root (no products/brand/raw subfolder) default to
+      // "products" so they show on the Media Hub's default tab.
+      const folder = FOLDERS.find((f) => segs.includes(f)) || "products";
       const tags = r.tags || [];
       const approvalState = APPROVAL_TAGS.find((s) => tags.includes(s)) || "draft";
       return {
