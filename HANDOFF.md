@@ -23,7 +23,7 @@
 ## Open threads
 - Real **class-of-trade %s** + the two freight confirmations → pending Stefano (placeholders in now; config-tunable).
 - `docs/PRICING_AND_ENGAGEMENT_MODEL.md` still has `$___` + buyout-multiplier `N` to set.
-- Brand Foundation's "cool-studio" rec is **superseded** (house is green now) — still needs updating in the brand docs. The agency-vs-client distinction is now **decided + shipped** (Agency Console eyebrow, type/layout not color); record it in DESIGN_SYSTEM/Brand Foundation.
+- **House brand is settled + documented:** Forest Green primary + Italia Green accent, with **Terracotta `#9A3B1B` kept as the house wordmark/favicon signature** (deliberate, house-only; DESIGN_SYSTEM A2/A5 updated). Agency-vs-client distinction shipped (Agency Console eyebrow + warm wordmark over green chrome). *If a separate `CheeseShopTECH_Brand_Foundation.md` exists outside this repo, it still needs the same update.*
 
 ## First message for the next surface
 > Read `CLAUDE_CODE_BRIEF.md` + this `HANDOFF.md` + `docs/BUILD_LOG.md` (top). Confirm: platform = CheeseShop TECH, clients = tenants; `phase-2-6-build` is the source of truth; differentiation = tokens + content only. The build is green and deployed. The Ledger design pass is now complete. Pick up from **In flight** — take CRM/Campaigns/Storefront off mock (code), or Phase 7 launch wiring (ops, mostly Rick's dashboard/secret actions). Propose the plan before executing.

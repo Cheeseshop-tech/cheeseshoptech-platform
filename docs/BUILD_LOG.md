@@ -19,6 +19,22 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-06 — Brand reconciliation: terracotta kept as the house wordmark signature
+
+**Decision (Rick).** Spotted that the wordmark + favicon were still **Terracotta `#9A3B1B`** (the
+original "warm artisanal" house primary) after the house was swapped to Forest Green — the running
+app is green, but `cstech-wordmark.svg`, `cstech-favicon.svg`, and `DESIGN_SYSTEM` Part A still read
+terracotta. Rather than finish recoloring everything green, Rick chose to **keep terracotta as the
+deliberate house brand-mark signature** — warm wordmark over green chrome, a house-only identity cue
+(doubles as an agency-vs-client distinguisher; tenants render their own color).
+
+**Action.** Docs/comment only — **no asset or token change**, so the app is byte-identical (JS
+bundle hash unchanged). Updated `DESIGN_SYSTEM` A (intro), A2 (primary→Forest Green, accent→Italia
+Green, added a "Brand-mark signature: Terracotta — wordmark/favicon only, not a token" row), A5
+(noted the terracotta wordmark is intentional, keep it); fixed the stale "warm artisanal" comment in
+`tokens.js`. **Status.** validate + build clean. Closes the stale-brand-doc open thread.
+**Open:** any external `CheeseShopTECH_Brand_Foundation.md` still needs the same green+terracotta update.
+
 ## 2026-06-06 — "Ledger" design pass increment 2 (shared Stat sweep + house signal)
 
 **Action.** Completed the increment-1 follow-up. (1) **Stat sweep:** extended shared

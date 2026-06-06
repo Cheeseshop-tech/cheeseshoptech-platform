@@ -1,4 +1,5 @@
-// House default tokens (warm artisanal). Single source of truth for fallbacks.
+// House default tokens (Forest Green house; terracotta survives only on the wordmark/favicon
+// asset — see DESIGN_SYSTEM A2). Single source of truth for fallbacks.
 // Locked tokens are baked into src/index.css; these are the values the resolver
 // falls back to when a client config omits an overridable field.
 

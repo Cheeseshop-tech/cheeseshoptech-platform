@@ -11,10 +11,17 @@
 
 ## Part A — CheeseShop TECH House Brand
 
-**Direction (locked): warm artisanal.** Food/craft cues — warm neutrals, terracotta primary,
-olive accent, a modern serif for headings. Signals "specialty-food expert," matching the
-sales-led positioning. Distinct from any client (e.g. tenant #1 Monti Trentini is deep
-burgundy + gold; the house is terracotta + olive — never confuse the two).
+**Direction (current): green house, terracotta signature.** The house primary is **Forest Green
+`#064E22`** + Italia Green accent (the Monti-family greens), on warm-stone surfaces with a modern
+serif for headings. **Terracotta `#9A3B1B` is retained as the house's brand-mark signature** — it
+lives ONLY on the wordmark + favicon, a deliberate warm contrast against the green chrome, and a
+house-only identity cue (tenants render their own color, never terracotta). Signals "specialty-food
+expert," matching the sales-led positioning.
+
+> **History:** the house began "warm artisanal" — terracotta primary + olive accent (see `BUILD_LOG`
+> 2026-06-06 "House brand → Forest Green", which swapped the *functional* primary/accent to green).
+> The terracotta wordmark is the one piece deliberately kept (Rick, 2026-06-06). The earlier
+> "cool-studio" Brand-Foundation rec is also superseded — the house is green.
 
 ### A1. Foundation
 
@@ -33,8 +40,9 @@ House palette. Hex is the source of truth; the token names below are what the co
 
 | Role | Token | Hex | Usage |
 |---|---|---|---|
-| Brand primary "Terracotta" | `color.brand.primary` | `#9A3B1B` | Primary buttons, active states, key emphasis. White text passes AA (6.97:1). |
-| Brand accent "Cellar Olive" | `color.brand.accent` | `#5F6B2E` | Links, secondary highlights, charts. White text passes AA (5.79:1). |
+| Brand primary "Forest Green" | `color.brand.primary` | `#064E22` | Primary buttons, active states, key emphasis. White text passes AA. |
+| Brand accent "Italia Green" | `color.brand.accent` | `#009640` | Links, secondary highlights, charts. |
+| **Brand-mark signature "Terracotta"** | *(not a token — asset color)* | `#9A3B1B` | **Wordmark + favicon ONLY.** House identity signature; NOT a tenant-overridable token and not used for functional UI. Warm contrast against the green chrome. |
 | Paper | `color.bg` | `#FAF6F0` | App background |
 | Surface | `color.surface` | `#FFFFFF` | Cards, sheets, menus |
 | Text | `color.fg` | `#221C14` | Primary text (espresso) |
@@ -85,7 +93,7 @@ Weights: 400 / 500 / 600 / 700. Headings 600–700, line-height 1.1–1.2; body 
 
 ### A5. Logo lockups
 
-- **Primary wordmark:** "CheeseShop" in Fraunces 600 (Terracotta) + "TECH" in Inter 700, uppercase, wide-tracked (Espresso).
+- **Primary wordmark:** "CheeseShop" in Fraunces 600 (**Terracotta `#9A3B1B` — the deliberate house signature, not a leftover**; see A2) + "TECH" in Inter 700, uppercase, wide-tracked (Espresso). This is the one place terracotta survives the green house brand — keep it.
 - **Mono:** single color — Espresso on light, Paper (#FAF6F0) on dark.
 - **Favicon / monogram:** "cs" wedge mark.
 - **Clear space:** cap-height of the "C" on all sides. **Min width:** 120px wordmark / 24px monogram.
