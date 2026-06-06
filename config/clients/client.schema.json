@@ -82,6 +82,26 @@
       "items": { "type": "string", "enum": ["catalog", "orders", "crm", "media", "campaigns"] },
       "uniqueItems": true,
       "default": []
+    },
+    "tools": {
+      "type": "array",
+      "description": "The client's existing tools, surfaced as launch tiles on the Tools page.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["key", "label", "type"],
+        "properties": {
+          "key": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+          "label": { "type": "string", "minLength": 1 },
+          "description": { "type": "string" },
+          "icon": { "type": "string", "description": "lucide-react icon name (e.g. shopping-bag)" },
+          "type": { "type": "string", "enum": ["external", "internal"] },
+          "url": { "type": "string", "description": "Required for type=external (opens in a new tab)." },
+          "route": { "type": "string", "description": "Internal nav key for type=internal (e.g. media)." },
+          "status": { "type": "string", "enum": ["live", "coming-soon"], "default": "live" }
+        }
+      },
+      "default": []
     }
   }
 }

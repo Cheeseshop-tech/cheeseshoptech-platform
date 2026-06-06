@@ -19,6 +19,26 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-06 — Tools module — surface a client's existing tools (launch tiles)
+
+**Built.** Config-driven "Tools" page: each client lists existing tools in a `tools[]` array; the
+portal renders branded launch tiles. `external` → opens a new tab (noopener); `internal` →
+navigates within the portal; `coming-soon` → disabled tile. Added `tools` to `client.schema.json`
++ `_template.json`, carried through the resolver, and new `src/components/tools/tools-page.jsx`.
+Nav item "Tools" (admin/client). Per the white-label rule, a new client's tools = config only.
+
+**Monti seed.** Shopify storefront (external, **URL is a placeholder** `REPLACE-ME.myshopify.com`),
+Image catalog (internal → the native Media Hub), Price list calculator (external, `coming-soon`
+— the local Custom Price List Creator isn't hosted yet). Decisions this session: launch-tiles style,
+tools are mixed/some-local.
+
+**ACTION (Rick):** provide the real Shopify URL; host the price-list calculator (then set its URL +
+flip status to `live`). Tracked on the launch list.
+
+`npm run validate:clients` passes; `vite build` clean.
+
+---
+
 ## 2026-06-06 — Identity enabled + invite/recovery handling added
 
 **Netlify (driven via browser).** Enabled Netlify Identity on the `cheeseshoptech-platform` site

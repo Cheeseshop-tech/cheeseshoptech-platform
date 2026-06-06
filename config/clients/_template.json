@@ -11,5 +11,6 @@
   },
   "cloudinaryFolder": "",
   "crm": "none",
-  "modules": []
+  "modules": [],
+  "tools": []
 }

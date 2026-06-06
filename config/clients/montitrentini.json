@@ -10,5 +10,34 @@
   },
   "cloudinaryFolder": "clients/montitrentini",
   "crm": "hubspot",
-  "modules": ["catalog", "orders", "crm"]
+  "modules": ["catalog", "orders", "crm"],
+  "tools": [
+    {
+      "key": "shopify",
+      "label": "Shopify storefront",
+      "description": "Monti Trentini's online store.",
+      "icon": "shopping-bag",
+      "type": "external",
+      "url": "https://mt-e-comm.netlify.app/ui_kits/shopify-store/",
+      "status": "live"
+    },
+    {
+      "key": "image-catalog",
+      "label": "Image catalog",
+      "description": "Product & brand media library.",
+      "icon": "images",
+      "type": "internal",
+      "route": "media",
+      "status": "live"
+    },
+    {
+      "key": "price-list",
+      "label": "Price list calculator",
+      "description": "Custom Price List Creator (not yet hosted).",
+      "icon": "calculator",
+      "type": "external",
+      "url": "",
+      "status": "coming-soon"
+    }
+  ]
 }

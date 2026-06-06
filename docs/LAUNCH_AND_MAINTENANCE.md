@@ -49,6 +49,11 @@ The docs' "commit + push → Netlify auto-deploys" describes the *intended* setu
 - [ ] **[Rick]** Build the Make scenario: client CRM (HubSpot/etc.) → dashboard data shape (OM §7 / docs/CRM_CONNECTOR.md); expose as a webhook → set `MAKE_WEBHOOK_URL` in Netlify env.
 - [ ] **[Rick]** CRM tokens in Netlify env. Wire HubSpot (agency) + Monti's CRM for the pilot.
 
+### 6b. Tools module — connect Monti's existing tools
+- [x] **Shopify storefront URL** set → `https://mt-e-comm.netlify.app/ui_kits/shopify-store/` (live tile).
+- [ ] **[Rick]** Host the **Price list calculator** (Custom Price List Creator) somewhere with a URL, then set its `url` + flip `status` to `live`. (Currently `coming-soon` since it's local.)
+- [x] Image catalog → already wired to the native Media Hub (internal route).
+
 ### 7. Pilot go-live (Phase 7)
 - [ ] Run the Client Onboarding Playbook (OM §8) for `montitrentini.cheeseshoptech.com`; UAT sign-off.
 

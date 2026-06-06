@@ -7,6 +7,7 @@ import {
   Plus,
   Inbox,
   LogOut,
+  LayoutGrid,
 } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell.jsx";
 import { Button } from "@/components/ui/button.jsx";
@@ -31,6 +32,7 @@ import {
 } from "@/components/ui/dialog.jsx";
 import { useToast } from "@/components/ui/toast.jsx";
 import { MediaHub } from "@/components/media/media-hub.jsx";
+import { ToolsPage } from "@/components/tools/tools-page.jsx";
 import { CrmDashboard, OrdersPage } from "@/components/crm/crm-dashboard.jsx";
 import { ComingSoon } from "@/components/marketing/coming-soon.jsx";
 import { RequireAuth, RoleGate } from "@/components/auth/require-auth.jsx";
@@ -46,6 +48,7 @@ const NAV = [
   { key: "catalog", label: "Catalog", icon: Package, allowed: ["admin", "client"] },
   { key: "orders", label: "Orders", icon: ShoppingCart, allowed: ["admin", "client"] },
   { key: "media", label: "Media hub", icon: Images, allowed: ALL_ROLES },
+  { key: "tools", label: "Tools", icon: LayoutGrid, allowed: ["admin", "client"] },
 ];
 
 const PRODUCTS = [
@@ -130,6 +133,8 @@ export default function App({ initialResolved }) {
     >
       {effectivePage === "media" ? (
         <MediaHub resolved={resolved} />
+      ) : effectivePage === "tools" ? (
+        <ToolsPage resolved={resolved} onNavigate={setPage} />
       ) : effectivePage === "dashboard" ? (
         <CrmDashboard resolved={resolved} />
       ) : effectivePage === "orders" ? (
