@@ -6,7 +6,7 @@ export const HOUSE = {
   brand: {
     name: "CheeseShop TECH",
     logo: "/brand/cstech-wordmark.svg",
-    colors: { primary: "#9A3B1B", accent: "#5F6B2E" },
+    colors: { primary: "#064E22", accent: "#009640" },
     fonts: { heading: "Fraunces", body: "Inter" },
     radius: "md",
   },

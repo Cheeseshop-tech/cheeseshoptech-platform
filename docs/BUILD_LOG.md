@@ -19,6 +19,19 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-06 — House brand → Forest Green (supersedes Brand Foundation cool-studio rec)
+
+**Decision (Rick).** Swap the CheeseShop TECH HOUSE brand to Forest Green (primary `#064E22`,
+accent `#009640`) — green-on-warm-cream, in the Monti family — extending the look Rick liked
+across the agency portal itself. Changed `src/index.css` (locked house defaults) + `src/lib/tokens.js`
+(HOUSE fallback). Locked warm-stone surfaces unchanged. Build clean; AA on-primary = white ✓.
+
+**Note / open:** this REVERSES the cool/neutral-studio direction in `CheeseShopTECH_Brand_Foundation.md`
+§5/§7 (which argued the agency should read distinct from warm client brands so it doesn't compete).
+The house now resembles the Monti client palette. Intentional per Rick. **TODO:** update the Brand
+Foundation + DESIGN_SYSTEM house-brand section to record the new decision; consider a distinguishing
+treatment (type/layout) so agency ≠ client even though both are green.
+
 ## 2026-06-06 — Pricing & Inventory native tool (closes the price-list gap)
 
 **Action.** Added a native Pricing & Inventory tool for the Monti tenant — the platform's first

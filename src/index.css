@@ -10,9 +10,9 @@
 */
 :root {
   /* --- Client-overridable (defaults = house) --- */
-  --cs-color-brand-primary: #9a3b1b; /* Terracotta */
+  --cs-color-brand-primary: #064e22; /* Forest Green */
   --cs-color-on-primary: #ffffff;
-  --cs-color-brand-accent: #5f6b2e; /* Cellar Olive */
+  --cs-color-brand-accent: #009640; /* Italia Green */
   --cs-color-on-accent: #ffffff;
   --cs-font-heading: "Fraunces", Georgia, serif;
   --cs-font-body: "Inter", system-ui, sans-serif;
