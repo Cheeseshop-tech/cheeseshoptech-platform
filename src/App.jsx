@@ -8,6 +8,7 @@ import {
   Inbox,
   LogOut,
   LayoutGrid,
+  Megaphone,
 } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell.jsx";
 import { Button } from "@/components/ui/button.jsx";
@@ -33,6 +34,7 @@ import {
 import { useToast } from "@/components/ui/toast.jsx";
 import { MediaHub } from "@/components/media/media-hub.jsx";
 import { ToolsPage } from "@/components/tools/tools-page.jsx";
+import { CampaignsPage } from "@/components/campaigns/campaigns-page.jsx";
 import { FeaturedTool } from "@/components/tools/featured-tool.jsx";
 import { toolIcon } from "@/lib/icons.js";
 import { CrmDashboard, OrdersPage } from "@/components/crm/crm-dashboard.jsx";
@@ -47,6 +49,7 @@ import { applyTheme } from "@/lib/theme.js";
 const ALL_ROLES = ["admin", "client", "pr", "influencer", "creator"];
 const NAV = [
   { key: "dashboard", label: "Dashboard", icon: LayoutDashboard, allowed: ["admin", "client"] },
+  { key: "campaigns", label: "Campaigns", icon: Megaphone, allowed: ["admin", "client"] },
   { key: "catalog", label: "Catalog", icon: Package, allowed: ["admin", "client"] },
   { key: "orders", label: "Orders", icon: ShoppingCart, allowed: ["admin", "client"] },
   { key: "media", label: "Media hub", icon: Images, allowed: ALL_ROLES },
@@ -144,6 +147,8 @@ export default function App({ initialResolved }) {
         <FeaturedTool tool={activeFeatured} resolved={resolved} />
       ) : effectivePage === "media" ? (
         <MediaHub resolved={resolved} />
+      ) : effectivePage === "campaigns" ? (
+        <CampaignsPage resolved={resolved} />
       ) : effectivePage === "tools" ? (
         <ToolsPage resolved={resolved} onNavigate={setPage} />
       ) : effectivePage === "dashboard" ? (

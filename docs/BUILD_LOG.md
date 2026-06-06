@@ -19,6 +19,19 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-06 — Campaigns module (the sales + social engine)
+
+**Built.** `Campaigns` nav tab (after Dashboard, admin/client) — the core POSITIONING pillar.
+`src/lib/campaigns.js` (mock + `getCampaigns()` seam, `canViewCampaigns`, status/channel helpers) +
+`src/components/campaigns/campaigns-page.jsx`: stat cards (active/scheduled/reach/attributed revenue),
+campaign cards with channel chips (retail/DTC/social), status, date range, asset count, and live-KPI
+row for active campaigns, plus a New-campaign dialog (scaffold). Enabled `campaigns` in Monti's
+`modules`. Mock data (4 Monti campaigns); real backend (Make/CRM/social analytics) swaps behind the seam.
+
+`npm run validate:clients` passes; `vite build` clean. Not pushed yet.
+
+---
+
 ## 2026-06-06 — STRATEGY LOCKED — headless storefront rebuild
 
 **Decision (Rick + Claude).** When a client's storefront moves into the portal, we **rebuild the

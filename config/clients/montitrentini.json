@@ -10,7 +10,7 @@
   },
   "cloudinaryFolder": "clients/montitrentini",
   "crm": "hubspot",
-  "modules": ["catalog", "orders", "crm"],
+  "modules": ["catalog", "orders", "crm", "campaigns"],
   "tools": [
     {
       "key": "shopify",
