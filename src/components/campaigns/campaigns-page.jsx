@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { Plus, Megaphone, CalendarClock, Users, TrendingUp, Lock, Image as ImageIcon } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card.jsx";
+import { Card } from "@/components/ui/card.jsx";
 import { Button } from "@/components/ui/button.jsx";
 import { Input, Textarea } from "@/components/ui/input.jsx";
 import { Label } from "@/components/ui/label.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
+import { Stat } from "@/components/ui/stat.jsx";
 import { Skeleton } from "@/components/ui/skeleton.jsx";
 import { EmptyState } from "@/components/ui/empty-state.jsx";
 import {
@@ -110,20 +111,6 @@ function Metric({ label, value }) {
       <p className="font-heading text-xl text-fg">{value}</p>
       <p className="text-xs text-fg-muted">{label}</p>
     </div>
-  );
-}
-
-function Stat({ icon: Icon, label, value }) {
-  return (
-    <Card>
-      <CardContent className="flex items-center justify-between p-5">
-        <div>
-          <p className="text-sm text-fg-muted">{label}</p>
-          <p className="mt-1 font-heading text-2xl text-fg">{value}</p>
-        </div>
-        <Icon className="h-5 w-5 text-fg-muted" />
-      </CardContent>
-    </Card>
   );
 }
 

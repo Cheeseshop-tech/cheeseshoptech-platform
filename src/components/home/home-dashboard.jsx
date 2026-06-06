@@ -5,6 +5,7 @@ import {
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card.jsx";
 import { Button } from "@/components/ui/button.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
+import { Stat } from "@/components/ui/stat.jsx";
 import { Skeleton } from "@/components/ui/skeleton.jsx";
 import { useAuth } from "@/lib/auth-context.jsx";
 import { getCrmData, summarize as crmSummarize, hasCrm, money, PIPELINE_STAGES } from "@/lib/crm.js";
@@ -66,12 +67,12 @@ export function HomeDashboard({ resolved, onNavigate }) {
       </div>
 
       <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <KpiCard icon={TrendingUp} label="Pipeline value" value={crmS ? money(crmS.pipelineValue) : "—"} onClick={() => onNavigate?.("dashboard")} />
-        <KpiCard icon={Megaphone} label="Active campaigns" value={campS.active} onClick={() => onNavigate?.("campaigns")} />
-        <KpiCard icon={Users} label="Campaign reach" value={compact(campS.reach)} onClick={() => onNavigate?.("campaigns")} />
-        <KpiCard icon={ShoppingCart} label="Open orders" value={openOrders} onClick={() => onNavigate?.("orders")} />
-        <KpiCard icon={AlertCircle} label="Overdue invoices" value={overdue.length} tone={overdue.length ? "error" : undefined} />
-        <KpiCard icon={Images} label="Media assets" value={assets.length} onClick={() => onNavigate?.("media")} />
+        <Stat icon={TrendingUp} label="Pipeline value" value={crmS ? money(crmS.pipelineValue) : "—"} onClick={() => onNavigate?.("dashboard")} />
+        <Stat icon={Megaphone} label="Active campaigns" value={campS.active} onClick={() => onNavigate?.("campaigns")} />
+        <Stat icon={Users} label="Campaign reach" value={compact(campS.reach)} onClick={() => onNavigate?.("campaigns")} />
+        <Stat icon={ShoppingCart} label="Open orders" value={openOrders} onClick={() => onNavigate?.("orders")} />
+        <Stat icon={AlertCircle} label="Overdue invoices" value={overdue.length} tone={overdue.length ? "error" : undefined} />
+        <Stat icon={Images} label="Media assets" value={assets.length} onClick={() => onNavigate?.("media")} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -161,16 +162,3 @@ export function HomeDashboard({ resolved, onNavigate }) {
   );
 }
 
-function KpiCard({ icon: Icon, label, value, tone, onClick }) {
-  return (
-    <Card onClick={onClick} className={"p-5 " + (onClick ? "cursor-pointer transition-colors hover:border-brand-primary" : "")}>
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm text-fg-muted">{label}</p>
-          <p className={"mt-1 font-heading text-2xl " + (tone === "error" ? "text-error" : "text-fg")}>{value}</p>
-        </div>
-        <Icon className="h-5 w-5 text-fg-muted" />
-      </div>
-    </Card>
-  );
-}

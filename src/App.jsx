@@ -14,6 +14,7 @@ import { AppShell } from "@/components/layout/app-shell.jsx";
 import { Button } from "@/components/ui/button.jsx";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
+import { Stat } from "@/components/ui/stat.jsx";
 import { Skeleton } from "@/components/ui/skeleton.jsx";
 import { Breadcrumb } from "@/components/ui/breadcrumb.jsx";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs.jsx";
@@ -139,6 +140,7 @@ export default function App({ initialResolved }) {
     <RequireAuth resolved={resolved}>
     <AppShell
       brand={resolved.brand}
+      isHouse={resolved.isHouse}
       nav={nav}
       activeKey={effectivePage}
       onNavigate={setPage}
@@ -170,9 +172,9 @@ export default function App({ initialResolved }) {
       </div>
 
       <div className="mb-6 grid gap-4 sm:grid-cols-3">
-        <StatCard label="Active SKUs" value="42" badge={<Badge variant="success">+3</Badge>} />
-        <StatCard label="Open orders" value="7" badge={<Badge variant="warning">2 late</Badge>} />
-        <StatCard label="Media assets" value="318" badge={<Badge variant="info">synced</Badge>} />
+        <Stat label="Active SKUs" value="42" badge={<Badge variant="success">+3</Badge>} />
+        <Stat label="Open orders" value="7" badge={<Badge variant="warning">2 late</Badge>} />
+        <Stat label="Media assets" value="318" badge={<Badge variant="info">synced</Badge>} />
       </div>
 
       <Tabs defaultValue="products">
@@ -253,20 +255,6 @@ function UserMenu({ user, onLogout }) {
         <LogOut className="h-4 w-4" />
       </Button>
     </div>
-  );
-}
-
-function StatCard({ label, value, badge }) {
-  return (
-    <Card>
-      <CardContent className="flex items-start justify-between p-5">
-        <div>
-          <p className="cs-display text-3xl text-fg">{value}</p>
-          <p className="cs-eyebrow mt-2 text-fg-muted">{label}</p>
-        </div>
-        {badge}
-      </CardContent>
-    </Card>
   );
 }
 

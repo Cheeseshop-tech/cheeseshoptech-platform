@@ -2,10 +2,10 @@ import { cn } from "@/lib/utils.js";
 
 // Portal layout shell: fixed sidebar nav + topbar + content. Pure composition; tenant
 // branding flows in through tokens, so this same shell serves every client.
-export function AppShell({ brand, nav = [], activeKey, onNavigate, topbarRight, breadcrumb, children }) {
+export function AppShell({ brand, isHouse = false, nav = [], activeKey, onNavigate, topbarRight, breadcrumb, children }) {
   return (
     <div className="flex min-h-screen bg-bg">
-      <Sidebar brand={brand} nav={nav} activeKey={activeKey} onNavigate={onNavigate} />
+      <Sidebar brand={brand} isHouse={isHouse} nav={nav} activeKey={activeKey} onNavigate={onNavigate} />
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex h-16 items-center justify-between border-b border-border bg-surface px-6">
           <div className="min-w-0">{breadcrumb}</div>
@@ -17,15 +17,18 @@ export function AppShell({ brand, nav = [], activeKey, onNavigate, topbarRight, 
   );
 }
 
-function Sidebar({ brand, nav, activeKey, onNavigate }) {
+function Sidebar({ brand, isHouse, nav, activeKey, onNavigate }) {
   return (
     <aside className="hidden w-60 shrink-0 flex-col border-r border-border bg-surface md:flex">
-      <div className="flex h-16 items-center gap-2 border-b border-border px-5">
+      <div className="flex h-16 flex-col justify-center gap-0.5 border-b border-border px-5">
         {brand?.logo ? (
           <img src={brand.logo} alt={brand?.name || "Logo"} className="h-7 w-auto" />
         ) : (
-          <span className="font-heading italic text-lg text-brand-primary">{brand?.name}</span>
+          <span className="font-heading italic text-lg leading-none text-brand-primary">{brand?.name}</span>
         )}
+        {/* Type/layout signal (no color change): the agency house reads distinct from a client
+            tenant — driven by the tenant resolver's isHouse flag, not per-client code. */}
+        {isHouse && <span className="cs-eyebrow text-fg-muted">Agency Console</span>}
       </div>
       <nav className="flex-1 space-y-1 p-3">
         {nav.map((item) => {

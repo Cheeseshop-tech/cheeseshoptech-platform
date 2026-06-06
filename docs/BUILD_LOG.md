@@ -19,6 +19,29 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-06 — "Ledger" design pass increment 2 (shared Stat sweep + house signal)
+
+**Action.** Completed the increment-1 follow-up. (1) **Stat sweep:** extended shared
+`ui/stat.jsx` to absorb every variant — added optional `icon` (right slot, falls back from
+`badge`), `onClick` (clickable deep-link tile w/ hover-border), and `tone="error"` props — then
+deleted the **five** divergent local copies (`App.jsx` StatCard, `pricing-tool.jsx` Stat,
+`crm-dashboard.jsx` Stat, `campaigns-page.jsx` Stat, `home-dashboard.jsx` KpiCard) and pointed all
+consumers at the one component. Net −49 lines. The CRM/Campaigns/Home KPI tiles thereby **upgrade**
+from plain `text-2xl` sans figures to the editorial italic-serif figure + uppercase eyebrow — the
+whole point of the sweep. (Left Campaigns' tiny in-card `Metric` alone — different element.)
+(2) **Agency-vs-client signal (Rick's pick: quietest option):** the shared `AppShell` now renders
+a `cs-eyebrow` **"Agency Console"** tag under the wordmark **only when `resolved.isHouse`** — a
+type/layout signal, NOT a color change (house stays Forest Green per the brand decision). Driven by
+the existing tenant-resolver flag; no per-client code.
+
+**Why.** Increment-1 left "sweep remaining stat tiles to shared Stat" + "add an agency-vs-client
+distinguishing treatment (both green now)" open (see entry below). This closes both.
+**Status.** `validate:clients` + `build` clean. **Verified in a real browser** (vite dev + headless
+Chrome): house view shows the Agency Console tag + editorial Catalog tiles; Home KPI tiles render
+the icon-variant editorial figure; tenant (montitrentini) view shows "Monti Trentini" wordmark with
+**no** tag (gating confirmed: `hasAgencyTag:false`). Per-tenant green retained throughout.
+**Unblocks:** Ledger pass effectively complete; remaining In-flight is code (CRM/store off mock) or ops (Phase 7).
+
 ## 2026-06-06 — Project tidy + Best-Practices Manual (cross-surface continuity)
 
 **Action.** Operating-hygiene checkpoint. Created **`docs/BEST_PRACTICES.md`** — the manual for

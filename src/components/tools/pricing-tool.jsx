@@ -3,6 +3,7 @@ import { Calculator, Package, Handshake } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card.jsx";
 import { Button } from "@/components/ui/button.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
+import { Stat } from "@/components/ui/stat.jsx";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs.jsx";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table.jsx";
 import { useToast } from "@/components/ui/toast.jsx";
@@ -393,11 +394,3 @@ function Commitments({ data }) {
   );
 }
 
-function Stat({ label, value }) {
-  return (
-    <Card><CardContent className="p-4">
-      <p className="cs-display text-3xl text-fg">{value}</p>
-      <p className="cs-eyebrow mt-1.5 text-fg-muted">{label}</p>
-    </CardContent></Card>
-  );
-}

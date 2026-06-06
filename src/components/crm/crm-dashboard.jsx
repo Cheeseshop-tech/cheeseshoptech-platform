@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Users, TrendingUp, ShoppingCart, AlertCircle, Lock, Plug } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
+import { Stat } from "@/components/ui/stat.jsx";
 import { Skeleton } from "@/components/ui/skeleton.jsx";
 import { EmptyState } from "@/components/ui/empty-state.jsx";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table.jsx";
@@ -149,20 +150,6 @@ export function OrdersPage({ resolved }) {
         </TableBody>
       </Table>
     </div>
-  );
-}
-
-function Stat({ icon: Icon, label, value, tone }) {
-  return (
-    <Card>
-      <CardContent className="flex items-center justify-between p-5">
-        <div>
-          <p className="text-sm text-fg-muted">{label}</p>
-          <p className={`mt-1 font-heading text-2xl ${tone === "error" ? "text-error" : "text-fg"}`}>{value}</p>
-        </div>
-        <Icon className="h-5 w-5 text-fg-muted" />
-      </CardContent>
-    </Card>
   );
 }
 
