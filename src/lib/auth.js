@@ -11,7 +11,8 @@ const APIUrl =
 
 export const auth = new GoTrue({ APIUrl, audience: "", setCookie: true });
 
-export const ROLES = ["admin", "client", "pr", "influencer", "creator"];
+// "owner" = Master Admin (CheeseShop TECH ownership). Superset of admin: see rolesOf below.
+export const ROLES = ["owner", "admin", "client", "pr", "influencer", "creator"];
 
 export function currentUser() {
   return auth.currentUser();
@@ -65,9 +66,20 @@ export async function logout() {
   if (user) await user.logout();
 }
 
-/** Roles assigned to a user (Netlify Identity stores these in app_metadata.roles). */
+/**
+ * Roles assigned to a user (Netlify Identity stores these in app_metadata.roles).
+ * "owner" (Master Admin) is a superset of "admin" — we inject "admin" implicitly so every
+ * existing admin-gated check (nav, CRM, media, campaigns, tenant access) passes for an owner
+ * without touching each call site. Owner-only surfaces use isOwner().
+ */
 export function rolesOf(user) {
-  return user?.app_metadata?.roles || [];
+  const roles = user?.app_metadata?.roles || [];
+  if (roles.includes("owner") && !roles.includes("admin")) return [...roles, "admin"];
+  return roles;
+}
+
+export function isOwner(user) {
+  return (user?.app_metadata?.roles || []).includes("owner");
 }
 
 /**

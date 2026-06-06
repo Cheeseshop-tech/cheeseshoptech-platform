@@ -32,6 +32,7 @@ Two facts live in each user's **`app_metadata`** (server-controlled, NOT user-ed
 | `app_metadata.tenant` *or* a `tenant:<id>` role | `"montitrentini"` / `tenant:montitrentini` | Which tenant the user belongs to (matches the subdomain). Omit for `admin`. **The Netlify dashboard only edits roles**, so in practice assign a tenant by adding the role `tenant:montitrentini` alongside `client`. |
 
 **Roles**
+- `owner` — **Master Admin** (CheeseShop TECH ownership, Rick). Superset of `admin` (the app injects `admin` implicitly via `rolesOf`). Top of the hierarchy; reserved for platform ownership. Manage users/roles/resets from the Netlify Identity dashboard (passwords are never viewable — only invite / role change / send-reset / remove).
 - `admin` — CheeseShop TECH staff. Tenant-agnostic: can view any tenant + the house/apex view, and sees the tenant switcher.
 - `client` — the brand's own operators (full portal for their tenant).
 - `pr` / `influencer` / `creator` — external collaborators; scoped to the media hub (approval states per `POSITIONING.md`). UI gated with `RoleGate`.
