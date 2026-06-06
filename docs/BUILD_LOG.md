@@ -19,6 +19,18 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-06 — Project tidy + Best-Practices Manual (cross-surface continuity)
+
+**Action.** Operating-hygiene checkpoint. Created **`docs/BEST_PRACTICES.md`** — the manual for
+keeping work coherent across the four Claude surfaces (Chat · Cowork · Claude Code · Claude Design):
+the canonical-doc map (one home per fact), tool routing, the **checkpoint ritual** (build green →
+commit → BUILD_LOG → rewrite HANDOFF), git/deploy discipline, and templates. **Rewrote `HANDOFF.md`**
+to true current state (it was badly stale — predated all of today's work). **Tidied:** deleted 20
+stray `vite.config.js.timestamp-*.mjs` + `.DS_Store`; archived the completed one-off
+`CODE_HANDOFF.md` → `docs/archive/`; committed `CLAUDE_CODE_BRIEF.md` into the repo.
+**Why.** The recurring drift (a surface re-deriving state from a rotted handoff) needed a system.
+**Status.** Docs only; no code change.
+
 ## 2026-06-06 — "Ledger" design pass (house-wide, via shared layer)
 
 **Action (Rick).** Bring the editorial "Ledger" feel Rick liked from the Monti portal into the

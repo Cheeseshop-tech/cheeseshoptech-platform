@@ -1,70 +1,33 @@
-# HANDOFF — CheeseShop TECH platform build
+# HANDOFF — CheeseShop TECH platform
 
-**Last updated:** 2026-06-06 · **Last chat:** Identity live + Tools + featured Storefront w/ Admin; headless strategy locked
+**Updated:** 2026-06-06 · **HEAD:** `phase-2-6-build` tip (latest: Ledger pass + project tidy) · **Surface:** Claude Code
+**Read first:** `CLAUDE_CODE_BRIEF.md` → this → `docs/BUILD_LOG.md` (top) → `docs/BEST_PRACTICES.md`.
 
 ## Live now
-
-- **Staging site:** https://cheeseshoptech-platform.netlify.app — git-connected, auto-deploys from `phase-2-6-build`.
-- **Auth LIVE:** Netlify Identity enabled (invite-only); admin `Rick.posada@outlook.com` active. Login at `/?app=1` (house) or `/?client=montitrentini` (Monti).
-- **Deployed:** through commit `672a167` (Tools module + Monti Shopify URL). `cheeseshoptech.com` (Drop coming-soon) untouched.
-
-## 🟢 Media hub LIVE on real Cloudinary (2026-06-06)
-
-First real backend is live: `media-list` function returns **103 real Monti images** from the
-`monti-trentini` Cloudinary folder (cloud `sofcvmwa`); `VITE_MEDIA_BACKEND=cloudinary`. Deployed at
-commit `9197234`. All assets `draft` (admin/client see all; tag for press/influencer visibility later).
-Other modules (CRM, campaigns, store, home) still mock behind their seams.
-
-## Deployed through `017750f` (Storefront + Admin live)
-
-## NOT pushed yet (local, committed-ready)
-
-Built after the last push: **Campaigns** module (sales+social engine, its own nav tab) and a new
-**Home dashboard** (cross-module command center on the Dashboard tab). Both mock-backed, build clean.
-Push to deploy:
-`rm -f .git/index.lock && git add -A && git commit -m "Campaigns module + Home dashboard" && git push`
-
-## Strategy locked (2026-06-06): headless storefront rebuild
-
-Rebuild client storefront *experience* natively in the portal; keep checkout/payments/tax on a commerce engine (Shopify/Stripe/Medusa). The paid value-add. Canonical: `docs/STOREFRONT_STRATEGY.md`. The Admin "Publish" seam will target the commerce API (Netlify function) when a real client signs.
-
-## Other open threads
-
-- Remaining launch items in `docs/LAUNCH_AND_MAINTENANCE.md`: Cloudinary (folders/keys), Make (CRM webhook), invite a Monti `client` test user (`client` + `tenant:montitrentini` roles).
-- Price-list calculator: still local/`coming-soon` — host it or rebuild native.
+- **Staging app:** https://cheeseshoptech-platform.netlify.app — git-connected, **auto-deploys from `phase-2-6-build`**. Behind Netlify Identity login (admin `Rick.posada@outlook.com`). Staff: `/?app=1` (house); tenant preview: `/?client=montitrentini`.
+- **Public:** https://cheeseshoptech.com — Netlify Drop coming-soon, **not git-connected** (pushes don't touch it).
+- **Real backend live:** Media hub on Cloudinary (cloud `sofcvmwa`, 103 Monti assets). Others mock behind seams.
 
 ## Where we are
+- **Phases 0–6 — COMPLETE/BUILT.** Domain + apex coming-soon, design system + component catalogue, Netlify Identity auth + roles/tenant-scoping, Media hub (real Cloudinary), CRM connector + Dashboard/Orders (mock), Campaigns + Home dashboard. Detail in the phase docs.
+- **Pricing & Inventory tool — BUILT + LIVE** (native module, Monti tenant). Proforma (class-of-trade quoting) · Movement report (forecast-core) · Commitments. Fees as line items (Trucking $0.30/lb + Processing $135 under 1,500 lb), lot#/expiry inline on the price list, Print/PDF proforma. Engines: `src/lib/pricing-core.js` + `forecast-core.js`; data seam `src/lib/pricing.js` (mock-bundled `src/data/montitrentini/*.json`).
+- **Brand — official green.** Whole platform Forest Green `#064E22` (house + Monti tenant).
+- **Design — "Ledger" pass increment 1 shipped.** Editorial italic-serif display house-wide via shared layer (DESIGN_SYSTEM A3+B4): h1/h2 + CardTitle italic, tabular figures, refined Table/Badge/Card/Stat. Colors stay per-tenant.
+- **Branch hygiene — clean.** `phase-2-6-build` canonical + synced. `main` = stale scaffold (untouched). No sprawl.
 
-- **Phase 0 — COMPLETE.** Repo `cheeseshoptech-platform` live & private at github.com/cheeseshop-tech. Accounts set up (Cloudflare, Netlify, GitHub, Cloudinary, Make, HubSpot). Netlify tier = PRO.
-- **Phase 1 — COMPLETE.** `https://cheeseshoptech.com` live over HTTPS (coming-soon page). Option C: 3 proxied CNAMEs in Cloudflare (`@`, `www`, `*`) → `cheeseshoptech.netlify.app`. Wildcard routing verified.
-- **Phase 2 — COMPLETE.** Design system locked in `docs/DESIGN_SYSTEM.md` (warm artisanal house brand; overridable vs locked tokens; config schema; AA contrast guardrail; two-surface branding model in B0). Vite + React + Tailwind shell with token/theming system + `clientConfig` tenant resolver. **Full B4 component catalogue shipped** (shadcn pattern, Radix-backed, all token-themed + AA-accessible): button, card, input/textarea, label, select, checkbox, radio, switch, badge, table, tabs, dialog, toast, breadcrumb, empty-state, skeleton, AppShell. `App.jsx` is a working portal demo with a live tenant switcher.
-- **Phase 3 — BUILT (needs Netlify enablement to sign off).** Custom house-branded auth on **Netlify Identity** (verified not deprecated — reversed 2026-02-19) via `gotrue-js`. Portal sits behind `RequireAuth` with tenant scoping (no cross-tenant visibility) + role gating (`admin|client|pr|influencer|creator`, stored in `app_metadata`). Topbar user menu + logout; admin-only tenant switcher. Full model + setup steps in `docs/AUTH_AND_ROLES.md`.
-- **Phase 5 — BUILT (real Cloudinary sync deferred to launch).** Media hub: Cloudinary delivery layer with named transforms (thumb/card/hero, applied at delivery per OM §6), `listAssets()` data seam (mock food-sample backend now; Netlify-function Cloudinary Admin API later), folder tabs + gallery + asset dialog (copy delivery URL, approval control), env-gated upload. Approval states (`draft → approved-for-press → approved-for-influencers`) + role visibility per `POSITIONING.md`. Details in `docs/MEDIA_HUB.md`. (Walkthrough Phase 4 — shell + tenant resolution — was already done in our Phase 2.)
-- **Phase 6 — BUILT (Make wiring deferred to launch).** CRM connector: `getCrmData()` seam (mock now; Netlify-function → Make webhook later), **Dashboard** (pipeline value/open orders/overdue invoices/contacts, pipeline-by-stage, activity, invoices) + **Orders** pages, data shape per OM §7. CRM is admin/client-only; added **role-based nav** (pr/influencer/creator see only Media hub). Details in `docs/CRM_CONNECTOR.md`.
-- **Apex coming-soon route — BUILT.** Public coming-soon serves at the apex; the portal only at `<client>.cheeseshoptech.com`. **Deploying to `main` no longer replaces the public page**, so a production deploy is safe whenever wanted. Staff: apex `?app=1`; tenant preview: `?client=<sub>`. `npm run build` clean (1,614 modules). **Monti Trentini = tenant #1 / first test account.**
+## In flight / not done
+- **Pricing backend** — still mock-bundled JSON; real Netlify-function backend deferred (same shape).
+- **CRM / Campaigns / Storefront** — mock behind seams; wiring is launch work.
+- **Ledger increment 2** — sweep remaining module headers/stat tiles to shared `ui/stat.jsx`; add an agency-vs-client distinguishing signal (both are green now).
+- **Phase 7 — Monti pilot** — operational launch wiring (Identity test user, Cloudinary verify, Make CRM webhook, SSL) in `docs/LAUNCH_AND_MAINTENANCE.md`. **Rick's dashboard/secret actions**, not code.
 
-## Open / not blocking
+## Open threads
+- Real **class-of-trade %s** + the two freight confirmations → pending Stefano (placeholders in now; config-tunable).
+- `docs/PRICING_AND_ENGAGEMENT_MODEL.md` still has `$___` + buyout-multiplier `N` to set.
+- Brand Foundation's "cool-studio" rec is **superseded** (house is green now) — update brand docs; decide the agency-vs-client distinction.
 
-**All deferred operational/launch work is now consolidated in `docs/LAUNCH_AND_MAINTENANCE.md`** — the single list to work through once design + build is solid (push, deploy decision, enable Identity + test user, Cloudinary folders/keys/preset, SSL hardening, registrar auto-renew, recurring reviews). Per Rick: hold all of it until we're in a more solid place.
+## First message for the next surface
+> Read `CLAUDE_CODE_BRIEF.md` + this `HANDOFF.md` + `docs/BUILD_LOG.md` (top). Confirm: platform = CheeseShop TECH, clients = tenants; `phase-2-6-build` is the source of truth; differentiation = tokens + content only. The build is green and deployed. Pick up from **In flight** — Ledger increment 2 (design), or Phase 7 launch wiring (ops), or take CRM/store off mock (code). Propose the plan before executing.
 
-- [ ] **Nothing pushed/deployed yet.** Build is green; everything is local.
-- [ ] **Stale local `dist/` + `vite.config.js.timestamp-*.mjs`** are host-locked (can't delete from here) but are gitignored, so they won't be committed. Delete in Finder anytime; cosmetic.
-
-## Next: Phase 7 — Pilot deploy (Monti Trentini)
-
-Walkthrough Phases 2–6 are now built in code (design system, auth, shell/tenant resolution, media, CRM). What remains is **operational, not code**: work `docs/LAUNCH_AND_MAINTENANCE.md` to wire the real backends (Identity, Cloudinary, Make) and ship `montitrentini.cheeseshoptech.com` for UAT (OM §8). Optional code polish before pilot: the apex coming-soon route, and the three Netlify functions (media-list, crm) when their accounts are ready.
-
-## How to run it (dev)
-
-From this folder: `npm install` then `npm run dev`. Preview a tenant locally with `?client=montitrentini` (the header has a live tenant switcher). `npm run build` for production; `npm run validate:clients` to lint client configs against the schema + contrast bar.
-
-## Lessons logged (don't repeat)
-
-- Netlify "Activate Netlify DNS" nameserver screen (`dns#.p08.nsone.net`) is Option B — IGNORE. DNS lives in Cloudflare only.
-- CNAME target is the `*.netlify.app` site address, never a nameserver.
-- Deploy the Netlify site BEFORE wiring DNS.
-- Differentiation is **tokens + content only** — never fork code or add per-client screens (DESIGN_SYSTEM.md Part E).
-
-## First message for the next chat
-
-> Read `HANDOFF.md` + `docs/BUILD_LOG.md` + `docs/LAUNCH_AND_MAINTENANCE.md`. Code for Phases 2–6 is built; next is launch (work the launch list) toward the Monti pilot — or optional pre-pilot code polish (apex coming-soon route, Netlify functions).
+## How to run / verify (dev)
+`export PATH="/tmp/node-v22.18.0-darwin-arm64/bin:$PATH"` (bootstrap Node — see BEST_PRACTICES §4) → `npm install` once → `npm run dev` (DEV admin auth bypass) → preview `?client=montitrentini`. `npm run build` + `npm run validate:clients` before any push. Verify a deploy by grepping the staging JS bundle for a latest-commit string.
