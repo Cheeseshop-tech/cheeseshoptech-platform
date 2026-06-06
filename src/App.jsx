@@ -37,7 +37,8 @@ import { ToolsPage } from "@/components/tools/tools-page.jsx";
 import { CampaignsPage } from "@/components/campaigns/campaigns-page.jsx";
 import { FeaturedTool } from "@/components/tools/featured-tool.jsx";
 import { toolIcon } from "@/lib/icons.js";
-import { CrmDashboard, OrdersPage } from "@/components/crm/crm-dashboard.jsx";
+import { OrdersPage } from "@/components/crm/crm-dashboard.jsx";
+import { HomeDashboard } from "@/components/home/home-dashboard.jsx";
 import { ComingSoon } from "@/components/marketing/coming-soon.jsx";
 import { RequireAuth, RoleGate } from "@/components/auth/require-auth.jsx";
 import { SetPassword } from "@/components/auth/set-password.jsx";
@@ -152,7 +153,7 @@ export default function App({ initialResolved }) {
       ) : effectivePage === "tools" ? (
         <ToolsPage resolved={resolved} onNavigate={setPage} />
       ) : effectivePage === "dashboard" ? (
-        <CrmDashboard resolved={resolved} />
+        <HomeDashboard resolved={resolved} onNavigate={setPage} />
       ) : effectivePage === "orders" ? (
         <OrdersPage resolved={resolved} />
       ) : (

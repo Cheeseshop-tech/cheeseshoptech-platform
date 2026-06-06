@@ -19,6 +19,20 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-06 — Home dashboard (cross-module command center)
+
+**Built.** The `Dashboard` tab now renders a new `HomeDashboard`
+(`src/components/home/home-dashboard.jsx`) that aggregates all modules: greeting + store-status badge,
+KPI grid (pipeline value, active campaigns, campaign reach, open orders, overdue invoices, media
+assets — each deep-links to its module), pipeline-by-stage, active-campaigns list, recent activity,
+and an overdue-invoices "needs attention" panel. Pulls in parallel from crm/campaigns/media/store
+libs (all mock for now). Replaced the old `dashboard`→CrmDashboard route; `OrdersPage` still wired.
+`CrmDashboard` component retained in the file but no longer routed (pipeline/invoices now surface on Home).
+
+`npm run validate:clients` passes; `vite build` clean. Built autonomously while Rick was away. Not pushed.
+
+---
+
 ## 2026-06-06 — Campaigns module (the sales + social engine)
 
 **Built.** `Campaigns` nav tab (after Dashboard, admin/client) — the core POSITIONING pillar.

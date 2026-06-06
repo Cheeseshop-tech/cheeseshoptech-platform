@@ -8,10 +8,14 @@
 - **Auth LIVE:** Netlify Identity enabled (invite-only); admin `Rick.posada@outlook.com` active. Login at `/?app=1` (house) or `/?client=montitrentini` (Monti).
 - **Deployed:** through commit `672a167` (Tools module + Monti Shopify URL). `cheeseshoptech.com` (Drop coming-soon) untouched.
 
+## Deployed through `017750f` (Storefront + Admin live)
+
 ## NOT pushed yet (local, committed-ready)
 
-Featured **Storefront** tab (embed + **Live/Admin toggle**), the **Storefront Admin** back-office (design/products/content/orders/settings, mock + `saveStore` seam), Monti logo fix. Push to deploy:
-`rm -f .git/index.lock && git add -A && git commit -m "Storefront featured tab + admin back-office" && git push`
+Built after the last push: **Campaigns** module (sales+social engine, its own nav tab) and a new
+**Home dashboard** (cross-module command center on the Dashboard tab). Both mock-backed, build clean.
+Push to deploy:
+`rm -f .git/index.lock && git add -A && git commit -m "Campaigns module + Home dashboard" && git push`
 
 ## Strategy locked (2026-06-06): headless storefront rebuild
 
