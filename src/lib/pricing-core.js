@@ -29,21 +29,23 @@ export function quoteLineTotal(sku, qty, opts, config) {
   return round2(sku.unit === "lb" ? price * qty * ((sku.pack && sku.pack.netLb) || 0) : price * qty);
 }
 
-/* Freight + handling as order-level LINE ITEMS, volume-gated at the freight threshold. */
+/* Freight + handling as order-level LINE ITEMS (never in $/lb), added at proforma time.
+   Trucking = $0.30/lb on all delivered orders. Processing = $135 on delivered orders
+   under the 1,500 lb threshold. Pickup = no lines. */
 export function freightLines(orderLbs, opts, config) {
   const fr = config.pricing && config.pricing.freight;
   if (!fr || opts.basis !== "delivered") return [];
   orderLbs = Number(orderLbs) || 0;
-  if (orderLbs >= fr.thresholdLb) {
-    const a = fr.delivered.atOrAboveThreshold;
-    return [{ id: "trucking", label: a.label || "Trucking (delivered)", amount: round2(a.perLb * orderLbs) }];
+  const d = fr.delivered || {};
+  const lines = [];
+  if (d.truckingPerLb) {
+    lines.push({ id: "trucking", label: "Trucking", amount: round2(d.truckingPerLb * orderLbs) });
   }
-  const b = fr.delivered.belowThreshold;
-  const lines = [{
-    id: "trucking", label: "Trucking (flat / going rate)",
-    amount: round2(opts.truckingOverride != null ? opts.truckingOverride : b.truckingFlat),
-  }];
-  if (b.processingFlat) lines.push({ id: "processing", label: "Processing & handling", amount: round2(b.processingFlat) });
+  const addProcessing = d.processingFlat &&
+    (!d.processingBelowThresholdOnly || orderLbs < fr.thresholdLb);
+  if (addProcessing) {
+    lines.push({ id: "processing", label: "Processing fee", amount: round2(d.processingFlat) });
+  }
   return lines;
 }
 

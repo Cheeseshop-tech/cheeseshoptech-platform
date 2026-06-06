@@ -19,6 +19,21 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-06 — Pricing tool: fee line items + lot/expiry on the price list + Print/PDF
+
+**Decision (Rick).** (1) Freight/handling are SEPARATE LINE ITEMS on the proforma, added at
+proforma time, never folded into $/lb: **Trucking = $0.30/lb** on all delivered orders;
+**Processing fee = $135** on delivered orders **under 1,500 lb**. Labels exactly "Trucking" /
+"Processing fee". (Replaces the old flat-$300-below-threshold model.) Pickup = no fees.
+(2) Show **lot # + expiration + in-transit ETA inline** on the price-list rows for a quick read
+(editing/management stays on its own page). (3) **Print / PDF** the proforma.
+
+**Changed:** `src/lib/pricing-core.js` `freightLines()` (trucking $/lb always + processing
+below-threshold); `src/data/montitrentini/client.config.json` freight block; `pricing-tool.jsx`
+(per-row lot/expiry list, `printProforma()` → clean branded proforma window with FIFO lot
+allocation per line, "Print / PDF" button). Verified: freight math (1200lb→$360+$135; 1800lb→$540;
+pickup→none), validate + build clean, rendered. Config-only %s still provisional pending Stefano.
+
 ## 2026-06-06 — House brand → Forest Green (supersedes Brand Foundation cool-studio rec)
 
 **Decision (Rick).** Swap the CheeseShop TECH HOUSE brand to Forest Green (primary `#064E22`,

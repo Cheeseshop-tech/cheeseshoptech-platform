@@ -13,6 +13,8 @@ import * as FC from "@/lib/forecast-core.js";
 const TODAY = "2026-06-06";
 const money = (n) => "$" + Number(n || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const lbsFmt = (n) => Number(n || 0).toLocaleString("en-US", { maximumFractionDigits: 0 });
+const fmtDate = (iso) => (iso ? new Date(iso + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—");
+const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const titleCase = (s) => String(s || "").toLowerCase().replace(/\b([a-z])/g, (m, c) => c.toUpperCase());
 
 const selCls =
@@ -55,7 +57,7 @@ export function PricingTool({ resolved }) {
           <TabsTrigger value="movement">Movement</TabsTrigger>
           <TabsTrigger value="commitments">Commitments</TabsTrigger>
         </TabsList>
-        <TabsContent value="proforma"><Proforma data={data} /></TabsContent>
+        <TabsContent value="proforma"><Proforma data={data} brand={resolved.brand} /></TabsContent>
         <TabsContent value="movement"><Movement data={data} /></TabsContent>
         <TabsContent value="commitments"><Commitments data={data} /></TabsContent>
       </Tabs>
@@ -64,7 +66,7 @@ export function PricingTool({ resolved }) {
 }
 
 /* ---------------- Proforma ---------------- */
-function Proforma({ data }) {
+function Proforma({ data, brand }) {
   const { config, catalog, inventory, commitments } = data;
   const { toast } = useToast();
   const skus = useMemo(
@@ -105,6 +107,41 @@ function Proforma({ data }) {
     const recs = items.map((it) => ({ period: TODAY.slice(0, 7), skuCode: it.sku.code, customer: customer || "(unspecified)", soldCases: it.cases, missedCases: 0, at: TODAY }));
     appendLedger(recs);
     toast({ title: "Sale recorded", description: `${items.length} line(s) added to the movement ledger.`, tone: "success" });
+  }
+
+  // Print / save-as-PDF: open a clean branded proforma document and trigger print.
+  function printProforma() {
+    if (!items.length) { toast({ title: "Nothing to print", description: "Enter case quantities first.", tone: "warning" }); return; }
+    const brandColor = (brand && brand.colors && brand.colors.primary) || "#064E22";
+    const b = (config.brand) || {};
+    const rows = order.lines.map((l) => {
+      const a = PC.allocate(l.code, l.cases, inventory);
+      const lots = a.allocated.map((x) => `${x.cases}cs lot ${x.lotNum}${x.expDate ? " (exp " + fmtDate(x.expDate) + ")" : ""}`).join("; ");
+      return `<tr><td>${esc(l.code)}</td><td>${esc(l.name)}</td><td class="r">${l.cases}</td><td class="r">${lbsFmt(l.lbs)}</td><td class="r">${money(l.unitPrice)}</td><td class="r">${money(l.lineTotal)}</td></tr>`
+        + (lots ? `<tr class="lot"><td></td><td colspan="5">↳ ${esc(lots)}${a.shortfall > 0 ? ` · <b>${a.shortfall} cs short</b>` : ""}</td></tr>` : "");
+    }).join("");
+    const fees = order.freight.map((f) => `<tr class="fee"><td colspan="5" class="r">${esc(f.label)}</td><td class="r">${money(f.amount)}</td></tr>`).join("");
+    const html = `<!doctype html><html><head><meta charset="utf-8"><title>Proforma — ${esc(customer || b.name || "")}</title><style>
+      *{box-sizing:border-box}body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#141413;margin:0;padding:34px;font-size:13px}
+      .hd{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid ${brandColor};padding-bottom:14px;margin-bottom:18px}
+      .hd h1{font-family:Georgia,serif;color:${brandColor};margin:0;font-size:26px}.hd .sub{color:#777;font-size:12px}
+      .pf{font-size:18px;font-weight:700;color:${brandColor};text-align:right}
+      .meta{display:flex;gap:34px;flex-wrap:wrap;margin-bottom:16px;font-size:12px}.meta b{display:block;color:${brandColor};font-size:9px;text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px}
+      table{width:100%;border-collapse:collapse;font-size:12px}th{text-align:left;border-bottom:1px solid #ccc;padding:7px 8px;font-size:9px;text-transform:uppercase;color:#777;letter-spacing:.4px}
+      td{padding:6px 8px;border-bottom:1px solid #eee}.r{text-align:right}.lot td{color:#777;font-size:11px;border-bottom:1px solid #f6f6f6;padding-top:0}
+      .fee td{color:#0E7C9E}tfoot td{font-weight:700;border-top:2px solid ${brandColor};font-size:14px;padding-top:9px}
+      tfoot tr.grand td{font-size:17px;color:${brandColor}}.ft{margin-top:32px;color:#999;font-size:11px;text-align:center}
+    </style></head><body>
+      <div class="hd"><div><h1>${esc(b.name || "Monti Trentini")}</h1><div class="sub">${esc(b.tagline || "")}</div></div><div><div class="pf">PROFORMA</div><div class="sub">${TODAY}</div></div></div>
+      <div class="meta"><div><b>Bill to</b>${esc(customer || "—")}</div><div><b>Basis</b>${basis === "pickup" ? "Pickup (EXW)" : "Delivered"}</div><div><b>Class of trade</b>${esc(tier.label || "")}</div>${customPct ? `<div><b>Custom</b>${customPct > 0 ? "+" : ""}${customPct}%</div>` : ""}</div>
+      <table><thead><tr><th>Item</th><th>Product</th><th class="r">Cases</th><th class="r">Lbs</th><th class="r">$/lb</th><th class="r">Line total</th></tr></thead>
+      <tbody>${rows}</tbody>
+      <tfoot><tr><td colspan="5" class="r">Merchandise (${order.lines.length} lines · ${lbsFmt(order.totalLbs)} lb)</td><td class="r">${money(order.merchSubtotal)}</td></tr>${fees}<tr class="grand"><td colspan="5" class="r">GRAND TOTAL</td><td class="r">${money(order.grandTotal)}</td></tr></tfoot></table>
+      <div class="ft">Casa Finco · casari dal 1925 — quote valid 30 days. Freight is estimated and confirmed at booking.</div>
+      <script>window.onload=function(){window.print();}<\/script></body></html>`;
+    const w = window.open("", "_blank");
+    if (!w) { toast({ title: "Pop-up blocked", description: "Allow pop-ups to print or save the proforma as PDF.", tone: "warning" }); return; }
+    w.document.write(html); w.document.close();
   }
 
   return (
@@ -178,6 +215,17 @@ function Proforma({ data }) {
                           <div className="font-medium text-fg">{s.name}</div>
                           <div className="text-xs text-fg-muted">{s.category} · {s.pack.netLb} lb/cs</div>
                           {c && <div className="mt-1 text-[11px] font-semibold text-brand-primary">{c.customer} {c.casesPerPeriod}/mo</div>}
+                          {inv && inv.lots && inv.lots.length > 0 && (
+                            <div className="mt-1.5 space-y-0.5">
+                              {inv.lots.map((l, i) => (
+                                <div key={i} className="font-mono text-[10px] leading-tight text-fg-muted">
+                                  {l.status === "in_transit"
+                                    ? <span className="text-info">⚓ lot {l.lotNum} · {l.cases} cs · ETA {fmtDate(l.eta)}</span>
+                                    : <span>lot {l.lotNum} · {l.cases - (l.reserved || 0)} cs · exp {fmtDate(l.expDate)}</span>}
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </TableCell>
@@ -231,7 +279,10 @@ function Proforma({ data }) {
             <div className="mt-3 flex items-center justify-between rounded-base bg-brand-primary px-3 py-2.5 text-brand-on-primary">
               <span className="font-heading">Grand total</span><span className="font-mono text-lg font-semibold">{money(order.grandTotal)}</span>
             </div>
-            <Button variant="primary" className="mt-3 w-full" onClick={recordSale}>Record sale</Button>
+            <div className="mt-3 flex gap-2">
+              <Button variant="outline" className="flex-1" onClick={printProforma}>Print / PDF</Button>
+              <Button variant="primary" className="flex-1" onClick={recordSale}>Record sale</Button>
+            </div>
           </CardContent>
         </Card>
       </div>
