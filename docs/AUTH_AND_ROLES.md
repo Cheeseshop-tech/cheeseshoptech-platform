@@ -29,7 +29,7 @@ Two facts live in each user's **`app_metadata`** (server-controlled, NOT user-ed
 | Field | Example | Purpose |
 |---|---|---|
 | `app_metadata.roles` | `["client"]` | What the user can do. One or more of: `admin`, `client`, `pr`, `influencer`, `creator`. |
-| `app_metadata.tenant` | `"montitrentini"` | Which tenant the user belongs to (matches the subdomain). Omit for `admin`. |
+| `app_metadata.tenant` *or* a `tenant:<id>` role | `"montitrentini"` / `tenant:montitrentini` | Which tenant the user belongs to (matches the subdomain). Omit for `admin`. **The Netlify dashboard only edits roles**, so in practice assign a tenant by adding the role `tenant:montitrentini` alongside `client`. |
 
 **Roles**
 - `admin` — CheeseShop TECH staff. Tenant-agnostic: can view any tenant + the house/apex view, and sees the tenant switcher.
@@ -44,10 +44,11 @@ Admins pass for any tenant.
 
 1. **Enable Identity** on the Netlify site (Site config → Identity → Enable). Set registration to **Invite only**.
 2. **Enforce strong passwords**; turn on 2FA where available.
-3. **Invite a test user.** After they accept, set their metadata (Identity → the user → Edit):
-   - `app_metadata.roles = ["client"]`
-   - `app_metadata.tenant = "montitrentini"`
-   (Or `roles = ["admin"]` with no tenant for yourself.)
+3. **Invite a test user.** Set their **Roles** (Identity → the user → Edit settings → Roles):
+   - Monti client: `client` **and** `tenant:montitrentini`
+   - Yourself (CSTECH staff): `admin` (no tenant role needed)
+   Invite/recovery links are handled by the app's custom flow (`SetPassword`) — clicking the email
+   link lands on the site, where the user sets their password and is signed in.
 4. **Deploy** the app (note: this replaces the coming-soon page — see HANDOFF deploy decision).
 5. Verify: test user logs in over HTTPS, sees only their tenant; an admin can switch tenants.
 6. **Quarterly:** review each client's user list (OM §10 least-privilege).

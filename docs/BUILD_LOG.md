@@ -19,6 +19,30 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-06 — Identity enabled + invite/recovery handling added
+
+**Netlify (driven via browser).** Enabled Netlify Identity on the `cheeseshoptech-platform` site
+(API endpoint `…/.netlify/identity`), set registration to **Invite only** (email confirmation
+required), invited **Rick.posada@outlook.com**, and set their role to **admin**.
+
+**Code.** Our custom login (not the Netlify widget) now handles Identity hash-token links —
+`getHashToken()` + `acceptInvite` / `completeRecovery` / `confirmSignup` in `auth.js`, and a
+`SetPassword` screen wired into `App.jsx` BEFORE routing (invite links land on the apex). Post-accept
+redirects admins to `/?app=1` (the house portal) so they don't bounce to coming-soon.
+
+**Tenant assignment via roles.** Netlify's dashboard only edits ROLES (not arbitrary app_metadata),
+so `tenantOf()` now also reads a `tenant:<id>` role. Assign a Monti client `client` + `tenant:montitrentini`.
+
+**Also staged (not yet pushed):** Monti placeholder-logo fix (tenant logo → brand name fallback).
+
+**ACTION (Rick):** push so staging redeploys, THEN click the invite email:
+`rm -f .git/index.lock && git add -A && git commit -m "Auth: invite/recovery handling, tenant-role, logo fix" && git push`
+(Sandbox still can't push — stale lock perms.) After redeploy, the invite link will work.
+
+`vite build` clean (build verified).
+
+---
+
 ## 2026-06-05 — Git-connected staging site live (cheeseshoptech-platform)
 
 **Done.** Created a NEW git-connected Netlify site **`cheeseshoptech-platform`**

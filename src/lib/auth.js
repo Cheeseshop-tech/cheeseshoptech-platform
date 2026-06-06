@@ -17,6 +17,45 @@ export function currentUser() {
   return auth.currentUser();
 }
 
+/**
+ * Netlify Identity invite/recovery/confirmation links arrive as a URL hash token
+ * (e.g. #invite_token=…). Parse it so the app can complete the flow (our custom login,
+ * unlike the Netlify widget, must handle this itself).
+ */
+export function getHashToken() {
+  if (typeof window === "undefined") return null;
+  const hash = window.location.hash.replace(/^#/, "");
+  if (!hash) return null;
+  const params = new URLSearchParams(hash);
+  for (const type of ["invite_token", "recovery_token", "confirmation_token"]) {
+    const token = params.get(type);
+    if (token) return { type: type.replace("_token", ""), token };
+  }
+  return null;
+}
+
+export function clearHashToken() {
+  if (typeof window !== "undefined") {
+    window.history.replaceState({}, "", window.location.pathname + window.location.search);
+  }
+}
+
+/** Accept an invite and set the password (logs the user in). */
+export async function acceptInvite(token, password) {
+  return auth.acceptInvite(token, password, true);
+}
+
+/** Confirm a signup confirmation token. */
+export async function confirmSignup(token) {
+  return auth.confirm(token, true);
+}
+
+/** Complete a password recovery: recover with the token, then set the new password. */
+export async function completeRecovery(token, password) {
+  const user = await auth.recover(token, true);
+  return user.update({ password });
+}
+
 export async function login(email, password) {
   return auth.login(email, password, true); // remember = true
 }
@@ -31,9 +70,17 @@ export function rolesOf(user) {
   return user?.app_metadata?.roles || [];
 }
 
-/** The tenant a user belongs to (custom app_metadata.tenant; admins are tenant-agnostic). */
+/**
+ * The tenant a user belongs to. Two sources (admins are tenant-agnostic):
+ *  1) `app_metadata.tenant` if set (e.g. via the GoTrue admin API), OR
+ *  2) a `tenant:<id>` role — because the Netlify Identity dashboard only lets you edit ROLES,
+ *     not arbitrary metadata, so this is how a tenant is assigned in the UI.
+ */
 export function tenantOf(user) {
-  return user?.app_metadata?.tenant || null;
+  const explicit = user?.app_metadata?.tenant;
+  if (explicit) return explicit;
+  const r = rolesOf(user).find((x) => x.startsWith("tenant:"));
+  return r ? r.slice("tenant:".length) : null;
 }
 
 export function hasRole(user, role) {

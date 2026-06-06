@@ -34,8 +34,9 @@ import { MediaHub } from "@/components/media/media-hub.jsx";
 import { CrmDashboard, OrdersPage } from "@/components/crm/crm-dashboard.jsx";
 import { ComingSoon } from "@/components/marketing/coming-soon.jsx";
 import { RequireAuth, RoleGate } from "@/components/auth/require-auth.jsx";
+import { SetPassword } from "@/components/auth/set-password.jsx";
 import { useAuth } from "@/lib/auth-context.jsx";
-import { rolesOf } from "@/lib/auth.js";
+import { rolesOf, getHashToken } from "@/lib/auth.js";
 import { listClients, resolveClient } from "@/lib/clientConfig.js";
 import { applyTheme } from "@/lib/theme.js";
 
@@ -59,6 +60,13 @@ export default function App({ initialResolved }) {
   const clients = listClients();
   const { toast } = useToast();
   const { user, logout } = useAuth();
+
+  // Netlify Identity invite / recovery / confirmation links arrive as a hash token — handle
+  // them before any routing (the link lands on the apex, which would otherwise show coming-soon).
+  const hashToken = getHashToken();
+  if (hashToken) {
+    return <SetPassword brand={{ ...resolved.brand, isHouse: resolved.isHouse }} type={hashToken.type} token={hashToken.token} />;
+  }
 
   // Apex (house view, no tenant subdomain) serves the public coming-soon page, so deploying the
   // app never replaces the public site. Portals live at <client>.cheeseshoptech.com. Staff reach
