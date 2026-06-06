@@ -4,8 +4,8 @@
   "brand": {
     "name": "Monti Trentini",
     "logo": "",
-    "colors": { "primary": "#7A1F2B", "accent": "#C9A227" },
-    "fonts": { "heading": "Playfair Display", "body": "Inter" },
+    "colors": { "primary": "#064E22", "accent": "#009640" },
+    "fonts": { "heading": "Fraunces", "body": "Inter" },
     "radius": "md"
   },
   "cloudinaryFolder": "monti-trentini",
