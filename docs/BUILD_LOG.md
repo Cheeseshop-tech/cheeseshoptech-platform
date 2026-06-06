@@ -19,6 +19,42 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-06 — STRATEGY LOCKED — headless storefront rebuild
+
+**Decision (Rick + Claude).** When a client's storefront moves into the portal, we **rebuild the
+experience layer natively and run headless** — a commerce engine (their Shopify, or Stripe/Medusa)
+keeps checkout/payments/tax/fraud/fulfillment; the portal owns design, merchandising, content, admin,
+and the conversion data. We do NOT rebuild commerce (that's rebuilding Shopify badly + owning a
+client's revenue/uptime). This is the moat + the productized value-add ("we rebuild, improve, and run
+your store"). Offering tiers: Connected (link-out) → **Headless rebuild** (paid value-add) → Fully
+native (high liability, avoid). The Storefront Admin's `saveStore()` seam will target the commerce
+API via a Netlify function (secrets server-side) when a real client signs.
+
+**Captured in:** `docs/STOREFRONT_STRATEGY.md` (canonical), `POSITIONING.md` (pointer),
+`PRICING_AND_ENGAGEMENT_MODEL.md` (build-fee tier note).
+
+---
+
+## 2026-06-06 — Storefront Admin (Live/Admin toggle + back-office)
+
+**Built.** The featured Storefront page now has a **Live site | Admin** toggle (shown when
+`tool.admin: true`; the Storefront tab is already admin/client-gated, so it reuses the portal login —
+no separate auth). Admin = a tabbed store back-office (`src/components/tools/storefront-admin.jsx`):
+- **Design** — primary/accent colors, logo, fonts, layout, hero headline/subhead + live preview.
+- **Products** — table + Add-product dialog with **price & description**.
+- **Content** — announcement bar, banners + pages with publish toggles.
+- **Orders** — store order history.
+- **Settings** — store status (live/maintenance), currency, flat shipping, payment provider.
+A "Publish changes" action saves via the `saveStore()` seam (mock now; pushes to the live store later).
+
+**Data.** `src/lib/store.js` mock store model + `getStore()/saveStore()` seam (`VITE_STORE_BACKEND`).
+Schema gained `tool.admin`; set on Monti shopify. Scope per Rick: design, products (price+desc),
+content, orders, settings — all under the existing admin/client login.
+
+`npm run validate:clients` passes; `vite build` clean. Not pushed yet.
+
+---
+
 ## 2026-06-06 — Storefront promoted to a featured tab (embedded)
 
 **Change.** A tool can now be `featured: true` → it gets its own top-level nav tab (placed right after

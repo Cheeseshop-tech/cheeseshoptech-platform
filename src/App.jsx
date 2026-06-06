@@ -141,7 +141,7 @@ export default function App({ initialResolved }) {
       breadcrumb={<Breadcrumb items={[{ label: resolved.brand.name, href: "#" }, { label: nav.find((n) => n.key === effectivePage)?.label }]} />}
     >
       {activeFeatured ? (
-        <FeaturedTool tool={activeFeatured} />
+        <FeaturedTool tool={activeFeatured} resolved={resolved} />
       ) : effectivePage === "media" ? (
         <MediaHub resolved={resolved} />
       ) : effectivePage === "tools" ? (

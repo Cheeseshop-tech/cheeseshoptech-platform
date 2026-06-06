@@ -25,6 +25,13 @@ leave cleanly and own their site outright if they choose.
 
 ## 2. Build Fee (one-time)
 
+> **Storefront rebuild = the flagship build deliverable (headless).** See `STOREFRONT_STRATEGY.md`.
+> We rebuild the client's storefront *experience* natively in the portal and run it **headless** — a
+> commerce engine (their Shopify, or Stripe/Medusa) keeps checkout/payments/tax. Tiers:
+> **Connected** (link-out, no rebuild) → **Headless rebuild** (the paid value-add) → Fully native
+> (we own commerce too — avoid). Price the headless rebuild as a Build Fee tier below; the commerce
+> engine's own fees pass through to the client.
+
 Covers scoping, brand intake, build, integrations, content migration, UAT, and launch.
 
 - **Tier by complexity, not a flat number** — a 20-SKU shop ≠ a 500-SKU shop.

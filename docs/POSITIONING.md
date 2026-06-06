@@ -85,6 +85,14 @@ channel — with the **content** to back it and a **storefront** to capture it. 
 still has to generate its own demand, shoot its own content, and work its own retail accounts.
 CheeseShop TECH does all three and gives them the storefront too.
 
+## Storefront = headless rebuild (locked 2026-06-06)
+
+The flagship platform deliverable: **rebuild a client's storefront experience natively in the portal,
+run headless** — a commerce engine (Shopify/Stripe/Medusa) keeps checkout/payments/tax; the portal
+owns design, merchandising, content, admin, and the conversion data. This is the moat (portal becomes
+their infrastructure) and the productized value-add ("we rebuild, improve, and run your store"),
+without taking on payments liability. Full decision + tiers + architecture: `STOREFRONT_STRATEGY.md`.
+
 ## Implications to carry forward
 
 - **Pricing model** (`PRICING_AND_ENGAGEMENT_MODEL.md`) should reflect campaign/retainer +

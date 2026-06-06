@@ -100,7 +100,8 @@
           "route": { "type": "string", "description": "Internal nav key for type=internal (e.g. media)." },
           "status": { "type": "string", "enum": ["live", "coming-soon"], "default": "live" },
           "featured": { "type": "boolean", "description": "Promote to its own top-level nav tab with a full page.", "default": false },
-          "embed": { "type": "boolean", "description": "If featured + external, embed the tool in an iframe (only for framing-friendly sites).", "default": false }
+          "embed": { "type": "boolean", "description": "If featured + external, embed the tool in an iframe (only for framing-friendly sites).", "default": false },
+          "admin": { "type": "boolean", "description": "If true, the featured page adds a Live/Admin toggle with a store back-office (admin/client only).", "default": false }
         }
       },
       "default": []

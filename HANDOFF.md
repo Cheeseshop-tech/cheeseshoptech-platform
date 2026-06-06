@@ -1,15 +1,26 @@
 # HANDOFF — CheeseShop TECH platform build
 
-**Last updated:** 2026-06-05 (eve) · **Last chat:** Phases 2–6 built + pushed; git-connected staging site live
+**Last updated:** 2026-06-06 · **Last chat:** Identity live + Tools + featured Storefront w/ Admin; headless strategy locked
 
 ## Live now
 
-- **Staging site:** https://cheeseshoptech-platform.netlify.app — new git-connected Netlify site, auto-deploys from branch `phase-2-6-build`. App serves (Monti login renders). `cheeseshoptech.com` (Drop coming-soon) untouched.
-- **Code:** pushed to branch `phase-2-6-build`; PR #1 open vs `main` (not merged).
+- **Staging site:** https://cheeseshoptech-platform.netlify.app — git-connected, auto-deploys from `phase-2-6-build`.
+- **Auth LIVE:** Netlify Identity enabled (invite-only); admin `Rick.posada@outlook.com` active. Login at `/?app=1` (house) or `/?client=montitrentini` (Monti).
+- **Deployed:** through commit `672a167` (Tools module + Monti Shopify URL). `cheeseshoptech.com` (Drop coming-soon) untouched.
 
-## Resume in the AM — next step: enable Netlify Identity
+## NOT pushed yet (local, committed-ready)
 
-On the **`cheeseshoptech-platform`** site: Site config → Identity → Enable (Invite-only) → invite yourself (`admin`) + a Monti test user (`roles:["client"]`, `tenant:"montitrentini"`). Steps in `docs/AUTH_AND_ROLES.md`; full runbook in `docs/LAUNCH_AND_MAINTENANCE.md`. Then Cloudinary (Step 4) + Make (Step 5). Quick win available too: fix the `montitrentini.json` placeholder logo.
+Featured **Storefront** tab (embed + **Live/Admin toggle**), the **Storefront Admin** back-office (design/products/content/orders/settings, mock + `saveStore` seam), Monti logo fix. Push to deploy:
+`rm -f .git/index.lock && git add -A && git commit -m "Storefront featured tab + admin back-office" && git push`
+
+## Strategy locked (2026-06-06): headless storefront rebuild
+
+Rebuild client storefront *experience* natively in the portal; keep checkout/payments/tax on a commerce engine (Shopify/Stripe/Medusa). The paid value-add. Canonical: `docs/STOREFRONT_STRATEGY.md`. The Admin "Publish" seam will target the commerce API (Netlify function) when a real client signs.
+
+## Other open threads
+
+- Remaining launch items in `docs/LAUNCH_AND_MAINTENANCE.md`: Cloudinary (folders/keys), Make (CRM webhook), invite a Monti `client` test user (`client` + `tenant:montitrentini` roles).
+- Price-list calculator: still local/`coming-soon` — host it or rebuild native.
 
 ## Where we are
 

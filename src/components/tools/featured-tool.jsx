@@ -1,12 +1,16 @@
+import { useState } from "react";
 import { ExternalLink, Maximize2 } from "lucide-react";
 import { Button } from "@/components/ui/button.jsx";
 import { toolIcon } from "@/lib/icons.js";
+import { StorefrontAdmin } from "./storefront-admin.jsx";
 
-// A featured tool gets its own full page: a hero header with a prominent launch CTA, and
-// (when embed=true and the site allows framing) a live in-portal preview of the tool.
-export function FeaturedTool({ tool }) {
+// A featured tool gets its own full page: a hero header with a prominent launch CTA, a live
+// in-portal preview (embed), and — when admin=true — a Live/Admin toggle exposing a store
+// back-office (gated to admin/client by the nav). resolved is passed for the admin dashboard.
+export function FeaturedTool({ tool, resolved }) {
   const Icon = toolIcon(tool.icon);
   const open = () => tool.url && window.open(tool.url, "_blank", "noopener,noreferrer");
+  const [mode, setMode] = useState("live"); // live | admin
 
   return (
     <div className="flex h-full flex-col">
@@ -20,14 +24,34 @@ export function FeaturedTool({ tool }) {
             {tool.description && <p className="mt-1 max-w-2xl text-fg-muted">{tool.description}</p>}
           </div>
         </div>
-        {tool.url && (
-          <Button variant="primary" size="lg" onClick={open}>
-            <ExternalLink className="h-5 w-5" /> Open full store
-          </Button>
-        )}
+        <div className="flex items-center gap-3">
+          {tool.admin && (
+            <div className="inline-flex rounded-base border border-border bg-surface p-0.5">
+              {["live", "admin"].map((m) => (
+                <button
+                  key={m}
+                  onClick={() => setMode(m)}
+                  className={
+                    "rounded-base px-3 py-1.5 text-sm font-medium capitalize transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand " +
+                    (mode === m ? "bg-brand-primary text-brand-on-primary" : "text-fg-muted hover:text-fg")
+                  }
+                >
+                  {m === "live" ? "Live site" : "Admin"}
+                </button>
+              ))}
+            </div>
+          )}
+          {tool.url && (
+            <Button variant="primary" size="lg" onClick={open}>
+              <ExternalLink className="h-5 w-5" /> Open full store
+            </Button>
+          )}
+        </div>
       </div>
 
-      {tool.embed && tool.url ? (
+      {mode === "admin" && tool.admin ? (
+        <StorefrontAdmin resolved={resolved} />
+      ) : tool.embed && tool.url ? (
         <div className="overflow-hidden rounded-base border border-border bg-surface shadow-md">
           <div className="flex items-center justify-between border-b border-border bg-bg px-4 py-2">
             <span className="font-mono text-xs text-fg-muted">{tool.url}</span>

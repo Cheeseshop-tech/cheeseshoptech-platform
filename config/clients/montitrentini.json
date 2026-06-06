@@ -21,7 +21,8 @@
       "url": "https://mt-e-comm.netlify.app/ui_kits/shopify-store/",
       "status": "live",
       "featured": true,
-      "embed": true
+      "embed": true,
+      "admin": true
     },
     {
       "key": "image-catalog",
