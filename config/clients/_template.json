@@ -1,14 +1,15 @@
 {
+  "$schema": "./client.schema.json",
   "id": "",
   "subdomain": "",
   "brand": {
     "name": "",
     "logo": "",
-    "colors": { "primary": "", "accent": "" },
+    "colors": { "primary": "#000000", "accent": "" },
     "fonts": { "heading": "", "body": "" },
     "radius": "md"
   },
-  "cloudinaryFolder": "clients/<client>",
-  "crm": "",
+  "cloudinaryFolder": "",
+  "crm": "none",
   "modules": []
 }

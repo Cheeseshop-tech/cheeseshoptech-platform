@@ -10,6 +10,7 @@ node_modules/
 dist/
 build/
 .netlify/
+vite.config.js.timestamp-*.mjs
 
 # OS / editor
 .DS_Store

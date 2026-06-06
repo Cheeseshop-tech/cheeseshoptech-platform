@@ -5,7 +5,13 @@
   command = "npm run build"
   publish = "dist"
 
+# Serverless functions (Cloudinary media list, CRM/Make proxy). Secrets stay server-side.
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
 # SPA routing — all paths resolve to the React shell so client-side routing works.
+# (Netlify serves /.netlify/functions/* before this catch-all.)
 [[redirects]]
   from = "/*"
   to = "/index.html"

@@ -19,6 +19,181 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-05 — Netlify functions built (media-list, crm)
+
+**Built.** `netlify/functions/media-list.js` (Cloudinary Admin API → asset list, approvalState from
+tags, secrets server-side) and `netlify/functions/crm.js` (proxies the Make webhook). Added
+`[functions]` to `netlify.toml` (esbuild bundler) and extended `.env.example` with the frontend
+`VITE_*` flags (cloud name, upload preset, backend switches, gotrue url, dev bypass). Both pass
+`node --check`; app build clean.
+
+**Activation (Rick, on launch list).** Set the server env vars (Cloudinary keys / `MAKE_WEBHOOK_URL`),
+then flip `VITE_MEDIA_BACKEND=cloudinary` / `VITE_CRM_BACKEND=make`. Until then the app stays on mock
+data. Can't be tested here without live accounts — code is complete and wired.
+
+---
+
+## 2026-06-05 — Apex coming-soon route — deploy risk resolved
+
+**Built.** `src/components/marketing/coming-soon.jsx` (house-branded public landing). `App.jsx` now
+serves it at the **apex/house view** (no tenant subdomain) and only renders the portal at
+`<client>.cheeseshoptech.com`. **This removes the deploy blocker:** pushing to `main` no longer
+replaces the public page — `cheeseshoptech.com` stays a landing page while subdomains serve the app.
+
+**Routing rules.** Apex (isHouse, no `?app`/`?client`) → ComingSoon. Staff reach the house portal at
+the apex with `?app=1`; `?client=<sub>` previews a tenant (dev). Admin tenant switcher → House now
+sets `?app=1` so admins land on the house portal, not the public page. Dev (`npm run dev`) shows
+coming-soon by default; use `?app=1` or `?client=montitrentini` to preview the portal.
+
+**Note.** Monti Trentini is confirmed tenant #1 / first test account (already in `config/clients/montitrentini.json`).
+
+`vite build` clean (1,614 modules).
+
+---
+
+## 2026-06-05 — PHASE 6 — CRM dashboard built (mock backend; Make wiring deferred)
+
+**Built.** CRM data layer `src/lib/crm.js` with a `getCrmData()` seam (mock now; real later via
+`/.netlify/functions/crm` → Make webhook, secrets server-side; `VITE_CRM_BACKEND=make`). Pages
+`src/components/crm/crm-dashboard.jsx`: **Dashboard** (stat cards — pipeline value, open orders,
+overdue invoices, contacts; pipeline-by-stage bars; activity feed; invoice table) and **Orders**
+(order history table). Data shape per OM §7 (contacts/pipeline/orders/invoices/activity). Wired into
+the nav for the `dashboard` + `orders` pages.
+
+**Access control.** `canViewCrm` = admin/client only. Added **role-based nav filtering** in `App.jsx`:
+external roles (pr/influencer/creator) now see only the Media hub; admin/client see all pages. Invalid
+page for a role falls back to the first allowed page. `crm: none` → "connect a CRM" empty state, no error.
+
+**Deferred to launch.** Make scenario (client CRM → data shape), CRM tokens + webhook URL in Netlify
+env, then build the `crm` function. Tracked in LAUNCH_AND_MAINTENANCE.md §6. Detail in docs/CRM_CONNECTOR.md.
+
+`vite build` compiles clean (1,613 modules).
+
+---
+
+## 2026-06-05 — PHASE 5 — Media hub built (mock backend; real Cloudinary sync deferred)
+
+**Built.** Cloudinary delivery layer `src/lib/cloudinary.js` (named transforms thumb/card/hero/original,
+applied at delivery per OM §6; cloud name account-global via `VITE_CLOUDINARY_CLOUD`, defaults to the
+public `demo` cloud in dev). Media data layer `src/lib/media.js` with a `listAssets()` seam: mock
+backend now (food sample images on the demo cloud so the gallery renders), real backend later via a
+`/.netlify/functions/media-list` Cloudinary Admin API proxy (`VITE_MEDIA_BACKEND=cloudinary`). Media
+Hub UI `src/components/media/media-hub.jsx`: folder tabs (products/brand/raw), gallery grid (card
+transform), asset dialog (hero + copy delivery URL + approval control), upload affordance (env-gated
+on an unsigned preset). Wired into the nav (the `media` page). `resolved` now carries `cloudinaryFolder`.
+
+**Roles & approval.** States `draft → approved-for-press → approved-for-influencers`. Role visibility
+(least privilege): admin/client = all + manage; creator = drafts; pr = press; influencer = influencer
+assets. Maps the POSITIONING content-studio → media-hub → campaigns chain. Full detail in
+`docs/MEDIA_HUB.md`.
+
+**Deferred to launch (account/secrets — not buildable in code).** Create Cloudinary client folders,
+set cloud name + API key + unsigned preset in Netlify env, then build the `media-list` function.
+Tracked in the new `docs/LAUNCH_AND_MAINTENANCE.md` (consolidated launch + recurring ops checklist).
+
+**Phasing.** Walkthrough Phases 2–5 now built in code (design system, auth, shell/tenant resolution,
+media). Operational go-live for auth + media lives on the launch list. Next build phase: 6 (CRM via Make).
+
+`vite build` compiles clean (1,611 modules).
+
+---
+
+## 2026-06-05 — PHASE 3 — Auth (Netlify Identity) built; needs Netlify enablement
+
+**Verified first.** Netlify Identity is NOT deprecated — Netlify reversed the deprecation on
+2026-02-19 (confirmed via search). Safe to build on.
+
+**Built.** Custom house-branded auth on Netlify Identity via `gotrue-js` (chose custom over the
+Netlify widget so login renders in the design system and can be tenant-skinned). Added:
+`src/lib/auth.js` (GoTrue client + role/tenant helpers), `src/lib/auth-context.jsx`
+(`AuthProvider` / `useAuth`), `src/components/auth/login-screen.jsx`,
+`src/components/auth/require-auth.jsx` (`RequireAuth` tenant-scope gate + `RoleGate`). Portal now
+sits behind auth; topbar has a user menu (avatar/role/logout); tenant switcher is admin-only.
+
+**Model (lightweight v1, per POSITIONING).** Roles `admin|client|pr|influencer|creator` + a
+`tenant` field, both in `app_metadata` (server-controlled). Tenant scoping: non-admin can load a
+portal only if `app_metadata.tenant === subdomain` (admins any) — satisfies the no-cross-tenant DoD.
+Full model + Rick's Netlify setup steps in `docs/AUTH_AND_ROLES.md`.
+
+**Dev note.** Identity has no local endpoint, so `AuthProvider` injects a mock admin on `npm run dev`,
+guarded by `import.meta.env.DEV` (cannot run in a production build). `VITE_DEV_BYPASS_AUTH=false`
+to preview the real login.
+
+**Phasing note.** This is walkthrough Phase 3 (auth). Walkthrough Phase 4 (shell + tenant
+resolution) was already done early in our Phase 2, so its checklist is effectively met too.
+
+**Still needed for DoD (Rick actions).** Enable Identity on the site, invite a test user + set
+their metadata, deploy, then verify login + tenant scoping over HTTPS.
+
+`vite build` compiles clean (1,608 modules).
+
+---
+
+## 2026-06-05 — DECISION — two-surface branding model locked
+
+**Decision.** Storefront (customer-facing) = **100% client brand, always**, no platform mark.
+Internal portal (operator-facing) = **co-branded**: client logo + tokens dominant with a subtle,
+persistent "powered by CheeseShop TECH" mark (AppShell sidebar footer). Rationale: services-brokerage
+retention — keep platform value visible without competing with the client's brand. Buyout fork drops
+the mark. The mark is NOT a client-overridable token. Logged in `DESIGN_SYSTEM.md` B0. Already
+matches the shipped shell.
+
+---
+
+## 2026-06-05 — PHASE 2 COMPLETE — full component catalogue shipped
+
+**Status.** Phase 2 done. Full B4 catalogue built on the shadcn pattern (Radix + cva +
+tailwind-merge), all token-themed and AA-accessible. `vite build` compiles clean (1,603 modules,
+CSS 16.9 kB / JS 306 kB gzip ~98 kB).
+
+**Added.** `@radix-ui` primitives (dialog, tabs, select, checkbox, switch, radio-group, label,
+toast, slot). Components in `src/components/ui/`: button (now ref-forwarding + asChild), card,
+input/textarea, label, select, checkbox, radio-group, switch, badge, table, tabs, dialog, toast
+(+ `ToastProvider`/`useToast`), breadcrumb, empty-state, skeleton. Layout `app-shell.jsx`
+(sidebar + topbar). `App.jsx` rebuilt into a real portal page (nav, stat cards, tabbed table /
+form / empty / loading, dialog, toasts) with the live tenant switcher preserved. Catalogue table
+documented in `docs/DESIGN_SYSTEM.md` B4.
+
+**Env note (not a code issue).** Local `vite build` can't empty the stale `dist/` from a prior
+session — those files are host-locked (EPERM on `.DS_Store`). Compile succeeds every run; verified
+via a clean `--outDir`. Delete the old `dist/` folder in Finder if a local build is wanted; it's
+gitignored and irrelevant to Netlify CI builds.
+
+**Unblocks.** Phase 3 — auth + tenant routing (production subdomain→tenant load, lightweight roles).
+
+---
+
+## 2026-06-05 — PHASE 2 — Design system locked + white-label shell scaffolded
+
+**Status.** Phase 2 DoD (decisions + scaffold) met. `npm run build` compiles clean (44 modules);
+`npm run validate:clients` passes.
+
+**Decisions locked** (`docs/DESIGN_SYSTEM.md` — supersedes the `>>> DECIDE:` prompts in DESIGN_GUIDE_STARTER):
+- **House brand direction = warm artisanal.** Primary "Terracotta" `#9A3B1B`, accent "Cellar Olive"
+  `#5F6B2E`, warm stone neutrals, espresso text `#221C14`, paper bg `#FAF6F0`. Headings Fraunces,
+  body Inter, mono JetBrains Mono. Distinct from tenant #1 Monti Trentini (burgundy + gold).
+- **Overridable tokens (client):** `color.brand.primary`, `color.brand.accent`, `logo`,
+  `font.heading`, `font.body`, `radius`. Everything else (neutrals, semantic, spacing, type scale,
+  elevation) is **locked/structural**.
+- **Theming mechanic:** CSS custom properties (`--cs-*`) + Tailwind theme extension (not CSS-in-JS).
+- **AA contrast guardrail:** runtime resolver computes on-color by luminance, warns + falls back if a
+  client color can't reach 4.5:1. Same check gates `validate:clients`.
+
+**Built.** Vite + React 18 + Tailwind 3 toolchain (none existed before). Token defaults in
+`src/index.css`; `src/lib/{tokens,contrast,theme,clientConfig}.js` resolve a tenant from subdomain
+(or `?client=` in dev) and inject its tokens. shadcn-pattern `Button` + `Card` reference components
+(cva + tailwind-merge). Demonstrator `App.jsx` with a live tenant switcher proves one codebase
+re-skins from config alone. Config schema formalized: `config/clients/client.schema.json` +
+updated `_template.json`. Placeholder house wordmark/favicon in `public/brand/`.
+
+**Watch-out (not done on purpose).** Deploying this build replaces the live coming-soon page at the
+apex (Vite publishes the app to `dist/`). Hold the deploy until the portal is ready (Phase 4), or
+keep a coming-soon route — decide before next `git push` + Netlify build.
+
+**Unblocks.** Phase 2 remainder (full B4 component catalogue) and Phase 3 (auth/tenant routing).
+
+---
+
 ## 2026-06-05 — PHASE 1 COMPLETE — URL live over HTTPS, wildcard working
 
 **Status.** Phase 1 (Domain & hosting, Option C) DoD met. Verified externally:

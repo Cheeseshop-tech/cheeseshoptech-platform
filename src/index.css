@@ -1,0 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+  CheeseShop TECH — house token defaults.
+  These :root values are the HOUSE BRAND (warm artisanal). The runtime theme injector
+  (src/lib/theme.js) overrides only the client-overridable vars per tenant; everything
+  else is locked/structural. See docs/DESIGN_SYSTEM.md.
+*/
+:root {
+  /* --- Client-overridable (defaults = house) --- */
+  --cs-color-brand-primary: #9a3b1b; /* Terracotta */
+  --cs-color-on-primary: #ffffff;
+  --cs-color-brand-accent: #5f6b2e; /* Cellar Olive */
+  --cs-color-on-accent: #ffffff;
+  --cs-font-heading: "Fraunces", Georgia, serif;
+  --cs-font-body: "Inter", system-ui, sans-serif;
+  --cs-radius-base: 0.5rem; /* md */
+
+  /* --- Locked: surfaces & text (warm stone) --- */
+  --cs-color-bg: #faf6f0;
+  --cs-color-surface: #ffffff;
+  --cs-color-fg: #221c14;
+  --cs-color-fg-muted: #6e5e48;
+  --cs-color-border: #e6dbcb;
+
+  /* --- Locked: semantic --- */
+  --cs-color-success: #2e7d4f;
+  --cs-color-warning: #b7791f;
+  --cs-color-error: #b42318;
+  --cs-color-info: #2e6f9e;
+
+  /* --- Locked: type & radius scale --- */
+  --cs-font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --cs-radius-sm: 0.25rem;
+  --cs-radius-md: 0.5rem;
+  --cs-radius-lg: 0.75rem;
+  --cs-radius-xl: 1rem;
+}
+
+@layer base {
+  body {
+    background-color: var(--cs-color-bg);
+    color: var(--cs-color-fg);
+    font-family: var(--cs-font-body);
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, h4 {
+    font-family: var(--cs-font-heading);
+  }
+  /* Accessible focus ring (Part D) */
+  :focus-visible {
+    outline: 2px solid var(--cs-color-brand-primary);
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}

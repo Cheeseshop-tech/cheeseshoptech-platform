@@ -1,0 +1,87 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://cheeseshoptech.com/schemas/client.schema.json",
+  "title": "CheeseShop TECH client (tenant) config",
+  "description": "Per-client white-label config. Missing optional values fall back to the CheeseShop TECH house defaults (see docs/DESIGN_SYSTEM.md B2).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "subdomain", "brand"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$",
+      "description": "Unique tenant id, lowercase kebab."
+    },
+    "subdomain": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$",
+      "description": "Unique subdomain under cheeseshoptech.com (wildcard routing)."
+    },
+    "brand": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "colors"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "logo": {
+          "type": "string",
+          "description": "Logo URL. Falls back to the house wordmark if omitted."
+        },
+        "colors": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["primary"],
+          "properties": {
+            "primary": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$",
+              "description": "Brand primary hex. Must pass the WCAG AA contrast guardrail (B3)."
+            },
+            "accent": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$",
+              "description": "Optional. Falls back to house accent #5F6B2E."
+            }
+          }
+        },
+        "fonts": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "heading": {
+              "type": "string",
+              "enum": ["Inter", "Fraunces", "Playfair Display", "Lora", "Source Sans 3", "Work Sans", "Libre Franklin", "Merriweather", "JetBrains Mono"],
+              "description": "From the font allowlist. Falls back to house Fraunces."
+            },
+            "body": {
+              "type": "string",
+              "enum": ["Inter", "Fraunces", "Playfair Display", "Lora", "Source Sans 3", "Work Sans", "Libre Franklin", "Merriweather", "JetBrains Mono"],
+              "description": "From the font allowlist. Falls back to house Inter."
+            }
+          }
+        },
+        "radius": {
+          "type": "string",
+          "enum": ["none", "sm", "md", "lg", "xl"],
+          "description": "Named radius step. Falls back to md."
+        }
+      }
+    },
+    "cloudinaryFolder": {
+      "type": "string",
+      "description": "Defaults to clients/<id>."
+    },
+    "crm": {
+      "type": "string",
+      "enum": ["hubspot", "none"],
+      "default": "none"
+    },
+    "modules": {
+      "type": "array",
+      "items": { "type": "string", "enum": ["catalog", "orders", "crm", "media", "campaigns"] },
+      "uniqueItems": true,
+      "default": []
+    }
+  }
+}
