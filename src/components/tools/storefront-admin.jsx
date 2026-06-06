@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Upload, Rocket } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card.jsx";
 import { Button } from "@/components/ui/button.jsx";
@@ -15,7 +15,7 @@ import {
   Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose,
 } from "@/components/ui/dialog.jsx";
 import { useToast } from "@/components/ui/toast.jsx";
-import { getStore, saveStore } from "@/lib/store.js";
+import { getStore, saveStore, fetchStoreProducts, fetchStoreOrders } from "@/lib/store.js";
 
 const FONTS = ["Inter", "Fraunces", "Playfair Display", "Lora", "Source Sans 3", "Work Sans", "Merriweather"];
 const ORDER_TONE = { Paid: "info", Fulfilled: "success", Refunded: "error" };
@@ -26,6 +26,16 @@ const money = (n) => new Intl.NumberFormat("en-US", { style: "currency", currenc
 export function StorefrontAdmin({ resolved }) {
   const { toast } = useToast();
   const [store, setStore] = useState(() => getStore(resolved));
+
+  // Hydrate products + web orders from the live backend (Shopify in headless mode; the seed list
+  // otherwise, so the mock path is unchanged). Theme/content/settings stay portal-owned.
+  useEffect(() => {
+    let alive = true;
+    Promise.all([fetchStoreProducts(resolved), fetchStoreOrders(resolved)]).then(([products, orders]) => {
+      if (alive) setStore((s) => (s ? { ...s, products, orders } : s));
+    });
+    return () => { alive = false; };
+  }, [resolved]);
 
   if (!store) {
     return <p className="text-fg-muted">No store configured for this tenant yet.</p>;

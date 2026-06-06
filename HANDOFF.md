@@ -16,12 +16,14 @@
 - **Design — "Ledger" pass COMPLETE (increments 1 + 2).** Editorial italic-serif display house-wide via shared layer (DESIGN_SYSTEM A3+B4): h1/h2 + CardTitle italic, tabular figures, refined Table/Badge/Card/Stat. **Inc 2:** all KPI/stat tiles now use the one shared `ui/stat.jsx` (gained `icon`/`onClick`/`tone` props; 5 local copies deleted); the agency **house** reads distinct from a tenant via an "Agency Console" eyebrow under the wordmark (type/layout signal, gated on `isHouse` — both stay green). Colors stay per-tenant.
 - **Branch hygiene — clean.** `phase-2-6-build` canonical + synced. `main` = stale scaffold (untouched). No sprawl.
 
-## In flight / not done — "finish the build"
-- **[done] Home hub** — Operations-Portal composition is the standard landing; **+ "At a glance" command center** (pipeline/campaigns/activity/overdue) folded in for CRM tenants; `home-dashboard.jsx` deleted. ✓
-- **Off mock = launch wiring, not code (audited):**
-  - **CRM** — *code-complete.* `netlify/functions/crm.js` proxies a Make webhook; flips on `VITE_CRM_BACKEND=make`. **[Rick]: build the Make scenario + set `MAKE_WEBHOOK_URL` + `VITE_CRM_BACKEND=make`.**
-  - **Storefront → Shopify headless (Rick's pick).** Products read path **built + ready to flip**: `netlify/functions/store.js` (Storefront API) + `fetchStoreProducts()`; needs **[Rick]** a real Shopify store w/ Storefront API + `SHOPIFY_STORE_DOMAIN`/`SHOPIFY_STOREFRONT_TOKEN`/`VITE_STORE_BACKEND=shopify`. Remaining code (post-token): hydrate admin product list, Admin-API orders. Shopify owns products/checkout; portal owns theme/content. See STOREFRONT_STRATEGY.
-  - **Campaigns** — seam ready, real path stubbed; mirror the CRM/store pattern once a data source is chosen.
+## In flight / not done — "finish the build" → CODE DONE; remainder is launch wiring
+- **[done] Home hub** — standard landing + "At a glance" command center; `home-dashboard.jsx` deleted. ✓
+- **[done] All backend seams code-complete + ready to flip** (env-gated, mock default, secrets server-side):
+  - **CRM** → `functions/crm.js` (Make). Flip: `MAKE_WEBHOOK_URL` + `VITE_CRM_BACKEND=make`.
+  - **Storefront (Shopify headless)** → `functions/store.js` (products, Storefront API) + `functions/store-orders.js` (orders, Admin API); admin hydrates via `fetchStoreProducts()`/`fetchStoreOrders()`. Flip: `SHOPIFY_STORE_DOMAIN` + `SHOPIFY_STOREFRONT_TOKEN` + `SHOPIFY_ADMIN_TOKEN` + `VITE_STORE_BACKEND=shopify`. (Needs a real Shopify store w/ Storefront API — mt-e-comm store is a static mock.)
+  - **Campaigns** → `functions/campaigns.js` (Make). Flip: `MAKE_CAMPAIGNS_WEBHOOK_URL` + `VITE_CAMPAIGNS_BACKEND=make`.
+  - All env vars documented in `.env.example`. **No more verifiable code until a real backend/token exists.**
+- **Phase 7 — Monti pilot (Rick's launch actions):** build the Make scenarios; provision Shopify tokens; set the env vars above; Identity test user; Cloudinary verify; Cloudflare SSL Full(strict). Per `LAUNCH_AND_MAINTENANCE.md`. **Then flip each seam + verify live.**
 - **Pricing backend** — still mock-bundled JSON; real Netlify-function backend deferred (same shape).
 - **Phase 7 — Monti pilot** — operational launch wiring (Identity test user, Cloudinary verify, Make CRM webhook, SSL) in `docs/LAUNCH_AND_MAINTENANCE.md`. **Rick's dashboard/secret actions.**
 

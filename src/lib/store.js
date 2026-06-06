@@ -74,6 +74,21 @@ export async function fetchStoreProducts(resolved) {
   }
 }
 
+/** Live web orders for a tenant, via the Shopify Admin API (read_orders) when in shopify mode,
+ *  else the portal-owned seed orders. Falls back to the seed list if the fetch fails. */
+export async function fetchStoreOrders(resolved) {
+  const seed = getStore(resolved)?.orders || [];
+  if (!USE_SHOPIFY) return seed;
+  try {
+    const res = await fetch(`/.netlify/functions/store-orders?tenant=${encodeURIComponent(resolved.id)}`);
+    if (!res.ok) return seed;
+    const data = await res.json();
+    return Array.isArray(data.orders) && data.orders.length ? data.orders : seed;
+  } catch {
+    return seed;
+  }
+}
+
 /** Persist store changes. Mock = no-op (UI shows a saved toast). Real = publish to the store. */
 export async function saveStore(resolved, _store) {
   if (USE_MOCK) return { ok: true, mock: true };

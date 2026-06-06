@@ -19,6 +19,25 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-06 — Finish the backend seams: campaigns fn, Shopify orders, admin hydration
+
+**Action.** Completed the remaining ready-to-flip seams (all env-gated, mock default, secrets
+server-side; code-complete like CRM — live verification awaits Rick's tokens):
+- **Campaigns** — `netlify/functions/campaigns.js` (Make proxy, mirrors CRM; `MAKE_CAMPAIGNS_WEBHOOK_URL`).
+  Client `getCampaigns()` already flipped on `VITE_CAMPAIGNS_BACKEND=make`, so this completes it.
+- **Shopify web orders** — `netlify/functions/store-orders.js` (Admin API, `read_orders`; uses
+  `SHOPIFY_ADMIN_TOKEN`, distinct from the Storefront token) + `fetchStoreOrders()` in `store.js`.
+- **Storefront Admin hydration** — `storefront-admin.jsx` now hydrates products + orders on mount via
+  `fetchStoreProducts()`/`fetchStoreOrders()` (Shopify in headless mode, seed otherwise). Theme/
+  content/settings stay portal-owned.
+- `.env.example` — `MAKE_CAMPAIGNS_WEBHOOK_URL` + `SHOPIFY_ADMIN_TOKEN`.
+
+**Status.** validate + build clean; functions syntax-checked; **browser-verified the Storefront Admin
+still renders** (Design/Products/Content/Orders/Settings, live hero preview) — mock path unchanged.
+**Net:** every mock seam is now code-complete and flips on env. What remains is purely Rick's launch
+wiring (build the Make scenarios, provision real Shopify Storefront+Admin tokens, set the env vars) +
+Phase 7 ops. No more verifiable code to write until a real backend/token exists.
+
 ## 2026-06-06 — Storefront → Shopify headless: products read path built (ready to flip)
 
 **Decision (Rick).** Storefront commerce engine = **Shopify (headless)** — Shopify owns products +
