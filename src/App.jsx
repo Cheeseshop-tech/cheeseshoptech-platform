@@ -43,6 +43,7 @@ import { OrdersPage } from "@/components/crm/crm-dashboard.jsx";
 import { HomeHub } from "@/components/home/home-hub.jsx";
 import { ComingSoon } from "@/components/marketing/coming-soon.jsx";
 import { RequireAuth, RoleGate } from "@/components/auth/require-auth.jsx";
+import { PasscodeGate } from "@/components/auth/passcode-gate.jsx";
 import { SetPassword } from "@/components/auth/set-password.jsx";
 import { useAuth } from "@/lib/auth-context.jsx";
 import { rolesOf, getHashToken } from "@/lib/auth.js";
@@ -50,6 +51,8 @@ import { listClients, resolveClient } from "@/lib/clientConfig.js";
 import { applyTheme } from "@/lib/theme.js";
 
 const ALL_ROLES = ["admin", "client", "pr", "influencer", "creator"];
+// Pilot passcode gate vs. per-user Identity (VITE_AUTH_MODE=passcode). See PasscodeGate / AUTH_AND_ROLES.md.
+const Gate = import.meta.env.VITE_AUTH_MODE === "passcode" ? PasscodeGate : RequireAuth;
 const NAV = [
   { key: "dashboard", label: "Dashboard", icon: LayoutDashboard, allowed: ["admin", "client"] },
   { key: "campaigns", label: "Campaigns", icon: Megaphone, allowed: ["admin", "client"] },
@@ -137,7 +140,7 @@ export default function App({ initialResolved }) {
   const userMenu = <UserMenu user={user} onLogout={logout} />;
 
   return (
-    <RequireAuth resolved={resolved}>
+    <Gate resolved={resolved}>
     <AppShell
       brand={resolved.brand}
       isHouse={resolved.isHouse}
@@ -234,7 +237,7 @@ export default function App({ initialResolved }) {
       </>
       )}
     </AppShell>
-    </RequireAuth>
+    </Gate>
   );
 }
 

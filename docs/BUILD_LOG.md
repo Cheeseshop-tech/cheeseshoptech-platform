@@ -19,6 +19,28 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-06 — Pilot auth: shared passcode gate (Identity was too fiddly for one client)
+
+**Decision (Rick).** Netlify Identity (invites, self-set passwords, free-form roles, deprecation
+murk) was too much friction for a one-client pilot. Chose a **shared-passcode gate now, Clerk when
+client #2 signs.** Match the auth to the stage — per-user roles/tenant isolation only matter with
+multiple clients.
+
+**Action.** Built an env-switchable passcode mode (`VITE_AUTH_MODE=passcode`):
+- `netlify/functions/gate.js` — checks the passcode against server-side `PORTAL_PASSCODE` (secret).
+- `src/components/auth/passcode-gate.jsx` — branded gate UI; POSTs to the function; DEV-only local
+  check (`VITE_PORTAL_PASSCODE`) so `npm run dev` works without a functions server.
+- `auth-context.jsx` — passcode mode grants a synthetic `client` session on unlock (localStorage),
+  so nav/role-gated UI work; no tenant switcher, tenant from URL. `App.jsx` picks `Gate =
+  PasscodeGate | RequireAuth` by env. Identity code untouched (the `identity` default is unchanged).
+
+**Status.** validate + build clean; **browser-verified end-to-end** (passcode-mode dev): the
+Monti-branded gate renders, correct passcode → lands in the green Operations Portal hub as a client
+(no tenant switcher). **Default stays `identity`, so staging is unchanged until [Rick] sets two env
+vars** (`VITE_AUTH_MODE=passcode` + `PORTAL_PASSCODE=…`) + redeploys — then Monti's in. Docs:
+AUTH_AND_ROLES.md "Pilot auth" + .env.example. **Next:** Clerk swap at client #2 (closes the shared-
+passcode limits: single code, client-side unlock flag, `?app=1` house reachable).
+
 ## 2026-06-06 — Finish the backend seams: campaigns fn, Shopify orders, admin hydration
 
 **Action.** Completed the remaining ready-to-flip seams (all env-gated, mock default, secrets

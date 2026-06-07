@@ -41,7 +41,31 @@ Two facts live in each user's **`app_metadata`** (server-controlled, NOT user-ed
 a non-admin may load a portal only if `app_metadata.tenant === subdomain`; mismatch → access denied.
 Admins pass for any tenant.
 
-## Rick's setup steps to go live
+## Pilot auth — shared passcode (active path, 2026-06-06)
+
+**Decision (Rick): for the single-client pilot, skip per-user Identity and use one shared passcode.**
+Per-user roles/tenant isolation only earn their keep once there are *two* clients to keep apart; we
+move to **Clerk** (per-user accounts + roles + orgs=tenants) when client #2 signs.
+
+**How it works.** `VITE_AUTH_MODE=passcode` swaps `RequireAuth` for `PasscodeGate`
+(`src/components/auth/passcode-gate.jsx`). The gate POSTs the passcode to
+`netlify/functions/gate.js`, which compares it to the server-side `PORTAL_PASSCODE` secret (never in
+the bundle). On success the auth context grants a synthetic **`client`** session (no tenant switcher,
+no house access); the tenant comes from the URL. Unlock persists in `localStorage`.
+
+**To turn on [Rick] — two env vars + redeploy, that's it:**
+1. Netlify → `cheeseshoptech-platform` → **Environment variables**: add
+   `VITE_AUTH_MODE=passcode` and `PORTAL_PASSCODE=<a passcode you choose>`.
+2. **Redeploy** (Deploys → Trigger deploy). Done — the portal now asks for the passcode.
+3. Give Monti the URL (`…/?client=montitrentini`, or their subdomain once DNS is set) + the passcode.
+
+**Limits (acceptable for a private pilot):** one shared passcode = everyone with it sees the same
+portal; the unlock is a client-side flag after a server check (fine for a private B2B pilot, not for
+public/consumer data). The `?app=1` house view is still reachable by someone who knows the trick —
+Clerk closes these when we switch. Local dev: `npm run dev` has no functions server, so the gate
+checks `VITE_PORTAL_PASSCODE` (default `monti`) client-side, DEV-only.
+
+## Rick's setup steps to go live (per-user Identity — deferred in favor of the passcode pilot above)
 
 1. **Enable Identity** on the Netlify site (Site config → Identity → Enable). Set registration to **Invite only**.
 2. **Enforce strong passwords**; turn on 2FA where available.

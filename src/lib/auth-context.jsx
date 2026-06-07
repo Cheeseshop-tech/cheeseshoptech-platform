@@ -15,14 +15,40 @@ const DEV_USER = {
   logout: async () => {},
 };
 
+// Pilot passcode mode (VITE_AUTH_MODE=passcode): a single shared passcode unlocks the portal
+// instead of per-user Identity logins. On unlock we grant a synthetic "client" session so the
+// rest of the app (nav, role-gated UI) works; the tenant comes from the URL. See PasscodeGate.
+const PASSCODE_MODE = import.meta.env.VITE_AUTH_MODE === "passcode";
+const UNLOCK_KEY = "cs-portal-unlocked";
+const PASSCODE_USER = {
+  email: "portal@cheeseshoptech.com",
+  user_metadata: { full_name: "Portal" },
+  app_metadata: { roles: ["client"], tenant: null },
+  logout: async () => {},
+};
+const isUnlocked = () => {
+  try { return localStorage.getItem(UNLOCK_KEY) === "1"; } catch { return false; }
+};
+
+function initialUser() {
+  if (PASSCODE_MODE) return isUnlocked() ? PASSCODE_USER : null;
+  return DEV_BYPASS ? DEV_USER : currentUser();
+}
+
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => (DEV_BYPASS ? DEV_USER : currentUser()));
+  const [user, setUser] = useState(initialUser);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   // Recover the persisted session on mount (GoTrue rehydrates from local storage).
   useEffect(() => {
-    if (!DEV_BYPASS) setUser(currentUser());
+    if (!DEV_BYPASS && !PASSCODE_MODE) setUser(currentUser());
+  }, []);
+
+  // Grant the synthetic session after a correct passcode (PasscodeGate calls this).
+  const unlock = useCallback(() => {
+    try { localStorage.setItem(UNLOCK_KEY, "1"); } catch { /* quota / private mode */ }
+    setUser(PASSCODE_USER);
   }, []);
 
   const login = useCallback(async (email, password) => {
@@ -42,12 +68,17 @@ export function AuthProvider({ children }) {
   }, []);
 
   const logout = useCallback(async () => {
+    if (PASSCODE_MODE) {
+      try { localStorage.removeItem(UNLOCK_KEY); } catch { /* ignore */ }
+      setUser(null);
+      return;
+    }
     await doLogout();
     setUser(null);
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, error, login, logout, gotrue: auth }}>
+    <AuthContext.Provider value={{ user, loading, error, login, logout, unlock, passcodeMode: PASSCODE_MODE, gotrue: auth }}>
       {children}
     </AuthContext.Provider>
   );
