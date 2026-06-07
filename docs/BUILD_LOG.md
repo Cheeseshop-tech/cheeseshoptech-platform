@@ -19,6 +19,23 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-06 — Session checkpoint: Monti pilot portal is LIVE (passcode go-live)
+
+**Milestone.** The Monti pilot portal is **live and accessible** on staging. Rick set
+`VITE_AUTH_MODE=passcode` + `PORTAL_PASSCODE` (team-level Netlify env vars) and redeployed; the live
+`/?client=montitrentini` URL now serves the green passcode gate → Operations Portal (verified by
+screenshot). Hand Monti the URL + passcode and they're in. (Note: a stray trailing comma in the URL
+falls back to the house view — copy it clean.)
+
+**This session's arc (newest entries below):** Ledger design pass inc 2 → terracotta-as-house-signature →
+Home hub (Operations-Portal composition becomes the standard landing) → house brand to its own
+Terracotta + Cellar Olive → "At a glance" command center → all backend seams finished/ready-to-flip
+(Shopify products+orders, campaigns fn) → **pilot passcode auth, then flipped LIVE**. CRM decided:
+sample data for the pilot; wire HubSpot once it has deals (Salesforce dead).
+
+**State.** Build feature-complete; `phase-2-6-build` clean + synced. Remaining = Phase 7 launch wiring,
+which is mostly Rick feeding content/secrets into already-built seams. HANDOFF.md rewritten clean.
+
 ## 2026-06-06 — Pilot auth: shared passcode gate (Identity was too fiddly for one client)
 
 **Decision (Rick).** Netlify Identity (invites, self-set passwords, free-form roles, deprecation

@@ -1,41 +1,43 @@
 # HANDOFF — CheeseShop TECH platform
 
-**Updated:** 2026-06-06 · **HEAD:** `phase-2-6-build` tip (latest: Home hub — Operations-Portal landing) · **Surface:** Claude Code
+**Updated:** 2026-06-06 · **HEAD:** `phase-2-6-build` @ `5aa6a2f` (passcode auth live) · **Surface:** Claude Code
 **Read first:** `CLAUDE_CODE_BRIEF.md` → this → `docs/BUILD_LOG.md` (top) → `docs/BEST_PRACTICES.md`.
 
 ## Live now
-- **Staging app:** https://cheeseshoptech-platform.netlify.app — git-connected, **auto-deploys from `phase-2-6-build`**. Behind Netlify Identity login (admin `Rick.posada@outlook.com`). Staff: `/?app=1` (house); tenant preview: `/?client=montitrentini`.
+- **Staging app:** https://cheeseshoptech-platform.netlify.app — git-connected, **auto-deploys from `phase-2-6-build`**.
+  - **Front door = pilot PASSCODE gate** (live: `VITE_AUTH_MODE=passcode` + `PORTAL_PASSCODE` set team-level in Netlify). Monti: `/?client=montitrentini` → passcode → green Operations Portal. House (agency): `/?app=1` → passcode → terracotta Command Center.
+  - **To give Monti access:** the URL `https://cheeseshoptech-platform.netlify.app/?client=montitrentini` + the passcode Rick chose. (Mind the no trailing comma — a stray `,` breaks the tenant lookup and falls back to the house view.)
 - **Public:** https://cheeseshoptech.com — Netlify Drop coming-soon, **not git-connected** (pushes don't touch it).
-- **Real backend live:** Media hub on Cloudinary (cloud `sofcvmwa`, 103 Monti assets). Others mock behind seams.
+- **Real backend live:** Media hub on Cloudinary (cloud `sofcvmwa`, 103 Monti assets). Everything else = realistic mock/sample behind ready-to-flip seams.
 
-## Where we are
-- **Phases 0–6 — COMPLETE/BUILT.** Domain + apex coming-soon, design system + component catalogue, Netlify Identity auth + roles/tenant-scoping, Media hub (real Cloudinary), CRM connector + Dashboard/Orders (mock), Campaigns + Home dashboard. Detail in the phase docs.
-- **Pricing & Inventory tool — BUILT + LIVE** (native module, Monti tenant). Proforma (class-of-trade quoting) · Movement report (forecast-core) · Commitments. Fees as line items (Trucking $0.30/lb + Processing $135 under 1,500 lb), lot#/expiry inline on the price list, Print/PDF proforma. Engines: `src/lib/pricing-core.js` + `forecast-core.js`; data seam `src/lib/pricing.js` (mock-bundled `src/data/montitrentini/*.json`).
-- **Home = the Operations-Portal hub.** Standard client landing (`components/home/home-hub.jsx`): brand-gradient masthead + overlapping stat rollup + tinted tool-launch cards, content-driven (config `home` block) + token-themed. Monti shows real ops stats (products/cases on hand/on the water/arriving/commitments via `getPricingData`); house shows a CheeseShop-branded "Command Center" cross-tenant rollup. Replaced the old empty data-dashboard. `home-dashboard.jsx` now unused.
-- **Brand — house = Terracotta + Cellar Olive; clients keep their own.** House (CheeseShop TECH) brand is Terracotta `#9A3B1B` / Cellar Olive `#5F6B2E` (matches the wordmark; warm artisanal). Tenants override their own color — Monti = Forest Green `#064E22` / Italia Green `#009640`. Warm house vs. green client = the agency-vs-client distinction (plus the Agency Console eyebrow). DESIGN_SYSTEM A2/A5.
-- **Design — "Ledger" pass COMPLETE (increments 1 + 2).** Editorial italic-serif display house-wide via shared layer (DESIGN_SYSTEM A3+B4): h1/h2 + CardTitle italic, tabular figures, refined Table/Badge/Card/Stat. **Inc 2:** all KPI/stat tiles now use the one shared `ui/stat.jsx` (gained `icon`/`onClick`/`tone` props; 5 local copies deleted); the agency **house** reads distinct from a tenant via an "Agency Console" eyebrow under the wordmark (type/layout signal, gated on `isHouse` — both stay green). Colors stay per-tenant.
-- **Branch hygiene — clean.** `phase-2-6-build` canonical + synced. `main` = stale scaffold (untouched). No sprawl.
+## Where we are — the build is feature-complete; remainder is launch wiring (content + secrets)
+- **Phases 0–6 — COMPLETE.** Domain + apex coming-soon, design system + component catalogue, roles/tenant-scoping, Media hub (real Cloudinary), CRM connector + Dashboard/Orders, Campaigns. Detail in the phase docs.
+- **Pricing & Inventory tool — LIVE** (native, Monti). Proforma (class-of-trade quoting) · Movement report (forecast-core) · Commitments. Freight as line items (Trucking $0.30/lb + Processing $135 under 1,500 lb); lot#/expiry inline; Print/PDF. Engines `src/lib/pricing-core.js` + `forecast-core.js`; data seam `src/lib/pricing.js` (mock-bundled `src/data/montitrentini/*.json`).
+- **Home = the Operations-Portal hub** (`components/home/home-hub.jsx`) — the standard client landing: brand-gradient masthead + overlapping stat rollup + tinted tool-launch cards, content-driven (config `home` block) + token-themed. Monti shows real ops stats (via `getPricingData`); house shows a CheeseShop-branded "Command Center" cross-tenant rollup. Client tenants also get an "At a glance" command-center section (pipeline/campaigns/activity/overdue). `home-dashboard.jsx` deleted.
+- **Auth = pilot passcode (LIVE).** `PasscodeGate` + `functions/gate.js` (checks server-side `PORTAL_PASSCODE`); synthetic `client` session on unlock. One shared code for the single-client pilot. **Clerk** planned at client #2 (per-user accounts + roles + orgs=tenants). Identity code retained but `identity` mode is no longer the active path. See AUTH_AND_ROLES "Pilot auth".
+- **Brand — house = Terracotta `#9A3B1B` + Cellar Olive `#5F6B2E`; clients keep their own.** Warm-artisanal house (matches the wordmark). Tenants override their color — Monti = Forest Green `#064E22` / Italia Green `#009640`. Warm house vs. coloured client + the "Agency Console" sidebar eyebrow = the agency-vs-client distinction. DESIGN_SYSTEM A2/A5.
+- **Design — "Ledger" pass COMPLETE** (inc 1+2). Editorial italic-serif display house-wide via the shared layer; all KPI/stat tiles on the one shared `ui/stat.jsx` (`icon`/`onClick`/`tone`/`accent` props).
+- **All backend seams code-complete + env-gated** (mock default, secrets server-side): CRM (`functions/crm.js`, Make), Storefront/Shopify-headless (`functions/store.js` products + `functions/store-orders.js` orders; admin hydrates via `fetchStoreProducts`/`fetchStoreOrders`), Campaigns (`functions/campaigns.js`, Make). All env vars in `.env.example`.
+- **Branch hygiene — clean.** `phase-2-6-build` canonical + synced (0/0). `main` = stale scaffold (untouched). No sprawl.
 
-## In flight / not done — "finish the build" → CODE DONE; remainder is launch wiring
-- **[done] Home hub** — standard landing + "At a glance" command center; `home-dashboard.jsx` deleted. ✓
-- **[done] All backend seams code-complete + ready to flip** (env-gated, mock default, secrets server-side):
-  - **CRM** → `functions/crm.js` (Make). Flip: `MAKE_WEBHOOK_URL` + `VITE_CRM_BACKEND=make`.
-  - **Storefront (Shopify headless)** → `functions/store.js` (products, Storefront API) + `functions/store-orders.js` (orders, Admin API); admin hydrates via `fetchStoreProducts()`/`fetchStoreOrders()`. Flip: `SHOPIFY_STORE_DOMAIN` + `SHOPIFY_STOREFRONT_TOKEN` + `SHOPIFY_ADMIN_TOKEN` + `VITE_STORE_BACKEND=shopify`. (Needs a real Shopify store w/ Storefront API — mt-e-comm store is a static mock.)
-  - **Campaigns** → `functions/campaigns.js` (Make). Flip: `MAKE_CAMPAIGNS_WEBHOOK_URL` + `VITE_CAMPAIGNS_BACKEND=make`.
-  - All env vars documented in `.env.example`. **No more verifiable code until a real backend/token exists.**
-- **[LIVE] Pilot auth = shared passcode.** ✅ Flipped on 2026-06-06 — Rick set `VITE_AUTH_MODE=passcode` + `PORTAL_PASSCODE` (team-level Netlify env vars) + redeployed. The live staging Monti URL now shows the green passcode gate (verified by screenshot). Hand Monti the URL `…/?client=montitrentini` + the passcode. (Identity was too fiddly for one client; Clerk at client #2.) `PasscodeGate` + `functions/gate.js`. See AUTH_AND_ROLES "Pilot auth".
-- **CRM decision (Rick, 2026-06-06): keep SAMPLE data for the pilot.** Monti's CRM = **HubSpot** going forward (config already `"crm":"hubspot"`); Salesforce was partially set up but **never active → ignored, dead.** HubSpot has **no deals yet**, so don't wire it now — the dashboard's sample data looks complete. **Wire HubSpot (Make scenario, steps in CRM_CONNECTOR.md) once HubSpot is populated**, ~within the month as Monti builds its pipeline. Code is ready to flip.
-- **Phase 7 — Monti pilot (Rick's launch actions, walking through now):** ① **Auth** → set the 2 passcode env vars (above) + redeploy. ② **Storefront** → real Shopify Storefront/Admin tokens + `VITE_STORE_BACKEND=shopify`. ③ **SSL** → Cloudflare Full(strict) + registrar auto-renew. ④ Point `montitrentini.cheeseshoptech.com` (or give Monti `…/?client=montitrentini`). ⑤ **CRM (later)** → HubSpot via Make once it has deals. Then flip each seam + verify live.
-- **Pricing backend** — still mock-bundled JSON; real Netlify-function backend deferred (same shape).
-- **Phase 7 — Monti pilot** — operational launch wiring (Identity test user, Cloudinary verify, Make CRM webhook, SSL) in `docs/LAUNCH_AND_MAINTENANCE.md`. **Rick's dashboard/secret actions.**
+## In flight / not done — Phase 7 launch (Rick's actions; mostly feeding the pipes)
+The platform = the Monti **month-long stand-up** (connect tools → strategy → content/photography → campaigns within a month). Every connection's CODE is built; the month is about feeding them. See [[monti-pilot-launch]] (memory) and `LAUNCH_AND_MAINTENANCE.md`.
+- **[done] Auth** → passcode gate LIVE. ✓
+- **CRM** → keep **sample data** for the pilot. Monti = **HubSpot** (config `crm:hubspot`); Salesforce never active → dead/ignored. HubSpot has **no deals yet** → wire it (Make scenario, **steps in `CRM_CONNECTOR.md`**) once populated. Code ready (`MAKE_WEBHOOK_URL` + `VITE_CRM_BACKEND=make`).
+- **Storefront** → Shopify headless. Needs a **real Shopify store w/ Storefront API** (mt-e-comm is a static mock) + `SHOPIFY_STORE_DOMAIN` / `SHOPIFY_STOREFRONT_TOKEN` / `SHOPIFY_ADMIN_TOKEN` + `VITE_STORE_BACKEND=shopify`. Post-token code is small (hydrate already wired).
+- **Media** → Cloudinary live; needs the actual **photography/content** uploaded.
+- **Campaigns** → code-ready; needs strategy + a data source.
+- **Domain** → point `montitrentini.cheeseshoptech.com` (DNS) for a clean branded URL instead of `?client=`.
+- **SSL** → Cloudflare SSL = Full(strict) + registrar auto-renew (`LAUNCH_AND_MAINTENANCE.md` §5).
 
 ## Open threads
-- Real **class-of-trade %s** + the two freight confirmations → pending Stefano (placeholders in now; config-tunable).
+- Real **class-of-trade %s** + two freight confirmations → pending Stefano (placeholders in; config-tunable).
 - `docs/PRICING_AND_ENGAGEMENT_MODEL.md` still has `$___` + buyout-multiplier `N` to set.
-- **House brand is settled + documented:** Forest Green primary + Italia Green accent, with **Terracotta `#9A3B1B` kept as the house wordmark/favicon signature** (deliberate, house-only; DESIGN_SYSTEM A2/A5 updated). Agency-vs-client distinction shipped (Agency Console eyebrow + warm wordmark over green chrome). *If a separate `CheeseShopTECH_Brand_Foundation.md` exists outside this repo, it still needs the same update.*
+- **Auth at scale:** swap passcode → **Clerk** when client #2 signs (closes the shared-passcode limits: one code, client-side unlock flag, `?app=1` house reachable).
+- A separate `CheeseShopTECH_Brand_Foundation.md` (referenced, not in this repo) still describes the old cool-studio/green house — update it to terracotta + Cellar Olive if it exists.
 
 ## First message for the next surface
-> Read `CLAUDE_CODE_BRIEF.md` + this `HANDOFF.md` + `docs/BUILD_LOG.md` (top). Confirm: platform = CheeseShop TECH, clients = tenants; `phase-2-6-build` is the source of truth; differentiation = tokens + content only. The build is green and deployed. Ledger design pass complete; the **Operations-Portal hub is now the standard home/landing** (shared, config-driven). We're "finishing the build" — pick up from **In flight**: home-hub polish, then CRM/Campaigns/Storefront off mock, then Phase 7 launch wiring. Propose the plan before executing.
+> Read `CLAUDE_CODE_BRIEF.md` + this `HANDOFF.md` + `docs/BUILD_LOG.md` (top). Confirm: platform = CheeseShop TECH, clients = tenants; `phase-2-6-build` is the source of truth; differentiation = tokens + content only. **The build is feature-complete and the Monti pilot portal is LIVE behind a passcode gate.** Remaining work = Phase 7 launch wiring, which is mostly Rick feeding content/secrets into already-built seams (Shopify token, HubSpot once it has deals, photos → Cloudinary, the subdomain, SSL). Don't wire integrations that have no data/content behind them yet. Propose the plan before executing.
 
 ## How to run / verify (dev)
-`export PATH="/tmp/node-v22.18.0-darwin-arm64/bin:$PATH"` (bootstrap Node — see BEST_PRACTICES §4) → `npm install` once → `npm run dev` (DEV admin auth bypass) → preview `?client=montitrentini`. `npm run build` + `npm run validate:clients` before any push. Verify a deploy by grepping the staging JS bundle for a latest-commit string.
+`export PATH="/tmp/node-v22.18.0-darwin-arm64/bin:$PATH"` (bootstrap Node — see BEST_PRACTICES §4) → `npm install` once → `npm run dev` → preview `?client=montitrentini`. For the passcode gate locally: `VITE_AUTH_MODE=passcode VITE_PORTAL_PASSCODE=monti npm run dev` (DEV checks the passcode client-side; no functions server needed). `npm run build` + `npm run validate:clients` before any push. Verify a deploy by grepping the staging JS bundle for a string unique to the latest commit (Netlify's hash ≠ local).
