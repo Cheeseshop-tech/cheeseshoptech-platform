@@ -1,20 +1,16 @@
-import { useMemo, useRef, useState } from "react";
-import { Search, LayoutGrid, List, ExternalLink, Download, Link as LinkIcon, ImageOff, Pencil, Upload } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Search, LayoutGrid, List, ExternalLink, Download, Link as LinkIcon, ImageOff } from "lucide-react";
 import { Card } from "@/components/ui/card.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
 import { Stat } from "@/components/ui/stat.jsx";
 import { Button } from "@/components/ui/button.jsx";
-import { Input, Textarea } from "@/components/ui/input.jsx";
-import { Label } from "@/components/ui/label.jsx";
+import { Input } from "@/components/ui/input.jsx";
 import { EmptyState } from "@/components/ui/empty-state.jsx";
 import { Dialog, DialogContent } from "@/components/ui/dialog.jsx";
 import { useToast } from "@/components/ui/toast.jsx";
 import {
   getBuyerCatalog, cldThumb, cldBig, cldView, cldDownload, fmtSize, fmtTotalSize,
 } from "@/lib/catalog.js";
-import { loadEdits, setEdit, applyEdits, exportEdits, parseEditsFile, saveEdits } from "@/lib/catalog-edits.js";
-import { useAuth } from "@/lib/auth-context.jsx";
-import { rolesOf } from "@/lib/auth.js";
 
 // Buyer-facing product image catalog — the platform port of the standalone
 // monti-trentini-catalog app (Phase B of DEVELOPMENT_PLAN.md). Generic: any tenant with a
@@ -38,23 +34,16 @@ export function CatalogPage({ resolved }) {
     );
   }
 
-  return <BuyerCatalog data={data} brandName={resolved.brand.name} tenantId={resolved.id} />;
+  return <BuyerCatalog data={data} brandName={resolved.brand.name} />;
 }
 
-function BuyerCatalog({ data, brandName, tenantId }) {
-  const { cloud } = data;
+function BuyerCatalog({ data, brandName }) {
+  const { cloud, images } = data;
   const { toast } = useToast();
-  const { user } = useAuth();
-  const userRoles = rolesOf(user);
-  // Catalog editing is a Manage feature (F3): CST admin + client-admin only.
-  const canManage = userRoles.includes("admin") || userRoles.includes("client-admin");
-  const [edits, setEdits] = useState(() => loadEdits(tenantId));
-  const images = useMemo(() => applyEdits(data.images, edits), [data.images, edits]);
-  const importRef = useRef(null);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All");
   const [view, setView] = useState("grid");
-  const [active, setActive] = useState(null); // image id in the lightbox
+  const [active, setActive] = useState(null); // image in the lightbox
 
   const categories = useMemo(() => {
     const counts = {};
@@ -83,30 +72,6 @@ function BuyerCatalog({ data, brandName, tenantId }) {
     );
   }
 
-  const activeIm = active ? images.find((i) => i.id === active) : null;
-
-  function onEdit(imageId, field, value) {
-    setEdits(setEdit(tenantId, edits, imageId, field, value));
-  }
-
-  function onImportFile(e) {
-    const f = e.target.files?.[0];
-    e.target.value = "";
-    if (!f) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      try {
-        const incoming = parseEditsFile(ev.target.result);
-        const merged = saveEdits(tenantId, { ...edits, ...incoming });
-        setEdits(merged);
-        toast({ title: "Edits imported", description: `${Object.keys(incoming).length} item(s) merged.`, tone: "success" });
-      } catch {
-        toast({ title: "Couldn't import", description: "Not a valid edits file.", tone: "error" });
-      }
-    };
-    reader.readAsText(f);
-  }
-
   return (
     <div>
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
@@ -114,26 +79,13 @@ function BuyerCatalog({ data, brandName, tenantId }) {
           <h1 className="font-heading text-3xl text-fg">Image Catalog</h1>
           <p className="mt-1 text-fg-muted">{brandName} product library — search, preview, download, share.</p>
         </div>
-        <div className="flex items-center gap-2">
-          {canManage && (
-            <>
-              <Button size="sm" variant="outline" onClick={() => exportEdits(tenantId, edits)} title="Download your edits as JSON (feeds the price-list workflow)">
-                <Download className="h-4 w-4" /> Export edits{Object.keys(edits).length ? ` (${Object.keys(edits).length})` : ""}
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => importRef.current?.click()} title="Import an edits JSON file">
-                <Upload className="h-4 w-4" /> Import
-              </Button>
-              <input ref={importRef} type="file" accept=".json,application/json" className="hidden" onChange={onImportFile} />
-            </>
-          )}
-          <div className="flex gap-1 rounded-base border border-border p-1">
-            <Button size="sm" variant={view === "grid" ? "primary" : "ghost"} onClick={() => setView("grid")} aria-label="Grid view">
-              <LayoutGrid className="h-4 w-4" /> Grid
-            </Button>
-            <Button size="sm" variant={view === "list" ? "primary" : "ghost"} onClick={() => setView("list")} aria-label="List view">
-              <List className="h-4 w-4" /> List
-            </Button>
-          </div>
+        <div className="flex gap-1 rounded-base border border-border p-1">
+          <Button size="sm" variant={view === "grid" ? "primary" : "ghost"} onClick={() => setView("grid")} aria-label="Grid view">
+            <LayoutGrid className="h-4 w-4" /> Grid
+          </Button>
+          <Button size="sm" variant={view === "list" ? "primary" : "ghost"} onClick={() => setView("list")} aria-label="List view">
+            <List className="h-4 w-4" /> List
+          </Button>
         </div>
       </div>
 
@@ -180,7 +132,7 @@ function BuyerCatalog({ data, brandName, tenantId }) {
           {filtered.map((im) => (
             <Card
               key={im.id}
-              onClick={() => setActive(im.id)}
+              onClick={() => setActive(im)}
               className="group cursor-pointer overflow-hidden p-0 transition-colors hover:border-brand-primary"
             >
               <div className="aspect-square w-full overflow-hidden bg-bg">
@@ -206,7 +158,7 @@ function BuyerCatalog({ data, brandName, tenantId }) {
           {filtered.map((im, i) => (
             <button
               key={im.id}
-              onClick={() => setActive(im.id)}
+              onClick={() => setActive(im)}
               className={
                 "flex w-full items-center gap-4 bg-surface p-3 text-left transition-colors hover:bg-bg " +
                 (i > 0 ? "border-t border-border" : "")
@@ -223,79 +175,40 @@ function BuyerCatalog({ data, brandName, tenantId }) {
         </div>
       )}
 
-      <Dialog open={!!activeIm} onOpenChange={(open) => !open && setActive(null)}>
+      <Dialog open={!!active} onOpenChange={(open) => !open && setActive(null)}>
         <DialogContent className="max-w-4xl p-0">
-          {activeIm && (
+          {active && (
             <div className="grid md:grid-cols-[1.4fr_1fr]">
               <div className="flex items-center justify-center bg-bg p-4 md:rounded-l-base">
                 <img
-                  src={cldBig(cloud, activeIm)}
-                  alt={activeIm.title}
+                  src={cldBig(cloud, active)}
+                  alt={active.title}
                   className="max-h-[70vh] w-auto max-w-full rounded-base object-contain"
                 />
               </div>
-              <div className="max-h-[78vh] overflow-y-auto p-6">
-                <Badge variant="muted">{activeIm.category}</Badge>
-                <h2 className="mt-2 font-heading text-2xl text-fg">{activeIm.title}</h2>
-                <p className="mt-1 break-all text-xs text-fg-muted">{activeIm.orig}</p>
-                {activeIm.description && <p className="mt-2 text-sm text-fg-muted">{activeIm.description}</p>}
+              <div className="p-6">
+                <Badge variant="muted">{active.category}</Badge>
+                <h2 className="mt-2 font-heading text-2xl text-fg">{active.title}</h2>
+                <p className="mt-1 break-all text-xs text-fg-muted">{active.orig}</p>
                 <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
-                  <div><dt className="text-xs uppercase text-fg-muted">Format</dt><dd className="text-fg">{activeIm.ext?.toUpperCase()}</dd></div>
-                  <div><dt className="text-xs uppercase text-fg-muted">Size</dt><dd className="text-fg">{fmtSize(activeIm.size || 0)}</dd></div>
-                  <div><dt className="text-xs uppercase text-fg-muted">Modified</dt><dd className="text-fg">{activeIm.modified}</dd></div>
-                  {activeIm.code && (
-                    <div><dt className="text-xs uppercase text-fg-muted">Item code</dt><dd className="font-mono text-fg">{activeIm.code}</dd></div>
+                  <div><dt className="text-xs uppercase text-fg-muted">Format</dt><dd className="text-fg">{active.ext?.toUpperCase()}</dd></div>
+                  <div><dt className="text-xs uppercase text-fg-muted">Size</dt><dd className="text-fg">{fmtSize(active.size || 0)}</dd></div>
+                  <div><dt className="text-xs uppercase text-fg-muted">Modified</dt><dd className="text-fg">{active.modified}</dd></div>
+                  {active.code && (
+                    <div><dt className="text-xs uppercase text-fg-muted">Item code</dt><dd className="font-mono text-fg">{active.code}</dd></div>
                   )}
-                  {activeIm.cl_w && (
-                    <div><dt className="text-xs uppercase text-fg-muted">Dimensions</dt><dd className="text-fg">{activeIm.cl_w} × {activeIm.cl_h}</dd></div>
+                  {active.cl_w && (
+                    <div><dt className="text-xs uppercase text-fg-muted">Dimensions</dt><dd className="text-fg">{active.cl_w} × {active.cl_h}</dd></div>
                   )}
                 </dl>
-                {canManage && (
-                  <div className="mt-5 rounded-base border border-border bg-bg p-4">
-                    <p className="mb-3 flex items-center gap-2 text-sm font-medium text-fg">
-                      <Pencil className="h-3.5 w-3.5 text-brand-primary" /> Edit details
-                      {edits[activeIm.id] && <Badge variant="accent">edited</Badge>}
-                    </p>
-                    <div className="space-y-3">
-                      <div className="grid gap-1.5">
-                        <Label htmlFor="edit-code">Item code</Label>
-                        <Input
-                          id="edit-code"
-                          defaultValue={activeIm.code || ""}
-                          placeholder="e.g. 03010"
-                          onBlur={(e) => onEdit(activeIm.id, "code", e.target.value)}
-                        />
-                      </div>
-                      <div className="grid gap-1.5">
-                        <Label htmlFor="edit-title">Display title</Label>
-                        <Input
-                          id="edit-title"
-                          defaultValue={activeIm.title || ""}
-                          onBlur={(e) => onEdit(activeIm.id, "title", e.target.value)}
-                        />
-                      </div>
-                      <div className="grid gap-1.5">
-                        <Label htmlFor="edit-desc">Description</Label>
-                        <Textarea
-                          id="edit-desc"
-                          rows={3}
-                          defaultValue={activeIm.description || ""}
-                          placeholder="Short description (syncs with the master price list workflow via Export)"
-                          onBlur={(e) => onEdit(activeIm.id, "description", e.target.value)}
-                        />
-                      </div>
-                      <p className="text-xs text-fg-muted">Saves automatically. Use Export edits to back up or hand off to the price-list workflow.</p>
-                    </div>
-                  </div>
-                )}
                 <div className="mt-6 flex flex-col gap-2">
-                  <Button variant="primary" onClick={() => window.open(cldView(cloud, activeIm), "_blank", "noopener,noreferrer")}>
+                  <Button variant="primary" onClick={() => window.open(cldView(cloud, active), "_blank", "noopener,noreferrer")}>
                     <ExternalLink className="h-4 w-4" /> View original
                   </Button>
-                  <Button variant="secondary" onClick={() => window.open(cldDownload(cloud, activeIm), "_blank", "noopener,noreferrer")}>
+                  <Button variant="secondary" onClick={() => window.open(cldDownload(cloud, active), "_blank", "noopener,noreferrer")}>
                     <Download className="h-4 w-4" /> Download original
                   </Button>
-                  <Button variant="ghost" onClick={() => copyShareLink(activeIm)}>
+                  <Button variant="ghost" onClick={() => copyShareLink(active)}>
                     <LinkIcon className="h-4 w-4" /> Copy share link
                   </Button>
                 </div>
