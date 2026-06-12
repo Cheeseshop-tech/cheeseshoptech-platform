@@ -1,6 +1,6 @@
 # HANDOFF — CheeseShop TECH platform
 
-**Updated:** 2026-06-12 · **HEAD:** `phase-2-6-build` (uncommitted work from the 2026-06-12 Cowork session — see "Latest session" below) · **Surface:** Cowork (Fable 5)
+**Updated:** 2026-06-12 · **HEAD:** `phase-2-6-build` @ `82477bc` (Phases A1+B+C, pushed + auto-deployed) · **Surface:** Cowork (Fable 5)
 **Read first:** `CLAUDE_CODE_BRIEF.md` → this → `docs/DEVELOPMENT_PLAN.md` → `docs/BUILD_LOG.md` (top) → `docs/BEST_PRACTICES.md`.
 
 ## Latest session (2026-06-12, Cowork)
@@ -9,7 +9,9 @@
 - **`docs/DEVELOPMENT_PLAN.md` added** — the rewritten roadmap: the three standalone Monti apps (trade portal web+mobile, image catalog, mt-e-comm shop) become reusable platform tools (Phases A–E). Local sources live under `~/Documents/Claude/Projects/`.
 - **Phase B shipped: buyer-facing Image Catalog ported into the platform.** New `src/components/catalog/buyer-catalog.jsx` (search, category chips, grid/list, lightbox, view/download/copy-share via Cloudinary) + `src/lib/catalog.js` data seam (pricing.js pattern, `VITE_CATALOG_BACKEND=mock`) + `src/data/montitrentini/buyer-catalog.json` (103 images, extracted from `catalog-deploy-2`). The Catalog nav page now renders this; the old component-showcase demo was removed from `App.jsx` (copy in `archive/backup_2026-06-12_before_catalog_port/`).
 - **Phase A1 shipped:** Monti tools now include **Trade Portal** (external link) and **Image Catalog** (internal route `catalog`); Media-hub tile relabeled "Media hub". `presentation` icon added to `lib/icons.js`.
-- **Verified:** `npm run validate:clients` ✓ and `npm run build` ✓ (run in an isolated Linux copy; local `node_modules` untouched). NOT yet committed/pushed — review, commit, push to `phase-2-6-build` to deploy.
+- **Verified:** `npm run validate:clients` ✓, `npm run build` ✓, plus a full visual review in the browser (Rick approved). Committed as `82477bc` and pushed → staging auto-deployed.
+- **Easy buttons added** (repo root, double-click in Finder): `REVIEW PORTAL.command` (local preview, passcode `monti`) and `DEPLOY TO STAGING.command` (push → Netlify). Don't paste their contents into Terminal — just double-click the files.
+- Git remote updated to the repo's new GitHub location (`Cheeseshop-tech/...`).
 
 ## Live now
 - **Staging app:** https://cheeseshoptech-platform.netlify.app — git-connected, **auto-deploys from `phase-2-6-build`**.
