@@ -66,6 +66,7 @@ export function resolveClient(explicitSubdomain) {
     crm: client?.crm ?? "none",
     modules: client?.modules ?? [],
     tools: client?.tools ?? [],
+    presentations: client?.presentations ?? [],
     home: client?.home ?? HOUSE.home ?? null,
     cloudinaryFolder: client?.cloudinaryFolder || `clients/${id}`,
     onPrimary: resolveOnColor(brand.colors.primary),

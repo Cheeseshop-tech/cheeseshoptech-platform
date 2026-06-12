@@ -1,7 +1,15 @@
 # HANDOFF — CheeseShop TECH platform
 
-**Updated:** 2026-06-06 · **HEAD:** `phase-2-6-build` @ `5aa6a2f` (passcode auth live) · **Surface:** Claude Code
-**Read first:** `CLAUDE_CODE_BRIEF.md` → this → `docs/BUILD_LOG.md` (top) → `docs/BEST_PRACTICES.md`.
+**Updated:** 2026-06-12 · **HEAD:** `phase-2-6-build` (uncommitted work from the 2026-06-12 Cowork session — see "Latest session" below) · **Surface:** Cowork (Fable 5)
+**Read first:** `CLAUDE_CODE_BRIEF.md` → this → `docs/DEVELOPMENT_PLAN.md` → `docs/BUILD_LOG.md` (top) → `docs/BEST_PRACTICES.md`.
+
+## Latest session (2026-06-12, Cowork)
+- **MT ownership approved.** Stefano presented the platform to Monti Trentini ownership — positive, move-forward response. Phase C green-lit and shipped same day.
+- **Phase C shipped: Trade Portal → generic Presentations tool.** `src/components/presentations/presentations-page.jsx` — config-driven decks (`presentations` block, schema extended), responsive viewer (touch swipe + arrow keys + fullscreen + thumbnail rail + neighbour preload), nav tab appears only for tenants with decks. Slides extracted from the deployed web deck and re-encoded WebP 1600px (7.2 MB PNG → 0.8 MB) → `public/presentations/montitrentini/`. Monti's trade-portal tool flipped external → internal route `presentations`. Deep links: `?page=<key>` now seeds the initial page (e.g. `?client=montitrentini&page=presentations` for buyers). The two standalone trade-portal Netlify sites are now redundant once this deploys.
+- **`docs/DEVELOPMENT_PLAN.md` added** — the rewritten roadmap: the three standalone Monti apps (trade portal web+mobile, image catalog, mt-e-comm shop) become reusable platform tools (Phases A–E). Local sources live under `~/Documents/Claude/Projects/`.
+- **Phase B shipped: buyer-facing Image Catalog ported into the platform.** New `src/components/catalog/buyer-catalog.jsx` (search, category chips, grid/list, lightbox, view/download/copy-share via Cloudinary) + `src/lib/catalog.js` data seam (pricing.js pattern, `VITE_CATALOG_BACKEND=mock`) + `src/data/montitrentini/buyer-catalog.json` (103 images, extracted from `catalog-deploy-2`). The Catalog nav page now renders this; the old component-showcase demo was removed from `App.jsx` (copy in `archive/backup_2026-06-12_before_catalog_port/`).
+- **Phase A1 shipped:** Monti tools now include **Trade Portal** (external link) and **Image Catalog** (internal route `catalog`); Media-hub tile relabeled "Media hub". `presentation` icon added to `lib/icons.js`.
+- **Verified:** `npm run validate:clients` ✓ and `npm run build` ✓ (run in an isolated Linux copy; local `node_modules` untouched). NOT yet committed/pushed — review, commit, push to `phase-2-6-build` to deploy.
 
 ## Live now
 - **Staging app:** https://cheeseshoptech-platform.netlify.app — git-connected, **auto-deploys from `phase-2-6-build`**.

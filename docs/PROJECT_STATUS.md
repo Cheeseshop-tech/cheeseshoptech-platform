@@ -4,8 +4,9 @@
 Code/decision history lives in `docs/BUILD_LOG.md`; current-state snapshot in `HANDOFF.md`; this
 doc is the **big-picture "definition of done."**
 
-**Updated:** 2026-06-06 · **Headline:** the software is essentially done. What's left is *launching*
-(domain/SSL/handoff) and *feeding* (content, deals, products, strategy) — not building.
+**Updated:** 2026-06-12 · **Headline:** the platform is absorbing the three standalone Monti apps
+(trade portal, image catalog, shop) as reusable tenant tools — roadmap in `DEVELOPMENT_PLAN.md`.
+Launch wiring (domain/SSL/handoff) and feeding (content, deals, strategy) continue in parallel.
 
 > Convention: `[x]` done · `[~]` ready/waiting on data or secrets · `[ ]` not started.
 
@@ -13,11 +14,13 @@ doc is the **big-picture "definition of done."**
 
 ## ▶️ Next 5 steps (in order)
 
-1. [ ] **Hand Monti the portal + get reactions.** Send Stefano the URL `https://cheeseshoptech-platform.netlify.app/?client=montitrentini` + the passcode. *(Rick)*
-2. [ ] **Point the subdomain** `montitrentini.cheeseshoptech.com` (DNS) for a clean branded URL. *(Rick + Claude guides)*
-3. [ ] **SSL hardening** — Cloudflare SSL → Full (strict) + registrar auto-renew. *(Rick)*
-4. [ ] **Feed content — photography first** → upload Monti product/brand photos to the Media hub (Cloudinary). *(Rick / Monti)*
-5. [ ] **Build the HubSpot pipeline** (deals + contacts); then wire the CRM connector (Make scenario, steps in `CRM_CONNECTOR.md`). *(Rick, then Claude wires)*
+1. [ ] **Commit + push the 2026-06-12 work** to `phase-2-6-build` (catalog port, Presentations tool, plan docs) so staging shows it. *(Rick reviews, then push)*
+2. [ ] **Capture MT ownership feedback** from Stefano's presentation (what landed, what they want next) → `monti_trentini` project notes. *(Rick)*
+3. [ ] **Point the subdomain** `montitrentini.cheeseshoptech.com` (DNS) for a clean branded URL. *(Rick + Claude guides)*
+4. [ ] **SSL hardening** — Cloudflare SSL → Full (strict) + registrar auto-renew. *(Rick)*
+5. [ ] **Feed content** — photography → Media hub; HubSpot pipeline → then wire the CRM connector (`CRM_CONNECTOR.md`). *(Rick, then Claude wires)*
+
+> **2026-06-12 milestone:** Stefano presented the platform to **MT ownership — positive, approved moving forward.** Portal handoff (old step 1) achieved via that presentation.
 
 ---
 
@@ -34,6 +37,9 @@ doc is the **big-picture "definition of done."**
 - [x] Catalog · Orders · Campaigns · Media hub · Storefront (admin + embed)
 - [x] Media hub **live on real Cloudinary** (103 Monti assets)
 - [x] All backend seams **code-complete + env-gated, ready to flip** (CRM, Shopify, Campaigns)
+- [x] **Buyer-facing Image Catalog ported into the platform** (2026-06-12, Phase B of `DEVELOPMENT_PLAN.md`) — `src/components/catalog/buyer-catalog.jsx` + `lib/catalog.js` seam + per-tenant `buyer-catalog.json` (103 images); replaces the old demo Catalog page (backed up in `archive/backup_2026-06-12_before_catalog_port/`)
+- [x] **Trade Portal ported into the platform** (2026-06-12, Phase C of `DEVELOPMENT_PLAN.md`) — generic `Presentations` tool (`src/components/presentations/presentations-page.jsx`): one responsive viewer (swipe/keys/fullscreen/thumbnails) replaces the separate desktop+mobile Netlify builds; slides re-encoded WebP (7.2 MB → 0.8 MB) in `public/presentations/montitrentini/`; deck defined in the tenant config `presentations` block; deep-link `?client=montitrentini&page=presentations`
+- [x] **MT ownership approval** — Stefano presented the platform to Monti Trentini ownership; positive, move-forward response (2026-06-12)
 
 ## 🟡 READY — waiting on data / secrets (the month of work)
 

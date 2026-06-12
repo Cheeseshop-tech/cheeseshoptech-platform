@@ -17,26 +17,6 @@
     "tagline": "One source of truth — catalog, inventory, pricing and commitments — feeding every Monti Trentini tool. Wholesale-first.",
     "footer": "A hundred-year-long story does not happen by chance."
   },
-  "presentations": [
-    {
-      "key": "trade-portal",
-      "title": "Trade Portal",
-      "eyebrow": "Casari dal 1925 · Trade program 2026",
-      "description": "Brand story, range, and the wholesale program — the deck presented to MT ownership.",
-      "slides": [
-        "/presentations/montitrentini/slide-01.webp",
-        "/presentations/montitrentini/slide-02.webp",
-        "/presentations/montitrentini/slide-03.webp",
-        "/presentations/montitrentini/slide-04.webp",
-        "/presentations/montitrentini/slide-05.webp",
-        "/presentations/montitrentini/slide-06.webp",
-        "/presentations/montitrentini/slide-07.webp",
-        "/presentations/montitrentini/slide-08.webp",
-        "/presentations/montitrentini/slide-09.webp",
-        "/presentations/montitrentini/slide-10.webp"
-      ]
-    }
-  ],
   "tools": [
     {
       "key": "price-list",
@@ -51,33 +31,13 @@
     },
     {
       "key": "image-catalog",
-      "label": "Media hub",
-      "description": "Asset management — upload, tag, and organize product & brand media.",
+      "label": "Image catalog",
+      "description": "Product & brand media library.",
       "icon": "images",
       "type": "internal",
       "route": "media",
       "status": "live",
       "tag": "Media"
-    },
-    {
-      "key": "buyer-catalog",
-      "label": "Image Catalog",
-      "description": "Buyer-facing product image library — search, preview, download, share.",
-      "icon": "images",
-      "type": "internal",
-      "route": "catalog",
-      "status": "live",
-      "tag": "Catalog"
-    },
-    {
-      "key": "trade-portal",
-      "label": "Trade Portal",
-      "description": "The Monti Trentini buyer presentation — brand story, range, and trade program.",
-      "icon": "presentation",
-      "type": "internal",
-      "route": "presentations",
-      "status": "live",
-      "tag": "Sales deck"
     },
     {
       "key": "shopify",

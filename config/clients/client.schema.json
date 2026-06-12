@@ -109,6 +109,28 @@
         }
       }
     },
+    "presentations": {
+      "type": "array",
+      "description": "Buyer-facing slide decks (the Presentations tool). Slides are image URLs — local /presentations/<id>/… or Cloudinary.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["key", "title", "slides"],
+        "properties": {
+          "key": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+          "title": { "type": "string", "minLength": 1 },
+          "eyebrow": { "type": "string", "description": "Small label above the deck title (e.g. 'Trade program · 2026')." },
+          "description": { "type": "string" },
+          "slides": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string" },
+            "description": "Ordered slide image URLs."
+          }
+        }
+      },
+      "default": []
+    },
     "tools": {
       "type": "array",
       "description": "The client's existing tools, surfaced as launch tiles on the Tools page.",
