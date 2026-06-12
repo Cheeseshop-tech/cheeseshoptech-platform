@@ -15,32 +15,23 @@ const DEV_USER = {
   logout: async () => {},
 };
 
-// Pilot passcode mode (VITE_AUTH_MODE=passcode): shared passcodes unlock the portal instead
-// of per-user Identity logins. Three tiers (ADMIN_DASHBOARDS_SPEC §2): client passcode →
-// "client", per-tenant admin passcode → "client-admin" (Manage features), house passcode →
-// "admin". On unlock we grant a synthetic session with that role; tenant comes from the URL.
+// Pilot passcode mode (VITE_AUTH_MODE=passcode): a single shared passcode unlocks the portal
+// instead of per-user Identity logins. On unlock we grant a synthetic "client" session so the
+// rest of the app (nav, role-gated UI) works; the tenant comes from the URL. See PasscodeGate.
 const PASSCODE_MODE = import.meta.env.VITE_AUTH_MODE === "passcode";
 const UNLOCK_KEY = "cs-portal-unlocked";
-const PASSCODE_ROLES = ["client", "client-admin", "admin"];
-const passcodeUser = (role) => ({
+const PASSCODE_USER = {
   email: "portal@cheeseshoptech.com",
-  user_metadata: { full_name: role === "client" ? "Portal" : role === "client-admin" ? "Portal Admin" : "CST Admin" },
-  app_metadata: { roles: [role], tenant: null },
+  user_metadata: { full_name: "Portal" },
+  app_metadata: { roles: ["client"], tenant: null },
   logout: async () => {},
-});
-const unlockedRole = () => {
-  try {
-    const v = localStorage.getItem(UNLOCK_KEY);
-    if (v === "1") return "client"; // legacy unlock value from before role tiers
-    return PASSCODE_ROLES.includes(v) ? v : null;
-  } catch { return null; }
+};
+const isUnlocked = () => {
+  try { return localStorage.getItem(UNLOCK_KEY) === "1"; } catch { return false; }
 };
 
 function initialUser() {
-  if (PASSCODE_MODE) {
-    const role = unlockedRole();
-    return role ? passcodeUser(role) : null;
-  }
+  if (PASSCODE_MODE) return isUnlocked() ? PASSCODE_USER : null;
   return DEV_BYPASS ? DEV_USER : currentUser();
 }
 
@@ -55,11 +46,9 @@ export function AuthProvider({ children }) {
   }, []);
 
   // Grant the synthetic session after a correct passcode (PasscodeGate calls this).
-  // role comes from the gate function's response; defaults to the base client tier.
-  const unlock = useCallback((role = "client") => {
-    const r = PASSCODE_ROLES.includes(role) ? role : "client";
-    try { localStorage.setItem(UNLOCK_KEY, r); } catch { /* quota / private mode */ }
-    setUser(passcodeUser(r));
+  const unlock = useCallback(() => {
+    try { localStorage.setItem(UNLOCK_KEY, "1"); } catch { /* quota / private mode */ }
+    setUser(PASSCODE_USER);
   }, []);
 
   const login = useCallback(async (email, password) => {

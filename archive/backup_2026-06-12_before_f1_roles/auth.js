@@ -12,9 +12,7 @@ const APIUrl =
 export const auth = new GoTrue({ APIUrl, audience: "", setCookie: true });
 
 // "owner" = Master Admin (CheeseShop TECH ownership). Superset of admin: see rolesOf below.
-// "client-admin" = customer-side operator (Manage tier: content, catalog edits, store
-// back-office). Superset of client. Roles matrix: docs/ADMIN_DASHBOARDS_SPEC.md §2.
-export const ROLES = ["owner", "admin", "client-admin", "client", "pr", "influencer", "creator"];
+export const ROLES = ["owner", "admin", "client", "pr", "influencer", "creator"];
 
 export function currentUser() {
   return auth.currentUser();
@@ -75,10 +73,8 @@ export async function logout() {
  * without touching each call site. Owner-only surfaces use isOwner().
  */
 export function rolesOf(user) {
-  let roles = user?.app_metadata?.roles || [];
-  // Supersets injected implicitly so existing call sites need no changes:
-  if (roles.includes("owner") && !roles.includes("admin")) roles = [...roles, "admin"];
-  if (roles.includes("client-admin") && !roles.includes("client")) roles = [...roles, "client"];
+  const roles = user?.app_metadata?.roles || [];
+  if (roles.includes("owner") && !roles.includes("admin")) return [...roles, "admin"];
   return roles;
 }
 

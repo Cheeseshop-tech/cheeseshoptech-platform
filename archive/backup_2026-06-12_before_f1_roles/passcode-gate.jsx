@@ -21,29 +21,19 @@ export function PasscodeGate({ resolved, children }) {
     setBusy(true);
     setError(null);
     try {
-      // Vite dev has no functions server — verify against the dev passcodes locally (three
-      // tiers, mirroring functions/gate.js). import.meta.env.DEV is false in any production
-      // build, so this branch can never run on the deployed site.
+      // Vite dev has no functions server — verify against the dev passcode locally. import.meta.env.DEV
+      // is false in any production build, so this branch can never run on the deployed site.
       if (import.meta.env.DEV) {
-        const dev = {
-          client: import.meta.env.VITE_PORTAL_PASSCODE || "monti",
-          "client-admin": import.meta.env.VITE_PORTAL_ADMIN_PASSCODE || "monti-admin",
-          admin: import.meta.env.VITE_HOUSE_PASSCODE || "house",
-        };
-        const role = Object.keys(dev).find((r) => code && code === dev[r]);
-        if (role) return unlock(role);
+        if (code && code === (import.meta.env.VITE_PORTAL_PASSCODE || "monti")) return unlock();
         setError("Incorrect passcode.");
         return;
       }
       const res = await fetch("/.netlify/functions/gate", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ passcode: code, tenant: resolved.subdomain || "" }),
+        body: JSON.stringify({ passcode: code }),
       });
-      if (res.ok) {
-        const data = await res.json().catch(() => ({}));
-        return unlock(data.role || "client");
-      }
+      if (res.ok) return unlock();
       setError("Incorrect passcode.");
     } catch {
       setError("Couldn't verify — please try again.");

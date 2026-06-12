@@ -61,6 +61,19 @@ Same rule as the platform core: **differentiation = tokens + content only.** Eac
 ### Phase E — Feed + launch (parallel, per the old plan)
 HubSpot pipeline → wire CRM connector (Make, `CRM_CONNECTOR.md`) once deals exist · campaign strategy → campaigns launch (~1 month clock) · class-of-trade %s + freight confirmations from Stefano · pricing/engagement `$___` figures.
 
+### Phase F — Admin dashboards, roles & proposal engine (spec'd 2026-06-12)
+Full spec: `ADMIN_DASHBOARDS_SPEC.md`. Concept locked: portal = CheeseShop TECH platform hosting client ecom sites + extending infrastructure/data management via gated, tenant-themed UIs; CST manages data, connectivity, and software (3rd-party + proprietary).
+
+| # | Task | Notes |
+|---|---|---|
+| F1 | Roles: per-tenant admin passcode → `client-admin`; gate Manage features | **SHIPPED 2026-06-12.** Three-tier gate (client / client-admin / admin); storefront back-office now Manage-gated; new env vars in `.env.example` (backward compatible until they're set) |
+| F2 | House dashboard P0: tenant management · integration health · data pipelines | **SHIPPED 2026-06-12.** `agency-console.jsx` on the house hub (admin-only): tenant cards + config-only onboarding card, seam mode table + gate test ping, per-tenant data freshness with staleness flag |
+| F3 | Client content manager: catalog metadata editing → canonical data layer | Ports the parked edit feature from the standalone catalog app |
+| F4 | Proposal engine v1 — **both tiers day one** (house pitches + client buyer proposals) | Reuses Presentations viewer + pricing-core; HEB v7 deck = reference template |
+| F5 | Media storage: R2/B2 archive layer + upload automation + Storage panel | Strategy in spec §6; **create the bucket before Monti photography lands** |
+
+Content engine = HubSpot plugin (campaigns authored/sent in HubSpot; portal shows status via the existing seam).
+
 ### Later (unchanged)
 Clerk auth at client #2 · onboard client #2 (proves multi-tenancy end-to-end) · production domain cutover.
 

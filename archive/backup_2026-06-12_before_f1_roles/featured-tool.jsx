@@ -3,20 +3,14 @@ import { ExternalLink, Maximize2 } from "lucide-react";
 import { Button } from "@/components/ui/button.jsx";
 import { toolIcon } from "@/lib/icons.js";
 import { StorefrontAdmin } from "./storefront-admin.jsx";
-import { useAuth } from "@/lib/auth-context.jsx";
-import { rolesOf } from "@/lib/auth.js";
 
 // A featured tool gets its own full page: a hero header with a prominent launch CTA, a live
 // in-portal preview (embed), and — when admin=true — a Live/Admin toggle exposing a store
-// back-office. The back-office is a Manage feature: CST admin + client-admin only
-// (ADMIN_DASHBOARDS_SPEC §2); client users see the live view only.
+// back-office (gated to admin/client by the nav). resolved is passed for the admin dashboard.
 export function FeaturedTool({ tool, resolved }) {
   const Icon = toolIcon(tool.icon);
   const open = () => tool.url && window.open(tool.url, "_blank", "noopener,noreferrer");
   const [mode, setMode] = useState("live"); // live | admin
-  const { user } = useAuth();
-  const userRoles = rolesOf(user);
-  const canManage = userRoles.includes("admin") || userRoles.includes("client-admin");
 
   return (
     <div className="flex h-full flex-col">
@@ -31,7 +25,7 @@ export function FeaturedTool({ tool, resolved }) {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          {tool.admin && canManage && (
+          {tool.admin && (
             <div className="inline-flex rounded-base border border-border bg-surface p-0.5">
               {["live", "admin"].map((m) => (
                 <button
@@ -55,7 +49,7 @@ export function FeaturedTool({ tool, resolved }) {
         </div>
       </div>
 
-      {mode === "admin" && tool.admin && canManage ? (
+      {mode === "admin" && tool.admin ? (
         <StorefrontAdmin resolved={resolved} />
       ) : tool.embed && tool.url ? (
         <div className="overflow-hidden rounded-base border border-border bg-surface shadow-md">
