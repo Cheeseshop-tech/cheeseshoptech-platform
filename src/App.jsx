@@ -8,6 +8,7 @@ import {
   LayoutGrid,
   Megaphone,
   MonitorPlay,
+  FileText,
 } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell.jsx";
 import { Button } from "@/components/ui/button.jsx";
@@ -15,6 +16,8 @@ import { Breadcrumb } from "@/components/ui/breadcrumb.jsx";
 import { MediaHub } from "@/components/media/media-hub.jsx";
 import { CatalogPage } from "@/components/catalog/buyer-catalog.jsx";
 import { PresentationsPage } from "@/components/presentations/presentations-page.jsx";
+import { ProposalBuilder } from "@/components/proposals/proposal-builder.jsx";
+import { ProposalView } from "@/components/proposals/proposal-view.jsx";
 import { ToolsPage } from "@/components/tools/tools-page.jsx";
 import { CampaignsPage } from "@/components/campaigns/campaigns-page.jsx";
 import { FeaturedTool } from "@/components/tools/featured-tool.jsx";
@@ -79,9 +82,14 @@ export default function App({ initialResolved }) {
   const presentationsNav = resolved.presentations?.length
     ? [{ key: "presentations", label: "Presentations", icon: MonitorPlay, allowed: ["admin", "client"] }]
     : [];
-  const baseNav = [NAV[0], ...featuredNav, ...presentationsNav, ...NAV.slice(1)];
+  // Proposals builder is a Manage feature (F4, ADMIN_DASHBOARDS_SPEC §5) — both tiers:
+  // house admins pitch prospects, client admins pitch their buyers.
+  const proposalsNav = [{ key: "proposals", label: "Proposals", icon: FileText, allowed: ["admin", "client-admin"] }];
+  const baseNav = [NAV[0], ...featuredNav, ...presentationsNav, ...proposalsNav, ...NAV.slice(1)];
   const nav = baseNav.filter((n) => n.allowed.some((r) => userRoles.includes(r)));
-  const effectivePage = nav.some((n) => n.key === page) ? page : nav[0]?.key;
+  // "proposal" (the rendered share link, ?page=proposal#p=…) is reachable by ANY portal
+  // role — it's what a buyer opens — so it bypasses the nav-membership check.
+  const effectivePage = page === "proposal" ? "proposal" : nav.some((n) => n.key === page) ? page : nav[0]?.key;
   const activeFeatured = featuredTools.find((t) => `tool:${t.key}` === effectivePage);
 
   function switchTenant(subdomain) {
@@ -148,6 +156,10 @@ export default function App({ initialResolved }) {
         <OrdersPage resolved={resolved} />
       ) : effectivePage === "presentations" ? (
         <PresentationsPage resolved={resolved} />
+      ) : effectivePage === "proposals" ? (
+        <ProposalBuilder resolved={resolved} />
+      ) : effectivePage === "proposal" ? (
+        <ProposalView resolved={resolved} />
       ) : (
         <CatalogPage resolved={resolved} />
       )}

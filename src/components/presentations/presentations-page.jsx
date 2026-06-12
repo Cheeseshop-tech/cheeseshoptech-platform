@@ -66,7 +66,7 @@ export function PresentationsPage({ resolved }) {
   );
 }
 
-function DeckViewer({ deck, showBack, onBack }) {
+export function DeckViewer({ deck, showBack, onBack }) {
   const [index, setIndex] = useState(0);
   const [fullscreen, setFullscreen] = useState(false);
   const stageRef = useRef(null);
