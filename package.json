@@ -8,7 +8,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "validate:clients": "node scripts/validate-clients.mjs"
+    "validate:clients": "node scripts/validate-clients.mjs",
+    "prewarm": "node scripts/prewarm-cloudinary.mjs"
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.3.4",
