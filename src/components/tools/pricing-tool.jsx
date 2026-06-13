@@ -8,6 +8,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs.j
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table.jsx";
 import { useToast } from "@/components/ui/toast.jsx";
 import { getPricingData, appendLedger } from "@/lib/pricing.js";
+import { cldImage } from "@/lib/cloudinary.js";
 import * as PC from "@/lib/pricing-core.js";
 import * as FC from "@/lib/forecast-core.js";
 
@@ -93,7 +94,7 @@ function Proforma({ data, brand }) {
 
   const opts = { tierId, basis, volumeId, customPct };
   const cloud = config.images || {};
-  const img = (code) => cloud.cloud ? `https://res.cloudinary.com/${cloud.cloud}/image/upload/f_auto,q_auto,c_fill,w_96/${cloud.folder}/${code}.jpg` : "";
+  const img = (code) => cloud.cloud ? cldImage({ cloud: cloud.cloud, publicId: `${cloud.folder}/${code}`, format: "jpg", preset: "micro" }) : "";
   const setCases = (code, v) => setQty((q) => { const n = Math.max(0, Math.floor(Number(v) || 0)); const next = { ...q }; if (n) next[code] = n; else delete next[code]; return next; });
 
   const visible = skus.filter((s) => !search || (s.code + " " + s.name + " " + s.category).toLowerCase().includes(search.trim().toLowerCase()));

@@ -6,21 +6,44 @@
 // Production sets VITE_CLOUDINARY_CLOUD to the CheeseShop TECH cloud name.
 export const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD || "demo";
 
-// Named transformation presets. Add new presets here only (single source of truth).
-// Product packshots are mostly square: PAD (white) instead of CROP so wheels never get
-// clipped, and skip g_auto — content-aware analysis on the 40+ MP originals was the
-// slow first-load culprit; padding needs none.
+// Named transformation presets — THE SINGLE SOURCE OF TRUTH for image sizing across the whole
+// app (Catalog, Media hub, Proposals, Pricing tool all route through cldImage below). Tune a
+// preset here and every surface updates together. Rule learned the hard way: product packshots
+// are ~45 MP squares, so PAD on white (never crop) and NEVER g_auto — content-aware crop forces
+// a full-resolution decode per image and was the slow first-load. Keep these padding-only.
 export const TRANSFORMS = {
-  thumb: "c_pad,b_white,w_160,h_160,f_auto,q_auto",   // 1:1 grid thumbnail
-  card: "c_pad,b_white,w_600,h_600,f_auto,q_auto",    // 1:1 product card (uncropped)
-  hero: "c_fit,w_1600,h_1200,f_auto,q_auto:good",     // dialog/preview, fit not crop
-  original: "f_auto,q_auto",                           // full, format/quality optimized
+  micro:   "c_pad,b_white,w_96,h_96,f_auto,q_auto",         // inline list icon (e.g. pricing rows)
+  thumb:   "c_pad,b_white,w_160,h_160,f_auto,q_auto",       // small square thumbnail
+  card:    "c_pad,b_white,w_360,h_360,f_auto,q_auto",       // grid card (Catalog + Media hub)
+  preview: "c_limit,w_1200,f_auto,q_auto:good,fl_progressive", // lightbox / detail
+  hero:    "c_fit,w_1600,h_1200,f_auto,q_auto:good",        // large dialog/preview
+  original:"f_auto,q_auto",                                  // full, format/quality optimized
 };
 
-/** Build a delivery URL for a public_id at a named preset. */
+/**
+ * THE canonical Cloudinary delivery-URL builder. Every image surface calls this so sizing,
+ * cropping, and the "no g_auto on huge masters" rule live in exactly one place.
+ *
+ * @param {object} o
+ * @param {string} o.publicId  Cloudinary public_id (e.g. "monti/asiago/..."). Required.
+ * @param {string} [o.preset]  Named TRANSFORMS preset (default "card").
+ * @param {string} [o.cloud]   Cloud name (defaults to the configured CheeseShop TECH cloud).
+ * @param {number|string} [o.version]  Optional Cloudinary version (cache-bust) -> /v123/.
+ * @param {string} [o.format]  Optional explicit extension (e.g. "png"); omit to let f_auto pick.
+ * @param {string} [o.attachmentName]  If set, forces a download with this filename.
+ */
+export function cldImage({ publicId, preset = "card", cloud = CLOUD_NAME, version, format, attachmentName }) {
+  if (!publicId) return "";
+  let t = TRANSFORMS[preset] || TRANSFORMS.card;
+  if (attachmentName) t = `fl_attachment:${attachmentName}` + (preset === "original" ? "" : `,${t}`);
+  const v = version ? `v${version}/` : "";
+  const ext = format ? `.${format}` : "";
+  return `https://res.cloudinary.com/${cloud}/image/upload/${t}/${v}${publicId}${ext}`;
+}
+
+/** Back-compat shorthand: build a delivery URL for a public_id at a named preset. */
 export function cldUrl(publicId, preset = "card", cloud = CLOUD_NAME) {
-  const t = TRANSFORMS[preset] || TRANSFORMS.card;
-  return `https://res.cloudinary.com/${cloud}/image/upload/${t}/${publicId}`;
+  return cldImage({ publicId, preset, cloud });
 }
 
 /** The canonical folder for a client (mirrors config cloudinaryFolder). */

@@ -22,10 +22,15 @@ export function MediaHub({ resolved }) {
   const [active, setActive] = useState(null);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef(null);
+  // Page the grid so we mount ~30 tiles, not the whole folder at once (a 100+ image folder
+  // flooded the browser on load). Reset when the folder tab changes.
+  const PAGE = 30;
+  const [shown, setShown] = useState(PAGE);
 
   useEffect(() => {
     let alive = true;
     setAssets(null);
+    setShown(PAGE);
     listAssets({ folder, tenantFolder: resolved.cloudinaryFolder, user }).then((a) => {
       if (alive) setAssets(a);
     });
@@ -102,11 +107,20 @@ export function MediaHub({ resolved }) {
               description="No assets in this folder are available to your role."
             />
           ) : (
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-              {assets.map((a) => (
-                <AssetTile key={a.publicId} asset={a} onOpen={() => setActive(a)} />
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+                {assets.slice(0, shown).map((a) => (
+                  <AssetTile key={a.publicId} asset={a} onOpen={() => setActive(a)} />
+                ))}
+              </div>
+              {shown < assets.length && (
+                <div className="mt-6 flex justify-center">
+                  <Button variant="outline" onClick={() => setShown((n) => n + PAGE)}>
+                    Load more ({assets.length - shown} left)
+                  </Button>
+                </div>
+              )}
+            </>
           )}
         </TabsContent>
       </Tabs>

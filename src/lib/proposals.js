@@ -85,9 +85,11 @@ export function resolveSkus(catalog, codes) {
     .filter(Boolean);
 }
 
-/** Cloudinary packshot URL from the tenant's canonical images config (sku.image = public id leaf). */
+/** Cloudinary packshot URL from the tenant's canonical images config (sku.image = public id leaf).
+ *  Routes through the ONE canonical builder; `width` picks the nearest preset. */
 export function skuImageUrl(config, sku, width = 160) {
   const img = config?.images;
   if (!img || img.provider !== "cloudinary" || !sku.image) return null;
-  return `https://res.cloudinary.com/${img.cloud}/image/upload/w_${width},h_${width},c_pad,b_white,f_auto,q_auto/${img.folder}/${sku.image}`;
+  const preset = width <= 110 ? "micro" : width <= 220 ? "thumb" : "card";
+  return cldImage({ cloud: img.cloud, publicId: `${img.folder}/${sku.image}`, preset });
 }

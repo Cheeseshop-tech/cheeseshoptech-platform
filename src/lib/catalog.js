@@ -6,6 +6,7 @@
 //          ext, size, modified, cl_id, cl_fmt, cl_v, cl_w, cl_h }] }
 
 import mtBuyerCatalog from "@/data/montitrentini/buyer-catalog.json";
+import { cldImage } from "./cloudinary.js";
 
 const BUNDLES = {
   montitrentini: mtBuyerCatalog,
@@ -20,19 +21,18 @@ export function getBuyerCatalog(resolved) {
   return null;
 }
 
-// ---- Cloudinary URL helpers (ported 1:1 from the standalone catalog app) ----
+// ---- Cloudinary URL helpers — thin wrappers over the ONE canonical builder
+// (lib/cloudinary.js cldImage). Sizing/cropping rules live there, so the Catalog can never
+// again drift from the Media hub. Call shape stays (cloud, im) where im = {cl_id, cl_v, cl_fmt}. ----
 
-// Grid thumbnail. PAD on white (square, never clips a wheel) and NO g_auto — content-aware
-// crop forces Cloudinary to decode the full ~45 MP master per image, which was the slow
-// first-load. 360px is plenty for the grid (displayed ~250px) and roughly halves the bytes.
 export const cldThumb = (cloud, im) =>
-  `https://res.cloudinary.com/${cloud}/image/upload/w_360,h_360,c_pad,b_white,f_auto,q_auto/v${im.cl_v}/${im.cl_id}.${im.cl_fmt}`;
+  cldImage({ cloud, publicId: im.cl_id, version: im.cl_v, format: im.cl_fmt, preset: "card" });
 
 export const cldBig = (cloud, im) =>
-  `https://res.cloudinary.com/${cloud}/image/upload/w_1200,c_limit,f_auto,q_auto:good,fl_progressive/v${im.cl_v}/${im.cl_id}.${im.cl_fmt}`;
+  cldImage({ cloud, publicId: im.cl_id, version: im.cl_v, format: im.cl_fmt, preset: "preview" });
 
 export const cldView = (cloud, im) =>
-  `https://res.cloudinary.com/${cloud}/image/upload/v${im.cl_v}/${im.cl_id}.${im.cl_fmt}`;
+  cldImage({ cloud, publicId: im.cl_id, version: im.cl_v, format: im.cl_fmt, preset: "original" });
 
 const slugify = (s) =>
   (s || "")
@@ -44,7 +44,7 @@ const slugify = (s) =>
     .replace(/^-+|-+$/g, "") || "image";
 
 export const cldDownload = (cloud, im) =>
-  `https://res.cloudinary.com/${cloud}/image/upload/fl_attachment:${slugify(im.title)}/v${im.cl_v}/${im.cl_id}.${im.cl_fmt}`;
+  cldImage({ cloud, publicId: im.cl_id, version: im.cl_v, format: im.cl_fmt, preset: "original", attachmentName: slugify(im.title) });
 
 export const fmtSize = (b) =>
   b < 1024 ? `${b} B` : b < 1048576 ? `${(b / 1024).toFixed(0)} KB` : `${(b / 1048576).toFixed(1)} MB`;
