@@ -19,6 +19,31 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-13 (cont.) — Brand Kit + Theme Engine + Proposal v2 (the agency crown jewel)
+
+Built the Brand Kit foundation and the Proposal Builder v2 on top of it (BRAND_KIT_AND_PROPOSAL_SPEC.md,
+from MT ProposalBuilder Scope v2). **Business model encoded:** CheeseShop TECH owns brand orchestration
+as the core value of the monthly fee — clients focus on product + sales.
+
+- **Brand Kit (single source, "one mind one body"):** `src/data/<tenant>/brand-kit.json` — identity
+  (logo/colors/type), imagery, voice, audience-tagged story blocks. Monti's PARSED from the existing
+  Brand_Guide + Voice_and_Messaging (the "UI version of brand voice"). `_brand-kit-template.json` =
+  onboarding worksheet. `lib/brandKit.js` reader + `lib/brand-kit-edits.js` overlay (commits f71766f).
+- **Brand Management page** (house-admin, "Brand kits" nav): displays the kit + an EDIT-MODE worksheet
+  — inline text, color pickers, list add/remove, story-block editing, logo/image upload (Cloudinary).
+  Persists per-tenant in localStorage; Export commits JSON to source (commit ffbc4a1).
+- **Single-source theming:** `resolveClient` derives brand colors + radius from the kit (commit ffbc4a1).
+- **Theme Engine** (`lib/themes.js`): themes = composed layouts (lead color, density, type register,
+  fixed cover + product image-placement zones) derived from the kit. Q1=both (CST demo + live per-tenant),
+  Q2=placement zone is a fixed, well-composed image area. Two registers now; full five in a design session.
+- **Proposal v2:** audience selector (filters story blocks), brand story-block multi-select, theme
+  selector; themed render (cover, story blocks with image zones, product range, brand closing). Image
+  zones always show a composed brand block as backdrop so composition holds before assets exist.
+  Commits cfc8a6c, 2b43b9a, 9cc3fe9.
+- **Process note / lesson:** cfc8a6c broke the Netlify build — `themes.js` was left untracked because
+  the commit used `git commit -a` (stages modified-tracked only, NOT new files). Fixed in 2b43b9a.
+  **Always `git add -A` (not `commit -a`) when a commit introduces new files.**
+
 ## 2026-06-13 (cont.) — Pricing tool UX pass (composition for live customer conversations)
 
 Cosmetic/layout work on the Proforma (Pricing & Inventory), driven by Rick using it as a
