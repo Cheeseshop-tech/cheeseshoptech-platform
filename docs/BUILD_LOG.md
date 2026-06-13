@@ -19,6 +19,28 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-13 (cont.) — Five-theme design session (Theme Engine completed)
+
+Completed the "dedicated design session" the Theme Engine was gated behind (Scope §7.4, unblocked once
+Rick answered Q1/Q2). Took the engine from **2 proof-of-concept registers to the full five**, each
+mapped to a Monti channel + a flagship — all REGISTERS of the one brand kit, not new brands.
+
+- **The five:** Heritage Editorial (provenance, exists), Fresh Market (retail/grocery, exists),
+  **Chef's Table** (foodservice — dark Mountain-Ink, image-led, serif), **Trade Brief** (distributors —
+  compact sans, dense range table, minimal imagery), **Alpine Gallery** (chains/flagship — Heritage
+  Cream canvas, oversized serif, quiet gallery grid).
+- **`themes.js`:** richer token vocab — `lead` now incl. `ink`/`cream`; `density` (airy/regular/compact);
+  `typeRegister` incl. `grand`; `cover` incl. `minimal`; `product` incl. `grid-three-up`/`list-compact`.
+  `themeColors()` now resolves an `onCanvas` legible color so a light (cream) lead keeps headings
+  readable. New `themeSpec()` maps density+type → concrete classes (one place to tune the system).
+- **`proposal-view.jsx`:** the renderer now actually **expresses** density (vertical rhythm, cover
+  height, measure) and type register (heading voice, cover title), which it previously ignored. Added
+  the `minimal` cover and the `grid-three-up` + `list-compact` product layouts. Existing two themes
+  render unchanged. The builder's theme dropdown auto-populates from `THEMES`, so all five appear.
+- **Verified:** `vite build` clean (1646 modules; isolated outDir to dodge the dist/.DS_Store EPERM).
+- **Process note:** sandbox could not finalize the commit (mount blocked removing `.git/index.lock`);
+  delivered as the `COMMIT THEME SESSION.command` easy-button — double-click, then DEPLOY as usual.
+
 ## 2026-06-13 (cont.) — Brand Kit + Theme Engine + Proposal v2 (the agency crown jewel)
 
 Built the Brand Kit foundation and the Proposal Builder v2 on top of it (BRAND_KIT_AND_PROPOSAL_SPEC.md,

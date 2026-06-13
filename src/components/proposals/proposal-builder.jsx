@@ -13,7 +13,7 @@ import {
 } from "@/lib/proposals.js";
 import { codeImageUrl } from "@/lib/images.js";
 import { getBrandKit, AUDIENCES, storyBlocksFor } from "@/lib/brandKit.js";
-import { THEMES } from "@/lib/themes.js";
+import { THEMES, getTheme } from "@/lib/themes.js";
 import { ProposalView } from "./proposal-view.jsx";
 
 // Proposal builder (F4, Manage tier) — assemble a branded buyer proposal from canonical
@@ -152,8 +152,9 @@ export function ProposalBuilder({ resolved }) {
                 value={p.themeId}
                 onChange={(e) => update("themeId", e.target.value)}
               >
-                {THEMES.map((t) => <option key={t.id} value={t.id}>{t.name} — {t.register}</option>)}
+                {THEMES.map((t) => <option key={t.id} value={t.id}>{t.name} — {t.channel}</option>)}
               </select>
+              <p className="text-xs text-fg-muted">{getTheme(p.themeId).register}. {getTheme(p.themeId).description}</p>
             </div>
             {kit?.storyBlocks?.length > 0 && (
               <div className="grid gap-1.5">
