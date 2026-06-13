@@ -50,6 +50,8 @@ const MOCK = {
 };
 
 const USE_MOCK = (import.meta.env.VITE_CAMPAIGNS_BACKEND || "mock") === "mock";
+// True while campaign data is sample (no live backend). Real source = HubSpot (INTEGRATIONS_PLAN.md).
+export const campaignsAreSample = USE_MOCK;
 
 /** Campaigns for a tenant (most recent first). */
 export async function getCampaigns(resolved) {

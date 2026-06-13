@@ -55,6 +55,9 @@ const MOCK = {
 };
 
 const USE_MOCK = (import.meta.env.VITE_CRM_BACKEND || "mock") === "mock";
+// True while CRM data is sample (no live backend). Real source = Salesforce (INTEGRATIONS_PLAN.md).
+// UI uses this to mark mock-backed sections "Sample" so they're never mistaken for live numbers.
+export const crmIsSample = USE_MOCK;
 
 /** Fetch the CRM dataset for a tenant. Returns null if no CRM configured. */
 export async function getCrmData(resolved) {

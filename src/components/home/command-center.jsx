@@ -4,8 +4,19 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card.j
 import { Button } from "@/components/ui/button.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
 import { Skeleton } from "@/components/ui/skeleton.jsx";
-import { getCrmData, hasCrm, money, PIPELINE_STAGES } from "@/lib/crm.js";
-import { getCampaigns, CHANNELS, compact } from "@/lib/campaigns.js";
+import { getCrmData, hasCrm, money, PIPELINE_STAGES, crmIsSample } from "@/lib/crm.js";
+import { getCampaigns, CHANNELS, compact, campaignsAreSample } from "@/lib/campaigns.js";
+
+// Small "Sample" chip for sections still on mock data (CRM = Salesforce, campaigns = HubSpot —
+// not wired yet, see INTEGRATIONS_PLAN.md). Auto-disappears once the live backend is set.
+function SampleTag({ show }) {
+  if (!show) return null;
+  return (
+    <Badge variant="muted" className="ml-2 align-middle text-[10px] uppercase tracking-wide" title="Sample data — not yet connected to the live source">
+      Sample
+    </Badge>
+  );
+}
 
 // "At a glance" command-center strip for the home hub — pipeline by stage, active campaigns,
 // recent activity, and overdue invoices. Rendered below the hub's tool cards for tenants with a
@@ -42,7 +53,7 @@ export function CommandCenter({ resolved, onNavigate }) {
       <div className="grid gap-6 lg:grid-cols-2">
         {crm && hasCrm(resolved) && (
           <Card>
-            <CardHeader><CardTitle>Pipeline by stage</CardTitle></CardHeader>
+            <CardHeader><CardTitle>Pipeline by stage<SampleTag show={crmIsSample} /></CardTitle></CardHeader>
             <CardContent className="space-y-3">
               {PIPELINE_STAGES.map((stage) => {
                 const row = crm.pipeline.find((p) => p.stage === stage) || { count: 0, value: 0 };
@@ -63,7 +74,7 @@ export function CommandCenter({ resolved, onNavigate }) {
         )}
 
         <Card>
-          <CardHeader><CardTitle>Active campaigns</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Active campaigns<SampleTag show={campaignsAreSample} /></CardTitle></CardHeader>
           <CardContent className="space-y-3">
             {activeCampaigns.length === 0 ? (
               <p className="text-sm text-fg-muted">No active campaigns right now.</p>
@@ -87,7 +98,7 @@ export function CommandCenter({ resolved, onNavigate }) {
 
         {crm && (
           <Card>
-            <CardHeader><CardTitle>Recent activity</CardTitle></CardHeader>
+            <CardHeader><CardTitle>Recent activity<SampleTag show={crmIsSample} /></CardTitle></CardHeader>
             <CardContent className="space-y-3">
               {crm.activity.slice(0, 4).map((a, i) => (
                 <div key={i} className="flex items-start justify-between gap-3 border-b border-border pb-3 last:border-0 last:pb-0">
@@ -104,7 +115,7 @@ export function CommandCenter({ resolved, onNavigate }) {
 
         {overdue.length > 0 && (
           <Card>
-            <CardHeader><CardTitle>Needs attention</CardTitle></CardHeader>
+            <CardHeader><CardTitle>Needs attention<SampleTag show={crmIsSample} /></CardTitle></CardHeader>
             <CardContent className="space-y-3">
               {overdue.map((inv) => (
                 <div key={inv.id} className="flex items-center justify-between gap-3 border-b border-border pb-3 last:border-0 last:pb-0">
