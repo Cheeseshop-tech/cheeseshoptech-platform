@@ -16,9 +16,10 @@ Launch wiring (domain/SSL/handoff) and feeding (content, deals, strategy) contin
 
 1. [ ] **Commit + push the 2026-06-12 work** to `phase-2-6-build` (catalog port, Presentations tool, plan docs) so staging shows it. *(Rick reviews, then push)*
 2. [ ] **Capture MT ownership feedback** from Stefano's presentation (what landed, what they want next) → `monti_trentini` project notes. *(Rick)*
-3. [ ] **Point the subdomain** `montitrentini.cheeseshoptech.com` (DNS) for a clean branded URL. *(Rick + Claude guides)*
-4. [ ] **SSL hardening** — Cloudflare SSL → Full (strict) + registrar auto-renew. *(Rick)*
-5. [ ] **Feed content** — photography → Media hub; HubSpot pipeline → then wire the CRM connector (`CRM_CONNECTOR.md`). *(Rick, then Claude wires)*
+3. [x] **Subdomain LIVE (2026-06-12):** `https://montitrentini.cheeseshoptech.com` — CNAME (DNS-only) → platform site, Netlify cert issued. Wildcard `*.cheeseshoptech.com` still points to the coming-soon site (proxied); specific records override it per tenant.
+4. [ ] **SSL hardening** — Cloudflare SSL → Full (strict) + registrar auto-renew. *(Rick — quick check while in Cloudflare)*
+5. [ ] **Netlify passcodes** — add team-level `PORTAL_ADMIN_PASSCODE` + `PORTAL_HOUSE_PASSCODE`, trigger deploy (activates the F1 role tiers in prod). *(Rick — in progress)*
+6. [ ] **Feed content** — photography → R2 archive (`cheeseshoptech-media-archive` bucket created 2026-06-12, folder `monti-trentini/`) + Media hub; HubSpot pipeline → then wire the CRM connector (`CRM_CONNECTOR.md`). *(Rick, then Claude wires)*
 
 > **2026-06-12 milestone:** Stefano presented the platform to **MT ownership — positive, approved moving forward.** Portal handoff (old step 1) achieved via that presentation.
 
