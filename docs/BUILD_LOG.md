@@ -19,6 +19,40 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-13 — Image delivery unified ("one mind, one body") + Phase F shipped
+
+**Big session.** Phase F (admin dashboards, roles, proposal engine) built end-to-end, then a deep
+image-performance + unification pass. All on `phase-2-6-build`, deployed to staging.
+
+**Phase F — shipped (commits 74f99fa, 494b7b1, 594a59c):**
+- **F1** three-tier passcode roles (client / client-admin / admin) via `functions/gate.js`; storefront
+  back-office is now Manage-gated. Passcodes set team-level in Netlify + deployed.
+- **F2** Agency console on the house hub (admin-only): tenant management, integration health (live/mock
+  per seam + gate ping), data pipelines with staleness flags.
+- **F3** catalog metadata editing for client-admins (`lib/catalog-edits.js`, export/import JSON).
+- **F4** proposal engine, both tiers (`components/proposals/*`, `lib/proposals.js`): builder + buyer
+  share links that carry the proposal in the URL and quote prices LIVE via pricing-core (links never stale).
+
+**Launch wiring (Rick, evening of 06-12):** `https://montitrentini.cheeseshoptech.com` LIVE (Cloudflare
+CNAME DNS-only → platform; wildcard still serves coming-soon, specific records override). R2 bucket
+`cheeseshoptech-media-archive` created. All three passcodes live.
+
+**Image performance — root cause + fix (commits 7e7f719, 0d83cbe, 2cbbd01, 0de4d3a):**
+- Symptom: Media hub + Catalog slow on first load, packshots misaligned.
+- **Root cause:** thumbnails used `g_auto` (content-aware crop) → forces Cloudinary to decode the full
+  ~45 MP master per image; and grids mounted the entire 100+ image folder at once.
+- **Fix:** pad-on-white (no g_auto), 360 px thumbs, paginate 30/page, `npm run prewarm` to pre-build
+  derivatives. Verified live via browser network inspection (cold multi-second → ~0.7 s median, warm ~16 ms).
+- **Unification ("one mind, one body"):** the Catalog had its OWN URL code separate from the Media hub —
+  which is why fixing one didn't fix the other. Consolidated EVERY image URL in the app through one
+  builder `cldImage()` in `lib/cloudinary.js` (named presets = single source of truth). Catalog, Media
+  hub, Proposals, Pricing tool all delegate; zero raw `res.cloudinary.com` URLs left in render code.
+
+**Next — Phase F5 (designed, spec'd, NOT built):** `docs/IMAGE_PIPELINE_SPEC.md`. The render layer is
+unified; the SOURCE isn't — the same images are still described in 3 mismatched files (buyer-catalog.json /
+sku.image / media-list). Target = one sync job → one canonical `images.json` manifest per tenant → the
+shared builder → every screen. Add a photo, run one command, it's everywhere, correctly sized.
+
 ## 2026-06-06 — Session checkpoint: Monti pilot portal is LIVE (passcode go-live)
 
 **Milestone.** The Monti pilot portal is **live and accessible** on staging. Rick set
