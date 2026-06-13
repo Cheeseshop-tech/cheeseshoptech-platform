@@ -169,7 +169,7 @@ export function ProposalBuilder({ resolved }) {
                 <div className="space-y-1">
                   {items.map(({ product, sku }) => {
                     const checked = p.skus.includes(sku.code);
-                    const img = codeImageUrl(resolved, config, sku.code, "thumb");
+                    const img = codeImageUrl(resolved, config, sku.code, "card");
                     return (
                       <label
                         key={sku.code}
@@ -184,7 +184,7 @@ export function ProposalBuilder({ resolved }) {
                           onChange={() => toggleSku(sku.code)}
                           className="h-4 w-4 accent-[var(--cs-color-brand-primary)]"
                         />
-                        {img && <img src={img} alt="" loading="lazy" className="h-9 w-9 rounded-base border border-border bg-white object-contain" />}
+                        {img && <img src={img} alt="" loading="lazy" className="h-12 w-12 flex-none rounded-base border border-border bg-white object-contain" />}
                         <span className="min-w-0 flex-1">
                           <span className="block truncate text-sm font-medium text-fg">{product.name}</span>
                           <span className="block truncate text-xs text-fg-muted">{sku.packing}</span>

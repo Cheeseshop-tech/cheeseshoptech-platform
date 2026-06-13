@@ -44,7 +44,10 @@ export const handler = async (event) => {
       // "products" so they show on the Media Hub's default tab.
       const folder = FOLDERS.find((f) => segs.includes(f)) || "products";
       const tags = r.tags || [];
-      const approvalState = APPROVAL_TAGS.find((s) => tags.includes(s)) || "draft";
+      // Untagged assets are finished, published product photography → "approved-for-press".
+      // Only an explicit "draft" tag marks a work-in-progress; this keeps the library from
+      // showing a sea of DRAFT badges on real packshots.
+      const approvalState = APPROVAL_TAGS.find((s) => tags.includes(s)) || "approved-for-press";
       return {
         publicId: r.public_id,
         sku: r.context?.custom?.sku || "",

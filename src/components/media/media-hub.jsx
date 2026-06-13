@@ -142,6 +142,9 @@ export function MediaHub({ resolved }) {
 
 function AssetTile({ asset, onOpen }) {
   const ap = APPROVAL[asset.approvalState];
+  // Approved-for-press is the norm for finished packshots — don't badge it (keeps the grid clean).
+  // Only flag exceptions worth attention: drafts and influencer-only assets.
+  const showBadge = asset.approvalState !== "approved-for-press";
   return (
     <button onClick={onOpen} className="group text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand rounded-base">
       <Card className="overflow-hidden">
@@ -155,7 +158,7 @@ function AssetTile({ asset, onOpen }) {
           <p className="truncate text-sm font-medium text-fg">{asset.title}</p>
           <div className="mt-1.5 flex items-center justify-between gap-2">
             {asset.sku ? <span className="font-mono text-xs text-fg-muted">{asset.sku}</span> : <span />}
-            <Badge variant={ap.tone}>{ap.label}</Badge>
+            {showBadge && <Badge variant={ap.tone}>{ap.label}</Badge>}
           </div>
         </div>
       </Card>
