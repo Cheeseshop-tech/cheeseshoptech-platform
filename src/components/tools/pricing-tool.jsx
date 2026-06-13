@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
-import { Calculator, Package, Handshake } from "lucide-react";
+import { Calculator, Package, Handshake, Search } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card.jsx";
+import { Dialog, DialogContent } from "@/components/ui/dialog.jsx";
 import { Button } from "@/components/ui/button.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
 import { Stat } from "@/components/ui/stat.jsx";
@@ -73,7 +74,13 @@ function Proforma({ data, brand, resolved }) {
   const { toast } = useToast();
   const skus = useMemo(
     () => catalog.products.flatMap((p) =>
-      p.skus.map((s) => ({ ...s, category: p.category, name: titleCase(p.name) + " · " + s.packing }))),
+      p.skus.map((s) => ({
+        ...s,
+        category: p.category,
+        name: titleCase(p.name) + " · " + s.packing,
+        productName: titleCase(p.name),
+        marketing: p.marketing || {},
+      }))),
     [catalog]
   );
   const cmap = useMemo(() => {
@@ -91,10 +98,12 @@ function Proforma({ data, brand, resolved }) {
   const [customPct, setCustomPct] = useState(0);
   const [search, setSearch] = useState("");
   const [qty, setQty] = useState({});
+  const [detail, setDetail] = useState(null); // sku whose product-detail dialog is open
 
   const opts = { tierId, basis, volumeId, customPct };
   // Manifest-first (real catalog image when the code has one), legacy packshot fallback otherwise.
   const img = (code) => codeImageUrl(resolved, config, code, "micro");
+  const imgLarge = (code) => codeImageUrl(resolved, config, code, "card");
   const setCases = (code, v) => setQty((q) => { const n = Math.max(0, Math.floor(Number(v) || 0)); const next = { ...q }; if (n) next[code] = n; else delete next[code]; return next; });
 
   const visible = skus.filter((s) => !search || (s.code + " " + s.name + " " + s.category).toLowerCase().includes(search.trim().toLowerCase()));
@@ -147,10 +156,9 @@ function Proforma({ data, brand, resolved }) {
   }
 
   return (
-    <div className="grid gap-5 lg:grid-cols-[1fr_340px]">
-      <div>
+    <div className="space-y-4">
         {/* controls */}
-        <div className="mb-4 flex flex-wrap items-end gap-3">
+        <div className="flex flex-wrap items-end gap-3">
           <div className="flex flex-col gap-1">
             <span className={fieldLabel}>Customer</span>
             <input list="cust-list" className={selCls + " min-w-[180px]"} value={customer} onChange={(e) => setCustomer(e.target.value)} placeholder="Select or type…" />
@@ -188,6 +196,39 @@ function Proforma({ data, brand, resolved }) {
           </div>
         </div>
 
+        {/* Summary bar — bill-to + running totals, full-width and sticky so it stays visible while
+            scrolling. Moved above the table (was a 340px side rail) so the product list runs the
+            full width + length of the window — more rows, no text wrapping. */}
+        <div className="sticky top-2 z-10">
+          <Card>
+            <CardContent className="flex flex-wrap items-center gap-x-6 gap-y-3 p-4">
+              <div className="min-w-[150px]">
+                <p className="text-xs uppercase tracking-wide text-fg-muted">Bill to</p>
+                <p className="font-heading text-lg leading-tight text-fg">{customer || <span className="text-fg-muted">No customer</span>}</p>
+                <div className="mt-1 flex flex-wrap gap-1.5">
+                  <Badge variant="muted">{basis === "pickup" ? "Pickup EXW" : "Delivered"}</Badge>
+                  <Badge variant="muted">{tier.label}</Badge>
+                  {customPct ? <Badge variant="info">{customPct > 0 ? "+" : ""}{customPct}%</Badge> : null}
+                </div>
+              </div>
+
+              <div className="hidden text-sm sm:block">
+                <div className="flex justify-between gap-6"><span className="text-fg-muted">Merchandise <span className="text-xs">({order.lines.length})</span></span><span className="font-mono">{money(order.merchSubtotal)}</span></div>
+                {order.freight.map((f) => <div key={f.id} className="flex justify-between gap-6 text-info"><span>{f.label}</span><span className="font-mono">{money(f.amount)}</span></div>)}
+                <div className="flex justify-between gap-6 text-fg-muted"><span>Weight</span><span className="font-mono">{lbsFmt(order.totalLbs)} lb{order.totalLbs >= gate ? "" : ` / ${lbsFmt(gate)}`}</span></div>
+              </div>
+
+              <div className="ml-auto flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2 rounded-base bg-brand-primary px-4 py-2 text-brand-on-primary">
+                  <span className="font-heading text-sm">Grand total</span><span className="font-mono text-lg font-semibold">{money(order.grandTotal)}</span>
+                </div>
+                <Button variant="outline" onClick={printProforma}>Print / PDF</Button>
+                <Button variant="primary" onClick={recordSale}>Record sale</Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
         <Card>
           <Table>
             <TableHeader>
@@ -210,8 +251,18 @@ function Proforma({ data, brand, resolved }) {
                   <TableRow key={s.code}>
                     <TableCell>
                       <div className="flex gap-3">
-                        <img loading="lazy" src={img(s.image)} alt="" onError={(e) => (e.currentTarget.style.visibility = "hidden")}
-                          className="h-11 w-11 flex-none rounded-base border border-border object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => setDetail(s)}
+                          title="View product details"
+                          className="group/img relative h-11 w-11 flex-none overflow-hidden rounded-base border border-border bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                        >
+                          <img loading="lazy" src={img(s.code)} alt="" onError={(e) => (e.currentTarget.style.visibility = "hidden")}
+                            className="h-full w-full object-contain transition-transform group-hover/img:scale-110" />
+                          <span className="absolute inset-0 flex items-center justify-center bg-fg/0 text-transparent transition-colors group-hover/img:bg-fg/40 group-hover/img:text-white">
+                            <Search className="h-4 w-4" />
+                          </span>
+                        </button>
                         <div className="min-w-0">
                           <span className="font-mono text-xs font-semibold text-brand-primary">{s.code}</span>
                           <div className="font-medium text-fg">{s.name}</div>
@@ -250,45 +301,86 @@ function Proforma({ data, brand, resolved }) {
             </TableBody>
           </Table>
         </Card>
-      </div>
 
-      {/* proforma rail */}
-      <div className="lg:sticky lg:top-4 h-fit">
-        <Card>
-          <CardContent className="p-5">
-            <p className="text-xs uppercase tracking-wide text-fg-muted">Bill to</p>
-            <p className="font-heading text-xl text-fg">{customer || <span className="text-fg-muted">No customer</span>}</p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <Badge variant="muted">{basis === "pickup" ? "Pickup EXW" : "Delivered"}</Badge>
-              <Badge variant="muted">{tier.label}</Badge>
-              {customPct ? <Badge variant="info">{customPct > 0 ? "+" : ""}{customPct}%</Badge> : null}
-            </div>
-
-            <div className="mt-4">
-              <div className="flex justify-between text-xs text-fg-muted"><span>Order weight</span><span className="font-mono">{lbsFmt(order.totalLbs)} lb</span></div>
-              <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-bg">
-                <div className="h-full bg-brand-primary transition-all" style={{ width: Math.min(100, (order.totalLbs / gate) * 100) + "%" }} />
-              </div>
-              <p className="mt-1 text-[11px] text-fg-muted">
-                {order.totalLbs >= gate ? `Over ${lbsFmt(gate)} lb — delivered freight $0.30/lb` : `Freight gate at ${lbsFmt(gate)} lb`}
-              </p>
-            </div>
-
-            <div className="mt-4 space-y-1.5 border-t border-border pt-3 text-sm">
-              <div className="flex justify-between"><span className="text-fg-muted">Merchandise <span className="text-xs">({order.lines.length} lines)</span></span><span className="font-mono font-medium">{money(order.merchSubtotal)}</span></div>
-              {order.freight.map((f) => <div key={f.id} className="flex justify-between text-info"><span>{f.label}</span><span className="font-mono">{money(f.amount)}</span></div>)}
-            </div>
-            <div className="mt-3 flex items-center justify-between rounded-base bg-brand-primary px-3 py-2.5 text-brand-on-primary">
-              <span className="font-heading">Grand total</span><span className="font-mono text-lg font-semibold">{money(order.grandTotal)}</span>
-            </div>
-            <div className="mt-3 flex gap-2">
-              <Button variant="outline" className="flex-1" onClick={printProforma}>Print / PDF</Button>
-              <Button variant="primary" className="flex-1" onClick={recordSale}>Record sale</Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+        <ProductDetailDialog
+          sku={detail}
+          onClose={() => setDetail(null)}
+          imgUrl={detail ? imgLarge(detail.code) : ""}
+          unit={detail ? PC.quoteUnitPrice(detail, opts, config) : null}
+          inv={detail ? inventory.skus[detail.code] : null}
+          tierLabel={tier.label}
+        />
     </div>
+  );
+}
+
+/* Product detail — opens from the proforma thumbnail. Built for live customer conversations:
+   big image + description + the specs and questions a buyer actually asks. */
+function ProductDetailDialog({ sku, onClose, imgUrl, unit, inv, tierLabel }) {
+  if (!sku) return null;
+  const m = sku.marketing || {};
+  const p = sku.pack || {};
+  const spec = (label, value) => value != null && value !== "" ? (
+    <div><dt className="text-[11px] uppercase tracking-wide text-fg-muted">{label}</dt><dd className="text-sm text-fg">{value}</dd></div>
+  ) : null;
+  return (
+    <Dialog open={!!sku} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-3xl p-0">
+        <div className="grid md:grid-cols-[1fr_1.1fr]">
+          <div className="flex items-center justify-center bg-white p-4 md:rounded-l-base">
+            <img src={imgUrl} alt={sku.productName} className="max-h-[60vh] w-auto max-w-full object-contain" />
+          </div>
+          <div className="max-h-[80vh] overflow-y-auto p-6">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-mono text-xs font-semibold text-brand-primary">{sku.code}</span>
+              {m.badge && <Badge variant="accent">{m.badge}</Badge>}
+              {sku.availability && <Badge variant={sku.availability === "in_stock" ? "success" : "muted"}>{sku.availability.replace(/_/g, " ")}</Badge>}
+            </div>
+            <h2 className="mt-2 font-heading text-2xl text-fg">{sku.productName}</h2>
+            <p className="text-sm text-fg-muted">{sku.packing}</p>
+
+            {m.blurb && <p className="mt-3 text-sm leading-relaxed text-fg">{m.blurb}</p>}
+
+            <div className="mt-4 flex items-baseline gap-2">
+              <span className="font-heading text-2xl text-fg">{money(unit)}</span>
+              <span className="text-sm text-fg-muted">/{sku.unit} · {tierLabel}</span>
+            </div>
+            {inv && (
+              <p className="mt-1 text-sm text-fg-muted">
+                {inv.casesAvail} cs available{inv.casesInTransit > 0 ? ` · ⚓ ${inv.casesInTransit} cs on the water` : ""}
+              </p>
+            )}
+
+            <dl className="mt-5 grid grid-cols-2 gap-3 border-t border-border pt-4">
+              {spec("Category", sku.category)}
+              {spec("Milk", m.milk)}
+              {spec("Aging", m.age)}
+              {spec("Net / case", p.netLb ? `${p.netLb} lb` : null)}
+              {spec("Gross / case", p.grossLb ? `${p.grossLb} lb` : null)}
+              {spec("Pieces / case", p.piecesPerCase)}
+              {spec("Cases / pallet", p.casesPerPallet)}
+              {spec("Pallet Ti×Hi", p.palletTiHi)}
+              {spec("Shelf life", p.shelfDays ? `${p.shelfDays} days` : null)}
+            </dl>
+
+            {inv && inv.lots && inv.lots.length > 0 && (
+              <div className="mt-4 border-t border-border pt-4">
+                <p className="mb-1.5 text-[11px] uppercase tracking-wide text-fg-muted">Lots</p>
+                <div className="space-y-0.5">
+                  {inv.lots.map((l, i) => (
+                    <div key={i} className="font-mono text-xs text-fg-muted">
+                      {l.status === "in_transit"
+                        ? <span className="text-info">⚓ lot {l.lotNum} · {l.cases} cs · ETA {fmtDate(l.eta)}</span>
+                        : <span>lot {l.lotNum} · {l.cases - (l.reserved || 0)} cs · exp {fmtDate(l.expDate)}</span>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
