@@ -310,7 +310,7 @@ function ImageSlot({ path, label, publicId, editing, tenantId, onSet, toast }) {
       <p className="mt-1 text-xs text-fg-muted">{label}</p>
       {editing && (
         <>
-          <input ref={ref} type="file" accept="image/*" className="hidden" onChange={onFile} />
+          <input ref={ref} type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml,image/gif,.png,.jpg,.jpeg,.webp,.svg,.gif" className="hidden" onChange={onFile} />
           <Button size="sm" variant="ghost" className="mt-1 w-full" onClick={() => ref.current?.click()} disabled={busy}>{busy ? "Uploading…" : "Upload"}</Button>
         </>
       )}

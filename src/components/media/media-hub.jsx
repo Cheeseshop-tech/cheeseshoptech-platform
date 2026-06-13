@@ -81,7 +81,7 @@ export function MediaHub({ resolved }) {
         </div>
         {canUpload(user) && (
           <>
-            <input ref={fileRef} type="file" accept="image/*" multiple hidden onChange={onFilesSelected} />
+            <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml,image/gif,.png,.jpg,.jpeg,.webp,.svg,.gif" multiple hidden onChange={onFilesSelected} />
             <Button variant="primary" onClick={onUpload} disabled={uploading}>
               <Upload className="h-4 w-4" /> {uploading ? "Uploading…" : "Upload"}
             </Button>
