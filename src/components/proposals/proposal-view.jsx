@@ -42,14 +42,14 @@ export function ProposalView({ resolved, proposal: given }) {
   const logoId = kit?.identity?.logo?.primary;
   const heroId = kit?.imagery?.hero;
   const lifestyle = kit?.imagery?.lifestyle || [];
-  // A fixed image-placement zone: render the Cloudinary image if present, else a composed brand
-  // color block at the same dimensions — so spacing/composition holds even before assets exist.
-  const Zone = ({ id, className, ratioFallback = "aspect-video" }) =>
-    id ? (
-      <img src={cldUrl(id, "hero")} alt="" className={`${className} object-cover`} onError={(e) => (e.currentTarget.style.display = "none")} />
-    ) : (
-      <div className={`${className} ${ratioFallback}`} style={{ background: `linear-gradient(150deg, ${tc.lead}, color-mix(in srgb, ${tc.lead} 55%, #000))` }} />
-    );
+  // A fixed image-placement zone: a composed brand color block is ALWAYS the backdrop (so the
+  // composition/spacing holds even before assets exist or if an image 404s), with the Cloudinary
+  // image layered on top when it loads. Height comes from className at each call site.
+  const Zone = ({ id, className }) => (
+    <div className={`${className} relative overflow-hidden`} style={{ background: `linear-gradient(150deg, ${tc.lead}, color-mix(in srgb, ${tc.lead} 55%, #000))` }}>
+      {id && <img src={cldUrl(id, "hero")} alt="" className="absolute inset-0 h-full w-full object-cover" onError={(e) => e.currentTarget.remove()} />}
+    </div>
+  );
 
   return (
     <div className="proposal-print mx-auto max-w-5xl" style={{ "--lead": tc.lead, "--ink": tc.ink }}>
@@ -67,11 +67,11 @@ export function ProposalView({ resolved, proposal: given }) {
             <h1 className="cs-display mt-2 text-3xl md:text-4xl" style={{ color: tc.ink }}>{proposal.headline || `A proposal for ${proposal.buyer || "you"}`}</h1>
             {proposal.buyer && <p className="mt-3 text-lg" style={{ color: tc.ink }}>Prepared for {proposal.buyer}</p>}
           </div>
-          <Zone id={heroId} className="min-h-[260px] w-full" ratioFallback="" />
+          <Zone id={heroId} className="min-h-[260px] w-full"/>
         </div>
       ) : (
         <div className="relative overflow-hidden rounded-xl">
-          <Zone id={heroId} className="h-[360px] w-full" ratioFallback="h-[360px]" />
+          <Zone id={heroId} className="h-[360px] w-full"/>
           <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, color-mix(in srgb, ${tc.lead} 20%, transparent), color-mix(in srgb, ${tc.lead} 88%, #000))` }} />
           <div className="absolute inset-0 flex flex-col p-8 text-white">
             {logoId && <img src={cldUrl(logoId, "card")} alt={resolved.brand.name} className="h-11 w-auto self-start object-contain" onError={(e) => (e.currentTarget.style.display = "none")} />}
