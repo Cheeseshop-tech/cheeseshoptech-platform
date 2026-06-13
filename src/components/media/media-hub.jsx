@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
 import { Skeleton } from "@/components/ui/skeleton.jsx";
 import { EmptyState } from "@/components/ui/empty-state.jsx";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs.jsx";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose,
 } from "@/components/ui/dialog.jsx";
@@ -57,6 +56,15 @@ export function MediaHub({ resolved }) {
   const display = tab === "recent" ? recent
     : tab === "all" ? merged
     : merged ? merged.filter((a) => (a.usage || []).includes(tab)) : null;
+
+  // Per-view count for the left rail. null while the set is still loading (except Recent, which
+  // is local). Recent counts persisted uploads; usage views count the merged pool by tag.
+  const countFor = (id) => {
+    if (id === "recent") return recent.length;
+    if (!merged) return null;
+    if (id === "all") return merged.length;
+    return merged.filter((a) => (a.usage || []).includes(id)).length;
+  };
 
   function onUpload() {
     if (!UPLOAD_PRESET) {
@@ -129,13 +137,32 @@ export function MediaHub({ resolved }) {
         )}
       </div>
 
-      <Tabs value={tab} onValueChange={setTab}>
-        <TabsList className="flex-wrap">
-          {TABS.map((t) => (
-            <TabsTrigger key={t.id} value={t.id}>{t.label}</TabsTrigger>
-          ))}
-        </TabsList>
-        <TabsContent value={tab}>
+      <div className="flex gap-6">
+        {/* Left rail — usage views (file-explorer style). Each is a saved view filtered by tag. */}
+        <nav className="w-44 flex-none" aria-label="Asset views">
+          <ul className="space-y-0.5">
+            {TABS.map((t, i) => {
+              const on = t.id === tab;
+              const count = countFor(t.id);
+              return (
+                <li key={t.id}>
+                  {i === 2 && <div className="my-1.5 border-t border-border" />}
+                  <button
+                    onClick={() => setTab(t.id)}
+                    aria-current={on ? "true" : undefined}
+                    className={"flex w-full items-center justify-between rounded-base px-3 py-1.5 text-left text-sm transition-colors " + (on ? "bg-surface font-medium text-fg" : "text-fg-muted hover:bg-surface hover:text-fg")}
+                  >
+                    <span className="truncate">{t.label}</span>
+                    {count != null && <span className="ml-2 text-xs text-fg-muted">{count}</span>}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+
+        {/* Grid */}
+        <div className="min-w-0 flex-1">
           {display === null ? (
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
               {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="aspect-[4/5] w-full" />)}
@@ -164,8 +191,8 @@ export function MediaHub({ resolved }) {
               )}
             </>
           )}
-        </TabsContent>
-      </Tabs>
+        </div>
+      </div>
 
       <UploadDetailsDialog files={pending} uploading={uploading} onCancel={() => setPending(null)} onConfirm={doUpload} />
 

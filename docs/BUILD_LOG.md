@@ -45,6 +45,11 @@ filters the asset pool by tag (client-side, instant); the whole set is fetched o
 assets were given `usage` tags so the tabs are populated in mock mode. Uploads now land in a neutral
 `library` subfolder (tags, not folders, drive where an asset appears).
 
+UI form (Rick chose): the views render as a **left vertical nav rail with a per-view count** —
+chosen over a dropdown (keeps every view scannable at a glance; a dropdown hides them) and over the
+wrapping horizontal row (busy at 11 items). File-explorer pattern; room to group later (Brand assets
+▸ Logos/Vectors/GIFs). Design principle logged: match nav pattern to item count + mental model.
+
 **Product Catalog exclusion (verified, no code needed):** the Catalog is a VIEW over the canonical
 manifest (`lib/images.js`), not Media Hub uploads — so social/press/lifestyle/food-styling never
 appear there. The tag-driven gate (only `product-catalog` enters the manifest) activates when the
