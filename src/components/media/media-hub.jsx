@@ -135,7 +135,7 @@ function AssetTile({ asset, onOpen }) {
           src={cldUrl(asset.publicId, "card")}
           alt={asset.title}
           loading="lazy"
-          className="aspect-[4/5] w-full object-cover transition-opacity group-hover:opacity-90"
+          className="aspect-square w-full bg-white object-cover transition-opacity group-hover:opacity-90"
         />
         <div className="p-3">
           <p className="truncate text-sm font-medium text-fg">{asset.title}</p>
@@ -163,7 +163,7 @@ function AssetDialog({ asset, onClose, canManage, onCopy, onStateChange }) {
           </DialogDescription>
         </DialogHeader>
 
-        <img src={heroUrl} alt={asset.title} className="aspect-video w-full rounded-base object-cover" />
+        <img src={heroUrl} alt={asset.title} className="max-h-[55vh] w-full rounded-base bg-white object-contain" />
 
         <div className="mt-4 flex items-center justify-between gap-3">
           <Badge variant={APPROVAL[asset.approvalState].tone}>{APPROVAL[asset.approvalState].label}</Badge>

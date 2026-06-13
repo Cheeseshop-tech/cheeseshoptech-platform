@@ -7,10 +7,13 @@
 export const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD || "demo";
 
 // Named transformation presets. Add new presets here only (single source of truth).
+// Product packshots are mostly square: PAD (white) instead of CROP so wheels never get
+// clipped, and skip g_auto — content-aware analysis on the 40+ MP originals was the
+// slow first-load culprit; padding needs none.
 export const TRANSFORMS = {
-  thumb: "c_fill,g_auto,w_160,h_160,f_auto,q_auto",   // 1:1 grid thumbnail
-  card: "c_fill,g_auto,w_600,h_750,f_auto,q_auto",    // 4:5 product card
-  hero: "c_fill,g_auto,w_1600,h_900,f_auto,q_auto",   // 16:9 hero
+  thumb: "c_pad,b_white,w_160,h_160,f_auto,q_auto",   // 1:1 grid thumbnail
+  card: "c_pad,b_white,w_600,h_600,f_auto,q_auto",    // 1:1 product card (uncropped)
+  hero: "c_fit,w_1600,h_1200,f_auto,q_auto:good",     // dialog/preview, fit not crop
   original: "f_auto,q_auto",                           // full, format/quality optimized
 };
 
