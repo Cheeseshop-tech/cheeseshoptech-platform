@@ -12,7 +12,7 @@ import {
 import { useToast } from "@/components/ui/toast.jsx";
 import { useAuth } from "@/lib/auth-context.jsx";
 import { cldUrl, uploadAsset, UPLOAD_PRESET } from "@/lib/cloudinary.js";
-import { listAssets, FOLDERS, APPROVAL, canUpload, canManageMedia } from "@/lib/media.js";
+import { listAssets, FOLDERS, APPROVAL, USAGE, usageLabel, canUpload, canManageMedia } from "@/lib/media.js";
 
 export function MediaHub({ resolved }) {
   const { user } = useAuth();
@@ -22,20 +22,33 @@ export function MediaHub({ resolved }) {
   const [active, setActive] = useState(null);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef(null);
+  // Files chosen but not yet uploaded — the "Asset details" dialog (name + usage) gates them.
+  const [pending, setPending] = useState(null);
+  // "Recent" tab: the assets you've uploaded + tagged, newest first. Persisted in the browser so
+  // they survive reloads even while the hub is still mock-backed (interim until the live Cloudinary
+  // backend lists them for real). Keyed per tenant.
+  const RECENT_KEY = `cs-recent-uploads-${resolved.cloudinaryFolder}`;
+  const [recent, setRecent] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(RECENT_KEY) || "[]"); } catch { return []; }
+  });
   // Page the grid so we mount ~30 tiles, not the whole folder at once (a 100+ image folder
   // flooded the browser on load). Reset when the folder tab changes.
   const PAGE = 30;
   const [shown, setShown] = useState(PAGE);
 
   useEffect(() => {
+    setShown(PAGE);
+    if (folder === "recent") return; // Recent is browser-persisted state, not a fetched folder.
     let alive = true;
     setAssets(null);
-    setShown(PAGE);
     listAssets({ folder, tenantFolder: resolved.cloudinaryFolder, user }).then((a) => {
       if (alive) setAssets(a);
     });
     return () => { alive = false; };
   }, [folder, resolved.cloudinaryFolder, user]);
+
+  // What the grid shows: the Recent tab reads session/persisted uploads; other tabs the fetch.
+  const display = folder === "recent" ? recent : assets;
 
   function onUpload() {
     if (!UPLOAD_PRESET) {
@@ -49,20 +62,39 @@ export function MediaHub({ resolved }) {
     fileRef.current?.click();
   }
 
-  async function onFilesSelected(e) {
+  // Step 1: choosing files just opens the Asset details dialog — no upload yet.
+  function onFilesSelected(e) {
     const files = Array.from(e.target.files || []);
     e.target.value = ""; // allow re-selecting the same file
-    if (!files.length) return;
+    if (files.length) setPending(files);
+  }
+
+  // Step 2: the dialog returns named files + the shared usage tags, then we upload.
+  async function doUpload(items, usage) {
+    setPending(null);
     setUploading(true);
     try {
       const uploaded = [];
-      for (const file of files) {
-        const asset = await uploadAsset({ file, tenantFolder: resolved.cloudinaryFolder, subfolder: folder });
+      for (const it of items) {
+        const asset = await uploadAsset({
+          file: it.file, tenantFolder: resolved.cloudinaryFolder, subfolder: folder,
+          displayName: it.name, usage,
+        });
         uploaded.push(asset);
       }
       // New uploads are tagged "draft" — show them if the current role can see drafts.
       setAssets((list) => [...uploaded, ...(list || [])]);
-      toast({ title: `Uploaded ${uploaded.length} file${uploaded.length > 1 ? "s" : ""}`, description: "Tagged draft — set approval to publish.", tone: "success" });
+      // Also push to the persisted "Recent" list (newest first, capped) so they're easy to find.
+      setRecent((prev) => {
+        const next = [...uploaded, ...prev].slice(0, 60);
+        try { localStorage.setItem(RECENT_KEY, JSON.stringify(next)); } catch { /* ignore quota */ }
+        return next;
+      });
+      toast({
+        title: `Uploaded ${uploaded.length} file${uploaded.length > 1 ? "s" : ""}`,
+        description: usage.length ? `Usage: ${usage.map(usageLabel).join(", ")}` : "Tagged draft — set approval to publish.",
+        tone: "success",
+      });
     } catch (err) {
       toast({ title: "Upload failed", description: String(err?.message || err), tone: "error" });
     } finally {
@@ -91,32 +123,35 @@ export function MediaHub({ resolved }) {
 
       <Tabs value={folder} onValueChange={setFolder}>
         <TabsList>
+          <TabsTrigger value="recent">Recent</TabsTrigger>
           {FOLDERS.map((f) => (
             <TabsTrigger key={f} value={f} className="capitalize">{f}</TabsTrigger>
           ))}
         </TabsList>
         <TabsContent value={folder}>
-          {assets === null ? (
+          {display === null ? (
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
               {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="aspect-[4/5] w-full" />)}
             </div>
-          ) : assets.length === 0 ? (
+          ) : display.length === 0 ? (
             <EmptyState
               icon={ImageIcon}
-              title="Nothing here yet"
-              description="No assets in this folder are available to your role."
+              title={folder === "recent" ? "No recent uploads yet" : "Nothing here yet"}
+              description={folder === "recent"
+                ? "Images you upload (with their name and usage tags) show up here, newest first — so you can find what you just tagged."
+                : "No assets in this folder are available to your role."}
             />
           ) : (
             <>
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-                {assets.slice(0, shown).map((a) => (
+                {display.slice(0, shown).map((a) => (
                   <AssetTile key={a.publicId} asset={a} onOpen={() => setActive(a)} />
                 ))}
               </div>
-              {shown < assets.length && (
+              {shown < display.length && (
                 <div className="mt-6 flex justify-center">
                   <Button variant="outline" onClick={() => setShown((n) => n + PAGE)}>
-                    Load more ({assets.length - shown} left)
+                    Load more ({display.length - shown} left)
                   </Button>
                 </div>
               )}
@@ -124,6 +159,8 @@ export function MediaHub({ resolved }) {
           )}
         </TabsContent>
       </Tabs>
+
+      <UploadDetailsDialog files={pending} uploading={uploading} onCancel={() => setPending(null)} onConfirm={doUpload} />
 
       <AssetDialog
         asset={active}
@@ -160,9 +197,87 @@ function AssetTile({ asset, onOpen }) {
             {asset.sku ? <span className="font-mono text-xs text-fg-muted">{asset.sku}</span> : <span />}
             {showBadge && <Badge variant={ap.tone}>{ap.label}</Badge>}
           </div>
+          {asset.usage?.length > 0 && (
+            <div className="mt-1.5 flex flex-wrap gap-1">
+              {asset.usage.slice(0, 3).map((id) => <Badge key={id} variant="muted">{usageLabel(id)}</Badge>)}
+              {asset.usage.length > 3 && <span className="text-xs text-fg-muted">+{asset.usage.length - 3}</span>}
+            </div>
+          )}
         </div>
       </Card>
     </button>
+  );
+}
+
+// The "Asset details" step shown after files are chosen: name each file + pick usage tags
+// (multi-select). Usage drives where the asset may appear — only "Product Catalog" reaches the
+// Product Catalog. Names default to the filename (extension stripped).
+function UploadDetailsDialog({ files, uploading, onCancel, onConfirm }) {
+  const [names, setNames] = useState([]);
+  const [usage, setUsage] = useState([]);
+  useEffect(() => {
+    setNames((files || []).map((f) => f.name.replace(/\.[^.]+$/, "")));
+    setUsage([]);
+  }, [files]);
+  if (!files) return null;
+  const toggle = (id) => setUsage((u) => (u.includes(id) ? u.filter((x) => x !== id) : [...u, id]));
+  const setName = (i, v) => setNames((n) => n.map((x, j) => (j === i ? v : x)));
+  return (
+    <Dialog open={!!files} onOpenChange={(o) => !o && onCancel()}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Asset details</DialogTitle>
+          <DialogDescription>
+            Name {files.length > 1 ? `these ${files.length} files` : "this file"} and choose where they can be used.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="max-h-[28vh] space-y-2 overflow-auto pr-1">
+          {files.map((f, i) => (
+            <div key={i} className="flex items-center gap-2">
+              {files.length > 1 && <span className="w-5 text-xs text-fg-muted">{i + 1}.</span>}
+              <input
+                value={names[i] ?? ""}
+                onChange={(e) => setName(i, e.target.value)}
+                placeholder={f.name}
+                className="h-9 flex-1 rounded-base border border-border bg-bg px-2 text-sm text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+              />
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-3">
+          <p className="mb-2 text-sm font-medium text-fg">Usage <span className="text-xs font-normal text-fg-muted">— pick all that apply</span></p>
+          <div className="flex flex-wrap gap-2">
+            {USAGE.map((u) => {
+              const on = usage.includes(u.id);
+              return (
+                <button
+                  key={u.id}
+                  type="button"
+                  onClick={() => toggle(u.id)}
+                  className={"rounded-full border px-3 py-1 text-sm transition-colors " + (on ? "border-brand bg-surface font-medium text-fg" : "border-border text-fg-muted hover:border-brand")}
+                >
+                  {on ? "✓ " : ""}{u.label}
+                </button>
+              );
+            })}
+          </div>
+          <p className="mt-2 text-xs text-fg-muted">Only “Product Catalog” assets appear in the Product Catalog.</p>
+        </div>
+
+        <DialogFooter>
+          <Button variant="ghost" onClick={onCancel}>Cancel</Button>
+          <Button
+            variant="primary"
+            disabled={uploading || names.some((n) => !n.trim())}
+            onClick={() => onConfirm(files.map((f, i) => ({ file: f, name: names[i] })), usage)}
+          >
+            {uploading ? "Uploading…" : `Upload ${files.length} file${files.length > 1 ? "s" : ""}`}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -188,6 +303,13 @@ function AssetDialog({ asset, onClose, canManage, onCopy, onStateChange }) {
             <Copy className="h-4 w-4" /> Copy delivery URL
           </Button>
         </div>
+
+        {asset.usage?.length > 0 && (
+          <div className="mt-3 flex flex-wrap items-center gap-1.5">
+            <span className="text-xs text-fg-muted">Usage:</span>
+            {asset.usage.map((id) => <Badge key={id} variant="muted">{usageLabel(id)}</Badge>)}
+          </div>
+        )}
 
         {canManage ? (
           <div className="mt-4 border-t border-border pt-4">

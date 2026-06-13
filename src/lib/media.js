@@ -14,6 +14,23 @@ export const APPROVAL = {
 
 export const FOLDERS = ["products", "brand", "raw"];
 
+// Usage taxonomy (Rick, 2026-06-13) — an asset can serve MANY purposes (multi-select on upload).
+// Saved as Cloudinary tags. `product-catalog` is special: it's the ONLY usage the Product Catalog
+// pulls — social / press / lifestyle / food-styling never appear there unless also tagged product.
+export const USAGE = [
+  { id: "product-catalog", label: "Product Catalog", catalog: true },
+  { id: "hero", label: "Hero" },
+  { id: "story-block", label: "Story block" },
+  { id: "lifestyle", label: "Lifestyle" },
+  { id: "food-styling", label: "Food styling" },
+  { id: "social", label: "Social" },
+  { id: "press", label: "Press / PR" },
+  { id: "event", label: "Event" },
+  { id: "brand-asset", label: "Brand asset" },
+];
+export const PRODUCT_USAGE_ID = "product-catalog";
+export const usageLabel = (id) => USAGE.find((u) => u.id === id)?.label || id;
+
 // Which approval states each role may see (least privilege).
 const ROLE_VISIBILITY = {
   admin: ["draft", "approved-for-press", "approved-for-influencers"],

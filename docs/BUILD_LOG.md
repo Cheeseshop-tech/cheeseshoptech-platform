@@ -19,6 +19,35 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-13 (cont.) — Cloudinary uploads live + Media Hub upload taxonomy (Asset Library step 1)
+
+Image uploads now work end-to-end: unsigned Cloudinary preset `st_unsigned` (cloud sofcvmwa),
+name committed in `netlify.toml [build.environment]` as `VITE_CLOUDINARY_UPLOAD_PRESET` (public by
+design — ships in the bundle; kept in version control so it can't get lost). Commit 292651a.
+
+First slice of the Asset Library (ASSET_LIBRARY_SPEC.md): the Media Hub upload now opens an
+**"Asset details" dialog** — per-file Name + multi-select **Usage** tags — instead of silently
+uploading filenames. Usage taxonomy (Rick, locked): Product Catalog · Hero · Story block ·
+Lifestyle · Food styling · Social · Press/PR · Event · Brand asset. Name → Cloudinary caption;
+usage → Cloudinary tags (alongside `draft`). `lib/media.js` owns the `USAGE` list + `PRODUCT_USAGE_ID`.
+`uploadAsset` extended with `displayName` + `usage`. Usage shows as badges in the asset dialog.
+
+Plus a **"Recent" tab** (first tab) so you can find what you just uploaded + tagged without digging
+through folders — newest first, with usage badges on each tile. Interim bridge while the hub is
+mock-backed: recent uploads are persisted in the browser (`localStorage`, per tenant, capped 60) so
+they survive reloads. When the live Cloudinary backend lands, Recent becomes a `created_at`-sorted
+view of real assets.
+
+**Product Catalog exclusion (verified, no code needed):** the Catalog is a VIEW over the canonical
+manifest (`lib/images.js`), not Media Hub uploads — so social/press/lifestyle/food-styling never
+appear there. The tag-driven gate (only `product-catalog` enters the manifest) activates when the
+unified library feeds the manifest.
+
+**Still phase work:** uploads persisting in the Media Hub list across reloads, folder-as-usage
+views, and the tag→manifest→catalog pipeline need the LIVE Cloudinary backend
+(`VITE_MEDIA_BACKEND=cloudinary` + the `media-list` function + `CLOUDINARY_API_KEY/SECRET`
+server-side). Today the hub is mock-backed; uploads save to Cloudinary but the list is sample data.
+
 ## 2026-06-13 (cont.) — Five-theme design session (Theme Engine completed)
 
 Completed the "dedicated design session" the Theme Engine was gated behind (Scope §7.4, unblocked once

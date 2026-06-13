@@ -57,18 +57,26 @@ export const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || ""
 
 /**
  * Upload a file straight to Cloudinary via the unsigned preset. Places it under the tenant's
- * folder/<subfolder>, tags it `draft` (new assets start unapproved), and stores the filename
- * as caption. Returns the new asset mapped to the media.js shape. No secret involved.
+ * folder/<subfolder>, tags it `draft` (new assets start unapproved) PLUS any usage tags, and
+ * stores the display name as caption. Returns the new asset mapped to the media.js shape.
+ * No secret involved.
+ *
+ * @param {string} [o.displayName]  Human name for the asset (caption); defaults to the filename.
+ * @param {string[]} [o.usage]      Usage tag ids (e.g. ["product-catalog","hero"]) — the asset's
+ *                                  allowed purposes. The Product Catalog only pulls "product-catalog".
  */
-export async function uploadAsset({ file, tenantFolder, subfolder = "raw", cloud = CLOUD_NAME }) {
+export async function uploadAsset({ file, tenantFolder, subfolder = "raw", cloud = CLOUD_NAME, displayName, usage = [] }) {
   if (!UPLOAD_PRESET) throw new Error("No upload preset configured");
   const folder = `${tenantFolder}/${subfolder}`;
+  const title = (displayName || "").trim() || file.name;
+  // draft (approval) + usage tags travel with the asset in Cloudinary.
+  const tags = ["draft", ...usage].join(",");
   const form = new FormData();
   form.append("file", file);
   form.append("upload_preset", UPLOAD_PRESET);
   form.append("folder", folder);
-  form.append("tags", "draft");
-  form.append("context", `caption=${file.name}`);
+  form.append("tags", tags);
+  form.append("context", `caption=${title}`);
 
   const res = await fetch(`https://api.cloudinary.com/${"v1_1"}/${cloud}/image/upload`, {
     method: "POST",
@@ -83,7 +91,8 @@ export async function uploadAsset({ file, tenantFolder, subfolder = "raw", cloud
     publicId: r.public_id,
     sku: "",
     folder: subfolder,
-    title: file.name,
+    title,
+    usage,
     approvalState: "draft",
     format: r.format,
     width: r.width,
