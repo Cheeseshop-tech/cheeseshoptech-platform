@@ -9,6 +9,7 @@ import {
   Megaphone,
   MonitorPlay,
   FileText,
+  Palette,
 } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell.jsx";
 import { Button } from "@/components/ui/button.jsx";
@@ -18,6 +19,7 @@ import { CatalogPage } from "@/components/catalog/buyer-catalog.jsx";
 import { PresentationsPage } from "@/components/presentations/presentations-page.jsx";
 import { ProposalBuilder } from "@/components/proposals/proposal-builder.jsx";
 import { ProposalView } from "@/components/proposals/proposal-view.jsx";
+import { BrandManagement } from "@/components/brand/brand-management.jsx";
 import { ToolsPage } from "@/components/tools/tools-page.jsx";
 import { CampaignsPage } from "@/components/campaigns/campaigns-page.jsx";
 import { FeaturedTool } from "@/components/tools/featured-tool.jsx";
@@ -85,7 +87,9 @@ export default function App({ initialResolved }) {
   // Proposals builder is a Manage feature (F4, ADMIN_DASHBOARDS_SPEC §5) — both tiers:
   // house admins pitch prospects, client admins pitch their buyers.
   const proposalsNav = [{ key: "proposals", label: "Proposals", icon: FileText, allowed: ["admin", "client-admin"] }];
-  const baseNav = [NAV[0], ...featuredNav, ...presentationsNav, ...proposalsNav, ...NAV.slice(1)];
+  // Brand management is a house-admin (CST) surface — the brand-kit orchestration the agency owns.
+  const brandNav = resolved.isHouse ? [{ key: "brand", label: "Brand kits", icon: Palette, allowed: ["admin"] }] : [];
+  const baseNav = [NAV[0], ...featuredNav, ...presentationsNav, ...proposalsNav, ...brandNav, ...NAV.slice(1)];
   const nav = baseNav.filter((n) => n.allowed.some((r) => userRoles.includes(r)));
   // "proposal" (the rendered share link, ?page=proposal#p=…) is reachable by ANY portal
   // role — it's what a buyer opens — so it bypasses the nav-membership check.
@@ -160,6 +164,8 @@ export default function App({ initialResolved }) {
         <ProposalBuilder resolved={resolved} />
       ) : effectivePage === "proposal" ? (
         <ProposalView resolved={resolved} />
+      ) : effectivePage === "brand" ? (
+        <BrandManagement />
       ) : (
         <CatalogPage resolved={resolved} />
       )}

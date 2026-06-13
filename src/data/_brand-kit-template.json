@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "1.0",
+  "tenant": "",
+  "brandName": "",
+  "managedBy": "CheeseShop TECH",
+  "updatedAt": "",
+  "source": "Onboarding worksheet — CheeseShop TECH fills this per client.",
+  "identity": {
+    "logo": { "primary": "", "wordmark": "", "favicon": "", "seal": "" },
+    "colors": {
+      "primary": { "name": "", "hex": "#000000", "role": "Primary headline + key surfaces" },
+      "accent": { "name": "", "hex": "#000000", "role": "Secondary accent" },
+      "secondary": [],
+      "neutrals": [],
+      "sparingAccent": null,
+      "useRatios": {},
+      "harmony": ""
+    },
+    "type": {
+      "display": { "family": "", "cssStack": "", "role": "Editorial / display", "usage": "", "doNotUseFor": "" },
+      "ui": { "family": "", "cssStack": "", "role": "UI / buttons / nav", "usage": "", "doNotUseFor": "" }
+    },
+    "radius": "md"
+  },
+  "imagery": { "hero": "", "lifestyle": [], "patterns": [], "seal": "" },
+  "voice": {
+    "positioningHook": "",
+    "motto": "",
+    "mantra": "",
+    "heritage": "",
+    "mission": "",
+    "coreValues": [],
+    "attributes": [],
+    "avoid": [],
+    "readyPhrases": []
+  },
+  "storyBlocks": []
+}

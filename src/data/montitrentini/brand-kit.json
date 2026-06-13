@@ -1,0 +1,113 @@
+{
+  "schemaVersion": "1.0",
+  "tenant": "montitrentini",
+  "brandName": "Monti Trentini",
+  "managedBy": "CheeseShop TECH",
+  "updatedAt": "2026-06-13",
+  "source": "Parsed from Brand_Guide_2026-05-24 (colors/fonts JSON, Voice_and_Messaging.md) + Monti_Trentini_Brand_Voice.docx",
+  "identity": {
+    "logo": {
+      "primary": "monti/brand/logo",
+      "wordmark": "monti/brand/wordmark",
+      "favicon": "monti/brand/favicon",
+      "seal": "monti/brand/aicc-seal"
+    },
+    "colors": {
+      "primary": { "name": "Forest Green", "hex": "#064E22", "role": "Primary headline + logo background", "pantone": "357 C" },
+      "accent": { "name": "Italia Green", "hex": "#009640", "role": "Italian flag green; heritage accent", "pantone": "355 C" },
+      "secondary": [
+        { "name": "Pasture Sage", "hex": "#70C883", "role": "Mid-tone accent, hover states, callouts" },
+        { "name": "Alpine Mint", "hex": "#C8E2C5", "role": "Soft backgrounds, decorative shapes" }
+      ],
+      "neutrals": [
+        { "name": "Heritage Cream", "hex": "#FFFBDC", "role": "Primary page background" },
+        { "name": "Casa Paper", "hex": "#FAF9F5", "role": "Secondary canvas, cards" },
+        { "name": "Stone Charcoal", "hex": "#716A6A", "role": "Secondary text, captions" },
+        { "name": "Mountain Ink", "hex": "#141413", "role": "Body copy, fine detail" }
+      ],
+      "sparingAccent": { "name": "Italia Red", "hex": "#CE2B37", "role": "Italian flag ribbon on logo only — use sparingly" },
+      "useRatios": { "Heritage Cream": "50%", "Forest Green": "25%", "Mountain Ink": "10%", "Italia Green": "8%", "Alpine Mint": "5%", "Italia Red": "2%" },
+      "harmony": "Analogous green family (115°–146°) with complementary red accent (356°). Heritage Cream provides a low-saturation warm canvas."
+    },
+    "type": {
+      "display": {
+        "family": "Cora",
+        "cssStack": "\"cora\", \"Fraunces\", Georgia, serif",
+        "role": "Editorial display + body (italic-only)",
+        "usage": "Body copy, hero quotes, section titles, big editorial CTA labels",
+        "doNotUseFor": "Buttons and navigation labels (use the UI family)"
+      },
+      "ui": {
+        "family": "Futura PT",
+        "cssStack": "\"futura-pt\", \"Inter\", system-ui, sans-serif",
+        "role": "UI / buttons / forms / nav",
+        "usage": "Buttons, primary nav, CTAs (700 uppercase, letter-spaced); form inputs (500)",
+        "doNotUseFor": "Editorial body copy (use the display family)"
+      }
+    },
+    "radius": "md"
+  },
+  "imagery": {
+    "hero": "monti/brand/hero-mainbanner",
+    "lifestyle": ["monti-trentini/family-shots", "monti/brand/dolomites-pasture"],
+    "patterns": [],
+    "seal": "monti/brand/aicc-seal"
+  },
+  "voice": {
+    "positioningHook": "Product of the Mountains — authentic Italian Alpine cheese, made at altitude. The mountain origin IS the story.",
+    "motto": "High level of happiness.",
+    "mantra": "Happiness has plenty of shapes — Monti Trentini brings them on your table.",
+    "heritage": "Casa Finco — casari dal 1925.",
+    "mission": "To craft high-quality Italian mountain cheeses rooted in 100 years of family tradition — processing milk, making cheese, aging and packaging entirely in our own plants — using only milk from our neighborhood in the Trentino mountains, while protecting the alpine landscape and committing to sustainability.",
+    "coreValues": ["Family", "Respect of territory", "Quality"],
+    "attributes": ["Authentic", "Warm", "Rooted", "Proud", "Heartfelt"],
+    "avoid": ["Corporate jargon", "Cold / impersonal language", "Overhyped claims", "Generic 'Made in Italy' without the mountain specificity", "Stacking product specs in the headline"],
+    "readyPhrases": [
+      "Made at altitude in the Trentino mountains.",
+      "Milk from our neighborhood — within 90 km of our dairy in Grigno.",
+      "Where cows graze in the Dolomites' shades.",
+      "A certified dairy at 800 metres above sea level.",
+      "Four generations of cheesemakers. One hundred years of family tradition.",
+      "We do everything at home — milk processing, cheese making, aging and packaging.",
+      "Casa Finco — casari dal 1925."
+    ]
+  },
+  "storyBlocks": [
+    {
+      "key": "origin-provenance",
+      "title": "A hundred-year story",
+      "audience": ["retail", "foodservice", "distributor"],
+      "body": "A hundred-year-long story does not happen by chance. From a small dairy to a modern Alpine creamery, Monti Trentini has been guided by strong values — family, respect of territory, quality. Casa Finco has made cheese in the Trentino mountains since 1925, four generations of cheesemakers working milk from their own neighborhood within 90 km of the dairy in Grigno. The mountain origin isn't a marketing line; it's the product."
+    },
+    {
+      "key": "supply-chain-quality",
+      "title": "Everything at home",
+      "audience": ["distributor", "foodservice"],
+      "body": "Milk processing, cheese making, aging and packaging take place only in our own plants. That single fact is the quality control: every wheel is handled start to finish by the people who make it, using milk from a 90 km radius in the Trentino mountains and the Asiago plateau. Nothing is outsourced, nothing is anonymous — a certified dairy at 800 metres above sea level, working the way a family creamery has for a century."
+    },
+    {
+      "key": "why-trentino",
+      "title": "Why the mountains matter",
+      "audience": ["retail", "foodservice"],
+      "body": "Where cows graze in the Dolomites' shades, the milk is different — and so is the cheese. Made at altitude in the Trentino mountains, Monti Trentini's cheeses carry the character of alpine pasture: the herbs, the cool air, the slow seasons. This is authentic Italian Alpine cheese, not generic 'Made in Italy.' The mountain is the difference your customers can taste."
+    },
+    {
+      "key": "sustainability",
+      "title": "A new taste for the future",
+      "audience": ["retail", "distributor"],
+      "body": "We work daily to give the future a new taste. Sustainability drives our choices: a solar plant generating ~650,000 kWh a year used entirely in-house, 80% self-sufficiency for electricity, and roughly 1,000 tons of CO₂ avoided annually. Protecting the alpine landscape supports hundreds of mountain farms and the care of pastures and woodland — the whole mountain community benefits when the cheese is made right."
+    },
+    {
+      "key": "retail-partnership",
+      "title": "A partner for your shelves",
+      "audience": ["retail"],
+      "body": "Monti Trentini brings a complete, authentic Italian Alpine range to specialty and retail shelves — heritage PDO wheels alongside ready-to-merchandise formats, all backed by a hundred-year story shoppers respond to. Happiness has plenty of shapes; we help you put them on the table. A single source from milk to package means consistency you can build a set around."
+    },
+    {
+      "key": "foodservice-chef",
+      "title": "For the chef's table",
+      "audience": ["foodservice"],
+      "body": "For chefs and foodservice, Monti Trentini offers Alpine cheeses with real provenance — aged in the maker's own plants, from milk grazed in the Dolomites' shades. The range spans approachable table cheeses to characterful aged wheels, each with a story worth telling tableside. Authentic, rooted, and made at altitude: the kind of cheese a menu can be built around."
+    }
+  ]
+}
