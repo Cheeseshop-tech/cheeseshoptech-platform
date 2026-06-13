@@ -190,10 +190,6 @@ function Proforma({ data, brand, resolved }) {
             <span className={fieldLabel}>Custom ±%</span>
             <input type="number" step="0.5" className={selCls + " w-20"} value={customPct} onChange={(e) => setCustomPct(Number(e.target.value) || 0)} />
           </div>
-          <div className="ml-auto flex flex-col gap-1">
-            <span className={fieldLabel}>Search</span>
-            <input className={selCls + " w-44"} value={search} onChange={(e) => setSearch(e.target.value)} placeholder="SKU, name…" />
-          </div>
         </div>
 
         {/* Summary bar — bill-to + running totals, full-width and sticky so it stays visible while
@@ -227,6 +223,17 @@ function Proforma({ data, brand, resolved }) {
               </div>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Search sits directly above the product list it filters. */}
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-fg-muted" />
+          <input
+            className="h-10 w-full rounded-base border border-border bg-bg pl-9 pr-3 text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search the price list — SKU code or product name…"
+          />
         </div>
 
         <Card>
