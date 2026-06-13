@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Search, LayoutGrid, List, ExternalLink, Download, Link as LinkIcon, ImageOff, Pencil, Upload } from "lucide-react";
 import { Card } from "@/components/ui/card.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
@@ -73,6 +73,14 @@ function BuyerCatalog({ data, brandName, tenantId }) {
       return [im.title, im.code, im.orig, im.category].some((f) => (f || "").toLowerCase().includes(q));
     });
   }, [images, query, category]);
+
+  // Page the grid so the browser mounts ~30 images, not 100+ at once (the all-at-once
+  // mount was flooding the network and stalling first paint). Reset to page 1 whenever the
+  // filter/search changes; "Load more" reveals the next batch.
+  const PAGE = 30;
+  const [shown, setShown] = useState(PAGE);
+  useEffect(() => { setShown(PAGE); }, [query, category, view]);
+  const visible = filtered.slice(0, shown);
 
   const totalBytes = useMemo(() => images.reduce((s, im) => s + (im.size || 0), 0), [images]);
 
@@ -171,24 +179,28 @@ function BuyerCatalog({ data, brandName, tenantId }) {
         ))}
       </div>
 
-      <p className="mb-4 text-sm text-fg-muted">{filtered.length} shown</p>
+      <p className="mb-4 text-sm text-fg-muted">
+        {visible.length < filtered.length ? `Showing ${visible.length} of ${filtered.length}` : `${filtered.length} shown`}
+      </p>
 
       {filtered.length === 0 ? (
         <EmptyState icon={Search} title="No matches" description="Try a different search term or clear the filter." />
       ) : view === "grid" ? (
         <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
-          {filtered.map((im) => (
+          {visible.map((im) => (
             <Card
               key={im.id}
               onClick={() => setActive(im.id)}
               className="group cursor-pointer overflow-hidden p-0 transition-colors hover:border-brand-primary"
             >
-              <div className="aspect-square w-full overflow-hidden bg-bg">
+              <div className="aspect-square w-full overflow-hidden bg-white">
                 <img
                   src={cldThumb(cloud, im)}
                   alt={im.title}
                   loading="lazy"
-                  className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.03]"
+                  width="360"
+                  height="360"
+                  className="h-full w-full object-contain transition-transform duration-200 group-hover:scale-[1.03]"
                 />
               </div>
               <div className="p-3">
@@ -203,7 +215,7 @@ function BuyerCatalog({ data, brandName, tenantId }) {
         </div>
       ) : (
         <div className="overflow-hidden rounded-base border border-border">
-          {filtered.map((im, i) => (
+          {visible.map((im, i) => (
             <button
               key={im.id}
               onClick={() => setActive(im.id)}
@@ -212,7 +224,7 @@ function BuyerCatalog({ data, brandName, tenantId }) {
                 (i > 0 ? "border-t border-border" : "")
               }
             >
-              <img src={cldThumb(cloud, im)} alt="" loading="lazy" className="h-12 w-12 shrink-0 rounded-base object-cover" />
+              <img src={cldThumb(cloud, im)} alt="" loading="lazy" width="48" height="48" className="h-12 w-12 shrink-0 rounded-base bg-white object-contain" />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium text-fg">{im.title}</p>
                 <p className="text-xs text-fg-muted">{im.category} · {im.ext?.toUpperCase()} · {fmtSize(im.size || 0)}</p>
@@ -220,6 +232,14 @@ function BuyerCatalog({ data, brandName, tenantId }) {
               {im.code && <Badge variant="muted" className="font-mono text-[10px]">{im.code}</Badge>}
             </button>
           ))}
+        </div>
+      )}
+
+      {visible.length < filtered.length && (
+        <div className="mt-6 flex justify-center">
+          <Button variant="outline" onClick={() => setShown((n) => n + PAGE)}>
+            Load more ({filtered.length - visible.length} left)
+          </Button>
         </div>
       )}
 

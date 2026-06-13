@@ -22,8 +22,11 @@ export function getBuyerCatalog(resolved) {
 
 // ---- Cloudinary URL helpers (ported 1:1 from the standalone catalog app) ----
 
+// Grid thumbnail. PAD on white (square, never clips a wheel) and NO g_auto — content-aware
+// crop forces Cloudinary to decode the full ~45 MP master per image, which was the slow
+// first-load. 360px is plenty for the grid (displayed ~250px) and roughly halves the bytes.
 export const cldThumb = (cloud, im) =>
-  `https://res.cloudinary.com/${cloud}/image/upload/w_500,h_500,c_fill,g_auto,f_auto,q_auto/v${im.cl_v}/${im.cl_id}.${im.cl_fmt}`;
+  `https://res.cloudinary.com/${cloud}/image/upload/w_360,h_360,c_pad,b_white,f_auto,q_auto/v${im.cl_v}/${im.cl_id}.${im.cl_fmt}`;
 
 export const cldBig = (cloud, im) =>
   `https://res.cloudinary.com/${cloud}/image/upload/w_1200,c_limit,f_auto,q_auto:good,fl_progressive/v${im.cl_v}/${im.cl_id}.${im.cl_fmt}`;
