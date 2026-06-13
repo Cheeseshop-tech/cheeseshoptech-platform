@@ -19,6 +19,18 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-13 (cont.) — F5 SHIPPED: one canonical image source
+
+**The SOURCE is now unified too** (commit `4b729af`), completing "one mind, one body": every surface
+reads from ONE per-tenant manifest `src/data/<tenant>/images.json` (single shape), via the
+`lib/images.js` reader, rendered by the single `cldImage` builder. Replaced the 3 mismatched
+descriptions: `buyer-catalog.json` (deleted — Catalog is now a view over the manifest), `sku.image`
+(Proposals/Pricing now use `codeImageUrl`, manifest-first + legacy packshot fallback so all 71 priced
+SKUs render), and the media-list path. `scripts/sync-images.mjs` regenerates the manifest from the
+Cloudinary Admin API; `npm run media:refresh` = sync + prewarm. Verified live (Catalog 103 images from
+the manifest, codes intact). Optional follow-up: run `sync:images` with creds to fold in the
+`monti/<code>` packshot folder + move masters to R2.
+
 ## 2026-06-13 — Image delivery unified ("one mind, one body") + Phase F shipped
 
 **Big session.** Phase F (admin dashboards, roles, proposal engine) built end-to-end, then a deep

@@ -1,7 +1,20 @@
 # Unified Image Pipeline — Spec (Phase F5)
 
-**Written:** 2026-06-13 · **Status:** designed, approved to spec; build = next focused session
+**Written:** 2026-06-13 · **Status:** ✅ BUILT + DEPLOYED 2026-06-13 (commit `4b729af`). Pilot runs on a
+build-time manifest seeded from existing data; the live Cloudinary sync (`npm run sync:images`) is
+ready for Rick to run with creds to regenerate it (and to pick up BOTH Cloudinary folders).
 **Goal (Rick's words):** "one mind and body" — a solid, uniform, wired image source every screen grabs from.
+
+## What shipped (2026-06-13)
+- `src/data/montitrentini/images.json` — the ONE canonical manifest (103 images, single shape).
+- `src/lib/images.js` — `getImages / imageList / imageForCode / codeImageUrl` reader seam.
+- Catalog is now a VIEW over the manifest; `buyer-catalog.json` deleted.
+- Proposals + Pricing resolve SKU images via `codeImageUrl` (manifest-first, legacy `monti/<code>`
+  packshot fallback so all 71 priced SKUs still render).
+- `scripts/sync-images.mjs` (real Cloudinary Admin API sync) + `npm run media:refresh` (sync + prewarm).
+- Verified live: Catalog renders 103 images from the manifest, codes intact, fast.
+- **Remaining polish (optional):** run `sync:images` against Cloudinary to capture the `monti/<code>`
+  packshot folder too (the 44 priced SKUs that currently use the fallback), and move masters to R2.
 
 ## Why
 
