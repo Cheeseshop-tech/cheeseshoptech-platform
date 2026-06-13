@@ -3,6 +3,7 @@
 
 import { HOUSE } from "./tokens.js";
 import { resolveOnColor } from "./contrast.js";
+import { getBrandKit } from "./brandKit.js";
 
 // Eagerly import every client config at build time. Vite inlines these.
 const modules = import.meta.glob("/config/clients/*.json", { eager: true });
@@ -41,20 +42,27 @@ export function resolveClient(explicitSubdomain) {
   const client = (sub && REGISTRY[sub]) || null;
   const isHouse = !client;
 
+  // Brand Kit is the single source of brand truth. When a tenant has one, its identity drives
+  // the theme (colors + radius); we fall back to the client-config tokens otherwise. Fonts stay
+  // on the config allowlist for now — the kit's editorial fonts (e.g. Cora/Futura) are Adobe
+  // families that need separate web-font handling; config maps each tenant to a renderable pair.
+  const kit = client ? getBrandKit({ id: client.id }) : null;
+  const kitColors = kit?.identity?.colors;
+
   const brand = {
     name: client?.brand?.name ?? HOUSE.brand.name,
     // House falls back to the house wordmark; a tenant with no logo renders its brand NAME
     // (text) instead — never the house wordmark, which would be brand confusion.
     logo: client?.brand?.logo || (isHouse ? HOUSE.brand.logo : ""),
     colors: {
-      primary: client?.brand?.colors?.primary || HOUSE.brand.colors.primary,
-      accent: client?.brand?.colors?.accent || HOUSE.brand.colors.accent,
+      primary: kitColors?.primary?.hex || client?.brand?.colors?.primary || HOUSE.brand.colors.primary,
+      accent: kitColors?.accent?.hex || client?.brand?.colors?.accent || HOUSE.brand.colors.accent,
     },
     fonts: {
       heading: client?.brand?.fonts?.heading || HOUSE.brand.fonts.heading,
       body: client?.brand?.fonts?.body || HOUSE.brand.fonts.body,
     },
-    radius: client?.brand?.radius || HOUSE.brand.radius,
+    radius: kit?.identity?.radius || client?.brand?.radius || HOUSE.brand.radius,
   };
 
   const id = client?.id ?? "house";
