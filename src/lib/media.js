@@ -63,14 +63,14 @@ export function canUpload(user) {
 // renders real images in dev. Real assets keep the product SKU in the public_id (OM §6).
 const MOCK = {
   "clients/montitrentini": [
-    { publicId: "samples/food/spices", sku: "MT-ASIA-200", folder: "products", title: "Asiago DOP — hero", approvalState: "approved-for-press", format: "jpg" },
-    { publicId: "samples/food/dessert", sku: "MT-GORG-150", folder: "products", title: "Gorgonzola Dolce", approvalState: "approved-for-influencers", format: "jpg" },
-    { publicId: "samples/food/fish-vegetables", sku: "MT-GRAN-1K", folder: "products", title: "Grana Padano board", approvalState: "draft", format: "jpg" },
-    { publicId: "samples/food/pot-mussels", sku: "MT-PROV-500", folder: "products", title: "Provolone wheel", approvalState: "approved-for-press", format: "jpg" },
-    { publicId: "samples/landscapes/beach-boat", sku: "", folder: "brand", title: "Brand lifestyle — coast", approvalState: "approved-for-influencers", format: "jpg" },
-    { publicId: "samples/landscapes/nature-mountains", sku: "", folder: "brand", title: "Brand — Trentino peaks", approvalState: "approved-for-press", format: "jpg" },
-    { publicId: "samples/people/kitchen-bar", sku: "", folder: "raw", title: "Raw — kitchen shoot", approvalState: "draft", format: "jpg" },
-    { publicId: "samples/coffee", sku: "", folder: "raw", title: "Raw — table setting", approvalState: "draft", format: "jpg" },
+    { publicId: "samples/food/spices", sku: "MT-ASIA-200", folder: "products", title: "Asiago DOP — hero", approvalState: "approved-for-press", format: "jpg", usage: ["product-catalog", "hero"] },
+    { publicId: "samples/food/dessert", sku: "MT-GORG-150", folder: "products", title: "Gorgonzola Dolce", approvalState: "approved-for-influencers", format: "jpg", usage: ["product-catalog"] },
+    { publicId: "samples/food/fish-vegetables", sku: "MT-GRAN-1K", folder: "products", title: "Grana Padano board", approvalState: "draft", format: "jpg", usage: ["product-catalog", "food-styling"] },
+    { publicId: "samples/food/pot-mussels", sku: "MT-PROV-500", folder: "products", title: "Provolone wheel", approvalState: "approved-for-press", format: "jpg", usage: ["product-catalog"] },
+    { publicId: "samples/landscapes/beach-boat", sku: "", folder: "brand", title: "Brand lifestyle — coast", approvalState: "approved-for-influencers", format: "jpg", usage: ["lifestyle", "social"] },
+    { publicId: "samples/landscapes/nature-mountains", sku: "", folder: "brand", title: "Brand — Trentino peaks", approvalState: "approved-for-press", format: "jpg", usage: ["lifestyle", "hero", "brand-asset"] },
+    { publicId: "samples/people/kitchen-bar", sku: "", folder: "raw", title: "Raw — kitchen shoot", approvalState: "draft", format: "jpg", usage: ["food-styling", "event"] },
+    { publicId: "samples/coffee", sku: "", folder: "raw", title: "Raw — table setting", approvalState: "draft", format: "jpg", usage: ["lifestyle", "social"] },
   ],
 };
 

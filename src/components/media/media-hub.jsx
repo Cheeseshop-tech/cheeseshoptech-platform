@@ -12,43 +12,51 @@ import {
 import { useToast } from "@/components/ui/toast.jsx";
 import { useAuth } from "@/lib/auth-context.jsx";
 import { cldUrl, uploadAsset, UPLOAD_PRESET } from "@/lib/cloudinary.js";
-import { listAssets, FOLDERS, APPROVAL, USAGE, usageLabel, canUpload, canManageMedia } from "@/lib/media.js";
+import { listAssets, APPROVAL, USAGE, usageLabel, canUpload, canManageMedia } from "@/lib/media.js";
 
 export function MediaHub({ resolved }) {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [folder, setFolder] = useState("products");
+  // Tabs MIRROR the usage tags (Asset Library model): every tab is a saved view filtered by tag,
+  // not a storage folder. Special tabs: "recent" (your latest uploads) and "all" (everything).
+  const TABS = [{ id: "recent", label: "Recent" }, { id: "all", label: "All" }, ...USAGE.map((u) => ({ id: u.id, label: u.label }))];
+  const [tab, setTab] = useState("all");
   const [assets, setAssets] = useState(null);
   const [active, setActive] = useState(null);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef(null);
   // Files chosen but not yet uploaded — the "Asset details" dialog (name + usage) gates them.
   const [pending, setPending] = useState(null);
-  // "Recent" tab: the assets you've uploaded + tagged, newest first. Persisted in the browser so
-  // they survive reloads even while the hub is still mock-backed (interim until the live Cloudinary
+  // "Recent": the assets you've uploaded + tagged, newest first. Persisted in the browser so they
+  // survive reloads even while the hub is still mock-backed (interim until the live Cloudinary
   // backend lists them for real). Keyed per tenant.
   const RECENT_KEY = `cs-recent-uploads-${resolved.cloudinaryFolder}`;
   const [recent, setRecent] = useState(() => {
     try { return JSON.parse(localStorage.getItem(RECENT_KEY) || "[]"); } catch { return []; }
   });
-  // Page the grid so we mount ~30 tiles, not the whole folder at once (a 100+ image folder
-  // flooded the browser on load). Reset when the folder tab changes.
+  // Page the grid so we mount ~30 tiles, not the whole view at once (a 100+ image set floods the
+  // browser on load). Reset when the tab changes.
   const PAGE = 30;
   const [shown, setShown] = useState(PAGE);
 
+  // Fetch the whole asset set ONCE; tabs filter it client-side by usage tag (instant switching).
   useEffect(() => {
-    setShown(PAGE);
-    if (folder === "recent") return; // Recent is browser-persisted state, not a fetched folder.
     let alive = true;
     setAssets(null);
-    listAssets({ folder, tenantFolder: resolved.cloudinaryFolder, user }).then((a) => {
+    listAssets({ folder: null, tenantFolder: resolved.cloudinaryFolder, user }).then((a) => {
       if (alive) setAssets(a);
     });
     return () => { alive = false; };
-  }, [folder, resolved.cloudinaryFolder, user]);
+  }, [resolved.cloudinaryFolder, user]);
 
-  // What the grid shows: the Recent tab reads session/persisted uploads; other tabs the fetch.
-  const display = folder === "recent" ? recent : assets;
+  useEffect(() => { setShown(PAGE); }, [tab]);
+
+  // The pool = persisted recent uploads merged over the fetched set, de-duped by publicId.
+  const merged = assets ? [...recent, ...assets].filter((a, i, arr) => arr.findIndex((x) => x.publicId === a.publicId) === i) : null;
+  // What the grid shows for the active tab.
+  const display = tab === "recent" ? recent
+    : tab === "all" ? merged
+    : merged ? merged.filter((a) => (a.usage || []).includes(tab)) : null;
 
   function onUpload() {
     if (!UPLOAD_PRESET) {
@@ -77,7 +85,7 @@ export function MediaHub({ resolved }) {
       const uploaded = [];
       for (const it of items) {
         const asset = await uploadAsset({
-          file: it.file, tenantFolder: resolved.cloudinaryFolder, subfolder: folder,
+          file: it.file, tenantFolder: resolved.cloudinaryFolder, subfolder: "library",
           displayName: it.name, usage,
         });
         uploaded.push(asset);
@@ -121,14 +129,13 @@ export function MediaHub({ resolved }) {
         )}
       </div>
 
-      <Tabs value={folder} onValueChange={setFolder}>
-        <TabsList>
-          <TabsTrigger value="recent">Recent</TabsTrigger>
-          {FOLDERS.map((f) => (
-            <TabsTrigger key={f} value={f} className="capitalize">{f}</TabsTrigger>
+      <Tabs value={tab} onValueChange={setTab}>
+        <TabsList className="flex-wrap">
+          {TABS.map((t) => (
+            <TabsTrigger key={t.id} value={t.id}>{t.label}</TabsTrigger>
           ))}
         </TabsList>
-        <TabsContent value={folder}>
+        <TabsContent value={tab}>
           {display === null ? (
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
               {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="aspect-[4/5] w-full" />)}
@@ -136,10 +143,10 @@ export function MediaHub({ resolved }) {
           ) : display.length === 0 ? (
             <EmptyState
               icon={ImageIcon}
-              title={folder === "recent" ? "No recent uploads yet" : "Nothing here yet"}
-              description={folder === "recent"
+              title={tab === "recent" ? "No recent uploads yet" : tab === "all" ? "Nothing here yet" : `Nothing tagged “${TABS.find((t) => t.id === tab)?.label}” yet`}
+              description={tab === "recent"
                 ? "Images you upload (with their name and usage tags) show up here, newest first — so you can find what you just tagged."
-                : "No assets in this folder are available to your role."}
+                : "Upload an image and check this usage in the Asset details step to file it here. One image can carry several usages."}
             />
           ) : (
             <>

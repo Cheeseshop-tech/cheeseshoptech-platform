@@ -38,6 +38,13 @@ mock-backed: recent uploads are persisted in the browser (`localStorage`, per te
 they survive reloads. When the live Cloudinary backend lands, Recent becomes a `created_at`-sorted
 view of real assets.
 
+**Tabs now MIRROR the usage tags** (Rick): the Media Hub left tabs switched from storage folders
+(products/brand/raw) to the usage taxonomy — Recent · All · Product Catalog · Hero · Story block ·
+Lifestyle · Food styling · Social · Press/PR · Event · Brand asset. Each tab is a saved view that
+filters the asset pool by tag (client-side, instant); the whole set is fetched once. Mock sample
+assets were given `usage` tags so the tabs are populated in mock mode. Uploads now land in a neutral
+`library` subfolder (tags, not folders, drive where an asset appears).
+
 **Product Catalog exclusion (verified, no code needed):** the Catalog is a VIEW over the canonical
 manifest (`lib/images.js`), not Media Hub uploads — so social/press/lifestyle/food-styling never
 appear there. The tag-driven gate (only `product-catalog` enters the manifest) activates when the
