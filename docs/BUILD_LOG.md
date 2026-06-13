@@ -19,6 +19,23 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-13 (cont.) — Pricing tool UX pass (composition for live customer conversations)
+
+Cosmetic/layout work on the Proforma (Pricing & Inventory), driven by Rick using it as a
+customer-facing reference. Commits `d5f52b9`, `40af9c0`, `d05b8bb`.
+- **Bill-to summary moved** from a 340px right rail to a full-width sticky top bar (bill-to +
+  totals + Print/Record). The product table now runs the full width + length — product names
+  fit on one line, more rows, no wrapping (was the core complaint).
+- **Clickable product image → detail dialog** (`ProductDetailDialog`): large image, description/
+  blurb, badge, live price at the selected class-of-trade, stock, lots, and full specs
+  (milk/aging/net+gross per case/pieces/pallet/shelf). Built to answer buyer questions on the spot.
+- **Dedicated "Inventory & lots" column** — lots were crammed under the product name; now spread
+  into an aligned grid (lot # · cases · exp/ETA) with on-hand + on-the-water summary.
+- **Larger thumbnails** (44→64px, sharper `card` preset; dialog uses `preview` w_1200).
+- **Search moved** out of the controls row to a full-width bar directly above the product list.
+- Note: codes not in the manifest (e.g. 02302) use the legacy `monti/<code>` packshot fallback and
+  can show a blank thumb — `npm run sync:images` with Cloudinary creds folds in that folder.
+
 ## 2026-06-13 (cont.) — F5 SHIPPED: one canonical image source
 
 **The SOURCE is now unified too** (commit `4b729af`), completing "one mind, one body": every surface
