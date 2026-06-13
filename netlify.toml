@@ -5,6 +5,12 @@
   command = "npm run build"
   publish = "dist"
 
+# Public build-time vars committed here (no secrets). The unsigned Cloudinary upload preset
+# name is exposed in the client bundle by design, so it lives in version control — not the
+# dashboard — so it can't get lost. VITE_CLOUDINARY_CLOUD stays a site-level dashboard var.
+[build.environment]
+  VITE_CLOUDINARY_UPLOAD_PRESET = "st_unsigned"
+
 # Serverless functions (Cloudinary media list, CRM/Make proxy). Secrets stay server-side.
 [functions]
   directory = "netlify/functions"
