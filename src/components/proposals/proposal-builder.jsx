@@ -12,6 +12,8 @@ import {
   emptyProposal, loadDraft, saveDraft, buildShareUrl, flattenSkus,
 } from "@/lib/proposals.js";
 import { codeImageUrl } from "@/lib/images.js";
+import { getBrandKit, AUDIENCES, storyBlocksFor } from "@/lib/brandKit.js";
+import { THEMES } from "@/lib/themes.js";
 import { ProposalView } from "./proposal-view.jsx";
 
 // Proposal builder (F4, Manage tier) — assemble a branded buyer proposal from canonical
@@ -51,6 +53,12 @@ export function ProposalBuilder({ resolved }) {
   const config = pricing.config;
   const tiers = config?.pricing?.tiers || [];
   const decks = resolved.presentations || [];
+  const kit = getBrandKit(resolved);
+  // Story blocks suggested for the chosen audience (all if none chosen) — from the brand kit.
+  const suggestedStories = storyBlocksFor(resolved, p.audience);
+  function toggleStory(key) {
+    update("storyKeys", p.storyKeys?.includes(key) ? p.storyKeys.filter((k) => k !== key) : [...(p.storyKeys || []), key]);
+  }
 
   function update(field, value) {
     const next = { ...p, [field]: value };
@@ -124,7 +132,47 @@ export function ProposalBuilder({ resolved }) {
               <Textarea id="pb-intro" rows={4} value={p.intro} placeholder="Two or three sentences. Why this range, why now." onChange={(e) => update("intro", e.target.value)} />
             </div>
             <div className="grid gap-1.5">
-              <Label htmlFor="pb-deck">Story deck</Label>
+              <Label htmlFor="pb-audience">Audience</Label>
+              <select
+                id="pb-audience"
+                className="h-10 rounded-base border border-border bg-bg px-3 text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                value={p.audience}
+                onChange={(e) => update("audience", e.target.value)}
+              >
+                <option value="">Any audience</option>
+                {AUDIENCES.map((a) => <option key={a.id} value={a.id}>{a.label}</option>)}
+              </select>
+              <p className="text-xs text-fg-muted">Filters the brand story blocks to ones written for this buyer type.</p>
+            </div>
+            <div className="grid gap-1.5">
+              <Label htmlFor="pb-theme">Design theme</Label>
+              <select
+                id="pb-theme"
+                className="h-10 rounded-base border border-border bg-bg px-3 text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                value={p.themeId}
+                onChange={(e) => update("themeId", e.target.value)}
+              >
+                {THEMES.map((t) => <option key={t.id} value={t.id}>{t.name} — {t.register}</option>)}
+              </select>
+            </div>
+            {kit?.storyBlocks?.length > 0 && (
+              <div className="grid gap-1.5">
+                <Label>Brand story blocks <span className="text-xs text-fg-muted">({p.storyKeys?.length || 0} selected)</span></Label>
+                <div className="space-y-1">
+                  {suggestedStories.map((b) => {
+                    const on = p.storyKeys?.includes(b.key);
+                    return (
+                      <label key={b.key} className={"flex cursor-pointer items-start gap-2 rounded-base border p-2 text-sm transition-colors " + (on ? "border-brand-primary bg-bg" : "border-transparent hover:bg-bg")}>
+                        <input type="checkbox" checked={on} onChange={() => toggleStory(b.key)} className="mt-0.5 h-4 w-4 accent-[var(--cs-color-brand-primary)]" />
+                        <span><span className="font-medium text-fg">{b.title}</span><span className="ml-1 text-fg-muted">— {(b.audience || []).join(", ")}</span></span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+            <div className="grid gap-1.5">
+              <Label htmlFor="pb-deck">Story deck (optional)</Label>
               <select
                 id="pb-deck"
                 className="h-10 rounded-base border border-border bg-bg px-3 text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"

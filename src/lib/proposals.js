@@ -14,9 +14,12 @@ const DRAFT_KEY = (tenantId) => `cs-proposal-draft-${tenantId}`;
 export const emptyProposal = () => ({
   v: 1,
   buyer: "",
+  audience: "",       // retail | foodservice | distributor — drives story-block suggestions
   headline: "",
   intro: "",
   deckKey: "",
+  storyKeys: [],      // selected brand-kit story blocks (Proposal v2)
+  themeId: "",        // selected design theme (Theme Engine)
   tierId: "",
   skus: [],
   date: new Date().toISOString().slice(0, 10),
