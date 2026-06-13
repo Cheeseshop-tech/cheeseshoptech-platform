@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { Calculator, Package, Handshake, Search } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card.jsx";
 import { Dialog, DialogContent } from "@/components/ui/dialog.jsx";
@@ -102,8 +102,8 @@ function Proforma({ data, brand, resolved }) {
 
   const opts = { tierId, basis, volumeId, customPct };
   // Manifest-first (real catalog image when the code has one), legacy packshot fallback otherwise.
-  const img = (code) => codeImageUrl(resolved, config, code, "micro");
-  const imgLarge = (code) => codeImageUrl(resolved, config, code, "card");
+  const imgLarge = (code) => codeImageUrl(resolved, config, code, "card");     // row thumbnail (64px, retina)
+  const imgPreview = (code) => codeImageUrl(resolved, config, code, "preview"); // detail dialog (large, crisp)
   const setCases = (code, v) => setQty((q) => { const n = Math.max(0, Math.floor(Number(v) || 0)); const next = { ...q }; if (n) next[code] = n; else delete next[code]; return next; });
 
   const visible = skus.filter((s) => !search || (s.code + " " + s.name + " " + s.category).toLowerCase().includes(search.trim().toLowerCase()));
@@ -234,7 +234,7 @@ function Proforma({ data, brand, resolved }) {
             <TableHeader>
               <TableRow>
                 <TableHead>Product</TableHead>
-                <TableHead className="text-right">Stock</TableHead>
+                <TableHead>Inventory &amp; lots</TableHead>
                 <TableHead className="text-right">$/lb</TableHead>
                 <TableHead className="text-right">Cases</TableHead>
                 <TableHead className="text-right">Line total</TableHead>
@@ -255,9 +255,9 @@ function Proforma({ data, brand, resolved }) {
                           type="button"
                           onClick={() => setDetail(s)}
                           title="View product details"
-                          className="group/img relative h-11 w-11 flex-none overflow-hidden rounded-base border border-border bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                          className="group/img relative h-16 w-16 flex-none overflow-hidden rounded-base border border-border bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
                         >
-                          <img loading="lazy" src={img(s.code)} alt="" onError={(e) => (e.currentTarget.style.visibility = "hidden")}
+                          <img loading="lazy" src={imgLarge(s.code)} alt="" onError={(e) => (e.currentTarget.style.visibility = "hidden")}
                             className="h-full w-full object-contain transition-transform group-hover/img:scale-110" />
                           <span className="absolute inset-0 flex items-center justify-center bg-fg/0 text-transparent transition-colors group-hover/img:bg-fg/40 group-hover/img:text-white">
                             <Search className="h-4 w-4" />
@@ -268,23 +268,31 @@ function Proforma({ data, brand, resolved }) {
                           <div className="font-medium text-fg">{s.name}</div>
                           <div className="text-xs text-fg-muted">{s.category} · {s.pack.netLb} lb/cs</div>
                           {c && <div className="mt-1 text-[11px] font-semibold text-brand-primary">{c.customer} {c.casesPerPeriod}/mo</div>}
-                          {inv && inv.lots && inv.lots.length > 0 && (
-                            <div className="mt-1.5 space-y-0.5">
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="align-top">
+                      {inv ? (
+                        <div>
+                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+                            <span className={inv.casesAvail ? "font-medium text-fg" : "text-fg-muted"}>{inv.casesAvail} cs on hand</span>
+                            {inv.casesInTransit > 0 && <span className="text-info">⚓ {inv.casesInTransit} cs on the water</span>}
+                          </div>
+                          {inv.lots && inv.lots.length > 0 && (
+                            <div className="mt-2 grid w-fit grid-cols-[auto_auto_auto] items-center gap-x-8 gap-y-1.5 font-mono text-xs">
                               {inv.lots.map((l, i) => (
-                                <div key={i} className="font-mono text-[10px] leading-tight text-fg-muted">
+                                <Fragment key={i}>
+                                  <span className="text-fg-muted">lot {l.lotNum}</span>
+                                  <span className="text-right text-fg">{l.status === "in_transit" ? l.cases : l.cases - (l.reserved || 0)} cs</span>
                                   {l.status === "in_transit"
-                                    ? <span className="text-info">⚓ lot {l.lotNum} · {l.cases} cs · ETA {fmtDate(l.eta)}</span>
-                                    : <span>lot {l.lotNum} · {l.cases - (l.reserved || 0)} cs · exp {fmtDate(l.expDate)}</span>}
-                                </div>
+                                    ? <span className="whitespace-nowrap text-info">⚓ ETA {fmtDate(l.eta)}</span>
+                                    : <span className="whitespace-nowrap text-fg-muted">exp {fmtDate(l.expDate)}</span>}
+                                </Fragment>
                               ))}
                             </div>
                           )}
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right font-mono text-sm">
-                      {inv ? <span className={inv.casesAvail ? "text-fg" : "text-fg-muted"}>{inv.casesAvail} cs</span> : <span className="text-fg-muted">—</span>}
-                      {inv && inv.casesInTransit > 0 && <div className="text-[11px] text-info">⚓ {inv.casesInTransit} cs</div>}
+                      ) : <span className="text-fg-muted">—</span>}
                     </TableCell>
                     <TableCell className="text-right font-mono">{money(unit)}</TableCell>
                     <TableCell className="text-right">
@@ -305,7 +313,7 @@ function Proforma({ data, brand, resolved }) {
         <ProductDetailDialog
           sku={detail}
           onClose={() => setDetail(null)}
-          imgUrl={detail ? imgLarge(detail.code) : ""}
+          imgUrl={detail ? imgPreview(detail.code) : ""}
           unit={detail ? PC.quoteUnitPrice(detail, opts, config) : null}
           inv={detail ? inventory.skus[detail.code] : null}
           tierLabel={tier.label}
