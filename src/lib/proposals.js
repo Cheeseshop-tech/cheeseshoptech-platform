@@ -85,11 +85,5 @@ export function resolveSkus(catalog, codes) {
     .filter(Boolean);
 }
 
-/** Cloudinary packshot URL from the tenant's canonical images config (sku.image = public id leaf).
- *  Routes through the ONE canonical builder; `width` picks the nearest preset. */
-export function skuImageUrl(config, sku, width = 160) {
-  const img = config?.images;
-  if (!img || img.provider !== "cloudinary" || !sku.image) return null;
-  const preset = width <= 110 ? "micro" : width <= 220 ? "thumb" : "card";
-  return cldImage({ cloud: img.cloud, publicId: `${img.folder}/${sku.image}`, preset });
-}
+// (skuImageUrl removed in F5 — SKU images now resolve through the canonical manifest via
+//  codeImageUrl in lib/images.js, manifest-first with a legacy packshot fallback.)

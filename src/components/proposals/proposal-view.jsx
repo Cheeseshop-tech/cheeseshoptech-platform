@@ -6,7 +6,8 @@ import { EmptyState } from "@/components/ui/empty-state.jsx";
 import { DeckViewer } from "@/components/presentations/presentations-page.jsx";
 import { getPricingData } from "@/lib/pricing.js";
 import { quoteUnitPrice } from "@/lib/pricing-core.js";
-import { proposalFromLocation, resolveSkus, skuImageUrl } from "@/lib/proposals.js";
+import { proposalFromLocation, resolveSkus } from "@/lib/proposals.js";
+import { codeImageUrl } from "@/lib/images.js";
 
 // Rendered proposal (F4) — what the buyer sees at the shared link (?page=proposal#p=…).
 // Branded by the tenant's tokens; prices are quoted LIVE from the canonical data layer at
@@ -86,7 +87,7 @@ export function ProposalView({ resolved, proposal: given }) {
           </p>
           <div className="overflow-hidden rounded-base border border-border">
             {items.map(({ product, sku }, i) => {
-              const img = skuImageUrl(config, sku, 200);
+              const img = codeImageUrl(resolved, config, sku.code, "card");
               const unit = config ? quoteUnitPrice(sku, quoteOpts, config) : null;
               return (
                 <div

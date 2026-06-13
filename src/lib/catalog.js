@@ -5,20 +5,34 @@
 // Shape: { cloud: "<cloudinary cloud name>", images: [{ id, code?, title, orig, category,
 //          ext, size, modified, cl_id, cl_fmt, cl_v, cl_w, cl_h }] }
 
-import mtBuyerCatalog from "@/data/montitrentini/buyer-catalog.json";
+import { getImages } from "./images.js";
 import { cldImage } from "./cloudinary.js";
 
-const BUNDLES = {
-  montitrentini: mtBuyerCatalog,
-};
-
-const USE_MOCK = (import.meta.env.VITE_CATALOG_BACKEND || "mock") === "mock";
-
-/** Canonical buyer-facing image catalog for a tenant. Null if none configured. */
+// The buyer catalog is now a VIEW over the ONE canonical manifest (lib/images.js) — it no
+// longer owns its own image list, so it can't drift from the Media hub / Proposals. The
+// component's expected fields are mapped from the manifest record here; the component is
+// untouched.
 export function getBuyerCatalog(resolved) {
-  if (USE_MOCK) return BUNDLES[resolved.id] || null;
-  // Real adapter (deferred): GET /.netlify/functions/catalog?tenant=<id>
-  return null;
+  const m = getImages(resolved);
+  if (!m) return null;
+  return {
+    cloud: m.cloud,
+    images: m.images.map((im) => ({
+      id: im.publicId,         // unique, stable key
+      cl_id: im.publicId,
+      cl_v: im.version,
+      cl_fmt: im.format,
+      ext: im.format,
+      code: im.code || "",
+      title: im.title,
+      orig: im.orig,
+      category: im.category,
+      size: im.bytes,
+      modified: im.modified,
+      cl_w: im.width,
+      cl_h: im.height,
+    })),
+  };
 }
 
 // ---- Cloudinary URL helpers — thin wrappers over the ONE canonical builder

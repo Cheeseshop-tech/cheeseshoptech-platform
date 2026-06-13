@@ -8,7 +8,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs.j
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table.jsx";
 import { useToast } from "@/components/ui/toast.jsx";
 import { getPricingData, appendLedger } from "@/lib/pricing.js";
-import { cldImage } from "@/lib/cloudinary.js";
+import { codeImageUrl } from "@/lib/images.js";
 import * as PC from "@/lib/pricing-core.js";
 import * as FC from "@/lib/forecast-core.js";
 
@@ -59,7 +59,7 @@ export function PricingTool({ resolved }) {
           <TabsTrigger value="movement">Movement</TabsTrigger>
           <TabsTrigger value="commitments">Commitments</TabsTrigger>
         </TabsList>
-        <TabsContent value="proforma"><Proforma data={data} brand={resolved.brand} /></TabsContent>
+        <TabsContent value="proforma"><Proforma data={data} brand={resolved.brand} resolved={resolved} /></TabsContent>
         <TabsContent value="movement"><Movement data={data} /></TabsContent>
         <TabsContent value="commitments"><Commitments data={data} /></TabsContent>
       </Tabs>
@@ -68,7 +68,7 @@ export function PricingTool({ resolved }) {
 }
 
 /* ---------------- Proforma ---------------- */
-function Proforma({ data, brand }) {
+function Proforma({ data, brand, resolved }) {
   const { config, catalog, inventory, commitments } = data;
   const { toast } = useToast();
   const skus = useMemo(
@@ -93,8 +93,8 @@ function Proforma({ data, brand }) {
   const [qty, setQty] = useState({});
 
   const opts = { tierId, basis, volumeId, customPct };
-  const cloud = config.images || {};
-  const img = (code) => cloud.cloud ? cldImage({ cloud: cloud.cloud, publicId: `${cloud.folder}/${code}`, format: "jpg", preset: "micro" }) : "";
+  // Manifest-first (real catalog image when the code has one), legacy packshot fallback otherwise.
+  const img = (code) => codeImageUrl(resolved, config, code, "micro");
   const setCases = (code, v) => setQty((q) => { const n = Math.max(0, Math.floor(Number(v) || 0)); const next = { ...q }; if (n) next[code] = n; else delete next[code]; return next; });
 
   const visible = skus.filter((s) => !search || (s.code + " " + s.name + " " + s.category).toLowerCase().includes(search.trim().toLowerCase()));

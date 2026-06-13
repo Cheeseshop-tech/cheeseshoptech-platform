@@ -9,8 +9,9 @@ import { EmptyState } from "@/components/ui/empty-state.jsx";
 import { useToast } from "@/components/ui/toast.jsx";
 import { getPricingData } from "@/lib/pricing.js";
 import {
-  emptyProposal, loadDraft, saveDraft, buildShareUrl, flattenSkus, skuImageUrl,
+  emptyProposal, loadDraft, saveDraft, buildShareUrl, flattenSkus,
 } from "@/lib/proposals.js";
+import { codeImageUrl } from "@/lib/images.js";
 import { ProposalView } from "./proposal-view.jsx";
 
 // Proposal builder (F4, Manage tier) — assemble a branded buyer proposal from canonical
@@ -168,7 +169,7 @@ export function ProposalBuilder({ resolved }) {
                 <div className="space-y-1">
                   {items.map(({ product, sku }) => {
                     const checked = p.skus.includes(sku.code);
-                    const img = skuImageUrl(config, sku, 80);
+                    const img = codeImageUrl(resolved, config, sku.code, "thumb");
                     return (
                       <label
                         key={sku.code}
