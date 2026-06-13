@@ -59,7 +59,9 @@ Two ways, pick one:
   enable Sheets API, create service account, download key, share sheet with it); Claude builds the
   script that uses the key. Swaps into the same data seam later — A and B aren't mutually exclusive.
 
-## First step when Rick returns
-- Make the availability sheet reachable (share to the connected account, or connect sales@).
-- Claude reads it, confirms the column→inventory mapping, builds `sync-inventory.mjs`.
+## First step (BLOCKED on Monti Trentini admin)
+- **Blocker (2026-06-13):** Rick does NOT have edit/share access to the availability sheet — the
+  **Monti Trentini admin must share it** (Viewer) to rick.posada@gmail.com (the connected account).
+  This sidesteps the Google OAuth that kept failing (a plain share needs no authorization).
+- Once shared: Claude reads it, confirms the column→inventory mapping, builds `sync-inventory.mjs`.
 - Start with Path A (today); add Path B (live, hands-off) when ready.
