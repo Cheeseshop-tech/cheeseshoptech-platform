@@ -371,7 +371,7 @@ function AssetDialog({ asset, onClose, canManage, onCopy, onSave }) {
 
   return (
     <Dialog open={!!asset} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[88vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{asset.title}</DialogTitle>
           <DialogDescription>
@@ -379,7 +379,7 @@ function AssetDialog({ asset, onClose, canManage, onCopy, onSave }) {
           </DialogDescription>
         </DialogHeader>
 
-        <img src={heroUrl} alt={asset.alt || asset.title} className="max-h-[45vh] w-full rounded-base bg-white object-contain" />
+        <img src={heroUrl} alt={asset.alt || asset.title} className={`${editing ? "max-h-[26vh]" : "max-h-[45vh]"} w-full rounded-base bg-white object-contain`} />
 
         {!editing ? (
           <>
