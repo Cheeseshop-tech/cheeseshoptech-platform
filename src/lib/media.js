@@ -27,6 +27,9 @@ export const USAGE = [
   { id: "press", label: "Press / PR" },
   { id: "event", label: "Event" },
   { id: "brand-asset", label: "Brand asset" },
+  { id: "email-campaign", label: "Email / Campaign" },
+  { id: "print", label: "Print / Sell-sheet" },
+  { id: "web-marketing", label: "Web / Marketing" },
 ];
 export const PRODUCT_USAGE_ID = "product-catalog";
 export const usageLabel = (id) => USAGE.find((u) => u.id === id)?.label || id;

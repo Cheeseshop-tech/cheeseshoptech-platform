@@ -9,8 +9,8 @@ const FOLDERS = ["products", "brand", "raw", "library"];
 // Usage taxonomy (mirror of src/lib/media.js USAGE). Tags that match these become the asset's
 // usage[] — what drives the Media Hub's tag tabs and the Product Catalog gate (product-catalog).
 const USAGE_IDS = [
-  "product-catalog", "hero", "story-block", "lifestyle",
-  "food-styling", "social", "press", "event", "brand-asset",
+  "product-catalog", "hero", "story-block", "lifestyle", "food-styling",
+  "social", "press", "event", "brand-asset", "email-campaign", "print", "web-marketing",
 ];
 
 export const handler = async (event) => {

@@ -8,8 +8,8 @@
 
 const APPROVAL_TAGS = ["approved-for-influencers", "approved-for-press", "draft"];
 const USAGE_IDS = [
-  "product-catalog", "hero", "story-block", "lifestyle",
-  "food-styling", "social", "press", "event", "brand-asset",
+  "product-catalog", "hero", "story-block", "lifestyle", "food-styling",
+  "social", "press", "event", "brand-asset", "email-campaign", "print", "web-marketing",
 ];
 
 export const handler = async (event) => {

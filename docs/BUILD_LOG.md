@@ -19,6 +19,15 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-13 (cont.) — Usage taxonomy covers all dispatch paths (12 tags)
+
+Rick: tags must map 1:1 to dispatch destinations so no asset has a home it can't reach. Final set
+(12, Event appears ONCE, Lifestyle separate): Product Catalog, Hero, Story block, Lifestyle, Food
+styling, Social, Press / PR, Event, Brand asset, **Email / Campaign, Print / Sell-sheet, Web /
+Marketing** (3 added). Updated the single source `src/lib/media.js USAGE` + both functions'
+`USAGE_IDS` (`media-list`, `media-update`) so they stay in lockstep — change the list in one place
+conceptually, but it lives in 3 files; keep them identical.
+
 ## 2026-06-13 (cont.) — Media Hub asset editing (the WRITE half) + ownership map
 
 Fixed the "backwards" gap (Rick: Catalog had data-entry, Media Hub didn't). Established the data
