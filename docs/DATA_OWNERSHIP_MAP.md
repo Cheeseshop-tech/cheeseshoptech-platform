@@ -7,11 +7,17 @@ fact is how data drifts.
 
 ## The three data domains
 
-| Domain | What it holds | Authoring home | Consumed by (read-only) |
-|---|---|---|---|
-| **Product** | SKU: code, name, short + long description, pack, specs, price | Product / price-list admin (canonical SKU source) | Product Catalog, Proposals, Pricing |
-| **Brand** | voice, story blocks, identity, colors, type | Brand Kit (`brand-kit.json`, Brand Management page) | Portal theming, Proposals |
-| **Asset** | the image/video file + name, usage tags, alt/description, the SKU it depicts, approval state | **Media Hub** (live Cloudinary backend) | Catalog, Proposals, Pricing pull images by reference |
+| Domain | What it holds | Authoring home | Who edits | Consumed by (read-only) |
+|---|---|---|---|---|
+| **Product** | SKU: code, name, short + long description, pack, specs, price | Product / price-list admin (canonical SKU source) | **client-admin + house admin** | Product Catalog, Proposals, Pricing |
+| **Brand** | voice, story blocks, identity, colors, type | Brand Kit (`brand-kit.json`, Brand Management page) | **house admin only** (CST orchestration = the monthly-fee value) | Portal theming, Proposals |
+| **Asset** | the image/video file + name, usage tags, alt/description, the SKU it depicts, approval state | **Media Hub** (live Cloudinary backend) | admin + client | Catalog, Proposals, Pricing pull images by reference |
+
+**Role rationale (Rick, 2026-06-13):** product data is the *client's own product knowledge*, so the
+Product admin is **client-admin** access (house admin can do everything). Brand stays **house-only** —
+that's the CST orchestration clients pay for. This mirrors the business model: clients own
+manufacturing + sales; CST owns the brand. Consistent with F3 (catalog editing already client-admin)
+and Proposals (`["admin","client-admin"]`).
 
 A product has **one** description and **many** photos — so product copy can never live on an image.
 It lives with the SKU. Photos live in the Media Hub. They meet at the SKU.
@@ -45,8 +51,9 @@ Add 5,000 photos or 500 SKUs → same model, no restructuring. That is the scale
 2. **WRITE** — `media-update` Netlify function (THIS build): server-side Cloudinary Admin API update of
    an asset's tags (approval + usage) and context (caption/sku/alt). Same secret-safe pattern, reuses
    the existing `CLOUDINARY_*` env (no new secrets). Media Hub asset dialog gains an Edit mode.
-3. **Later** — product-data authoring graduates out of the buyer Catalog into the product admin;
-   Catalog becomes read-only view. Optional: bulk-tag the 104 pre-existing (untagged) assets.
+3. **Later** — product-data authoring graduates out of the buyer Catalog into a dedicated **Product
+   admin at client-admin access** (house admin too); the Catalog becomes a read-only view. Optional:
+   bulk-tag the 104 pre-existing (untagged) assets.
 
 ## Guardrail
 
