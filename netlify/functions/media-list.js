@@ -5,7 +5,13 @@
 // Front end uses this when VITE_MEDIA_BACKEND=cloudinary. Maps to the shape src/lib/media.js expects.
 
 const APPROVAL_TAGS = ["approved-for-influencers", "approved-for-press", "draft"];
-const FOLDERS = ["products", "brand", "raw"];
+const FOLDERS = ["products", "brand", "raw", "library"];
+// Usage taxonomy (mirror of src/lib/media.js USAGE). Tags that match these become the asset's
+// usage[] — what drives the Media Hub's tag tabs and the Product Catalog gate (product-catalog).
+const USAGE_IDS = [
+  "product-catalog", "hero", "story-block", "lifestyle",
+  "food-styling", "social", "press", "event", "brand-asset",
+];
 
 export const handler = async (event) => {
   const cloud = process.env.CLOUDINARY_CLOUD_NAME;
@@ -53,6 +59,7 @@ export const handler = async (event) => {
         sku: r.context?.custom?.sku || "",
         folder,
         title: r.context?.custom?.caption || segs[segs.length - 1],
+        usage: tags.filter((t) => USAGE_IDS.includes(t)),
         approvalState,
         format: r.format,
         width: r.width,

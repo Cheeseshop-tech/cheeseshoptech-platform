@@ -19,6 +19,23 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-13 (cont.) — Asset Library LIVE backend (Media Hub reads real Cloudinary)
+
+Flipped the Media Hub from mock to the real Cloudinary backend. The `media-list` Netlify function
+(already existed — calls the Cloudinary Admin API server-side via Basic auth, so the API secret
+NEVER touches the browser; paginates the tenant's `monti-trentini/*` prefix) now also returns
+`usage[]` (tags ∩ the USAGE taxonomy) and recognizes the `library` upload subfolder — so the tag
+tabs + per-view counts work against real assets. Frontend unchanged (the seam was already there).
+
+Activation = env only: `VITE_MEDIA_BACKEND=cloudinary` (build-time, public) + server-side secrets
+`CLOUDINARY_CLOUD_NAME` (sofcvmwa), `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` set in Netlify
+alongside the `PORTAL_*` secrets. These are real secrets — dashboard only, never committed.
+
+Learning note: a *serverless function* is code that runs on-demand on a server (Netlify), not in the
+browser — so it can hold secrets and call privileged APIs, returning only safe, shaped data. This is
+the control-plane/data-plane split made concrete: the function is the gatekeeper between the public
+UI and the privileged Cloudinary Admin API.
+
 ## 2026-06-13 (cont.) — Cloudinary uploads live + Media Hub upload taxonomy (Asset Library step 1)
 
 Image uploads now work end-to-end: unsigned Cloudinary preset `st_unsigned` (cloud sofcvmwa),
