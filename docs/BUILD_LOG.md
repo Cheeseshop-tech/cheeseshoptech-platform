@@ -19,6 +19,27 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-13 (cont.) — Media Hub asset editing (the WRITE half) + ownership map
+
+Fixed the "backwards" gap (Rick: Catalog had data-entry, Media Hub didn't). Established the data
+ownership model and made the Media Hub the true asset control plane — it can now EDIT assets, not
+just upload them.
+
+- **`docs/DATA_OWNERSHIP_MAP.md`** — three domains, one authoring home each: Product (SKU → price-list
+  admin), Brand (Brand Kit), Asset (Media Hub). Join key = **SKU**. Product copy is NOT an asset field
+  (one description, many photos); it lives with the SKU. Catalog → pure view long-term. Guardrail: one
+  authoring home per fact; everything else references by key.
+- **`media-update` Netlify function (WRITE)** — server-side Cloudinary Admin API update of an asset's
+  tags (approval + usage) and context (caption/sku/alt). Same secret-safe pattern as `media-list`;
+  reuses the existing `CLOUDINARY_*` env (no new secrets).
+- **Asset edit dialog** — managers open an asset → Edit → rename, re-tag usage, link a SKU, add alt
+  text, set approval; Save persists via `media-update` and merges into local + Recent state. `media.js`
+  `updateAsset()` is the seam (mock = local-only no-op). Replaced the old approval-only quick buttons.
+
+Learning note: this is the READ/WRITE split of an API made concrete — `media-list` (GET) reads,
+`media-update` (POST) writes, both behind serverless functions holding the secret. The browser only
+ever sees safe, shaped data.
+
 ## 2026-06-13 (cont.) — Asset Library LIVE backend (Media Hub reads real Cloudinary)
 
 Flipped the Media Hub from mock to the real Cloudinary backend. The `media-list` Netlify function

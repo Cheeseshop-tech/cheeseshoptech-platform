@@ -95,3 +95,28 @@ export async function listAssets({ folder, tenantFolder, user }) {
     .filter((a) => allowed.has(a.approvalState))
     .filter((a) => (folder ? a.folder === folder : true));
 }
+
+/**
+ * Update one asset's metadata (name, usage, sku, alt, approval). Live backend writes to Cloudinary
+ * via the media-update function (secret stays server-side); mock mode is a no-op success so the UI
+ * still works in dev. Returns the patch of fields to merge into local state.
+ */
+export async function updateAsset({ publicId, displayName, usage, sku, alt, approvalState }) {
+  const patch = {};
+  if (displayName != null) patch.title = displayName;
+  if (Array.isArray(usage)) patch.usage = usage;
+  if (sku != null) patch.sku = sku;
+  if (alt != null) patch.alt = alt;
+  if (approvalState) patch.approvalState = approvalState;
+  if (USE_MOCK) return patch; // dev: update local state only
+  const res = await fetch("/.netlify/functions/media-update", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ publicId, displayName, usage, sku, alt, approvalState }),
+  });
+  if (!res.ok) {
+    const msg = await res.text().catch(() => "");
+    throw new Error(`Update failed (${res.status}) ${msg}`);
+  }
+  return patch;
+}

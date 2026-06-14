@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { Upload, Copy, Image as ImageIcon, Lock } from "lucide-react";
+import { Upload, Copy, Image as ImageIcon, Lock, Pencil } from "lucide-react";
 import { Card } from "@/components/ui/card.jsx";
 import { Button } from "@/components/ui/button.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
@@ -11,7 +11,7 @@ import {
 import { useToast } from "@/components/ui/toast.jsx";
 import { useAuth } from "@/lib/auth-context.jsx";
 import { cldUrl, uploadAsset, UPLOAD_PRESET } from "@/lib/cloudinary.js";
-import { listAssets, APPROVAL, USAGE, usageLabel, canUpload, canManageMedia } from "@/lib/media.js";
+import { listAssets, updateAsset, APPROVAL, USAGE, usageLabel, canUpload, canManageMedia } from "@/lib/media.js";
 
 export function MediaHub({ resolved }) {
   const { user } = useAuth();
@@ -201,13 +201,37 @@ export function MediaHub({ resolved }) {
         onClose={() => setActive(null)}
         canManage={canManageMedia(user)}
         onCopy={(url) => { navigator.clipboard?.writeText(url); toast({ title: "Link copied", tone: "success" }); }}
-        onStateChange={(s) => {
-          setActive((a) => ({ ...a, approvalState: s }));
-          setAssets((list) => list?.map((x) => x.publicId === active.publicId ? { ...x, approvalState: s } : x));
-          toast({ title: "Approval updated", description: APPROVAL[s].label, tone: "success" });
+        onSave={async (fields) => {
+          const id = active.publicId;
+          try {
+            const patch = await updateAsset({ publicId: id, ...fields });
+            const apply = (x) => x.publicId === id ? { ...x, ...patch } : x;
+            setActive((a) => (a ? { ...a, ...patch } : a));
+            setAssets((list) => list?.map(apply));
+            setRecent((prev) => {
+              const next = prev.map(apply);
+              try { localStorage.setItem(RECENT_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+              return next;
+            });
+            toast({ title: "Asset updated", tone: "success" });
+            return true;
+          } catch (err) {
+            toast({ title: "Update failed", description: String(err?.message || err), tone: "error" });
+            return false;
+          }
         }}
       />
     </div>
+  );
+}
+
+// Small labeled-field wrapper for the asset edit form.
+function Field({ label, children }) {
+  return (
+    <label className="block">
+      <span className="mb-1 block text-xs font-medium text-fg-muted">{label}</span>
+      {children}
+    </label>
   );
 }
 
@@ -315,10 +339,36 @@ function UploadDetailsDialog({ files, uploading, onCancel, onConfirm }) {
   );
 }
 
-function AssetDialog({ asset, onClose, canManage, onCopy, onStateChange }) {
+// Asset detail + EDIT. View mode shows the asset; managers can flip to Edit to rename, re-tag
+// usage, link a SKU, add alt text, and set approval — all persisted via media-update (the asset is
+// the Media Hub's to own; product copy is NOT here, it lives with the SKU).
+function AssetDialog({ asset, onClose, canManage, onCopy, onSave }) {
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState(null);
+  const [saving, setSaving] = useState(false);
+  useEffect(() => { setEditing(false); setForm(null); }, [asset?.publicId]);
   if (!asset) return null;
   const heroUrl = cldUrl(asset.publicId, "hero");
   const deliveryUrl = cldUrl(asset.publicId, "original");
+
+  const startEdit = () => {
+    setForm({
+      displayName: asset.title || "",
+      usage: asset.usage || [],
+      sku: asset.sku || "",
+      alt: asset.alt || "",
+      approvalState: asset.approvalState || "draft",
+    });
+    setEditing(true);
+  };
+  const toggleUsage = (id) => setForm((f) => ({ ...f, usage: f.usage.includes(id) ? f.usage.filter((x) => x !== id) : [...f.usage, id] }));
+  const save = async () => {
+    setSaving(true);
+    const ok = await onSave({ ...form, displayName: form.displayName.trim() || asset.title });
+    setSaving(false);
+    if (ok) setEditing(false);
+  };
+
   return (
     <Dialog open={!!asset} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-w-2xl">
@@ -329,47 +379,78 @@ function AssetDialog({ asset, onClose, canManage, onCopy, onStateChange }) {
           </DialogDescription>
         </DialogHeader>
 
-        <img src={heroUrl} alt={asset.title} className="max-h-[55vh] w-full rounded-base bg-white object-contain" />
+        <img src={heroUrl} alt={asset.alt || asset.title} className="max-h-[45vh] w-full rounded-base bg-white object-contain" />
 
-        <div className="mt-4 flex items-center justify-between gap-3">
-          <Badge variant={APPROVAL[asset.approvalState].tone}>{APPROVAL[asset.approvalState].label}</Badge>
-          <Button size="sm" variant="outline" onClick={() => onCopy(deliveryUrl)}>
-            <Copy className="h-4 w-4" /> Copy delivery URL
-          </Button>
-        </div>
-
-        {asset.usage?.length > 0 && (
-          <div className="mt-3 flex flex-wrap items-center gap-1.5">
-            <span className="text-xs text-fg-muted">Usage:</span>
-            {asset.usage.map((id) => <Badge key={id} variant="muted">{usageLabel(id)}</Badge>)}
-          </div>
-        )}
-
-        {canManage ? (
-          <div className="mt-4 border-t border-border pt-4">
-            <p className="mb-2 text-sm font-medium text-fg">Set approval</p>
-            <div className="flex flex-wrap gap-2">
-              {Object.entries(APPROVAL).map(([key, v]) => (
-                <Button
-                  key={key}
-                  size="sm"
-                  variant={key === asset.approvalState ? "primary" : "outline"}
-                  onClick={() => onStateChange(key)}
-                >
-                  {v.label}
-                </Button>
-              ))}
+        {!editing ? (
+          <>
+            <div className="mt-4 flex items-center justify-between gap-3">
+              <Badge variant={APPROVAL[asset.approvalState].tone}>{APPROVAL[asset.approvalState].label}</Badge>
+              <Button size="sm" variant="outline" onClick={() => onCopy(deliveryUrl)}>
+                <Copy className="h-4 w-4" /> Copy delivery URL
+              </Button>
             </div>
-          </div>
+            {asset.usage?.length > 0 && (
+              <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                <span className="text-xs text-fg-muted">Usage:</span>
+                {asset.usage.map((id) => <Badge key={id} variant="muted">{usageLabel(id)}</Badge>)}
+              </div>
+            )}
+            {asset.alt && <p className="mt-2 text-sm text-fg-muted">{asset.alt}</p>}
+            {canManage ? (
+              <div className="mt-4 border-t border-border pt-4">
+                <Button size="sm" variant="outline" onClick={startEdit}><Pencil className="h-4 w-4" /> Edit asset</Button>
+              </div>
+            ) : (
+              <p className="mt-4 flex items-center gap-1.5 border-t border-border pt-4 text-xs text-fg-muted">
+                <Lock className="h-3.5 w-3.5" /> Asset details are managed by the brand team.
+              </p>
+            )}
+            <DialogFooter>
+              <DialogClose asChild><Button variant="ghost">Close</Button></DialogClose>
+            </DialogFooter>
+          </>
         ) : (
-          <p className="mt-4 flex items-center gap-1.5 border-t border-border pt-4 text-xs text-fg-muted">
-            <Lock className="h-3.5 w-3.5" /> Approval is managed by the brand team.
-          </p>
+          <div className="mt-4 space-y-3 border-t border-border pt-4">
+            <Field label="Name">
+              <input value={form.displayName} onChange={(e) => setForm((f) => ({ ...f, displayName: e.target.value }))}
+                className="h-9 w-full rounded-base border border-border bg-bg px-2 text-sm text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand" />
+            </Field>
+            <div>
+              <p className="mb-1.5 text-sm font-medium text-fg">Usage <span className="text-xs font-normal text-fg-muted">— pick all that apply</span></p>
+              <div className="flex flex-wrap gap-2">
+                {USAGE.map((u) => {
+                  const on = form.usage.includes(u.id);
+                  return (
+                    <button key={u.id} type="button" onClick={() => toggleUsage(u.id)}
+                      className={"rounded-full border px-3 py-1 text-sm transition-colors " + (on ? "border-brand bg-surface font-medium text-fg" : "border-border text-fg-muted hover:border-brand")}>
+                      {on ? "✓ " : ""}{u.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Linked SKU (for product photos)">
+                <input value={form.sku} onChange={(e) => setForm((f) => ({ ...f, sku: e.target.value }))} placeholder="e.g. MT-ASIA-200"
+                  className="h-9 w-full rounded-base border border-border bg-bg px-2 font-mono text-sm text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand" />
+              </Field>
+              <Field label="Approval">
+                <select value={form.approvalState} onChange={(e) => setForm((f) => ({ ...f, approvalState: e.target.value }))}
+                  className="h-9 w-full rounded-base border border-border bg-bg px-2 text-sm text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
+                  {Object.entries(APPROVAL).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+                </select>
+              </Field>
+            </div>
+            <Field label="Alt text (accessibility / image description)">
+              <input value={form.alt} onChange={(e) => setForm((f) => ({ ...f, alt: e.target.value }))}
+                className="h-9 w-full rounded-base border border-border bg-bg px-2 text-sm text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand" />
+            </Field>
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setEditing(false)} disabled={saving}>Cancel</Button>
+              <Button variant="primary" onClick={save} disabled={saving}>{saving ? "Saving…" : "Save changes"}</Button>
+            </DialogFooter>
+          </div>
         )}
-
-        <DialogFooter>
-          <DialogClose asChild><Button variant="ghost">Close</Button></DialogClose>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
