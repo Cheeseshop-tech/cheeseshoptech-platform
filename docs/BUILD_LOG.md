@@ -19,6 +19,26 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-16 — Content Studio / Content Library + Slice 2 deck composer
+
+The proposal surface evolved into a content system (Rick's "one mind, one body" as outputs multiply
+to social/blog). Shipped together:
+- **Renames (display only, route keys stable):** "Create a Proposal" → **Content Studio** (makes it);
+  "Presentations" → **Content Library** (holds it). "Catalog" reserved for the Product Catalog (avoid
+  collision). Mental model: **Media Hub uploads ingredients → Content Studio pulls + composes → exports
+  finished pieces (slides/social/presentations/blogs) to the Content Library.**
+- **Story topics panel** (`proposal-builder.jsx`): brand-voice angles from `brand-kit.json storyTopics`
+  (7 for Monti), under the range picker; click → appends the line to the proposal intro.
+- **Attribution from the brand kit:** `brand-kit.json` `attribution` field → proposal-view closing line
+  shows **"Imported by Monti Trentini USA"** (was "Prepared with CheeseShop TECH"); other tenants fall
+  back. Sell sheets updated to match (Posada & Co. + CheeseShop TECH removed from prospect-facing footer).
+- **Slice 2 — slide-deck composer (images-only), SHIPPED:** Content Library "Compose deck" button →
+  `DeckComposer` dialog. Pulls Media Hub images via the tag-filtered `MediaPicker` (hover-preview),
+  orders slides (up/down/remove), first slide = cover. Saves a **link-based "deck"** catalog entry —
+  slides are Cloudinary delivery URLs (references, **no upload**); plays in `DeckViewer` (iPad touch +
+  fullscreen), shares by link. Build clean. NEXT slices: story-block text slides; social-post + blog
+  export paths; optional "Compose deck" entry point inside Content Studio.
+
 ## 2026-06-16 — AI tool embed PARKED (house-admin design agent)
 
 Rick: "let's hold off for now but tag it in the build." Decided NOT to build a live in-app AI agent
