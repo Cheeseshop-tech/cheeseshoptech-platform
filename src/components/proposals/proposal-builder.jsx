@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { FileText, Link as LinkIcon, Eye, Trash2, FileX } from "lucide-react";
+import { FileText, Link as LinkIcon, Eye, Trash2, FileX, Sparkles, Plus } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card.jsx";
 import { Button } from "@/components/ui/button.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
@@ -62,6 +62,13 @@ export function ProposalBuilder({ resolved }) {
   }
   function setStoryImage(key, publicId) {
     update("storyImages", { ...(p.storyImages || {}), [key]: publicId });
+  }
+  // Story topics = brand-voice angles (from the kit) the seller can drop into the pitch. Clicking
+  // one appends its line to the Introduction so the narrative starts in the brand's own voice.
+  function addTopic(line) {
+    const cur = (p.intro || "").trim();
+    update("intro", cur ? `${cur}\n${line}` : line);
+    toast({ title: "Added to introduction", tone: "success" });
   }
 
   function update(field, value) {
@@ -224,6 +231,7 @@ export function ProposalBuilder({ resolved }) {
           </CardContent>
         </Card>
 
+        <div className="space-y-5">
         <Card>
           <CardHeader>
             <CardTitle>The range</CardTitle>
@@ -267,6 +275,32 @@ export function ProposalBuilder({ resolved }) {
             ))}
           </CardContent>
         </Card>
+
+        {(kit?.storyTopics?.length > 0) && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2"><Sparkles className="h-5 w-5 text-brand-primary" /> Story topics</CardTitle>
+              <CardDescription>Brand-voice angles from {resolved.brand.name}. Click one to add it to the introduction.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-1.5">
+              {kit.storyTopics.map((t) => (
+                <button
+                  key={t.key}
+                  type="button"
+                  onClick={() => addTopic(t.line)}
+                  className="group flex w-full items-start gap-2 rounded-base border border-transparent p-2 text-left transition-colors hover:border-brand-primary hover:bg-bg"
+                >
+                  <Plus className="mt-0.5 h-4 w-4 flex-none text-fg-muted group-hover:text-brand-primary" />
+                  <span className="min-w-0">
+                    <span className="block text-sm font-medium text-fg">{t.title}</span>
+                    <span className="block text-xs text-fg-muted">{t.line}</span>
+                  </span>
+                </button>
+              ))}
+            </CardContent>
+          </Card>
+        )}
+        </div>
       </div>
     </div>
   );

@@ -109,5 +109,14 @@
       "audience": ["foodservice"],
       "body": "For chefs and foodservice, Monti Trentini offers Alpine cheeses with real provenance — aged in the maker's own plants, from milk grazed in the Dolomites' shades. The range spans approachable table cheeses to characterful aged wheels, each with a story worth telling tableside. Authentic, rooted, and made at altitude: the kind of cheese a menu can be built around."
     }
+  ],
+  "storyTopics": [
+    { "key": "made-at-altitude", "title": "Made at altitude", "line": "Made at altitude in the Trentino mountains — the mountain origin is the product, not a marketing line." },
+    { "key": "neighborhood-milk", "title": "Milk from the neighborhood", "line": "Only milk from within 90 km of our dairy in Grigno — a certified Alpine dairy at 800 metres above sea level." },
+    { "key": "casari-1925", "title": "Casari dal 1925", "line": "Casa Finco — four generations of cheesemakers and one hundred years of family tradition." },
+    { "key": "everything-at-home", "title": "Everything at home", "line": "Milk processing, cheese making, aging and packaging all happen in our own plants — nothing outsourced, nothing anonymous." },
+    { "key": "dolomites-pasture", "title": "Grazed in the Dolomites' shades", "line": "Where cows graze in the Dolomites' shades the milk is different — the herbs, the cool air, the slow seasons." },
+    { "key": "taste-for-the-future", "title": "A taste for the future", "line": "Sustainability drives our choices: roughly 650,000 kWh of solar a year, 80% electricity self-sufficiency, and about 1,000 tons of CO₂ avoided annually." },
+    { "key": "high-level-happiness", "title": "High level of happiness", "line": "Happiness has plenty of shapes — Monti Trentini brings them to your table." }
   ]
 }
