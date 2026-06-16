@@ -19,6 +19,18 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-16 — Content orchestration Slice 1: content-type categories
+
+First slice of `CONTENT_ORCHESTRATION_SPEC.md`. Two-track rule in effect — platform build proceeds
+independent of client approval (see memory `cst-build-strategy`). `presentations-store.js`: added the
+**content-type taxonomy** `CONTENT_CATEGORIES` (presentation · slide-deck · social-post · email-campaign ·
+blog-post) + `categoryLabel()` + `entryCategory()` (legacy entries fall back to "presentation"); entries
+gain a `category` field. Content Library (`presentations-page.jsx`): **category tabs** (All + 5, with live
+counts) that filter the grid; each card shows a category badge; "Nothing in this category yet" empty state.
+DeckComposer auto-tags saves as `slide-deck`; LoadDialog gained a category selector; config decks default
+to `slide-deck`. Build clean. NEXT slices (spec §12): submission/review queue + dedup; download-to-device;
+storage quota (default 10/client); finished-file backend (raw types + CST-gated writes).
+
 ## 2026-06-16 — Content Studio / Content Library + Slice 2 deck composer
 
 The proposal surface evolved into a content system (Rick's "one mind, one body" as outputs multiply

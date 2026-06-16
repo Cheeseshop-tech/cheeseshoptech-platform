@@ -14,7 +14,7 @@ import { useToast } from "@/components/ui/toast.jsx";
 import { useAuth } from "@/lib/auth-context.jsx";
 import { rolesOf } from "@/lib/auth.js";
 import { cldUrl, uploadFileAuto, pdfThumbUrl } from "@/lib/cloudinary.js";
-import { loadCatalog, addEntry, removeEntry, coverUrl } from "@/lib/presentations-store.js";
+import { loadCatalog, addEntry, removeEntry, coverUrl, CONTENT_CATEGORIES, categoryLabel, entryCategory } from "@/lib/presentations-store.js";
 import { MediaPicker } from "@/components/media/media-picker.jsx";
 
 // Presentations = a CATALOG of finished proposals (built in the Proposals tool) to organize and SHARE.
@@ -30,7 +30,7 @@ export function PresentationsPage({ resolved }) {
 
   // Config decks (image slide decks) → normalize to catalog entries of kind "deck".
   const configDecks = useMemo(
-    () => (resolved.presentations || []).map((d) => ({ ...d, kind: "deck", cover: d.slides?.[0] })),
+    () => (resolved.presentations || []).map((d) => ({ ...d, kind: "deck", category: d.category || "slide-deck", cover: d.slides?.[0] })),
     [resolved.presentations]
   );
   const [saved, setSaved] = useState([]);
@@ -40,7 +40,19 @@ export function PresentationsPage({ resolved }) {
 
   const [activeKey, setActiveKey] = useState(null);
   const [loadOpen, setLoadOpen] = useState(false);
+  const [activeCategory, setActiveCategory] = useState("all");
   const active = entries.find((d) => d.key === activeKey && d.kind === "deck");
+
+  // Category counts + the filtered view (Content Library tabs = views over the content-type dimension).
+  const counts = useMemo(() => {
+    const c = { all: entries.length };
+    for (const e of entries) { const cat = entryCategory(e); c[cat] = (c[cat] || 0) + 1; }
+    return c;
+  }, [entries]);
+  const filtered = useMemo(
+    () => (activeCategory === "all" ? entries : entries.filter((e) => entryCategory(e) === activeCategory)),
+    [entries, activeCategory]
+  );
 
   async function share(entry) {
     const url = entry.url || `${location.origin}${location.pathname}${location.search}`;
@@ -72,7 +84,7 @@ export function PresentationsPage({ resolved }) {
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="mb-1 font-heading text-3xl text-fg">Content Library</h1>
-          <p className="text-fg-muted">{resolved.brand.name}'s finished proposals &amp; decks — compose, catalog &amp; share.</p>
+          <p className="text-fg-muted">{resolved.brand.name}'s finished content — organized by type, shareable.</p>
         </div>
         {canManage && (
           <Button variant="primary" onClick={() => setLoadOpen(true)}>
@@ -80,6 +92,25 @@ export function PresentationsPage({ resolved }) {
           </Button>
         )}
       </div>
+
+      {entries.length > 0 && (
+        <div className="mb-5 flex flex-wrap gap-2">
+          {[{ id: "all", label: "All" }, ...CONTENT_CATEGORIES].map((c) => {
+            const n = counts[c.id] || 0;
+            const on = activeCategory === c.id;
+            return (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => setActiveCategory(c.id)}
+                className={"rounded-full border px-3 py-1 text-sm transition-colors " + (on ? "border-brand-primary bg-bg font-semibold text-brand-primary" : "border-border text-fg-muted hover:border-brand-primary")}
+              >
+                {c.label} <span className="opacity-60">{n}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {entries.length === 0 ? (
         <EmptyState
@@ -89,9 +120,11 @@ export function PresentationsPage({ resolved }) {
             ? "Build a proposal in Content Studio, then Load it here to catalog and share it."
             : "Finished proposals will appear here."}
         />
+      ) : filtered.length === 0 ? (
+        <p className="py-12 text-center text-sm text-fg-muted">Nothing in this category yet.</p>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {entries.map((d) => (
+          {filtered.map((d) => (
             <Card key={d.key} className="group overflow-hidden p-0 transition-colors hover:border-brand-primary">
               <button onClick={() => open(d)} className="block w-full text-left" aria-label={`Open ${d.title}`}>
                 <div className="aspect-video w-full overflow-hidden bg-bg">
@@ -104,7 +137,8 @@ export function PresentationsPage({ resolved }) {
                 {d.eyebrow && <p className="text-xs uppercase tracking-wide text-fg-muted">{d.eyebrow}</p>}
                 <h3 className="mt-1 font-heading text-lg text-fg">{d.title}</h3>
                 {d.description && <p className="mt-1 line-clamp-2 text-sm text-fg-muted">{d.description}</p>}
-                <div className="mt-3 flex items-center gap-2">
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <Badge variant="brand">{categoryLabel(entryCategory(d))}</Badge>
                   <Badge variant="muted">{
                     d.kind === "deck" ? `${d.slides?.length || 0} slides`
                     : d.kind === "pdf" ? "PDF"
@@ -150,7 +184,7 @@ export function PresentationsPage({ resolved }) {
 // Dialog to load a finished proposal into the catalog. Three ways in: paste a URL, browse files,
 // or drag & drop. Files (PDF / PPTX / image) upload to Cloudinary and become the proposal link.
 function LoadDialog({ open, onClose, onSave, tenantFolder }) {
-  const empty = { title: "", eyebrow: "", description: "", url: "", cover: "", kind: "link" };
+  const empty = { title: "", eyebrow: "", description: "", url: "", cover: "", kind: "link", category: "presentation" };
   const [form, setForm] = useState(empty);
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
@@ -198,6 +232,11 @@ function LoadDialog({ open, onClose, onSave, tenantFolder }) {
         </DialogHeader>
         <div className="mt-2 space-y-3">
           <L label="Title *"><I value={form.title} onChange={set("title")} placeholder="e.g. Monti Trentini — Asiago Program" /></L>
+          <L label="Category">
+            <select value={form.category} onChange={set("category")} className="h-9 w-full rounded-base border border-border bg-bg px-2 text-sm text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
+              {CONTENT_CATEGORIES.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
+            </select>
+          </L>
 
           {/* Upload zone: browse + drag & drop */}
           <div
@@ -265,6 +304,7 @@ export function DeckComposer({ open, onClose, onSave, resolved }) {
       title: title.trim(),
       eyebrow: eyebrow.trim(),
       kind: "deck",
+      category: "slide-deck",
       cover: cldUrl(slides[0], "card"),
       slides: slides.map((id) => cldUrl(id, "preview")),
     });

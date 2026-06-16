@@ -4,9 +4,26 @@
 // merge with any config-defined decks. A real save backend drops in behind these same seams later.
 //
 // Entry shape:
-//   { key, title, eyebrow?, description?, cover, kind: "link"|"pdf"|"deck", url?, slides?, savedAt }
+//   { key, title, eyebrow?, description?, cover, kind, category, url?, slides?, savedAt }
 //   - kind "link"/"pdf": `url` is the shareable link to the finished proposal (a public PDF or page)
 //   - kind "deck": `slides` is an array of image URLs (config decks render in the slide viewer)
+//   - category: the content-type for Content Library organization (see CONTENT_CATEGORIES). Library
+//     tabs are views filtered by this. See docs/CONTENT_ORCHESTRATION_SPEC.md §5.
+
+// Content-type taxonomy (Content Orchestration spec §5). The Content Library's category tabs are
+// views filtered by this dimension; conceptually it mirrors a Media Hub tag.
+export const CONTENT_CATEGORIES = [
+  { id: "presentation", label: "Presentations" },
+  { id: "slide-deck", label: "Slide decks" },
+  { id: "social-post", label: "Social posts" },
+  { id: "email-campaign", label: "Email campaigns" },
+  { id: "blog-post", label: "Blog posts" },
+];
+export const DEFAULT_CATEGORY = "presentation";
+export const categoryLabel = (id) => CONTENT_CATEGORIES.find((c) => c.id === id)?.label || "Presentations";
+/** Every entry resolves to a known category (legacy/un-set entries fall back to the default). */
+export const entryCategory = (entry) =>
+  CONTENT_CATEGORIES.some((c) => c.id === entry?.category) ? entry.category : DEFAULT_CATEGORY;
 
 const KEY = (tenantId) => `cs-presentations-${tenantId}`;
 
