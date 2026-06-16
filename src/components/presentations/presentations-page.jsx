@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ChevronLeft, ChevronRight, Maximize, Minimize, ArrowLeft, MonitorPlay,
-  Plus, Share2, ExternalLink, Trash2, Upload, FileText,
+  Plus, Share2, ExternalLink, Trash2, Upload, FileText, Images, ArrowUp, ArrowDown, X,
 } from "lucide-react";
 import { Card } from "@/components/ui/card.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
@@ -15,6 +15,7 @@ import { useAuth } from "@/lib/auth-context.jsx";
 import { rolesOf } from "@/lib/auth.js";
 import { cldUrl, uploadFileAuto, pdfThumbUrl } from "@/lib/cloudinary.js";
 import { loadCatalog, addEntry, removeEntry, coverUrl } from "@/lib/presentations-store.js";
+import { MediaPicker } from "@/components/media/media-picker.jsx";
 
 // Presentations = a CATALOG of finished proposals (built in the Proposals tool) to organize and SHARE.
 // Config decks (image slide decks) still render in the built-in viewer; saved entries link out to the
@@ -39,6 +40,7 @@ export function PresentationsPage({ resolved }) {
 
   const [activeKey, setActiveKey] = useState(null);
   const [loadOpen, setLoadOpen] = useState(false);
+  const [composeOpen, setComposeOpen] = useState(false);
   const active = entries.find((d) => d.key === activeKey && d.kind === "deck");
 
   async function share(entry) {
@@ -71,12 +73,17 @@ export function PresentationsPage({ resolved }) {
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="mb-1 font-heading text-3xl text-fg">Content Library</h1>
-          <p className="text-fg-muted">{resolved.brand.name}'s finished proposals — catalog &amp; share.</p>
+          <p className="text-fg-muted">{resolved.brand.name}'s finished proposals &amp; decks — compose, catalog &amp; share.</p>
         </div>
         {canManage && (
-          <Button variant="primary" onClick={() => setLoadOpen(true)}>
-            <Plus className="h-4 w-4" /> Load presentation
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setComposeOpen(true)}>
+              <Images className="h-4 w-4" /> Compose deck
+            </Button>
+            <Button variant="primary" onClick={() => setLoadOpen(true)}>
+              <Plus className="h-4 w-4" /> Load presentation
+            </Button>
+          </div>
         )}
       </div>
 
@@ -140,6 +147,17 @@ export function PresentationsPage({ resolved }) {
           setSaved(addEntry(tenant, entry));
           setLoadOpen(false);
           toast({ title: "Added to catalog", tone: "success" });
+        }}
+      />
+
+      <DeckComposer
+        open={composeOpen}
+        onClose={() => setComposeOpen(false)}
+        resolved={resolved}
+        onSave={(entry) => {
+          setSaved(addEntry(tenant, entry));
+          setComposeOpen(false);
+          toast({ title: "Deck saved to library", tone: "success" });
         }}
       />
     </div>
@@ -234,6 +252,76 @@ function LoadDialog({ open, onClose, onSave, tenantFolder }) {
         <DialogFooter>
           <DialogClose asChild><Button variant="ghost" disabled={uploading}>Cancel</Button></DialogClose>
           <Button variant="primary" disabled={!valid || uploading} onClick={() => onSave({ ...form, title: form.title.trim(), url: form.url.trim() })}>Add to catalog</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// Compose a slide deck from Media Hub images (v1: images-only). Pulls assets via the tag-filtered
+// MediaPicker, orders them into slides, and saves a LINK-BASED "deck" entry — slides are Cloudinary
+// delivery URLs (references, no upload), cover = first slide. Plays in the in-app DeckViewer (iPad
+// touch + fullscreen) and shares by link. This is the Content Studio → Content Library export.
+function DeckComposer({ open, onClose, onSave, resolved }) {
+  const [title, setTitle] = useState("");
+  const [eyebrow, setEyebrow] = useState("");
+  const [slides, setSlides] = useState([]); // ordered array of Media Hub public_ids
+  useEffect(() => { if (open) { setTitle(""); setEyebrow(""); setSlides([]); } }, [open]);
+
+  const addSlide = (id) => { if (id && !slides.includes(id)) setSlides((s) => [...s, id]); };
+  const removeSlide = (i) => setSlides((s) => s.filter((_, k) => k !== i));
+  const move = (i, dir) => setSlides((s) => {
+    const n = [...s]; const j = i + dir;
+    if (j < 0 || j >= n.length) return n;
+    [n[i], n[j]] = [n[j], n[i]]; return n;
+  });
+
+  const valid = title.trim() && slides.length > 0;
+  function save() {
+    onSave({
+      title: title.trim(),
+      eyebrow: eyebrow.trim(),
+      kind: "deck",
+      cover: cldUrl(slides[0], "card"),
+      slides: slides.map((id) => cldUrl(id, "preview")),
+    });
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-lg max-h-[88vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Compose a slide deck</DialogTitle>
+          <DialogDescription>Build a presentation from your Media Hub images — no upload. It plays in the viewer and shares by link.</DialogDescription>
+        </DialogHeader>
+        <div className="mt-2 space-y-3">
+          <L label="Title *"><I value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Monti Trentini — Asiago Story" /></L>
+          <L label="Eyebrow"><I value={eyebrow} onChange={(e) => setEyebrow(e.target.value)} placeholder="Presentation · 2026" /></L>
+
+          <L label={`Add slides from Media Hub (${slides.length})`}>
+            <MediaPicker resolved={resolved} value="" defaultTag="" label="Pick an image to add as a slide" onChange={addSlide} allowClear={false} />
+          </L>
+
+          {slides.length > 0 ? (
+            <div className="space-y-1.5">
+              {slides.map((id, i) => (
+                <div key={id} className="flex items-center gap-2 rounded-base border border-border bg-bg p-1.5">
+                  <span className="w-5 text-center text-xs text-fg-muted">{i + 1}</span>
+                  <img src={cldUrl(id, "thumb")} alt="" className="h-10 w-14 flex-none rounded-base border border-border bg-white object-contain" />
+                  <span className="min-w-0 flex-1 truncate text-xs text-fg-muted">{id.split("/").pop()}</span>
+                  <button type="button" onClick={() => move(i, -1)} disabled={i === 0} aria-label="Move up" className="rounded p-1 text-fg-muted hover:text-fg disabled:opacity-30"><ArrowUp className="h-4 w-4" /></button>
+                  <button type="button" onClick={() => move(i, 1)} disabled={i === slides.length - 1} aria-label="Move down" className="rounded p-1 text-fg-muted hover:text-fg disabled:opacity-30"><ArrowDown className="h-4 w-4" /></button>
+                  <button type="button" onClick={() => removeSlide(i)} aria-label="Remove" className="rounded p-1 text-red-500 hover:text-red-700"><X className="h-4 w-4" /></button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="rounded-base border border-dashed border-border p-4 text-center text-xs text-fg-muted">No slides yet — add images above. The first becomes the cover.</p>
+          )}
+        </div>
+        <DialogFooter>
+          <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
+          <Button variant="primary" disabled={!valid} onClick={save}>Save deck to library</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
