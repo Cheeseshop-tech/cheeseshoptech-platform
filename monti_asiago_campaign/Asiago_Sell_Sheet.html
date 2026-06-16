@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monti Trentini — Asiago DOP Line Sheet</title>
+<style>
+  :root{
+    --forest:#064E22; --italia:#009640; --sage:#70C883; --mint:#C8E2C5;
+    --cream:#FFFBDC; --paper:#FAF9F5; --charcoal:#716A6A; --ink:#141413; --red:#CE2B37;
+    --serif:"Fraunces","Cora",Georgia,serif;
+    --sans:"Inter","Futura PT",system-ui,-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{background:#e9e7da;color:var(--ink);font-family:var(--sans);}
+  .sheet{width:8.5in;min-height:11in;margin:0 auto;background:var(--cream);position:relative;overflow:hidden;}
+
+  /* Header bar */
+  .topbar{display:flex;justify-content:space-between;align-items:center;padding:12px 26px;background:var(--cream);}
+  .topbar img{height:38px;width:auto;}
+  .topbar .pill{font-family:var(--sans);font-size:9.5px;font-weight:700;letter-spacing:2px;color:var(--forest);border:1.5px solid var(--sage);border-radius:20px;padding:4px 12px;}
+
+  /* Hero */
+  .hero{position:relative;height:300px;overflow:hidden;}
+  .hero img{width:100%;height:100%;object-fit:cover;display:block;}
+  .hero .scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(6,78,34,.08) 0%,rgba(6,78,34,.05) 45%,rgba(6,78,34,.72) 100%);}
+  .hero .copy{position:absolute;left:30px;right:30px;bottom:22px;color:#fff;}
+  .hero .kicker{font-size:11px;letter-spacing:3px;text-transform:uppercase;font-weight:700;color:var(--mint);margin-bottom:6px;}
+  .hero h1{font-family:var(--serif);font-style:italic;font-weight:600;font-size:38px;line-height:1.04;text-shadow:0 1px 12px rgba(0,0,0,.25);}
+  .hero .sub{font-family:var(--serif);font-style:italic;font-size:15px;margin-top:8px;max-width:5.6in;opacity:.96;}
+
+  /* Body */
+  .body{padding:22px 30px 0;}
+  .lede{font-family:var(--serif);font-style:italic;font-size:13px;line-height:1.55;color:var(--forest);text-align:center;max-width:6.2in;margin:0 auto 18px;}
+
+  /* Product + ladder */
+  .ladder-row{display:grid;grid-template-columns:1.05fr 1fr;gap:22px;align-items:center;margin-bottom:20px;}
+  .product-card{background:#fff;border:1px solid var(--mint);border-radius:14px;padding:12px;display:flex;align-items:center;justify-content:center;}
+  .product-card img{width:100%;height:auto;display:block;}
+  .ladder h2{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--forest);margin-bottom:12px;}
+  .tier{border-left:3px solid var(--sage);padding:7px 0 7px 13px;margin-bottom:11px;}
+  .tier .nm{font-family:var(--serif);font-style:italic;font-size:16px;font-weight:600;color:var(--ink);}
+  .tier .age{display:inline-block;font-family:var(--sans);font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--italia);margin-left:8px;}
+  .tier .desc{font-size:10.5px;line-height:1.45;color:var(--charcoal);margin-top:2px;}
+  .formats{font-size:10px;color:var(--forest);background:var(--mint);border-radius:8px;padding:8px 12px;line-height:1.5;}
+  .formats b{font-weight:700;}
+
+  /* Pillars (photo) */
+  .pillars{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;padding:6px 30px 0;}
+  .pillar figure{border-radius:12px;overflow:hidden;height:120px;}
+  .pillar img{width:100%;height:100%;object-fit:cover;display:block;}
+  .pillar h4{font-family:var(--sans);font-size:9.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--forest);font-weight:700;margin:8px 0 3px;}
+  .pillar p{font-size:9.5px;line-height:1.45;color:var(--charcoal);}
+
+  /* Footer band */
+  .order{margin:20px 30px 0;background:var(--forest);color:var(--cream);border-radius:14px;padding:16px 20px;display:flex;justify-content:space-between;gap:20px;align-items:center;}
+  .order .ship{font-size:11px;line-height:1.55;}
+  .order .ship b{color:var(--mint);}
+  .order .ship .price{margin-top:8px;font-family:var(--serif);font-style:italic;font-size:14px;color:#fff;}
+  .order .right{text-align:right;min-width:2.2in;}
+  .order .cta{display:inline-block;background:var(--cream);color:var(--forest);font-weight:700;font-size:11px;letter-spacing:.4px;padding:9px 16px;border-radius:8px;text-transform:uppercase;}
+  .order .social{margin-top:8px;font-size:9.5px;color:var(--mint);letter-spacing:.3px;}
+
+  .ftr{display:flex;justify-content:space-between;align-items:center;padding:12px 30px 18px;font-size:9px;color:var(--charcoal);}
+  .ftr .heritage{font-family:var(--serif);font-style:italic;color:var(--forest);font-size:11px;}
+  .ftr .flag{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--red);margin-right:5px;vertical-align:middle;}
+
+  @media print{
+    html,body{background:#fff;}
+    .sheet{margin:0;box-shadow:none;}
+    @page{size:Letter;margin:0;}
+    img{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <div class="topbar">
+    <img src="https://res.cloudinary.com/sofcvmwa/image/upload/f_auto,q_auto,h_110/monti-trentini/library/tswf07fmciwdpp13facm" alt="Monti Trentini" onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:'Monti Trentini',style:'font-family:var(--serif);font-style:italic;font-size:24px;color:var(--forest);font-weight:600'}))">
+    <span class="pill">ASIAGO DOP · PRODUCT OF THE MOUNTAINS</span>
+  </div>
+
+  <!-- HERO -->
+  <div class="hero">
+    <img src="https://res.cloudinary.com/sofcvmwa/image/upload/c_fill,g_auto,w_1700,h_600,f_auto,q_auto:good/monti-trentini/library/montitrentini-mainbanner" alt="Alpine pasture, Trentino">
+    <div class="scrim"></div>
+    <div class="copy">
+      <div class="kicker">Made at altitude · Trentino, Italy</div>
+      <h1>Authentic Italian<br>Alpine Asiago</h1>
+      <div class="sub">Milk from within 90&nbsp;km of our dairy in Grigno — made, aged &amp; packed in our own mountain plants. Casa&nbsp;Finco, <em>casari dal 1925</em>.</div>
+    </div>
+  </div>
+
+  <div class="body">
+    <p class="lede">Where cows graze in the Dolomites' shades, the milk is different — and so is the cheese. One heritage cheese, three expressions, from supple and milky to deep and crystalline.</p>
+
+    <div class="ladder-row">
+      <div class="product-card">
+        <img src="https://res.cloudinary.com/sofcvmwa/image/upload/c_fit,w_900,f_auto,q_auto:good/monti-trentini/library/asiago-dop-famiglia" alt="Asiago DOP wheels and wedges">
+      </div>
+      <div class="ladder">
+        <h2>The Asiago ladder</h2>
+        <div class="tier">
+          <div class="nm">Asiago Fresco DOP<span class="age">30–40 days</span></div>
+          <div class="desc">Mild, milky and supple — the approachable gateway wheel, an easy everyday seller.</div>
+        </div>
+        <div class="tier">
+          <div class="nm">Asiago Stagionato DOP<span class="age">5 months</span></div>
+          <div class="desc">Fuller and firmer, nutty with a clean finish — the versatile everyday favorite.</div>
+        </div>
+        <div class="tier">
+          <div class="nm">Asiago Vecchio DOP<span class="age">9 months</span></div>
+          <div class="desc">Deep, savory and crystalline — the connoisseur's wheel, a story told tableside.</div>
+        </div>
+        <div class="formats">Each available as a <b>whole wheel</b> or <b>vacuum-packed 1/4 wheel</b>. Landed &amp; in&nbsp;stock in the U.S.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PILLARS -->
+  <div class="pillars">
+    <div class="pillar">
+      <figure><img src="https://res.cloudinary.com/sofcvmwa/image/upload/c_fill,g_auto,w_520,h_360,f_auto,q_auto/monti-trentini/library/mucche-alpeggio" alt="Cows grazing at altitude"></figure>
+      <h4>Alpine altitude milk</h4>
+      <p>A certified dairy at 800&nbsp;m. The mountain origin is the product — not a tagline.</p>
+    </div>
+    <div class="pillar">
+      <figure><img src="https://res.cloudinary.com/sofcvmwa/image/upload/c_fill,g_auto,w_520,h_360,f_auto,q_auto/monti-trentini/library/lavorazione-formaggio" alt="Cheesemaking by hand"></figure>
+      <h4>100 years of craft</h4>
+      <p>Milk processing, cheesemaking, aging &amp; packaging — all in our own plants. Nothing outsourced.</p>
+    </div>
+    <div class="pillar">
+      <figure><img src="https://res.cloudinary.com/sofcvmwa/image/upload/c_fill,g_auto,w_520,h_360,f_auto,q_auto/monti-trentini/library/storica-trasporto-latte" alt="Historic milk transport"></figure>
+      <h4>Sustainable by design</h4>
+      <p>~650,000&nbsp;kWh/yr of in-house solar; ~1,000&nbsp;tons of CO₂ avoided yearly — the alpine landscape protected.</p>
+    </div>
+  </div>
+
+  <!-- ORDER -->
+  <div class="order">
+    <div class="ship">
+      Already landed and <b>in stock in the U.S.</b> via Seafrigo cold chain — ready to ship FedEx&nbsp;/&nbsp;UPS to your door.
+      <div class="price">Pricing &amp; freight — by inquiry, quoted to your location.</div>
+    </div>
+    <div class="right">
+      <span class="cta">Let's start with a taste →</span>
+      <div class="social">Sales@montitrentini-usa.com · @montitrentini</div>
+    </div>
+  </div>
+
+  <div class="ftr">
+    <div class="heritage"><span class="flag"></span>Happiness has plenty of shapes — Monti Trentini brings them to your table.</div>
+    <div>Imported by Monti Trentini USA</div>
+  </div>
+
+</div>
+</body>
+</html>
