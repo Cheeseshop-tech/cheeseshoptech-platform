@@ -14,7 +14,7 @@ import { useToast } from "@/components/ui/toast.jsx";
 import { useAuth } from "@/lib/auth-context.jsx";
 import { rolesOf } from "@/lib/auth.js";
 import { cldUrl, uploadFileAuto, pdfThumbUrl } from "@/lib/cloudinary.js";
-import { loadCatalog, addEntry, removeEntry, coverUrl, CONTENT_CATEGORIES, categoryLabel, entryCategory } from "@/lib/presentations-store.js";
+import { loadCatalog, addEntry, removeEntry, updateEntry, coverUrl, CONTENT_CATEGORIES, categoryLabel, entryCategory, entryStatus, duplicateKeys } from "@/lib/presentations-store.js";
 import { MediaPicker } from "@/components/media/media-picker.jsx";
 
 // Presentations = a CATALOG of finished proposals (built in the Proposals tool) to organize and SHARE.
@@ -43,16 +43,36 @@ export function PresentationsPage({ resolved }) {
   const [activeCategory, setActiveCategory] = useState("all");
   const active = entries.find((d) => d.key === activeKey && d.kind === "deck");
 
+  // Gated publishing: house (CST = admin role) reviews; non-managers only ever see "posted".
+  // Managers also see pending/returned so they can track + review. Dedup flags shared title/url.
+  const canReview = roles.includes("admin");
+  const dupes = useMemo(() => duplicateKeys(entries), [entries]);
+  const visible = useMemo(
+    () => (canManage ? entries : entries.filter((e) => entryStatus(e) === "posted")),
+    [entries, canManage]
+  );
+
   // Category counts + the filtered view (Content Library tabs = views over the content-type dimension).
   const counts = useMemo(() => {
-    const c = { all: entries.length };
-    for (const e of entries) { const cat = entryCategory(e); c[cat] = (c[cat] || 0) + 1; }
+    const c = { all: visible.length };
+    for (const e of visible) { const cat = entryCategory(e); c[cat] = (c[cat] || 0) + 1; }
     return c;
-  }, [entries]);
+  }, [visible]);
   const filtered = useMemo(
-    () => (activeCategory === "all" ? entries : entries.filter((e) => entryCategory(e) === activeCategory)),
-    [entries, activeCategory]
+    () => (activeCategory === "all" ? visible : visible.filter((e) => entryCategory(e) === activeCategory)),
+    [visible, activeCategory]
   );
+
+  function onApprove(entry) {
+    setSaved(updateEntry(tenant, entry.key, { status: "posted", reviewNote: "" }));
+    toast({ title: "Posted to the library", tone: "success" });
+  }
+  function onReturn(entry) {
+    const note = window.prompt(`Return "${entry.title}" — reason (optional):`, "");
+    if (note === null) return; // cancelled
+    setSaved(updateEntry(tenant, entry.key, { status: "returned", reviewNote: note }));
+    toast({ title: "Returned to sender", tone: "success" });
+  }
 
   async function share(entry) {
     const url = entry.url || `${location.origin}${location.pathname}${location.search}`;
@@ -93,7 +113,7 @@ export function PresentationsPage({ resolved }) {
         )}
       </div>
 
-      {entries.length > 0 && (
+      {visible.length > 0 && (
         <div className="mb-5 flex flex-wrap gap-2">
           {[{ id: "all", label: "All" }, ...CONTENT_CATEGORIES].map((c) => {
             const n = counts[c.id] || 0;
@@ -112,7 +132,7 @@ export function PresentationsPage({ resolved }) {
         </div>
       )}
 
-      {entries.length === 0 ? (
+      {visible.length === 0 ? (
         <EmptyState
           icon={MonitorPlay}
           title="No presentations catalogued yet"
@@ -146,14 +166,23 @@ export function PresentationsPage({ resolved }) {
                     : d.kind === "image" ? "Image"
                     : "Link"
                   }</Badge>
+                  {entryStatus(d) === "submitted" && <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">Pending review</span>}
+                  {entryStatus(d) === "returned" && <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">Returned</span>}
+                  {canReview && dupes.has(d.key) && <span className="rounded-full border border-amber-400 px-2 py-0.5 text-xs text-amber-700">Possible duplicate</span>}
                 </div>
-                <div className="mt-4 flex items-center gap-2 border-t border-border pt-3">
+                <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-border pt-3">
                   <Button size="sm" variant="outline" onClick={() => open(d)}>
                     {d.kind === "deck" ? <MonitorPlay className="h-4 w-4" /> : <ExternalLink className="h-4 w-4" />} Open
                   </Button>
                   <Button size="sm" variant="outline" onClick={() => share(d)}>
                     <Share2 className="h-4 w-4" /> Share
                   </Button>
+                  {canReview && entryStatus(d) !== "posted" && (
+                    <>
+                      <Button size="sm" variant="primary" onClick={() => onApprove(d)}>Approve</Button>
+                      <Button size="sm" variant="outline" onClick={() => onReturn(d)}>Return</Button>
+                    </>
+                  )}
                   {canManage && d.savedAt && (
                     <Button size="sm" variant="outline" onClick={() => onDelete(d)} aria-label="Remove"
                       className="ml-auto border-red-300 text-red-600 hover:bg-red-50 hover:text-red-700">
@@ -172,9 +201,9 @@ export function PresentationsPage({ resolved }) {
         onClose={() => setLoadOpen(false)}
         tenantFolder={resolved.cloudinaryFolder}
         onSave={(entry) => {
-          setSaved(addEntry(tenant, entry));
+          setSaved(addEntry(tenant, { ...entry, status: canReview ? "posted" : "submitted" }));
           setLoadOpen(false);
-          toast({ title: "Added to catalog", tone: "success" });
+          toast({ title: canReview ? "Added to the library" : "Submitted for review", tone: "success" });
         }}
       />
     </div>

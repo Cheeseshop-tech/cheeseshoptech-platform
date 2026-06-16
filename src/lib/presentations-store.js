@@ -47,6 +47,34 @@ export function removeEntry(tenantId, key) {
   return saveCatalog(tenantId, loadCatalog(tenantId).filter((e) => e.key !== key));
 }
 
+/** Patch one entry in place (e.g. status changes from house review). */
+export function updateEntry(tenantId, key, patch) {
+  return saveCatalog(tenantId, loadCatalog(tenantId).map((e) => (e.key === key ? { ...e, ...patch } : e)));
+}
+
+// Gated publishing (Content Orchestration spec §7). A piece composed/loaded by a client or
+// client-admin lands as "submitted"; CheeseShop TECH (house) reviews → "posted" or "returned".
+// Legacy/house-created entries with no status default to "posted" (already live).
+export const STATUS = { submitted: "submitted", posted: "posted", returned: "returned" };
+export const entryStatus = (e) =>
+  (e?.status === "submitted" || e?.status === "returned" ? e.status : "posted");
+
+/** Keys of entries that look like duplicates — share a normalized title or an identical url. A
+ *  review aid (spec §3 de-dup), not a hard block. */
+export function duplicateKeys(entries) {
+  const byTitle = {}, byUrl = {};
+  for (const e of entries || []) {
+    const t = (e.title || "").trim().toLowerCase();
+    if (t) (byTitle[t] = byTitle[t] || []).push(e.key);
+    if (e.url) (byUrl[e.url] = byUrl[e.url] || []).push(e.key);
+  }
+  const dupes = new Set();
+  for (const group of [...Object.values(byTitle), ...Object.values(byUrl)]) {
+    if (group.length > 1) group.forEach((k) => dupes.add(k));
+  }
+  return dupes;
+}
+
 /** Normalize a user-entered cover: full URL as-is, else treat as a Cloudinary public_id. */
 export function coverUrl(cover, cldUrlFn) {
   if (!cover) return "";

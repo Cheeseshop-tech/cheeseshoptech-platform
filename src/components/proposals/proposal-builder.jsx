@@ -7,6 +7,8 @@ import { Input, Textarea } from "@/components/ui/input.jsx";
 import { Label } from "@/components/ui/label.jsx";
 import { EmptyState } from "@/components/ui/empty-state.jsx";
 import { useToast } from "@/components/ui/toast.jsx";
+import { useAuth } from "@/lib/auth-context.jsx";
+import { rolesOf } from "@/lib/auth.js";
 import { getPricingData } from "@/lib/pricing.js";
 import {
   emptyProposal, loadDraft, saveDraft, buildShareUrl, flattenSkus,
@@ -27,6 +29,8 @@ import { ProposalView } from "./proposal-view.jsx";
 export function ProposalBuilder({ resolved }) {
   const pricing = getPricingData(resolved);
   const { toast } = useToast();
+  const { user } = useAuth();
+  const isHouse = rolesOf(user).includes("admin"); // house/CST posts directly; clients submit for review
   const [p, setP] = useState(() => loadDraft(resolved.id));
   const [preview, setPreview] = useState(false);
   const [composeOpen, setComposeOpen] = useState(false);
@@ -313,7 +317,7 @@ export function ProposalBuilder({ resolved }) {
         open={composeOpen}
         onClose={() => setComposeOpen(false)}
         resolved={resolved}
-        onSave={(entry) => { addEntry(resolved.id, entry); setComposeOpen(false); toast({ title: "Deck saved to Content Library", tone: "success" }); }}
+        onSave={(entry) => { addEntry(resolved.id, { ...entry, status: isHouse ? "posted" : "submitted" }); setComposeOpen(false); toast({ title: isHouse ? "Deck saved to Content Library" : "Deck submitted for review", tone: "success" }); }}
       />
     </div>
   );

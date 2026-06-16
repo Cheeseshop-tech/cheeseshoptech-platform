@@ -19,6 +19,18 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-16 — Content orchestration Slice 2: submission + review/dedup (gated publishing)
+
+Spec §3/§7. `presentations-store.js`: `STATUS` (submitted/posted/returned), `entryStatus()` (legacy/house
+entries default **posted**), `updateEntry()`, `duplicateKeys()` (flags entries sharing a normalized title
+or identical url). Saves now stamp status by role: **house/CST (admin) → posted; client/client-admin →
+submitted** (DeckComposer in Content Studio + LoadDialog both). Content Library: non-managers see **posted
+only**; managers also see pending/returned with **Pending review / Returned** badges + a **Possible
+duplicate** flag (house). House-only **Approve** (→ posted) / **Return** (→ returned, optional note via
+prompt) actions per card. Models gated publishing without a backend (per-tenant localStorage); a real review
+queue + cross-tenant House Console comes later. Build clean. NEXT (spec §12): download-to-device; storage
+quota (default 10/client); finished-file backend (raw types + CST-gated Cloudinary writes).
+
 ## 2026-06-16 — Content orchestration Slice 1: content-type categories
 
 First slice of `CONTENT_ORCHESTRATION_SPEC.md`. Two-track rule in effect — platform build proceeds
