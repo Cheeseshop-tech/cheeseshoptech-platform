@@ -25,6 +25,21 @@ export const categoryLabel = (id) => CONTENT_CATEGORIES.find((c) => c.id === id)
 export const entryCategory = (entry) =>
   CONTENT_CATEGORIES.some((c) => c.id === entry?.category) ? entry.category : DEFAULT_CATEGORY;
 
+// Storage quota (Content Orchestration spec §9). Each client gets a capped number of STORED pieces
+// (config/platform decks don't count — only the localStorage catalog). When full, delete or download
+// to free a slot. Per-tenant override via resolved.contentQuota.
+export const DEFAULT_QUOTA = 10;
+export function storedCount(tenantId) { return loadCatalog(tenantId).length; }
+
+/** Force-download version of a Cloudinary delivery URL (adds fl_attachment so the browser saves the
+ *  file instead of navigating). Non-Cloudinary URLs return unchanged. Spec §10 download-to-device. */
+export function downloadHref(url) {
+  if (!url) return url;
+  return url.includes("res.cloudinary.com") && url.includes("/upload/")
+    ? url.replace("/upload/", "/upload/fl_attachment/")
+    : url;
+}
+
 const KEY = (tenantId) => `cs-presentations-${tenantId}`;
 
 export function loadCatalog(tenantId) {

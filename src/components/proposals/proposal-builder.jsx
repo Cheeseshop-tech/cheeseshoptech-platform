@@ -18,7 +18,7 @@ import { getBrandKit, AUDIENCES, storyBlocksFor } from "@/lib/brandKit.js";
 import { THEMES, getTheme } from "@/lib/themes.js";
 import { MediaPicker } from "@/components/media/media-picker.jsx";
 import { DeckComposer } from "@/components/presentations/presentations-page.jsx";
-import { addEntry } from "@/lib/presentations-store.js";
+import { addEntry, loadCatalog, DEFAULT_QUOTA } from "@/lib/presentations-store.js";
 import { ProposalView } from "./proposal-view.jsx";
 
 // Proposal builder (F4, Manage tier) — assemble a branded buyer proposal from canonical
@@ -317,7 +317,15 @@ export function ProposalBuilder({ resolved }) {
         open={composeOpen}
         onClose={() => setComposeOpen(false)}
         resolved={resolved}
-        onSave={(entry) => { addEntry(resolved.id, { ...entry, status: isHouse ? "posted" : "submitted" }); setComposeOpen(false); toast({ title: isHouse ? "Deck saved to Content Library" : "Deck submitted for review", tone: "success" }); }}
+        onSave={(entry) => {
+          if (loadCatalog(resolved.id).length >= (resolved.contentQuota || DEFAULT_QUOTA)) {
+            toast({ title: "Content Library full", description: "Delete or download an item in the Library to add more.", tone: "error" });
+            return;
+          }
+          addEntry(resolved.id, { ...entry, status: isHouse ? "posted" : "submitted" });
+          setComposeOpen(false);
+          toast({ title: isHouse ? "Deck saved to Content Library" : "Deck submitted for review", tone: "success" });
+        }}
       />
     </div>
   );

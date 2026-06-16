@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ChevronLeft, ChevronRight, Maximize, Minimize, ArrowLeft, MonitorPlay,
-  Plus, Share2, ExternalLink, Trash2, Upload, FileText, ArrowUp, ArrowDown, X,
+  Plus, Share2, ExternalLink, Trash2, Upload, FileText, ArrowUp, ArrowDown, X, Download,
 } from "lucide-react";
 import { Card } from "@/components/ui/card.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
@@ -14,7 +14,7 @@ import { useToast } from "@/components/ui/toast.jsx";
 import { useAuth } from "@/lib/auth-context.jsx";
 import { rolesOf } from "@/lib/auth.js";
 import { cldUrl, uploadFileAuto, pdfThumbUrl } from "@/lib/cloudinary.js";
-import { loadCatalog, addEntry, removeEntry, updateEntry, coverUrl, CONTENT_CATEGORIES, categoryLabel, entryCategory, entryStatus, duplicateKeys } from "@/lib/presentations-store.js";
+import { loadCatalog, addEntry, removeEntry, updateEntry, coverUrl, CONTENT_CATEGORIES, categoryLabel, entryCategory, entryStatus, duplicateKeys, DEFAULT_QUOTA, downloadHref } from "@/lib/presentations-store.js";
 import { MediaPicker } from "@/components/media/media-picker.jsx";
 
 // Presentations = a CATALOG of finished proposals (built in the Proposals tool) to organize and SHARE.
@@ -27,6 +27,7 @@ export function PresentationsPage({ resolved }) {
   const canManage = roles.includes("admin") || roles.includes("client") || roles.includes("client-admin");
   const { toast } = useToast();
   const tenant = resolved.id;
+  const quota = resolved.contentQuota || DEFAULT_QUOTA;
 
   // Config decks (image slide decks) → normalize to catalog entries of kind "deck".
   const configDecks = useMemo(
@@ -107,9 +108,14 @@ export function PresentationsPage({ resolved }) {
           <p className="text-fg-muted">{resolved.brand.name}'s finished content — organized by type, shareable.</p>
         </div>
         {canManage && (
-          <Button variant="primary" onClick={() => setLoadOpen(true)}>
-            <Plus className="h-4 w-4" /> Load presentation
-          </Button>
+          <div className="flex flex-col items-end gap-1">
+            <Button variant="primary" disabled={saved.length >= quota} onClick={() => setLoadOpen(true)}>
+              <Plus className="h-4 w-4" /> Load presentation
+            </Button>
+            <span className={"text-xs " + (saved.length >= quota ? "font-medium text-red-600" : "text-fg-muted")}>
+              {saved.length}/{quota} stored{saved.length >= quota ? " — delete or download to add" : ""}
+            </span>
+          </div>
         )}
       </div>
 
@@ -177,6 +183,11 @@ export function PresentationsPage({ resolved }) {
                   <Button size="sm" variant="outline" onClick={() => share(d)}>
                     <Share2 className="h-4 w-4" /> Share
                   </Button>
+                  {d.url && d.url.includes("res.cloudinary.com") && (
+                    <Button size="sm" variant="outline" onClick={() => window.open(downloadHref(d.url), "_blank", "noopener")}>
+                      <Download className="h-4 w-4" /> Download
+                    </Button>
+                  )}
                   {canReview && entryStatus(d) !== "posted" && (
                     <>
                       <Button size="sm" variant="primary" onClick={() => onApprove(d)}>Approve</Button>
@@ -201,6 +212,7 @@ export function PresentationsPage({ resolved }) {
         onClose={() => setLoadOpen(false)}
         tenantFolder={resolved.cloudinaryFolder}
         onSave={(entry) => {
+          if (saved.length >= quota) { toast({ title: `Content Library full (${quota}/${quota})`, description: "Delete or download an item to add more.", tone: "error" }); return; }
           setSaved(addEntry(tenant, { ...entry, status: canReview ? "posted" : "submitted" }));
           setLoadOpen(false);
           toast({ title: canReview ? "Added to the library" : "Submitted for review", tone: "success" });

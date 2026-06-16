@@ -19,6 +19,18 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-16 — Content orchestration Slices 3 + 4: download-to-device + storage quota
+
+Spec §9/§10. **Download-to-device:** `downloadHref()` in `presentations-store.js` adds Cloudinary
+`fl_attachment` so the browser saves the file instead of navigating; a **Download** button shows on any
+Library card whose `url` is a Cloudinary file (PDF/image/PPTX). Live decks/links have no single file → no
+button. **Storage quota:** `DEFAULT_QUOTA = 10` (per-tenant override `resolved.contentQuota`); counts the
+client's stored catalog only (platform/config decks don't count). Content Library header shows **`n/quota
+stored`** (red when full) and **disables Load** at the cap; both save paths guard — LoadDialog (Library) and
+DeckComposer (Content Studio) refuse to add when full and toast "delete or download to add." Frees on
+delete. Build clean. NEXT (spec §12): finished-file backend — extend `media-list`/upload for raw/finished
+types + CST-gated Cloudinary writes (the last orchestration slice; bigger, touches Netlify functions).
+
 ## 2026-06-16 — Content orchestration Slice 2: submission + review/dedup (gated publishing)
 
 Spec §3/§7. `presentations-store.js`: `STATUS` (submitted/posted/returned), `entryStatus()` (legacy/house
