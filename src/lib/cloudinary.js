@@ -56,6 +56,50 @@ export function clientFolder(resolved) {
 export const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || "";
 
 /**
+ * Client-side downscale so oversized photos actually upload. Unsigned uploads cap around
+ * ~10 MB and a full-res phone/DSLR master (15–40 MB) stalls the browser POST — the hub shows
+ * "uploading" forever. This shrinks the longest edge to `maxEdge` and re-encodes BEFORE upload.
+ * Delivery transforms (see TRANSFORMS) resize further at view time, so nothing visible is lost.
+ * Safe by design: non-images, SVG/GIF, and already-small files pass through untouched; any
+ * failure falls back to the original file so an upload is never blocked by this step.
+ */
+export async function downscaleForUpload(
+  file,
+  { maxEdge = 2560, triggerBytes = 8_000_000, quality = 0.85 } = {}
+) {
+  if (typeof document === "undefined" || !file || !file.type || !file.type.startsWith("image/")) return file;
+  if (file.type === "image/svg+xml" || file.type === "image/gif") return file; // don't rasterize
+  let bitmap;
+  try {
+    bitmap = await createImageBitmap(file);
+  } catch {
+    return file; // can't decode in this browser — let the server handle it
+  }
+  const { width, height } = bitmap;
+  const longest = Math.max(width, height);
+  if (longest <= maxEdge && file.size <= triggerBytes) {
+    bitmap.close && bitmap.close();
+    return file; // already web-sized
+  }
+  const scale = Math.min(1, maxEdge / longest);
+  const w = Math.round(width * scale);
+  const h = Math.round(height * scale);
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(bitmap, 0, 0, w, h);
+  bitmap.close && bitmap.close();
+  // Keep PNG (transparency) as PNG; re-encode everything else to JPEG for size.
+  const outType = file.type === "image/png" ? "image/png" : "image/jpeg";
+  const blob = await new Promise((res) => canvas.toBlob(res, outType, quality));
+  if (!blob || blob.size >= file.size) return file; // no win — keep original
+  const base = (file.name || "upload").replace(/\.[^.]+$/, "");
+  const ext = outType === "image/png" ? "png" : "jpg";
+  return new File([blob], `${base}.${ext}`, { type: outType, lastModified: Date.now() });
+}
+
+/**
  * Upload a file straight to Cloudinary via the unsigned preset. Places it under the tenant's
  * folder/<subfolder>, tags it `draft` (new assets start unapproved) PLUS any usage tags, and
  * stores the display name as caption. Returns the new asset mapped to the media.js shape.
@@ -68,11 +112,14 @@ export const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || ""
 export async function uploadAsset({ file, tenantFolder, subfolder = "raw", cloud = CLOUD_NAME, displayName, usage = [] }) {
   if (!UPLOAD_PRESET) throw new Error("No upload preset configured");
   const folder = `${tenantFolder}/${subfolder}`;
+  // Shrink oversized masters in the browser first so big phone/DSLR shots don't exceed the
+  // unsigned ~10 MB cap and stall the POST. Non-images / already-small files pass through.
+  const uploadFile = await downscaleForUpload(file);
   const title = (displayName || "").trim() || file.name;
   // draft (approval) + usage tags travel with the asset in Cloudinary.
   const tags = ["draft", ...usage].join(",");
   const form = new FormData();
-  form.append("file", file);
+  form.append("file", uploadFile);
   form.append("upload_preset", UPLOAD_PRESET);
   form.append("folder", folder);
   form.append("tags", tags);
