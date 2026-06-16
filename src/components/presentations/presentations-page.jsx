@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ChevronLeft, ChevronRight, Maximize, Minimize, ArrowLeft, MonitorPlay,
-  Plus, Share2, ExternalLink, Trash2,
+  Plus, Share2, ExternalLink, Trash2, Upload, FileText,
 } from "lucide-react";
 import { Card } from "@/components/ui/card.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
@@ -13,7 +13,7 @@ import {
 import { useToast } from "@/components/ui/toast.jsx";
 import { useAuth } from "@/lib/auth-context.jsx";
 import { rolesOf } from "@/lib/auth.js";
-import { cldUrl } from "@/lib/cloudinary.js";
+import { cldUrl, uploadFileAuto } from "@/lib/cloudinary.js";
 import { loadCatalog, addEntry, removeEntry, coverUrl } from "@/lib/presentations-store.js";
 
 // Presentations = a CATALOG of finished proposals (built in the Proposals tool) to organize and SHARE.
@@ -104,7 +104,13 @@ export function PresentationsPage({ resolved }) {
                 <h3 className="mt-1 font-heading text-lg text-fg">{d.title}</h3>
                 {d.description && <p className="mt-1 line-clamp-2 text-sm text-fg-muted">{d.description}</p>}
                 <div className="mt-3 flex items-center gap-2">
-                  <Badge variant="muted">{d.kind === "deck" ? `${d.slides?.length || 0} slides` : (d.kind === "pdf" ? "PDF" : "Link")}</Badge>
+                  <Badge variant="muted">{
+                    d.kind === "deck" ? `${d.slides?.length || 0} slides`
+                    : d.kind === "pdf" ? "PDF"
+                    : d.kind === "pptx" ? "PPTX"
+                    : d.kind === "image" ? "Image"
+                    : "Link"
+                  }</Badge>
                 </div>
                 <div className="mt-4 flex items-center gap-2 border-t border-border pt-3">
                   <Button size="sm" variant="outline" onClick={() => open(d)}>
@@ -129,6 +135,7 @@ export function PresentationsPage({ resolved }) {
       <LoadDialog
         open={loadOpen}
         onClose={() => setLoadOpen(false)}
+        tenantFolder={resolved.cloudinaryFolder}
         onSave={(entry) => {
           setSaved(addEntry(tenant, entry));
           setLoadOpen(false);
@@ -139,45 +146,89 @@ export function PresentationsPage({ resolved }) {
   );
 }
 
-// Dialog to load a finished proposal into the catalog. The proposal lives elsewhere (a public PDF
-// or page); we store its link + a cover so it can be browsed and shared.
-function LoadDialog({ open, onClose, onSave }) {
+// Dialog to load a finished proposal into the catalog. Three ways in: paste a URL, browse files,
+// or drag & drop. Files (PDF / PPTX / image) upload to Cloudinary and become the proposal link.
+function LoadDialog({ open, onClose, onSave, tenantFolder }) {
   const empty = { title: "", eyebrow: "", description: "", url: "", cover: "", kind: "link" };
   const [form, setForm] = useState(empty);
-  useEffect(() => { if (open) setForm(empty); }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+  const [uploading, setUploading] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
+  const [fileName, setFileName] = useState("");
+  const fileRef = useRef(null);
+  const { toast } = useToast();
+  useEffect(() => { if (open) { setForm(empty); setFileName(""); } }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
   const valid = form.title.trim() && form.url.trim();
+
+  async function handleFile(file) {
+    if (!file) return;
+    setUploading(true);
+    try {
+      const up = await uploadFileAuto({ file, tenantFolder });
+      const fmt = up.format;
+      const kind = fmt === "pdf" ? "pdf"
+        : (["pptx", "ppt"].includes(fmt) ? "pptx"
+        : (up.resourceType === "image" ? "image" : "link"));
+      setForm((f) => ({
+        ...f,
+        url: up.secureUrl,
+        kind,
+        cover: up.resourceType === "image" && fmt !== "pdf" ? up.secureUrl : f.cover,
+        title: f.title || file.name.replace(/\.[^.]+$/, ""),
+      }));
+      setFileName(file.name);
+      toast({ title: "File uploaded", tone: "success" });
+    } catch (err) {
+      toast({ title: "Upload failed", description: String(err?.message || err), tone: "error" });
+    } finally { setUploading(false); }
+  }
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-w-lg max-h-[88vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Load a presentation</DialogTitle>
-          <DialogDescription>Catalog a finished proposal so you can browse and share it. Build proposals in the Proposals tool, then publish/export to a shareable link or PDF and add it here.</DialogDescription>
+          <DialogDescription>Catalog a finished proposal so you can browse and share it. Paste a link, or upload a file (PDF, PowerPoint, or image).</DialogDescription>
         </DialogHeader>
         <div className="mt-2 space-y-3">
           <L label="Title *"><I value={form.title} onChange={set("title")} placeholder="e.g. Monti Trentini — Asiago Program" /></L>
-          <div className="grid grid-cols-2 gap-3">
-            <L label="Eyebrow"><I value={form.eyebrow} onChange={set("eyebrow")} placeholder="Proposal · 2026" /></L>
-            <L label="Type">
-              <select value={form.kind} onChange={set("kind")} className="h-9 w-full rounded-base border border-border bg-bg px-2 text-sm text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
-                <option value="link">Link (web page)</option>
-                <option value="pdf">PDF</option>
-              </select>
-            </L>
+
+          {/* Upload zone: browse + drag & drop */}
+          <div
+            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={(e) => { e.preventDefault(); setDragOver(false); handleFile(e.dataTransfer.files?.[0]); }}
+            className={"flex flex-col items-center gap-2 rounded-base border-2 border-dashed p-5 text-center text-sm " + (dragOver ? "border-brand bg-surface" : "border-border")}
+          >
+            <input ref={fileRef} type="file" hidden onChange={(e) => handleFile(e.target.files?.[0])}
+              accept=".pdf,.ppt,.pptx,image/*,application/pdf,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/vnd.ms-powerpoint" />
+            {uploading ? (
+              <span className="flex items-center gap-2 text-fg-muted"><Upload className="h-4 w-4 animate-pulse" /> Uploading…</span>
+            ) : fileName ? (
+              <span className="flex items-center gap-2 text-fg"><FileText className="h-4 w-4 text-brand" /> {fileName}</span>
+            ) : (
+              <>
+                <Upload className="h-6 w-6 text-fg-muted" />
+                <span className="text-fg-muted">Drag &amp; drop a PDF, PPTX, or image — or <button type="button" className="font-medium text-brand underline" onClick={() => fileRef.current?.click()}>browse files</button></span>
+              </>
+            )}
           </div>
-          <L label="Proposal link *">
+
+          <div className="flex items-center gap-3 text-xs text-fg-muted"><span className="h-px flex-1 bg-border" />or paste a link<span className="h-px flex-1 bg-border" /></div>
+
+          <L label="Proposal link">
             <I value={form.url} onChange={set("url")} placeholder="https://… (public PDF or page buyers can open)" />
           </L>
-          <L label="Cover image">
-            <I value={form.cover} onChange={set("cover")} placeholder="Image URL, or a Cloudinary public_id (e.g. monti-trentini/library/asiago-dop-famiglia)" />
-          </L>
+          <div className="grid grid-cols-2 gap-3">
+            <L label="Eyebrow"><I value={form.eyebrow} onChange={set("eyebrow")} placeholder="Proposal · 2026" /></L>
+            <L label="Cover image"><I value={form.cover} onChange={set("cover")} placeholder="Image URL or Cloudinary id" /></L>
+          </div>
           <L label="Description"><I value={form.description} onChange={set("description")} placeholder="One line for the card" /></L>
-          <p className="text-xs text-fg-muted">Tip: a public Cloudinary PDF/image link is buyer-ready — anyone with the link can open it, no login.</p>
+          <p className="text-xs text-fg-muted">PDF &amp; images preview/open from the link. <b>PPTX</b> is stored and shareable, but recipients download it to open (no in-portal slide preview).</p>
         </div>
         <DialogFooter>
-          <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
-          <Button variant="primary" disabled={!valid} onClick={() => onSave({ ...form, title: form.title.trim(), url: form.url.trim() })}>Add to catalog</Button>
+          <DialogClose asChild><Button variant="ghost" disabled={uploading}>Cancel</Button></DialogClose>
+          <Button variant="primary" disabled={!valid || uploading} onClick={() => onSave({ ...form, title: form.title.trim(), url: form.url.trim() })}>Add to catalog</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

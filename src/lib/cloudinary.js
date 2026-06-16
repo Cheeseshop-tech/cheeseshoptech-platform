@@ -146,3 +146,33 @@ export async function uploadAsset({ file, tenantFolder, subfolder = "raw", cloud
     height: r.height,
   };
 }
+
+/**
+ * Upload ANY file type (PDF, PPTX, images) to Cloudinary via the unsigned preset, using the
+ * `auto` endpoint so Cloudinary picks the right resource_type (image vs raw). Used by the
+ * Presentations "Load" flow so a finished proposal can be a browsed/dropped file, not just a URL.
+ * Images get downscaled first (reuses downscaleForUpload); PDF/PPTX pass through untouched.
+ * Returns the delivery URL + format/resource_type so callers can label and route it.
+ */
+export async function uploadFileAuto({ file, tenantFolder, subfolder = "presentations", cloud = CLOUD_NAME }) {
+  if (!UPLOAD_PRESET) throw new Error("No upload preset configured");
+  const toSend = await downscaleForUpload(file); // shrinks big images; pdf/pptx/etc. unchanged
+  const folder = `${tenantFolder}/${subfolder}`;
+  const form = new FormData();
+  form.append("file", toSend);
+  form.append("upload_preset", UPLOAD_PRESET);
+  form.append("folder", folder);
+  const res = await fetch(`https://api.cloudinary.com/v1_1/${cloud}/auto/upload`, { method: "POST", body: form });
+  if (!res.ok) {
+    const msg = await res.text().catch(() => "");
+    throw new Error(`Upload failed (${res.status}) ${msg}`);
+  }
+  const r = await res.json();
+  return {
+    publicId: r.public_id,
+    secureUrl: r.secure_url,
+    format: (r.format || "").toLowerCase(),
+    resourceType: r.resource_type, // "image" | "raw" | "video"
+    bytes: r.bytes,
+  };
+}
