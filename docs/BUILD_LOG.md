@@ -19,6 +19,90 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-16 — AI tool embed PARKED (house-admin design agent)
+
+Rick: "let's hold off for now but tag it in the build." Decided NOT to build a live in-app AI agent
+yet. Tagged: `docs/AI_TOOL_EMBED_SPEC.md` (PARKED) + a `PARKED(ai-embed)` code marker in
+`proposal-builder.jsx` where an "Auto-compose" button would sit. Reasoning captured: the in-website
+AI would reuse the exact secret-safe Netlify-function pattern already in prod (media-* functions) —
+browser → function (holds `ANTHROPIC_API_KEY`) → Claude API → draft back. Prereqs are Rick's:
+pay-as-you-go Anthropic API billing (separate from the Claude subscription) + a console spend cap.
+Cost-per-compose is cents; the real cost is build/maintenance, so deferred until self-serve volume
+earns it. Until then the design-agent role = Claude in Cowork (no infra/key/cost). Hard rule kept:
+NOT AI image generation — compose from the real Media Hub photography, don't synthesize. Resume only
+after Slice 2 (deterministic composer) exists; AI is the optional layer on top.
+
+## 2026-06-16 — "Create a Proposal" + color-safe PDF export + tag-driven Media Hub picker
+
+Three shippable pieces (build verified clean each time; deployed via Terminal paste — see lock note).
+
+- **Renamed Proposals → "Create a Proposal"** (nav `App.jsx` + builder headings).
+- **Print-to-PDF export, color-safe.** `proposal-view.jsx` "Export PDF" (window.print) now backed by
+  a real `@media print` block in `src/index.css`: isolates `.proposal-print` (hides app chrome via
+  visibility + absolute lift), forces `print-color-adjust: exact` so themed cover/closing/zone
+  backgrounds actually render (browsers strip backgrounds by default = the #1 cause of washed-out
+  exports), `@page 14mm`, `break-inside: avoid` on product rows/cards/story blocks. DECISION: PDF is
+  the proposal format — exports brand hex + Fraunces/Inter directly (no PPTX round-trip). Diagnosed
+  Rick's HEB color shift = the Mac "Reduce File Size" Quartz filter dropping the color profile, NOT
+  the app. Sharing/email stays in the Presentations tab (Rick's choice). Caveat: brand kit's first
+  heading font "cora" (Adobe) isn't web-loaded → falls back to Fraunces until Adobe Fonts is wired.
+- **Tag-driven Media Hub image picker (Slice 1).** New `src/components/media/media-picker.jsx`:
+  scrollable thumbnail panel reading the SAME `listAssets()` seam, usage-tag filter dropdown,
+  hover-to-enlarge preview pane (above the scroll area so it never clips), click to select. Wired
+  into the builder: a **Cover image** picker + a **per-story-block** image picker. Proposal model
+  (`proposals.js`) gained `heroImageId` + `storyImages{}` (backward compatible; fall back to brand
+  kit). `proposal-view.jsx` zones now honor the picks. NEXT = **Slice 2: slide-deck composer**
+  (assemble tagged images + story blocks into the in-app deck — iPad touch-present + fullscreen,
+  export to PDF, save to Presentations).
+
+## 2026-06-16 — Presentations = catalog of finished proposals (Load + Share + PDF first-page thumbnail)
+
+Presentations reframed (Rick: "a catalog of finished proposals to catalog and share"; Proposals is
+where they're built). `presentations-store.js` (per-tenant localStorage catalog, mirrors
+brand-kit-edits). PresentationsPage "Load presentation" dialog takes a proposal three ways — paste
+URL, browse files, or drag & drop — accepting PDF / PPTX / image via new `cloudinary.js`
+`uploadFileAuto()` (unsigned `/auto/upload`; images downscaled, raw passes through). Each card gets
+Open / Share (Web Share API → clipboard) / admin Remove. `pdfThumbUrl()` renders a PDF's **first
+page** (`pg_1,c_limit,f_jpg`) as the auto cover — CONFIRMED working. **Cloudinary "Allow delivery of
+PDF and ZIP files" ENABLED** (unlocks both the PDF link and the thumbnail). PPTX is stored/shareable
+but downloads to open (no inline preview) → PDF is the recommended format.
+
+## 2026-06-16 — Media Hub admin-clearance DELETE
+
+`netlify/functions/media-delete.js` (Cloudinary Admin API DELETE, secret server-side,
+invalidate=true). `media.js` `canDeleteMedia()` = admin OR client-admin (first cut was admin-only,
+hid it from Rick's client-admin role). Red Delete button in AssetDialog w/ confirm; drops from
+grid/recent on success. Hard delete (not archive). Commit `72db00b`.
+
+## 2026-06-15 — Media Hub uploader fix + brand kit to Cloudinary + Asiago campaign
+
+- **Upload "stalls forever" fixed.** `cloudinary.js` `downscaleForUpload()` (cap longest edge 2560px,
+  PNG→PNG else→JPEG) runs BEFORE the unsigned POST. Root cause: unsigned preset ~10 MB cap, farm
+  masters were 15–40 MB. Tradeoff: hub uploads are web-master, not print-res. Deployed (commit
+  `023f373`). **RECURRING MB WALL:** Cloudinary free plan rejects >10 MB account-side — no
+  signed/server/chunked upload beats it; the FILE must shrink. `downscaleForUpload` only shrinks
+  images, NOT PDF/PPTX. For big decks, compress the PDF first (Rick did 22 MB → 6 MB via Preview
+  "Reduce File Size").
+- **Monti brand web-asset kit → Cloudinary** (29 files → `monti-trentini/library/`, clean public_ids,
+  tagged). Working sandbox→Cloudinary route: `curl -F file=@… -F upload_preset=st_unsigned …` to
+  `…/v1_1/sofcvmwa/image/upload` (the Cloudinary MCP can't read sandbox `file://` paths). Manifest:
+  `monti_asiago_campaign/brand_kit_cloudinary_manifest.csv`.
+- **Asiago launch campaign collateral** in `monti_asiago_campaign/`: photo-forward sell sheet
+  (`Asiago_Sell_Sheet.html`), 3-touch relationship-first email sequence, social starter, brief.
+  Pricing-by-inquiry (no numbers). Email = `Sales@montitrentini-usa.com`.
+- **National Cheese Shop campaign:** 161 companies imported to HubSpot, "National Cheese Shop
+  Campaign" active list (id 17), Channel = Cheese shop / Boutique grocery.
+
+## DEPLOY / GIT LOCK NOTE (read before deploying)
+
+The Cowork sandbox **cannot manage `.git` locks** ("Operation not permitted" on the mounted repo),
+and running git from the sandbox can LEAVE a stale `.git/index.lock` that silently blocks all
+commits (the `.command` buttons' `git add` then fails → "nothing committed" → push says "Everything
+up-to-date"). FIX going forward: Claude does NOT run git in the sandbox; it hands Rick a paste-in-
+**Terminal** block that does `rm -f .git/index.lock .git/*.lock`, stages the named files, commits,
+and pushes. Rick's Mac has the permission the sandbox lacks. Verify a real commit hash +
+`phase-2-6-build -> phase-2-6-build` (not "up-to-date").
+
 ## 2026-06-13 (cont.) — Usage taxonomy covers all dispatch paths (12 tags)
 
 Rick: tags must map 1:1 to dispatch destinations so no asset has a home it can't reach. Final set

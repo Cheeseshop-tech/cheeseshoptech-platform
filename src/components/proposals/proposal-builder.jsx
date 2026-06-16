@@ -104,6 +104,10 @@ export function ProposalBuilder({ resolved }) {
           </p>
         </div>
         <div className="flex gap-2">
+          {/* PARKED(ai-embed): an "Auto-compose" button would sit here, calling a Netlify
+              ai-compose function that drafts this proposal from tags + story blocks.
+              Held off 2026-06-16 by Rick. Spec: docs/AI_TOOL_EMBED_SPEC.md. Build Slice 2
+              (deterministic composer) first; AI is the optional layer on top. */}
           <Button variant="ghost" size="sm" onClick={() => setP(saveDraft(resolved.id, emptyProposal()))}>
             <Trash2 className="h-4 w-4" /> Clear
           </Button>

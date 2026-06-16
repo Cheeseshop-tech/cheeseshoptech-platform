@@ -1,11 +1,54 @@
 # HANDOFF — CheeseShop TECH platform
 
-**Updated:** 2026-06-13 · **HEAD:** `phase-2-6-build` @ `BVQeXIcp`-deploy (12-tag usage taxonomy live; all media work committed + deployed) · **Surface:** Cowork (Fable 5)
+**Updated:** 2026-06-16 · **HEAD:** `phase-2-6-build` (Presentations catalog + Media delete deployed; **Create-a-Proposal + color-safe PDF + Media-Hub image picker = code complete, build clean, awaiting the Terminal push**) · **Surface:** Cowork
 **Read first:** `CLAUDE_CODE_BRIEF.md` → this → `docs/DEVELOPMENT_PLAN.md` → `docs/BUILD_LOG.md` (top) → `docs/BEST_PRACTICES.md`.
 
-## NEXT UP (teed up 2026-06-13)
-- **Bulk-tag tool** — spec `docs/BULK_TAG_TOOL_SPEC.md`. Media Hub multi-select + apply usage tags to many at once (ADD semantics), to backfill the 104 untagged existing assets fast. v1 = client loop over `media-update`; no backend change. START HERE next session.
-- **Then: client-admin Product admin** — graduate product copy authoring out of the buyer Catalog into a dedicated Product admin at client-admin access (`docs/DATA_OWNERSHIP_MAP.md`); Catalog becomes read-only view.
+## ⚠️ BEFORE ANYTHING — push the last session
+Code for "Create a Proposal" (rename + color-safe print PDF), the tag-driven Media Hub image picker,
+and this handoff/parked-AI tagging is written + build-verified but **not yet pushed** (the sandbox
+can't manage `.git` locks). Run this in **Terminal** (clears locks, stages, commits, pushes):
+
+```
+cd "/Users/richardposada/Cheese Shop TECH BUILD/Cheese Shop TECH  Agency Build" && \
+rm -f .git/index.lock .git/*.lock && \
+find .git/objects -name 'tmp_obj_*' -delete 2>/dev/null; \
+git add src/index.css src/App.jsx src/lib/proposals.js \
+  src/components/proposals/proposal-builder.jsx \
+  src/components/proposals/proposal-view.jsx \
+  src/components/media/media-picker.jsx \
+  docs/AI_TOOL_EMBED_SPEC.md docs/BUILD_LOG.md HANDOFF.md && \
+git commit -m "feat(proposals): Create a Proposal + color-safe PDF + Media Hub image picker; park AI embed; handoff" && \
+git push origin phase-2-6-build
+```
+Expect a real commit hash + `phase-2-6-build -> phase-2-6-build` (NOT "Everything up-to-date").
+See BUILD_LOG "DEPLOY / GIT LOCK NOTE" for why.
+
+## NEXT UP (2026-06-16)
+**Slice 2 — the slide-deck composer.** Assemble tagged Media Hub images + brand story blocks into an
+in-app slide deck: reuse `DeckViewer` (already has iPad touch-swipe + fullscreen for presenting),
+exportable to PDF (the print path now exists) and saveable to the **Presentations** catalog. This is
+the deterministic "PPTX-style / editorial presentation" Rick asked for — no AI needed. The
+`MediaPicker` (Slice 1, just built) is the image-selection front end it reuses.
+
+**Parked (Rick's call 2026-06-16):** the **AI tool embed** (in-website Auto-compose). Spec
+`docs/AI_TOOL_EMBED_SPEC.md`; code marker `PARKED(ai-embed)` in `proposal-builder.jsx`. Resume after
+Slice 2; needs Rick to set up pay-as-you-go Anthropic API billing + a spend cap. Until then the
+design-agent role = Claude in Cowork.
+
+**Smaller open items:** wire "cora" Adobe font (heading currently falls back to Fraunces); optional
+"Send to Presentations" button from the proposal preview; PPTX→PDF helper if any PowerPoint decks stay.
+
+## EARLIER NEXT-UP (teed up 2026-06-13, still valid)
+**The big picture = the House Console** (`docs/HOUSE_CONSOLE_SPEC.md`): one agency control plane to
+onboard clients, push data into their apps, monitor all, and flip between clients + tools with no
+re-login. DECIDED: ONE app (console = same components in house theme + a client selector, NOT a
+generic twin); SKU → **Item number**; item data IMPORTED from price-list spreadsheets; brand-first
+onboarding. Build order (each independently shippable):
+1. **Console shell** — client selector + unified tool side-nav (flip clients/tools, no re-login). Mostly wiring existing pieces (tenant switcher + Brand Mgmt per-client dropdown generalized). START HERE.
+2. **Items importer** — spreadsheet → tenant item data (Item numbers).
+3. **Bulk image upload + tagging** — folds in `docs/BULK_TAG_TOOL_SPEC.md` (multi-select, ADD-semantics, client loop over `media-update`) to backfill the 104 untagged images.
+4. **Onboarding checklist** — ties 1–3 into a repeatable flow.
+5. Campaigns deepen with HubSpot later. Also pending: client-admin **Product admin** (Catalog → read-only view, per DATA_OWNERSHIP_MAP).
 
 ## Latest session — media platform (2026-06-13, Cowork)
 - **Asset platform COMPLETE end-to-end.** Cloudinary uploads live (unsigned preset `st_unsigned` in netlify.toml); Media Hub off mock onto the LIVE Cloudinary backend (`media-list` GET function, server-side secrets in Netlify: CLOUDINARY_CLOUD_NAME=sofcvmwa/API_KEY/API_SECRET + VITE_MEDIA_BACKEND=cloudinary). Upload Asset-details dialog (name + usage); Recent tab (localStorage); tabs mirror usage tags rendered as a LEFT NAV RAIL with counts; asset EDITING via `media-update` POST function (rename/re-tag/SKU link/alt/approval). **12-tag usage taxonomy** (lives in 3 files: media.js USAGE + both functions' USAGE_IDS — keep identical): Product Catalog, Hero, Story block, Lifestyle, Food styling, Social, Press/PR, Event, Brand asset, Email/Campaign, Print/Sell-sheet, Web/Marketing. Ownership model: `docs/DATA_OWNERSHIP_MAP.md` (Product=client-admin, Brand=house-only, Asset=Media Hub; join key = SKU). 104 existing images still untagged → bulk-tag tool (above) is the fix.
