@@ -249,7 +249,7 @@ export function ProposalView({ resolved, proposal: given }) {
       <div className={`mt-14 rounded-xl px-8 py-10 text-center ${leadIsLight ? "border border-border" : ""}`} style={{ background: leadIsLight ? tc.cream : tc.lead, color: leadIsLight ? tc.onCanvas : "#fff" }}>
         {kit?.voice?.motto && <p className={`${sp.heading} text-2xl`}>{kit.voice.motto}</p>}
         {kit?.voice?.heritage && <p className="mt-2" style={{ color: leadIsLight ? tc.ink : "rgba(255,255,255,0.85)" }}>{kit.voice.heritage}</p>}
-        <p className={`${sp.eyebrow} mt-4`} style={{ color: leadIsLight ? tc.onCanvas : "rgba(255,255,255,0.7)" }}>{resolved.brand.name} · Prepared with CheeseShop TECH</p>
+        <p className={`${sp.eyebrow} mt-4`} style={{ color: leadIsLight ? tc.onCanvas : "rgba(255,255,255,0.7)" }}>{kit?.attribution || `${resolved.brand.name} · Prepared with CheeseShop TECH`}</p>
       </div>
     </div>
   );

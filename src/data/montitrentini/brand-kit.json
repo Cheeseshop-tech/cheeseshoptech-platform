@@ -2,6 +2,7 @@
   "schemaVersion": "1.0",
   "tenant": "montitrentini",
   "brandName": "Monti Trentini",
+  "attribution": "Imported by Monti Trentini USA",
   "managedBy": "CheeseShop TECH",
   "updatedAt": "2026-06-13",
   "source": "Parsed from Brand_Guide_2026-05-24 (colors/fonts JSON, Voice_and_Messaging.md) + Monti_Trentini_Brand_Voice.docx",
