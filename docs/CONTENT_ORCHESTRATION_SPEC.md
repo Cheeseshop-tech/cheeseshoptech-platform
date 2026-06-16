@@ -46,9 +46,14 @@ Add **one content-type tag dimension** to the Media Hub taxonomy. The Library's 
 - No role except CST writes files to Cloudinary. (Extends the existing `canDeleteMedia` = admin/client-admin
   gating pattern.)
 
-## 7. Submission workflow (states)
-`Submitted` → `In review` → `Posted` (or `Returned` with a note). Each piece carries its status; nothing
-appears in the public Library until *Posted*. v1 reviewer = house/CST only (Rick).
+## 7. Submission workflow (states) — OFF by default
+**Decision (2026-06-16): the CST review gate is OFF by default.** Junk/sprawl is already prevented by the
+**10-item quota** (§9) and the light link/thumbnail storage, and brand consistency is enforced at the
+**inputs** (brand kit, themes, CST-controlled Media Hub) — so gating a client's own finished proposals on
+top is redundant. Clients self-save directly to *Posted*.
+The approval machinery is **retained but dormant**, gated behind a per-client `reviewRequired` flag: when a
+client opts in, saves become `Submitted` → (`In review`) → `Posted` / `Returned`, and the house Approve/Return
+UI activates. Default (Monti and most): flag off, everything posts directly.
 
 ## 8. Dispatch choices (per piece, chosen at submission)
 - **Store in Library** — catalogued, shareable, counts against the client's quota.
@@ -69,9 +74,9 @@ delete/download. Keeps storage and cost predictable. (Number is a per-tenant con
 - **Categories** → tabbed views over the content-type tag (§5).
 
 ## 11. Caveats to plan for
-- **Raw/finished types:** PDFs/PPTX are Cloudinary `raw`/image resource types; `media-list` currently focuses
-  on images under the tenant prefix — surfacing finished files needs a small backend tweak.
-- **PPTX** won't inline-preview (PDF does). PDF delivery is enabled on the account.
+- **PPTX is OUT of the app (decided 2026-06-16).** PowerPoint is handled entirely outside the platform —
+  export to **PDF** first. This removes the only Cloudinary `raw` finished type, so finished files are now
+  PDFs + images (both `image` resource type, already listed by `media-list` with no backend change needed).
 - **Single source of truth:** Library entries reference Media Hub assets by `public_id`; never duplicate.
 
 ## 12. Build slices (each independently shippable)
@@ -79,12 +84,15 @@ delete/download. Keeps storage and cost predictable. (Number is a per-tenant con
 2. **Submission queue + CST review/dedup** — submit from Studio; house review surface; Posted/Returned states.
 3. **Download-to-device** — attachment-flag delivery; the "download only" dispatch option.
 4. **Storage quota** — per-tenant cap (default 10), full-state prompt (delete/download).
-5. **Finished-file backend** — extend `media-list`/upload to handle raw/finished types + CST-gated writes.
+5. **CST-gated Cloudinary writes** (optional, deferred) — replace the unsigned browser upload with a
+   server-gated, role-checked upload. The "raw/finished types" work is **no longer needed** now that PPTX is
+   out (PDFs + images already list via the existing function). This slice is its own careful pass — it
+   touches the live upload path — not a quick add.
 Already shipped (foundation): MediaPicker, the images-only deck composer (Content Studio → link-based deck →
 Content Library), Load/Share/Remove, brand-kit attribution.
 
 ## 13. Locked decisions (2026-06-16)
-- Submission states: Submitted → In review → Posted / Returned.
-- Reviewer: CheeseShop TECH (house) only for now.
+- **Review gate OFF by default** (quota + CST-controlled inputs already prevent junk); retained behind a
+  per-client `reviewRequired` flag for any client who wants an approval step. Reviewer when on = house/CST.
 - Quota: default **10** stored pieces per client.
 - Composing lives in **Content Studio**; the Library **holds**; Cloudinary writes = **CST only**.

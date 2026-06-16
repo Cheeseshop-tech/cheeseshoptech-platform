@@ -19,6 +19,26 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-16 — Review gate OFF by default (per-client opt-in)
+
+Rick's call: the CST review gate isn't needed. Junk/sprawl is already controlled by the **10-item quota** +
+light link/thumbnail storage, and brand consistency is enforced at the **inputs** (brand kit / themes /
+CST-controlled Media Hub) — so reviewing a client's own finished proposals is redundant. Implementation:
+saves now post **directly** unless a per-client **`resolved.reviewRequired`** flag is set (default off →
+Monti self-saves). The approval machinery (STATUS, Approve/Return UI, dedup flag) is **kept but dormant** —
+activates only when a client opts in, so the template keeps the capability for future clients. Two onSave
+sites changed (DeckComposer in Content Studio + LoadDialog in Content Library). Spec §7/§13 updated. Build clean.
+
+## 2026-06-16 — PPTX cut from the app (de-risks Slice 5)
+
+Rick's call: PowerPoint is handled entirely outside the platform — export to PDF first. Removed PPTX from
+the LoadDialog upload path (`accept` now `.pdf,image/*`; kind detection drops the pptx branch; copy updated
+to "export to PDF"). Why it matters: PPTX was the only Cloudinary `raw` finished type, so this **eliminates
+the need to touch `media-list.js`** — finished files are now PDFs + images (both `image` resource type,
+already listed). Spec §11/§12 updated; the risky "finished-file backend" slice collapses to an optional,
+deferred CST-gated-writes pass. Net: less surface area, lower risk, build clean. (Legacy `pptx` badge label
+kept as a harmless display fallback.)
+
 ## 2026-06-16 — Content orchestration Slices 3 + 4: download-to-device + storage quota
 
 Spec §9/§10. **Download-to-device:** `downloadHref()` in `presentations-store.js` adds Cloudinary

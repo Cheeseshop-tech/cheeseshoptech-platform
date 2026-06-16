@@ -213,9 +213,11 @@ export function PresentationsPage({ resolved }) {
         tenantFolder={resolved.cloudinaryFolder}
         onSave={(entry) => {
           if (saved.length >= quota) { toast({ title: `Content Library full (${quota}/${quota})`, description: "Delete or download an item to add more.", tone: "error" }); return; }
-          setSaved(addEntry(tenant, { ...entry, status: canReview ? "posted" : "submitted" }));
+          // Review gate OFF by default; per-client opt-in via resolved.reviewRequired.
+          const needsReview = resolved.reviewRequired && !canReview;
+          setSaved(addEntry(tenant, { ...entry, status: needsReview ? "submitted" : "posted" }));
           setLoadOpen(false);
-          toast({ title: canReview ? "Added to the library" : "Submitted for review", tone: "success" });
+          toast({ title: needsReview ? "Submitted for review" : "Added to the library", tone: "success" });
         }}
       />
     </div>
@@ -223,7 +225,8 @@ export function PresentationsPage({ resolved }) {
 }
 
 // Dialog to load a finished proposal into the catalog. Three ways in: paste a URL, browse files,
-// or drag & drop. Files (PDF / PPTX / image) upload to Cloudinary and become the proposal link.
+// or drag & drop. Files (PDF / image) upload to Cloudinary and become the proposal link.
+// (PowerPoint is intentionally NOT supported in-app — export to PDF first; PPTX is handled outside.)
 function LoadDialog({ open, onClose, onSave, tenantFolder }) {
   const empty = { title: "", eyebrow: "", description: "", url: "", cover: "", kind: "link", category: "presentation" };
   const [form, setForm] = useState(empty);
@@ -243,10 +246,8 @@ function LoadDialog({ open, onClose, onSave, tenantFolder }) {
       const up = await uploadFileAuto({ file, tenantFolder });
       const fmt = up.format;
       const kind = fmt === "pdf" ? "pdf"
-        : (["pptx", "ppt"].includes(fmt) ? "pptx"
-        : (up.resourceType === "image" ? "image" : "link"));
+        : (up.resourceType === "image" ? "image" : "link");
       // Auto cover: a PDF gets its FIRST PAGE rendered to a thumbnail; a plain image is its own cover.
-      // PPTX can't be rendered server-side, so it keeps whatever cover the user provides (if any).
       const autoCover = fmt === "pdf"
         ? pdfThumbUrl(up.publicId)
         : (up.resourceType === "image" && fmt !== "pdf" ? up.secureUrl : "");
@@ -269,7 +270,7 @@ function LoadDialog({ open, onClose, onSave, tenantFolder }) {
       <DialogContent className="max-w-lg max-h-[88vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Load a presentation</DialogTitle>
-          <DialogDescription>Catalog a finished proposal so you can browse and share it. Paste a link, or upload a file (PDF, PowerPoint, or image).</DialogDescription>
+          <DialogDescription>Catalog a finished proposal so you can browse and share it. Paste a link, or upload a PDF or image.</DialogDescription>
         </DialogHeader>
         <div className="mt-2 space-y-3">
           <L label="Title *"><I value={form.title} onChange={set("title")} placeholder="e.g. Monti Trentini — Asiago Program" /></L>
@@ -287,7 +288,7 @@ function LoadDialog({ open, onClose, onSave, tenantFolder }) {
             className={"flex flex-col items-center gap-2 rounded-base border-2 border-dashed p-5 text-center text-sm " + (dragOver ? "border-brand bg-surface" : "border-border")}
           >
             <input ref={fileRef} type="file" hidden onChange={(e) => handleFile(e.target.files?.[0])}
-              accept=".pdf,.ppt,.pptx,image/*,application/pdf,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/vnd.ms-powerpoint" />
+              accept=".pdf,image/*,application/pdf" />
             {uploading ? (
               <span className="flex items-center gap-2 text-fg-muted"><Upload className="h-4 w-4 animate-pulse" /> Uploading…</span>
             ) : fileName ? (
@@ -295,7 +296,7 @@ function LoadDialog({ open, onClose, onSave, tenantFolder }) {
             ) : (
               <>
                 <Upload className="h-6 w-6 text-fg-muted" />
-                <span className="text-fg-muted">Drag &amp; drop a PDF, PPTX, or image — or <button type="button" className="font-medium text-brand underline" onClick={() => fileRef.current?.click()}>browse files</button></span>
+                <span className="text-fg-muted">Drag &amp; drop a PDF or image — or <button type="button" className="font-medium text-brand underline" onClick={() => fileRef.current?.click()}>browse files</button></span>
               </>
             )}
           </div>
@@ -310,7 +311,7 @@ function LoadDialog({ open, onClose, onSave, tenantFolder }) {
             <L label="Cover image"><I value={form.cover} onChange={set("cover")} placeholder="Auto for PDF / image — or paste one" /></L>
           </div>
           <L label="Description"><I value={form.description} onChange={set("description")} placeholder="One line for the card" /></L>
-          <p className="text-xs text-fg-muted">Upload a <b>PDF</b> and its first page becomes the cover automatically. PDFs &amp; images preview/open from the link. <b>PPTX</b> is stored and shareable, but recipients download it to open (no in-portal preview), so add a cover image for it manually.</p>
+          <p className="text-xs text-fg-muted">Upload a <b>PDF</b> and its first page becomes the cover automatically; PDFs &amp; images preview and open from the link. (PowerPoint? Export it to a PDF first — PPTX is handled outside the app.)</p>
         </div>
         <DialogFooter>
           <DialogClose asChild><Button variant="ghost" disabled={uploading}>Cancel</Button></DialogClose>

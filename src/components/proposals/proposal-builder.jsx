@@ -322,9 +322,12 @@ export function ProposalBuilder({ resolved }) {
             toast({ title: "Content Library full", description: "Delete or download an item in the Library to add more.", tone: "error" });
             return;
           }
-          addEntry(resolved.id, { ...entry, status: isHouse ? "posted" : "submitted" });
+          // Review gate is OFF by default (quota + CST-controlled inputs already prevent junk). A client
+          // can opt into approval via resolved.reviewRequired; otherwise everything posts directly.
+          const needsReview = resolved.reviewRequired && !isHouse;
+          addEntry(resolved.id, { ...entry, status: needsReview ? "submitted" : "posted" });
           setComposeOpen(false);
-          toast({ title: isHouse ? "Deck saved to Content Library" : "Deck submitted for review", tone: "success" });
+          toast({ title: needsReview ? "Deck submitted for review" : "Deck saved to Content Library", tone: "success" });
         }}
       />
     </div>
