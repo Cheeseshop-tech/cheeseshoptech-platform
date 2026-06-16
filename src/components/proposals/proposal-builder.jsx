@@ -14,6 +14,7 @@ import {
 import { codeImageUrl } from "@/lib/images.js";
 import { getBrandKit, AUDIENCES, storyBlocksFor } from "@/lib/brandKit.js";
 import { THEMES, getTheme } from "@/lib/themes.js";
+import { MediaPicker } from "@/components/media/media-picker.jsx";
 import { ProposalView } from "./proposal-view.jsx";
 
 // Proposal builder (F4, Manage tier) — assemble a branded buyer proposal from canonical
@@ -40,7 +41,7 @@ export function ProposalBuilder({ resolved }) {
   if (!pricing) {
     return (
       <div>
-        <h1 className="mb-1 font-heading text-3xl text-fg">Proposals</h1>
+        <h1 className="mb-1 font-heading text-3xl text-fg">Create a Proposal</h1>
         <EmptyState
           icon={FileX}
           title="No canonical data for this tenant"
@@ -58,6 +59,9 @@ export function ProposalBuilder({ resolved }) {
   const suggestedStories = storyBlocksFor(resolved, p.audience);
   function toggleStory(key) {
     update("storyKeys", p.storyKeys?.includes(key) ? p.storyKeys.filter((k) => k !== key) : [...(p.storyKeys || []), key]);
+  }
+  function setStoryImage(key, publicId) {
+    update("storyImages", { ...(p.storyImages || {}), [key]: publicId });
   }
 
   function update(field, value) {
@@ -94,7 +98,7 @@ export function ProposalBuilder({ resolved }) {
     <div>
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="font-heading text-3xl text-fg">Proposals</h1>
+          <h1 className="font-heading text-3xl text-fg">Create a Proposal</h1>
           <p className="mt-1 text-fg-muted">
             Build a branded proposal from the live catalog — story deck, selections, and class-of-trade pricing.
           </p>
@@ -156,6 +160,11 @@ export function ProposalBuilder({ resolved }) {
               </select>
               <p className="text-xs text-fg-muted">{getTheme(p.themeId).register}. {getTheme(p.themeId).description}</p>
             </div>
+            <div className="grid gap-1.5">
+              <Label>Cover image <span className="text-xs text-fg-muted">(from Media Hub)</span></Label>
+              <MediaPicker resolved={resolved} value={p.heroImageId} defaultTag="hero" label="Choose a cover image" onChange={(id) => update("heroImageId", id)} />
+              <p className="text-xs text-fg-muted">Overrides the brand-kit hero. Filter by tag (Hero, Lifestyle, Brand asset…); hover a thumbnail to preview.</p>
+            </div>
             {kit?.storyBlocks?.length > 0 && (
               <div className="grid gap-1.5">
                 <Label>Brand story blocks <span className="text-xs text-fg-muted">({p.storyKeys?.length || 0} selected)</span></Label>
@@ -163,10 +172,17 @@ export function ProposalBuilder({ resolved }) {
                   {suggestedStories.map((b) => {
                     const on = p.storyKeys?.includes(b.key);
                     return (
-                      <label key={b.key} className={"flex cursor-pointer items-start gap-2 rounded-base border p-2 text-sm transition-colors " + (on ? "border-brand-primary bg-bg" : "border-transparent hover:bg-bg")}>
-                        <input type="checkbox" checked={on} onChange={() => toggleStory(b.key)} className="mt-0.5 h-4 w-4 accent-[var(--cs-color-brand-primary)]" />
-                        <span><span className="font-medium text-fg">{b.title}</span><span className="ml-1 text-fg-muted">— {(b.audience || []).join(", ")}</span></span>
-                      </label>
+                      <div key={b.key} className={"rounded-base border p-2 transition-colors " + (on ? "border-brand-primary bg-bg" : "border-transparent hover:bg-bg")}>
+                        <label className="flex cursor-pointer items-start gap-2 text-sm">
+                          <input type="checkbox" checked={on} onChange={() => toggleStory(b.key)} className="mt-0.5 h-4 w-4 accent-[var(--cs-color-brand-primary)]" />
+                          <span><span className="font-medium text-fg">{b.title}</span><span className="ml-1 text-fg-muted">— {(b.audience || []).join(", ")}</span></span>
+                        </label>
+                        {on && (
+                          <div className="mt-2 pl-6">
+                            <MediaPicker resolved={resolved} value={p.storyImages?.[b.key]} defaultTag="story-block" label="Image for this block" onChange={(id) => setStoryImage(b.key, id)} />
+                          </div>
+                        )}
+                      </div>
                     );
                   })}
                 </div>

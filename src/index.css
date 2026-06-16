@@ -76,3 +76,44 @@
   .cs-num     { font-family: var(--cs-font-mono); font-variant-numeric: tabular-nums; }
   .cs-eyebrow { font-size: 0.625rem; text-transform: uppercase; letter-spacing: 0.09em; font-weight: 700; }
 }
+
+/*
+  PRINT → PDF (Create a Proposal "Export PDF").
+  A proposal is the only thing that should land on the page when the user prints/saves as PDF.
+  Strategy: hide everything via visibility, re-show only the .proposal-print subtree, then lift it
+  to the page origin (visibility:hidden still occupies layout space, so the app shell would
+  otherwise push the proposal down). Backgrounds MUST print — the cover/closing blocks and theme
+  zones are colored — so force color-adjust. Keep product rows, cards, and story blocks from
+  splitting across pages.
+*/
+@media print {
+  /* Let themed background colors/gradients actually render in the PDF. */
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+
+  /* Tighter, predictable page margins. */
+  @page { margin: 14mm; }
+
+  html, body { background: #fff !important; }
+
+  /* Hide the whole app, then reveal just the proposal. */
+  body * { visibility: hidden !important; }
+  .proposal-print, .proposal-print * { visibility: visible !important; }
+
+  /* Lift the proposal to the top-left and let it use the full printable width. */
+  .proposal-print {
+    position: absolute !important;
+    top: 0; left: 0; right: 0;
+    margin: 0 !important;
+    max-width: none !important;
+    width: 100% !important;
+  }
+
+  /* Don't slice product rows, cards, story blocks, or the closing block across page breaks. */
+  .proposal-print .grid > *,
+  .proposal-print [class*="rounded-base"],
+  .proposal-print [class*="rounded-xl"],
+  .proposal-print img { break-inside: avoid; page-break-inside: avoid; }
+
+  /* Headings shouldn't be orphaned at the foot of a page. */
+  .proposal-print h1, .proposal-print h2, .proposal-print h3 { break-after: avoid; page-break-after: avoid; }
+}

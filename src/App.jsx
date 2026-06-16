@@ -86,7 +86,7 @@ export default function App({ initialResolved }) {
     : [];
   // Proposals builder is a Manage feature (F4, ADMIN_DASHBOARDS_SPEC §5) — both tiers:
   // house admins pitch prospects, client admins pitch their buyers.
-  const proposalsNav = [{ key: "proposals", label: "Proposals", icon: FileText, allowed: ["admin", "client-admin"] }];
+  const proposalsNav = [{ key: "proposals", label: "Create a Proposal", icon: FileText, allowed: ["admin", "client-admin"] }];
   // Brand management is a house-admin (CST) surface — the brand-kit orchestration the agency owns.
   const brandNav = resolved.isHouse ? [{ key: "brand", label: "Brand kits", icon: Palette, allowed: ["admin"] }] : [];
   const baseNav = [NAV[0], ...featuredNav, ...presentationsNav, ...proposalsNav, ...brandNav, ...NAV.slice(1)];

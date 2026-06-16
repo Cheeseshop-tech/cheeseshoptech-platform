@@ -19,6 +19,8 @@ export const emptyProposal = () => ({
   intro: "",
   deckKey: "",
   storyKeys: [],      // selected brand-kit story blocks (Proposal v2)
+  heroImageId: "",    // Media Hub public_id for the cover/hero zone (overrides brand-kit hero)
+  storyImages: {},    // { [storyKey]: Media Hub public_id } — per-story zone image overrides
   themeId: "",        // selected design theme (Theme Engine)
   tierId: "",
   skus: [],

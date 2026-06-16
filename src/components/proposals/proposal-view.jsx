@@ -46,7 +46,9 @@ export function ProposalView({ resolved, proposal: given }) {
 
   const stories = (kit?.storyBlocks || []).filter((b) => (proposal.storyKeys || []).includes(b.key));
   const logoId = kit?.identity?.logo?.primary;
-  const heroId = kit?.imagery?.hero;
+  // Media Hub picks override brand-kit defaults: the proposal can set its own cover (heroImageId)
+  // and per-story images (storyImages[key]); fall back to the kit when unset.
+  const heroId = proposal.heroImageId || kit?.imagery?.hero;
   const lifestyle = kit?.imagery?.lifestyle || [];
   // A fixed image-placement zone: a composed brand color block is ALWAYS the backdrop (so the
   // composition/spacing holds even before assets exist or if an image 404s), with the Cloudinary
@@ -60,9 +62,12 @@ export function ProposalView({ resolved, proposal: given }) {
 
   return (
     <div className={`proposal-print mx-auto ${sp.measure}`} style={{ "--lead": tc.onCanvas, "--ink": tc.ink }}>
-      <div className="mb-4 flex items-center justify-between print:hidden">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2 print:hidden">
         <Badge variant="muted">{theme.name}</Badge>
-        <Button variant="outline" size="sm" onClick={() => window.print()}><Printer className="h-4 w-4" /> Print / save PDF</Button>
+        <div className="flex items-center gap-3">
+          <span className="hidden text-xs text-fg-muted sm:inline">Save as PDF, then upload it in <b>Presentations</b> to share &amp; email.</span>
+          <Button variant="primary" size="sm" onClick={() => window.print()}><Printer className="h-4 w-4" /> Export PDF</Button>
+        </div>
       </div>
 
       {/* COVER — composition per theme. */}
@@ -111,7 +116,8 @@ export function ProposalView({ resolved, proposal: given }) {
       {stories.length > 0 && (
         <div className={`${sp.section} ${sp.storyGap}`}>
           {stories.map((b, i) => {
-            const imgId = [heroId, ...lifestyle].filter(Boolean)[i % Math.max(1, [heroId, ...lifestyle].filter(Boolean).length)];
+            const pool = [heroId, ...lifestyle].filter(Boolean);
+            const imgId = proposal.storyImages?.[b.key] || pool[i % Math.max(1, pool.length)];
             const flip = i % 2 === 1;
             return (
               <div key={b.key} className={"grid items-center gap-6 md:grid-cols-2 " + (flip ? "md:[&>*:first-child]:order-2" : "")}>
