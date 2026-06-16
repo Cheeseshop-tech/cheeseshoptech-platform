@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ChevronLeft, ChevronRight, Maximize, Minimize, ArrowLeft, MonitorPlay,
-  Plus, Share2, ExternalLink, Trash2, Upload, FileText, Images, ArrowUp, ArrowDown, X,
+  Plus, Share2, ExternalLink, Trash2, Upload, FileText, ArrowUp, ArrowDown, X,
 } from "lucide-react";
 import { Card } from "@/components/ui/card.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
@@ -40,7 +40,6 @@ export function PresentationsPage({ resolved }) {
 
   const [activeKey, setActiveKey] = useState(null);
   const [loadOpen, setLoadOpen] = useState(false);
-  const [composeOpen, setComposeOpen] = useState(false);
   const active = entries.find((d) => d.key === activeKey && d.kind === "deck");
 
   async function share(entry) {
@@ -76,14 +75,9 @@ export function PresentationsPage({ resolved }) {
           <p className="text-fg-muted">{resolved.brand.name}'s finished proposals &amp; decks — compose, catalog &amp; share.</p>
         </div>
         {canManage && (
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setComposeOpen(true)}>
-              <Images className="h-4 w-4" /> Compose deck
-            </Button>
-            <Button variant="primary" onClick={() => setLoadOpen(true)}>
-              <Plus className="h-4 w-4" /> Load presentation
-            </Button>
-          </div>
+          <Button variant="primary" onClick={() => setLoadOpen(true)}>
+            <Plus className="h-4 w-4" /> Load presentation
+          </Button>
         )}
       </div>
 
@@ -147,17 +141,6 @@ export function PresentationsPage({ resolved }) {
           setSaved(addEntry(tenant, entry));
           setLoadOpen(false);
           toast({ title: "Added to catalog", tone: "success" });
-        }}
-      />
-
-      <DeckComposer
-        open={composeOpen}
-        onClose={() => setComposeOpen(false)}
-        resolved={resolved}
-        onSave={(entry) => {
-          setSaved(addEntry(tenant, entry));
-          setComposeOpen(false);
-          toast({ title: "Deck saved to library", tone: "success" });
         }}
       />
     </div>
@@ -262,7 +245,7 @@ function LoadDialog({ open, onClose, onSave, tenantFolder }) {
 // MediaPicker, orders them into slides, and saves a LINK-BASED "deck" entry — slides are Cloudinary
 // delivery URLs (references, no upload), cover = first slide. Plays in the in-app DeckViewer (iPad
 // touch + fullscreen) and shares by link. This is the Content Studio → Content Library export.
-function DeckComposer({ open, onClose, onSave, resolved }) {
+export function DeckComposer({ open, onClose, onSave, resolved }) {
   const [title, setTitle] = useState("");
   const [eyebrow, setEyebrow] = useState("");
   const [slides, setSlides] = useState([]); // ordered array of Media Hub public_ids

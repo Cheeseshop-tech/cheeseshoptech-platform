@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { FileText, Link as LinkIcon, Eye, Trash2, FileX, Sparkles, Plus } from "lucide-react";
+import { FileText, Link as LinkIcon, Eye, Trash2, FileX, Sparkles, Plus, Images } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card.jsx";
 import { Button } from "@/components/ui/button.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
@@ -15,6 +15,8 @@ import { codeImageUrl } from "@/lib/images.js";
 import { getBrandKit, AUDIENCES, storyBlocksFor } from "@/lib/brandKit.js";
 import { THEMES, getTheme } from "@/lib/themes.js";
 import { MediaPicker } from "@/components/media/media-picker.jsx";
+import { DeckComposer } from "@/components/presentations/presentations-page.jsx";
+import { addEntry } from "@/lib/presentations-store.js";
 import { ProposalView } from "./proposal-view.jsx";
 
 // Proposal builder (F4, Manage tier) — assemble a branded buyer proposal from canonical
@@ -27,6 +29,7 @@ export function ProposalBuilder({ resolved }) {
   const { toast } = useToast();
   const [p, setP] = useState(() => loadDraft(resolved.id));
   const [preview, setPreview] = useState(false);
+  const [composeOpen, setComposeOpen] = useState(false);
 
   const allSkus = useMemo(() => (pricing ? flattenSkus(pricing.catalog) : []), [pricing]);
   const byCategory = useMemo(() => {
@@ -117,6 +120,9 @@ export function ProposalBuilder({ resolved }) {
               (deterministic composer) first; AI is the optional layer on top. */}
           <Button variant="ghost" size="sm" onClick={() => setP(saveDraft(resolved.id, emptyProposal()))}>
             <Trash2 className="h-4 w-4" /> Clear
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => setComposeOpen(true)}>
+            <Images className="h-4 w-4" /> Compose deck
           </Button>
           <Button variant="outline" size="sm" onClick={() => setPreview(true)}>
             <Eye className="h-4 w-4" /> Preview
@@ -302,6 +308,13 @@ export function ProposalBuilder({ resolved }) {
         )}
         </div>
       </div>
+
+      <DeckComposer
+        open={composeOpen}
+        onClose={() => setComposeOpen(false)}
+        resolved={resolved}
+        onSave={(entry) => { addEntry(resolved.id, entry); setComposeOpen(false); toast({ title: "Deck saved to Content Library", tone: "success" }); }}
+      />
     </div>
   );
 }

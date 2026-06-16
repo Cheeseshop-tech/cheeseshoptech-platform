@@ -32,12 +32,14 @@ to social/blog). Shipped together:
 - **Attribution from the brand kit:** `brand-kit.json` `attribution` field → proposal-view closing line
   shows **"Imported by Monti Trentini USA"** (was "Prepared with CheeseShop TECH"); other tenants fall
   back. Sell sheets updated to match (Posada & Co. + CheeseShop TECH removed from prospect-facing footer).
-- **Slice 2 — slide-deck composer (images-only), SHIPPED:** Content Library "Compose deck" button →
-  `DeckComposer` dialog. Pulls Media Hub images via the tag-filtered `MediaPicker` (hover-preview),
-  orders slides (up/down/remove), first slide = cover. Saves a **link-based "deck"** catalog entry —
-  slides are Cloudinary delivery URLs (references, **no upload**); plays in `DeckViewer` (iPad touch +
-  fullscreen), shares by link. Build clean. NEXT slices: story-block text slides; social-post + blog
-  export paths; optional "Compose deck" entry point inside Content Studio.
+- **Slice 2 — slide-deck composer (images-only), SHIPPED:** **"Compose deck" button lives in Content
+  Studio** (`proposal-builder.jsx`, next to Clear/Preview) — composing belongs where you *make* things.
+  `DeckComposer` (exported from `presentations-page.jsx`) pulls Media Hub images via the tag-filtered
+  `MediaPicker` (hover-preview), orders slides (up/down/remove), first slide = cover. Saves a
+  **link-based "deck"** entry into the **Content Library** catalog (`addEntry`) — slides are Cloudinary
+  delivery URLs (references, **no upload**); plays in `DeckViewer` (iPad touch + fullscreen), shares by
+  link. Confirms the model: **Media Hub → Content Studio composes → Content Library holds.** Build clean.
+  NEXT slices: story-block text slides; social-post + blog export paths.
 
 ## 2026-06-16 — AI tool embed PARKED (house-admin design agent)
 
