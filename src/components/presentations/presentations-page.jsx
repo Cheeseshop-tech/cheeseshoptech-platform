@@ -13,7 +13,7 @@ import {
 import { useToast } from "@/components/ui/toast.jsx";
 import { useAuth } from "@/lib/auth-context.jsx";
 import { rolesOf } from "@/lib/auth.js";
-import { cldUrl, uploadFileAuto } from "@/lib/cloudinary.js";
+import { cldUrl, uploadFileAuto, pdfThumbUrl } from "@/lib/cloudinary.js";
 import { loadCatalog, addEntry, removeEntry, coverUrl } from "@/lib/presentations-store.js";
 
 // Presentations = a CATALOG of finished proposals (built in the Proposals tool) to organize and SHARE.
@@ -169,11 +169,16 @@ function LoadDialog({ open, onClose, onSave, tenantFolder }) {
       const kind = fmt === "pdf" ? "pdf"
         : (["pptx", "ppt"].includes(fmt) ? "pptx"
         : (up.resourceType === "image" ? "image" : "link"));
+      // Auto cover: a PDF gets its FIRST PAGE rendered to a thumbnail; a plain image is its own cover.
+      // PPTX can't be rendered server-side, so it keeps whatever cover the user provides (if any).
+      const autoCover = fmt === "pdf"
+        ? pdfThumbUrl(up.publicId)
+        : (up.resourceType === "image" && fmt !== "pdf" ? up.secureUrl : "");
       setForm((f) => ({
         ...f,
         url: up.secureUrl,
         kind,
-        cover: up.resourceType === "image" && fmt !== "pdf" ? up.secureUrl : f.cover,
+        cover: autoCover || f.cover,
         title: f.title || file.name.replace(/\.[^.]+$/, ""),
       }));
       setFileName(file.name);
@@ -221,10 +226,10 @@ function LoadDialog({ open, onClose, onSave, tenantFolder }) {
           </L>
           <div className="grid grid-cols-2 gap-3">
             <L label="Eyebrow"><I value={form.eyebrow} onChange={set("eyebrow")} placeholder="Proposal · 2026" /></L>
-            <L label="Cover image"><I value={form.cover} onChange={set("cover")} placeholder="Image URL or Cloudinary id" /></L>
+            <L label="Cover image"><I value={form.cover} onChange={set("cover")} placeholder="Auto for PDF / image — or paste one" /></L>
           </div>
           <L label="Description"><I value={form.description} onChange={set("description")} placeholder="One line for the card" /></L>
-          <p className="text-xs text-fg-muted">PDF &amp; images preview/open from the link. <b>PPTX</b> is stored and shareable, but recipients download it to open (no in-portal slide preview).</p>
+          <p className="text-xs text-fg-muted">Upload a <b>PDF</b> and its first page becomes the cover automatically. PDFs &amp; images preview/open from the link. <b>PPTX</b> is stored and shareable, but recipients download it to open (no in-portal preview), so add a cover image for it manually.</p>
         </div>
         <DialogFooter>
           <DialogClose asChild><Button variant="ghost" disabled={uploading}>Cancel</Button></DialogClose>

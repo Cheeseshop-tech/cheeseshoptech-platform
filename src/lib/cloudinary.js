@@ -46,6 +46,24 @@ export function cldUrl(publicId, preset = "card", cloud = CLOUD_NAME) {
   return cldImage({ publicId, preset, cloud });
 }
 
+/**
+ * First-page (or any page) thumbnail of an uploaded PDF, delivered as a JPG. Cloudinary stores
+ * PDFs as the `image` resource_type, so a delivery URL with the `pg_<n>` page-extraction transform
+ * renders that page to a raster — perfect for an auto cover in the Presentations catalog.
+ * NOTE: like all PDF delivery, this is gated by the account's "Allow delivery of PDF and ZIP files"
+ * security setting; with it off, the thumbnail 401s until enabled.
+ *
+ * @param {string} publicId  The uploaded PDF's public_id (resource_type image).
+ * @param {object} [o]
+ * @param {number} [o.page=1]  1-based page number.
+ * @param {number} [o.width=900]  Target width (aspect preserved via c_limit).
+ */
+export function pdfThumbUrl(publicId, { page = 1, width = 900, cloud = CLOUD_NAME } = {}) {
+  if (!publicId) return "";
+  const t = `pg_${page},c_limit,w_${width},f_jpg,q_auto:good`;
+  return `https://res.cloudinary.com/${cloud}/image/upload/${t}/${publicId}.jpg`;
+}
+
 /** The canonical folder for a client (mirrors config cloudinaryFolder). */
 export function clientFolder(resolved) {
   return resolved?.cloudinaryFolder || `clients/${resolved?.id || "house"}`;
