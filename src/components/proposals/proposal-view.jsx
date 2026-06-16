@@ -65,7 +65,7 @@ export function ProposalView({ resolved, proposal: given }) {
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2 print:hidden">
         <Badge variant="muted">{theme.name}</Badge>
         <div className="flex items-center gap-3">
-          <span className="hidden text-xs text-fg-muted sm:inline">Save as PDF, then upload it in <b>Presentations</b> to share &amp; email.</span>
+          <span className="hidden text-xs text-fg-muted sm:inline">Save as PDF, then upload it in <b>Content Library</b> to share &amp; email.</span>
           <Button variant="primary" size="sm" onClick={() => window.print()}><Printer className="h-4 w-4" /> Export PDF</Button>
         </div>
       </div>

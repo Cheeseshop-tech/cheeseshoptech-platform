@@ -70,7 +70,7 @@ export function PresentationsPage({ resolved }) {
     <div>
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="mb-1 font-heading text-3xl text-fg">Presentations</h1>
+          <h1 className="mb-1 font-heading text-3xl text-fg">Content Library</h1>
           <p className="text-fg-muted">{resolved.brand.name}'s finished proposals — catalog &amp; share.</p>
         </div>
         {canManage && (
@@ -85,7 +85,7 @@ export function PresentationsPage({ resolved }) {
           icon={MonitorPlay}
           title="No presentations catalogued yet"
           description={canManage
-            ? "Build a proposal in the Proposals tool, then Load it here to catalog and share it."
+            ? "Build a proposal in Content Studio, then Load it here to catalog and share it."
             : "Finished proposals will appear here."}
         />
       ) : (

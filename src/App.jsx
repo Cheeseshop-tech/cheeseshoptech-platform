@@ -82,11 +82,11 @@ export default function App({ initialResolved }) {
   }));
   // Presentations tab appears only for tenants with a configured deck (config-driven nav).
   const presentationsNav = resolved.presentations?.length
-    ? [{ key: "presentations", label: "Presentations", icon: MonitorPlay, allowed: ["admin", "client"] }]
+    ? [{ key: "presentations", label: "Content Library", icon: MonitorPlay, allowed: ["admin", "client"] }]
     : [];
   // Proposals builder is a Manage feature (F4, ADMIN_DASHBOARDS_SPEC §5) — both tiers:
   // house admins pitch prospects, client admins pitch their buyers.
-  const proposalsNav = [{ key: "proposals", label: "Create a Proposal", icon: FileText, allowed: ["admin", "client-admin"] }];
+  const proposalsNav = [{ key: "proposals", label: "Content Studio", icon: FileText, allowed: ["admin", "client-admin"] }];
   // Brand management is a house-admin (CST) surface — the brand-kit orchestration the agency owns.
   const brandNav = resolved.isHouse ? [{ key: "brand", label: "Brand kits", icon: Palette, allowed: ["admin"] }] : [];
   const baseNav = [NAV[0], ...featuredNav, ...presentationsNav, ...proposalsNav, ...brandNav, ...NAV.slice(1)];
