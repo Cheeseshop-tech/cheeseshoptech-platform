@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { Upload, Copy, Image as ImageIcon, Lock, Pencil } from "lucide-react";
+import { Upload, Copy, Image as ImageIcon, Lock, Pencil, Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card.jsx";
 import { Button } from "@/components/ui/button.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
@@ -11,7 +11,7 @@ import {
 import { useToast } from "@/components/ui/toast.jsx";
 import { useAuth } from "@/lib/auth-context.jsx";
 import { cldUrl, uploadAsset, UPLOAD_PRESET } from "@/lib/cloudinary.js";
-import { listAssets, updateAsset, APPROVAL, USAGE, usageLabel, canUpload, canManageMedia } from "@/lib/media.js";
+import { listAssets, updateAsset, deleteAsset, APPROVAL, USAGE, usageLabel, canUpload, canManageMedia, canDeleteMedia } from "@/lib/media.js";
 
 export function MediaHub({ resolved }) {
   const { user } = useAuth();
@@ -220,6 +220,26 @@ export function MediaHub({ resolved }) {
             return false;
           }
         }}
+        canDelete={canDeleteMedia(user)}
+        onDelete={async () => {
+          const id = active.publicId;
+          try {
+            await deleteAsset({ publicId: id });
+            const drop = (list) => (list || []).filter((x) => x.publicId !== id);
+            setAssets(drop);
+            setRecent((prev) => {
+              const next = drop(prev);
+              try { localStorage.setItem(RECENT_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+              return next;
+            });
+            setActive(null);
+            toast({ title: "Asset deleted", tone: "success" });
+            return true;
+          } catch (err) {
+            toast({ title: "Delete failed", description: String(err?.message || err), tone: "error" });
+            return false;
+          }
+        }}
       />
     </div>
   );
@@ -342,11 +362,18 @@ function UploadDetailsDialog({ files, uploading, onCancel, onConfirm }) {
 // Asset detail + EDIT. View mode shows the asset; managers can flip to Edit to rename, re-tag
 // usage, link a SKU, add alt text, and set approval — all persisted via media-update (the asset is
 // the Media Hub's to own; product copy is NOT here, it lives with the SKU).
-function AssetDialog({ asset, onClose, canManage, onCopy, onSave }) {
+function AssetDialog({ asset, onClose, canManage, canDelete, onCopy, onSave, onDelete }) {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   useEffect(() => { setEditing(false); setForm(null); }, [asset?.publicId]);
+  const remove = async () => {
+    if (!window.confirm(`Permanently delete "${asset.title}"?\n\nThis removes it from Cloudinary and cannot be undone.`)) return;
+    setDeleting(true);
+    await onDelete();
+    setDeleting(false);
+  };
   if (!asset) return null;
   const heroUrl = cldUrl(asset.publicId, "hero");
   const deliveryUrl = cldUrl(asset.publicId, "original");
@@ -397,8 +424,14 @@ function AssetDialog({ asset, onClose, canManage, onCopy, onSave }) {
             )}
             {asset.alt && <p className="mt-2 text-sm text-fg-muted">{asset.alt}</p>}
             {canManage ? (
-              <div className="mt-4 border-t border-border pt-4">
+              <div className="mt-4 flex items-center justify-between gap-3 border-t border-border pt-4">
                 <Button size="sm" variant="outline" onClick={startEdit}><Pencil className="h-4 w-4" /> Edit asset</Button>
+                {canDelete && (
+                  <Button size="sm" variant="outline" onClick={remove} disabled={deleting}
+                    className="border-red-300 text-red-600 hover:bg-red-50 hover:text-red-700">
+                    <Trash2 className="h-4 w-4" /> {deleting ? "Deleting…" : "Delete"}
+                  </Button>
+                )}
               </div>
             ) : (
               <p className="mt-4 flex items-center gap-1.5 border-t border-border pt-4 text-xs text-fg-muted">

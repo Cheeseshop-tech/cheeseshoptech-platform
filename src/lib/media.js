@@ -61,6 +61,14 @@ export function canUpload(user) {
   return roles.includes("admin") || roles.includes("client") || roles.includes("creator");
 }
 
+// Permanent deletion is destructive and irreversible — gated to the management/admin tier
+// (owner, admin, client-admin). "owner" is injected as "admin" upstream, so this covers it.
+// Plain client / creator / pr / influencer cannot delete.
+export function canDeleteMedia(user) {
+  const roles = rolesOf(user);
+  return roles.includes("admin") || roles.includes("client-admin");
+}
+
 // ---- MOCK backend ---------------------------------------------------------
 // public_ids point at Cloudinary's public "demo" cloud food samples so the gallery
 // renders real images in dev. Real assets keep the product SKU in the public_id (OM §6).
@@ -122,4 +130,25 @@ export async function updateAsset({ publicId, displayName, usage, sku, alt, appr
     throw new Error(`Update failed (${res.status}) ${msg}`);
   }
   return patch;
+}
+
+/**
+ * Permanently delete one asset from Cloudinary (admin clearance). Live backend calls the
+ * media-delete function (secret stays server-side); mock mode is a no-op success for dev.
+ * DESTRUCTIVE — callers must gate on canDeleteMedia() and confirm with the user first.
+ * @returns {Promise<{ok:true, publicId:string}>}
+ */
+export async function deleteAsset({ publicId, resourceType = "image" }) {
+  if (!publicId) throw new Error("Missing publicId");
+  if (USE_MOCK) return { ok: true, publicId }; // dev: drop from local state only
+  const res = await fetch("/.netlify/functions/media-delete", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ publicId, resourceType }),
+  });
+  if (!res.ok) {
+    const msg = await res.text().catch(() => "");
+    throw new Error(`Delete failed (${res.status}) ${msg}`);
+  }
+  return { ok: true, publicId };
 }
