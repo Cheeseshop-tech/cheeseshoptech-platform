@@ -115,6 +115,19 @@ const SEAMS = [
 
 function IntegrationPanel({ clients }) {
   const [gate, setGate] = useState(null); // null | "checking" | "ok" | "missing" | "unreachable"
+  const [crm, setCrm] = useState(null); // null | "checking" | "error" | { counts }
+
+  // Read-only direct-HubSpot check (separate from the Make seam). Returns live contact/company/deal totals.
+  async function pingCrm() {
+    setCrm("checking");
+    try {
+      const res = await fetch("/.netlify/functions/crm-summary");
+      const data = await res.json().catch(() => null);
+      setCrm(res.ok && data?.counts ? data : "error");
+    } catch {
+      setCrm("error");
+    }
+  }
 
   async function pingGate() {
     setGate("checking");
@@ -187,6 +200,23 @@ function IntegrationPanel({ clients }) {
                 <Button size="sm" variant="outline" onClick={pingGate}>
                   <RefreshCw className="h-3.5 w-3.5" /> Test
                 </Button>
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell className="font-medium">HubSpot CRM <span className="text-xs font-normal text-fg-muted">(read-only)</span></TableCell>
+              <TableCell><code className="font-mono text-xs">service key</code></TableCell>
+              <TableCell>
+                {crm && typeof crm === "object" && <Badge variant="success"><CheckCircle2 className="mr-1 h-3 w-3" />live</Badge>}
+                {crm === "error" && <Badge variant="error"><AlertTriangle className="mr-1 h-3 w-3" />error</Badge>}
+                {crm === "checking" && <Badge variant="muted">checking…</Badge>}
+                {crm === null && <Badge variant="muted">untested</Badge>}
+              </TableCell>
+              <TableCell className="text-xs text-fg-muted">
+                <span className="flex flex-wrap items-center gap-2">
+                  <Button size="sm" variant="outline" onClick={pingCrm}><RefreshCw className="h-3.5 w-3.5" /> Test</Button>
+                  {crm && typeof crm === "object" && <span className="text-fg">{crm.counts?.contacts ?? "—"} contacts · {crm.counts?.companies ?? "—"} cos · {crm.counts?.deals ?? "—"} deals</span>}
+                  {crm === "error" && <span className="text-error">check token / scopes</span>}
+                </span>
               </TableCell>
             </TableRow>
           </TableBody>

@@ -19,6 +19,19 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-17 — CRM seam live (read-only HubSpot) + clean admin URL + UX polish
+
+**CRM go-live (read-only, additive):** new `netlify/functions/crm-summary.js` — direct HubSpot via the
+**Service Key** (`HUBSPOT_TOKEN`, server-side only), READ-ONLY, hits the CRM search endpoint for
+contacts/companies/deals totals. Integration-health panel gains a live **"HubSpot CRM (read-only)" Test
+row** (counts or error). **Deliberately additive:** did NOT flip `VITE_CRM_BACKEND` (lib/crm.js treats any
+non-mock value as the **Make** webhook → would break the CRM dashboard), and did NOT touch the Make `crm.js`.
+Decision: Service Key (HubSpot's recommended single-account credential) over legacy private app. Full CRM-
+dashboard-on-HubSpot (map shape + flip flag) = its own next slice. **Clean house URL:** reserved subdomains
+`admin`/`app`/`console` now skip the landing → house app (`App.jsx`); DNS + Netlify alias still Rick's to add.
+**UX polish:** gate eyebrow (house vs client), Content Studio subtitle, Content Library "Load content" + empty
+state. **Doc:** `docs/INTEGRATION_WIRING_BRIEF.md`. Build clean.
+
 ## 2026-06-16 — CheeseShop TECH landing page v1 (apex)
 
 Built `src/components/marketing/landing-page.jsx` from `docs/CST_POSITIONING_BRIEF.md` and wired it at the
