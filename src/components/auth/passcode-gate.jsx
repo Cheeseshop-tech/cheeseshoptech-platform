@@ -61,7 +61,7 @@ export function PasscodeGate({ resolved, children }) {
           ) : (
             <div className="cs-display text-3xl text-brand-primary">{resolved.brand.name}</div>
           )}
-          <p className="cs-eyebrow mt-2 text-fg-muted">Private portal</p>
+          <p className="cs-eyebrow mt-2 text-fg-muted">{resolved.isHouse ? "Staff & partners" : "Private portal"}</p>
         </div>
         <form onSubmit={submit} className="space-y-4 rounded-lg border border-border bg-surface p-6 shadow-sm">
           <label htmlFor="passcode" className="flex items-center gap-2 text-sm font-medium text-fg">

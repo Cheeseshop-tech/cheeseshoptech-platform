@@ -114,7 +114,7 @@ export function ProposalBuilder({ resolved }) {
         <div>
           <h1 className="font-heading text-3xl text-fg">Content Studio</h1>
           <p className="mt-1 text-fg-muted">
-            Build a branded proposal from the live catalog — story deck, selections, and class-of-trade pricing.
+            Compose branded proposals and slide decks from your live catalog, brand voice, and Media Hub — then save to the Content Library.
           </p>
         </div>
         <div className="flex gap-2">

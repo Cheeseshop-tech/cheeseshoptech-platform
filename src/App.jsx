@@ -65,11 +65,13 @@ export default function App({ initialResolved }) {
     return <SetPassword brand={{ ...resolved.brand, isHouse: resolved.isHouse }} type={hashToken.type} token={hashToken.token} />;
   }
 
-  // Apex (house view, no tenant subdomain) serves the public coming-soon page, so deploying the
-  // app never replaces the public site. Portals live at <client>.cheeseshoptech.com. Staff reach
-  // the app at the apex with ?app=1; ?client=<sub> previews a tenant in dev.
+  // Apex (no subdomain) serves the PUBLIC landing page so deploying the app never replaces the
+  // marketing site. House/app entry = a reserved STAFF subdomain (admin/app/console) OR the legacy
+  // ?app=1 flag; <client>.cheeseshoptech.com (or ?client=<sub> in dev) loads a tenant portal.
   const params = new URLSearchParams(window.location.search);
-  if (resolved.isHouse && !params.has("app") && !params.has("client")) {
+  const STAFF_HOSTS = ["admin", "app", "console"];
+  const staffEntry = params.has("app") || STAFF_HOSTS.includes(resolved.subdomain || "");
+  if (resolved.isHouse && !staffEntry && !params.has("client")) {
     return <LandingPage />;
   }
 

@@ -110,7 +110,7 @@ export function PresentationsPage({ resolved }) {
         {canManage && (
           <div className="flex flex-col items-end gap-1">
             <Button variant="primary" disabled={saved.length >= quota} onClick={() => setLoadOpen(true)}>
-              <Plus className="h-4 w-4" /> Load presentation
+              <Plus className="h-4 w-4" /> Load content
             </Button>
             <span className={"text-xs " + (saved.length >= quota ? "font-medium text-red-600" : "text-fg-muted")}>
               {saved.length}/{quota} stored{saved.length >= quota ? " — delete or download to add" : ""}
@@ -141,7 +141,7 @@ export function PresentationsPage({ resolved }) {
       {visible.length === 0 ? (
         <EmptyState
           icon={MonitorPlay}
-          title="No presentations catalogued yet"
+          title="Nothing in your Content Library yet"
           description={canManage
             ? "Build a proposal in Content Studio, then Load it here to catalog and share it."
             : "Finished proposals will appear here."}
@@ -269,7 +269,7 @@ function LoadDialog({ open, onClose, onSave, tenantFolder }) {
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-w-lg max-h-[88vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Load a presentation</DialogTitle>
+          <DialogTitle>Load content</DialogTitle>
           <DialogDescription>Catalog a finished proposal so you can browse and share it. Paste a link, or upload a PDF or image.</DialogDescription>
         </DialogHeader>
         <div className="mt-2 space-y-3">
