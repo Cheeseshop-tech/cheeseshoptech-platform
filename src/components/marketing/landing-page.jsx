@@ -64,9 +64,10 @@ export function LandingPage() {
           <p className="mt-2 text-fg-muted">is what brands with strong, consistent brand presence tend to see. Consistency isn't cosmetic — it sells.</p>
           <div className="mx-auto mt-8 h-px w-16 bg-border" />
           <p className="mx-auto mt-8 max-w-2xl leading-relaxed text-fg">
-            Built by a seller, for sellers. Our founder grew an unknown imported Italian cheese brand
-            <span className="font-semibold"> 300%+ to nearly $5M</span> — brand, distribution, social, and key
-            accounts — and packaged that playbook into the platform behind CheeseShop TECH.
+            Built by a seller, for sellers. Our founder has taken brands <span className="font-semibold">from
+            unknown to national — even tripling sales</span>, and built and led the teams to do it. Along the way
+            he mapped the real obstacles that keep good brands from their full market impact, and built the
+            solutions into the platform behind CheeseShop TECH.
           </p>
         </div>
       </section>

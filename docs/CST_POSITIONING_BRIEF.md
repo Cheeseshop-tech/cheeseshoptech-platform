@@ -82,25 +82,19 @@ team's output. The platform IS the economic engine behind the positioning:
 brand continuity and sales content for SMB budgets.
 
 ## Founder credibility — Rick Posada
-**Director of Sales & Brand Management · 15+ years in specialty food.** The founder story isn't theory — it's
-a track record of doing exactly what CheeseShop TECH now sells.
 
-- **Marquee win:** as National Sales Manager for **Central Formaggi** (an artisan Italian cheese brand), built
-  its U.S. presence from scratch and grew annual sales **$1.5M → $4.75M — 300%+ in four years**, via national
-  distributor partnerships, key accounts, educational trade events, and turning its **Instagram into a national
-  marketing asset.** (Brand + social + distribution + sales — the whole CST playbook, already executed.)
-- **Buyer + operator depth:** **Director of Perishable Procurement, Sales & Marketing at Nassau Candy** —
-  800+ domestic/imported SKUs, direct imports from Spain/Italy/France, **private-label cheese programs for major
-  retailers**, P&L; earlier grew NE perishable inventory **150%** and coached 12–15 reps, managing 50 key accounts.
-- **Cheese-floor pedigree:** cheese counter/monger roots at **Citarella, Dean & DeLuca, and Balducci's** — real
-  credibility from behind the case to national distribution.
-- **Now:** designed and built the **CheeseShop TECH platform** and ran client #1 (Monti Trentini — Italian Alpine
-  cheese, squarely in his wheelhouse) end to end: brand kit, content engine, CRM, collateral, outreach.
+**Public framing — keep it GENERAL (no specific figures, brand names, or clients):**
+- *Built by a seller, for sellers* — an operator who's taken brands **from unknown to national, even tripling sales**.
+- **Sales tools developed by someone who's built and led teams to success.**
+- *Our founder identified the key challenges that keep good brands from their full market impact — and built the
+  solutions to the obstacles great brands get stumped by.*
 
-**Founder narrative:** *the operator who's actually sold the cheese — counter to national distribution — now
-packaging that expertise into a platform.* Credibility = **built by a seller, for sellers** — not an agency
-that's never carried a bag. For a prospect, this is the proof the outcome is real: he's lived their exact
-problem (unknown brand → national name) and won.
+**Internal proof (on file — NOT for public copy; use only to back claims if pressed):** 15+ yrs specialty food,
+Director of Sales & Brand Management; grew an artisan Italian cheese brand ~300% (~$1.5M→$4.75M) in 4 yrs via
+distribution, key accounts, trade events, and social; Director of Perishable Procurement/Sales/Marketing (800+
+SKUs, EU imports, private-label cheese programs for major retailers, P&L); cheese-floor pedigree — Citarella,
+Dean & DeLuca, Balducci's. Now built the CheeseShop TECH platform + ran client #1 (Monti) end to end.
+Resume on file: `Richard_Posada_Resume.docx`.
 
 ---
 
