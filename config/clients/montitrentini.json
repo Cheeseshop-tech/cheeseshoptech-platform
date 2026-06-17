@@ -91,6 +91,16 @@
       "embed": true,
       "admin": true,
       "tag": "DTC · live"
+    },
+    {
+      "key": "crm",
+      "label": "CRM",
+      "description": "Contacts, companies and pipeline — live from HubSpot, read-only.",
+      "icon": "contact",
+      "type": "internal",
+      "route": "crm",
+      "status": "live",
+      "tag": "CRM · live"
     }
   ]
 }
