@@ -19,6 +19,17 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-17 (cont.) — CRM surfaced: house snapshot + tenant CRM page
+
+**Verified live** earlier: the read-only HubSpot connection returned 632 contacts · 514 companies · 0 deals.
+Now surfaced in two places: (1) **house dashboard** — a live "CRM snapshot" card (`agency-console.jsx`)
+auto-loads the three counts on open; (2) **tenant Operations portal** — a new **CRM page**
+(`src/components/crm/crm-page.jsx`) + side-panel nav **"CRM"** (`App.jsx`, allowed admin/client) showing
+count tiles + a **recent-contacts table**. `crm-summary.js` extended to also return `recentContacts` (newest
+10: name/email/company/created). Distinct from the **Campaigns** page (social/email marketing). All
+read-only/additive; build clean. NOTE: single HubSpot connection = Monti's CRM for now; per-tenant CRM keys
+are a future multi-tenant concern.
+
 ## 2026-06-17 — CRM seam live (read-only HubSpot) + clean admin URL + UX polish
 
 **CRM go-live (read-only, additive):** new `netlify/functions/crm-summary.js` — direct HubSpot via the

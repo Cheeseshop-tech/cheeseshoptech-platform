@@ -10,6 +10,7 @@ import {
   MonitorPlay,
   FileText,
   Palette,
+  Contact,
 } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell.jsx";
 import { Button } from "@/components/ui/button.jsx";
@@ -26,6 +27,7 @@ import { FeaturedTool } from "@/components/tools/featured-tool.jsx";
 import { PricingTool } from "@/components/tools/pricing-tool.jsx";
 import { toolIcon } from "@/lib/icons.js";
 import { OrdersPage } from "@/components/crm/crm-dashboard.jsx";
+import { CrmPage } from "@/components/crm/crm-page.jsx";
 import { HomeHub } from "@/components/home/home-hub.jsx";
 import { LandingPage } from "@/components/marketing/landing-page.jsx";
 import { RequireAuth, RoleGate } from "@/components/auth/require-auth.jsx";
@@ -44,6 +46,7 @@ const NAV = [
   { key: "campaigns", label: "Campaigns", icon: Megaphone, allowed: ["admin", "client"] },
   { key: "catalog", label: "Catalog", icon: Package, allowed: ["admin", "client"] },
   { key: "orders", label: "Orders", icon: ShoppingCart, allowed: ["admin", "client"] },
+  { key: "crm", label: "CRM", icon: Contact, allowed: ["admin", "client"] },
   { key: "media", label: "Media hub", icon: Images, allowed: ALL_ROLES },
   { key: "tools", label: "Tools", icon: LayoutGrid, allowed: ["admin", "client"] },
 ];
@@ -160,6 +163,8 @@ export default function App({ initialResolved }) {
         <HomeHub resolved={resolved} onNavigate={setPage} />
       ) : effectivePage === "orders" ? (
         <OrdersPage resolved={resolved} />
+      ) : effectivePage === "crm" ? (
+        <CrmPage resolved={resolved} />
       ) : effectivePage === "presentations" ? (
         <PresentationsPage resolved={resolved} />
       ) : effectivePage === "proposals" ? (
