@@ -19,6 +19,23 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-16 — CheeseShop TECH landing page v1 (apex)
+
+Built `src/components/marketing/landing-page.jsx` from `docs/CST_POSITIONING_BRIEF.md` and wired it at the
+apex in `App.jsx` (replaces `<ComingSoon/>` render; ComingSoon file kept for rollback). Invite-only, outcome-led:
+hero "The brand power of a big team. The focus of a small one." + brand-to-sales-engine sub; 4 pillars; a proof
+band (10–20% consistency stat + the founder's 300%→$5M cheese-brand story); closing CTA; quiet "Log in" → /?app=1.
+House brand via tokens. Build clean. OPEN before launch: the "Request an invitation" CTA is a **mailto placeholder
+(hello@cheeseshoptech.com)** — wire a real form/inbox; and confirm the apex DNS serves the Netlify site.
+
+## 2026-06-16 — SESSION RECAP (platform-build day)
+Content-orchestration v1 shipped end-to-end (Slices 1–4: categories, gated publishing, download-to-device, quota)
+then simplified (PPTX cut → no risky backend; review gate OFF by default behind per-client `reviewRequired`).
+Canonical locked: **CheeseShop TECH = platform/agency Rick owns; Monti = client/tenant.** Two-track rule
+(platform build never waits on client approval; goal 10+ clients in 6–12 mo). Positioning brief written
+(platform moat + founder credibility from the real resume + competitive sampling). Landing page v1 built. Monti
+campaign staged, **gated on Stefano's approval + pricing (Thursday 2026-06-18 meeting; reminder set 7:30am)**.
+
 ## 2026-06-16 — Review gate OFF by default (per-client opt-in)
 
 Rick's call: the CST review gate isn't needed. Junk/sprawl is already controlled by the **10-item quota** +

@@ -1,42 +1,41 @@
 # HANDOFF — CheeseShop TECH platform
 
-**Updated:** 2026-06-16 · **HEAD:** `phase-2-6-build` (Presentations catalog + Media delete deployed; **Create-a-Proposal + color-safe PDF + Media-Hub image picker = code complete, build clean, awaiting the Terminal push**) · **Surface:** Cowork
-**Read first:** `CLAUDE_CODE_BRIEF.md` → this → `docs/DEVELOPMENT_PLAN.md` → `docs/BUILD_LOG.md` (top) → `docs/BEST_PRACTICES.md`.
+**Updated:** 2026-06-16 (evening) · **HEAD:** `phase-2-6-build` @ `4b819bf` (positioning brief live; content-orchestration v1 deployed) · **Surface:** Cowork
+**Read first:** `CLAUDE_CODE_BRIEF.md` → this → `docs/BUILD_LOG.md` (top, incl. SESSION RECAP) → `docs/CONTENT_ORCHESTRATION_SPEC.md` + `docs/CST_POSITIONING_BRIEF.md`.
 
-## ⚠️ BEFORE ANYTHING — push the last session
-Code for "Create a Proposal" (rename + color-safe print PDF), the tag-driven Media Hub image picker,
-and this handoff/parked-AI tagging is written + build-verified but **not yet pushed** (the sandbox
-can't manage `.git` locks). Run this in **Terminal** (clears locks, stages, commits, pushes):
+## ⚠️ DEPLOY FIRST — landing page (built + build-clean, not yet pushed)
+The CheeseShop TECH **landing page v1** + apex wiring + build log are written and build-verified but **not yet
+pushed** (sandbox can't manage `.git` locks). Run in **Terminal**:
 
 ```
 cd "/Users/richardposada/Cheese Shop TECH BUILD/Cheese Shop TECH  Agency Build" && \
 rm -f .git/index.lock .git/*.lock && \
 find .git/objects -name 'tmp_obj_*' -delete 2>/dev/null; \
-git add src/index.css src/App.jsx src/lib/proposals.js \
-  src/components/proposals/proposal-builder.jsx \
-  src/components/proposals/proposal-view.jsx \
-  src/components/media/media-picker.jsx \
-  docs/AI_TOOL_EMBED_SPEC.md docs/BUILD_LOG.md HANDOFF.md && \
-git commit -m "feat(proposals): Create a Proposal + color-safe PDF + Media Hub image picker; park AI embed; handoff" && \
+git add src/App.jsx src/components/marketing/landing-page.jsx docs/BUILD_LOG.md HANDOFF.md && \
+git commit -m "feat(marketing): CheeseShop TECH landing page v1 at apex + session recap" && \
 git push origin phase-2-6-build
 ```
-Expect a real commit hash + `phase-2-6-build -> phase-2-6-build` (NOT "Everything up-to-date").
-See BUILD_LOG "DEPLOY / GIT LOCK NOTE" for why.
+Expect a real commit hash + `phase-2-6-build -> phase-2-6-build` (NOT "Everything up-to-date"). The resume
+`Richard_Posada_Resume.docx` is intentionally **left untracked** (personal doc, not for the repo).
 
-## NEXT UP (2026-06-16)
-**Slice 2 — the slide-deck composer.** Assemble tagged Media Hub images + brand story blocks into an
-in-app slide deck: reuse `DeckViewer` (already has iPad touch-swipe + fullscreen for presenting),
-exportable to PDF (the print path now exists) and saveable to the **Presentations** catalog. This is
-the deterministic "PPTX-style / editorial presentation" Rick asked for — no AI needed. The
-`MediaPicker` (Slice 1, just built) is the image-selection front end it reuses.
+## NEXT UP (tomorrow, 2026-06-17)
+**Platform / framework build continues — Track A never waits on client approval ([[cst-build-strategy]]).**
+1. **Landing page → go-live.** `src/components/marketing/landing-page.jsx` v1 is built and wired at the apex
+   (replaces ComingSoon). To launch: (a) wire the **"Request an invitation" CTA** — currently a
+   `hello@cheeseshoptech.com` mailto placeholder — to a real inbox/form; (b) confirm the **apex DNS** serves
+   the Netlify site; (c) eyeball it live. Source of truth = `docs/CST_POSITIONING_BRIEF.md`.
+2. **Clean house URL (optional):** `admin.cheeseshoptech.com` — 1-line guard change (reserve the subdomain to
+   skip the coming-soon/landing) + a Cloudflare DNS record + a Netlify domain alias. Today's house door = `?app=1`.
+3. **Content-orchestration v1 = DONE** (categories · gated publishing OFF by default · download · quota; PPTX out).
+   Optional later, its own careful pass: CST-gated Cloudinary uploads.
+4. **Other framework items:** onboarding/clone path (new-client-in-X-steps, ties the brand-kit + campaign-log
+   templates); "By CheeseShop TECH" tool watermark (build item); House Console (`agency-console.jsx`) deepening;
+   "cora" Adobe font wiring. AI tool embed stays **parked** (`docs/AI_TOOL_EMBED_SPEC.md`).
 
-**Parked (Rick's call 2026-06-16):** the **AI tool embed** (in-website Auto-compose). Spec
-`docs/AI_TOOL_EMBED_SPEC.md`; code marker `PARKED(ai-embed)` in `proposal-builder.jsx`. Resume after
-Slice 2; needs Rick to set up pay-as-you-go Anthropic API billing + a spend cap. Until then the
-design-agent role = Claude in Cowork.
-
-**Smaller open items:** wire "cora" Adobe font (heading currently falls back to Fraunces); optional
-"Send to Presentations" button from the proposal preview; PPTX→PDF helper if any PowerPoint decks stay.
+**Client track (Monti) — GATED, do NOT send until Thursday.** Campaign fully staged. **Stefano meeting Thu
+2026-06-18** (agenda `monti_asiago_campaign/Stefano_Meeting_Agenda_2026-06-18.md`; 7:30am reminder set) delivers
+**approval + wholesale pricing + SEAFRIGO freight** → then finalize numbers on the materials and launch the
+3-touch sequence to the ~150 shops. OpenPhone line pending (give Claude the number to finalize signatures).
 
 ## EARLIER NEXT-UP (teed up 2026-06-13, still valid)
 **The big picture = the House Console** (`docs/HOUSE_CONSOLE_SPEC.md`): one agency control plane to

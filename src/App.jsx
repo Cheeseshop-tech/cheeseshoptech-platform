@@ -27,7 +27,7 @@ import { PricingTool } from "@/components/tools/pricing-tool.jsx";
 import { toolIcon } from "@/lib/icons.js";
 import { OrdersPage } from "@/components/crm/crm-dashboard.jsx";
 import { HomeHub } from "@/components/home/home-hub.jsx";
-import { ComingSoon } from "@/components/marketing/coming-soon.jsx";
+import { LandingPage } from "@/components/marketing/landing-page.jsx";
 import { RequireAuth, RoleGate } from "@/components/auth/require-auth.jsx";
 import { PasscodeGate } from "@/components/auth/passcode-gate.jsx";
 import { SetPassword } from "@/components/auth/set-password.jsx";
@@ -70,7 +70,7 @@ export default function App({ initialResolved }) {
   // the app at the apex with ?app=1; ?client=<sub> previews a tenant in dev.
   const params = new URLSearchParams(window.location.search);
   if (resolved.isHouse && !params.has("app") && !params.has("client")) {
-    return <ComingSoon />;
+    return <LandingPage />;
   }
 
   // Role-based nav: external collaborators (pr/influencer/creator) see only the Media hub.
