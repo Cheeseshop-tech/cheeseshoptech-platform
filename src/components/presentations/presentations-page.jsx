@@ -16,6 +16,9 @@ import { rolesOf } from "@/lib/auth.js";
 import { cldUrl, uploadFileAuto, pdfThumbUrl } from "@/lib/cloudinary.js";
 import { loadCatalog, addEntry, removeEntry, updateEntry, coverUrl, CONTENT_CATEGORIES, categoryLabel, entryCategory, entryStatus, duplicateKeys, DEFAULT_QUOTA, downloadHref } from "@/lib/presentations-store.js";
 import { MediaPicker } from "@/components/media/media-picker.jsx";
+import { SlideRenderer } from "./slide-renderer.jsx";
+import { SLIDE_TEMPLATES, getSlideTemplate, firstImageId } from "@/lib/slide-templates.js";
+import { getBrandKit } from "@/lib/brandKit.js";
 
 // Presentations = a CATALOG of finished proposals (built in the Proposals tool) to organize and SHARE.
 // Config decks (image slide decks) still render in the built-in viewer; saved entries link out to the
@@ -97,7 +100,7 @@ export function PresentationsPage({ resolved }) {
   }
 
   if (active) {
-    return <DeckViewer deck={active} showBack onBack={() => setActiveKey(null)} />;
+    return <DeckViewer deck={active} showBack onBack={() => setActiveKey(null)} resolved={resolved} />;
   }
 
   return (
@@ -322,66 +325,108 @@ function LoadDialog({ open, onClose, onSave, tenantFolder }) {
   );
 }
 
-// Compose a slide deck from Media Hub images (v1: images-only). Pulls assets via the tag-filtered
-// MediaPicker, orders them into slides, and saves a LINK-BASED "deck" entry — slides are Cloudinary
-// delivery URLs (references, no upload), cover = first slide. Plays in the in-app DeckViewer (iPad
-// touch + fullscreen) and shares by link. This is the Content Studio → Content Library export.
+// Compose a slide deck from TEMPLATES (Template Engine v1 — TEMPLATE_ENGINE_SPEC.md). Each slide picks a
+// template (Image / Cover / Statement / Story); slots are filled from the Media Hub (image), brand voice
+// (copy), or free text, and the slide is painted by the Brand Kit via SlideRenderer. Saves a LINK-BASED
+// "deck" entry (structured slides {t,slots} — references, no upload). Plays in DeckViewer; shares by link.
 export function DeckComposer({ open, onClose, onSave, resolved }) {
   const [title, setTitle] = useState("");
   const [eyebrow, setEyebrow] = useState("");
-  const [slides, setSlides] = useState([]); // ordered array of Media Hub public_ids
-  useEffect(() => { if (open) { setTitle(""); setEyebrow(""); setSlides([]); } }, [open]);
+  const [slides, setSlides] = useState([]); // [{ t, slots }]
+  const [tpl, setTpl] = useState(SLIDE_TEMPLATES[0].id);
+  const [editIndex, setEditIndex] = useState(null);
+  useEffect(() => { if (open) { setTitle(""); setEyebrow(""); setSlides([]); setTpl(SLIDE_TEMPLATES[0].id); setEditIndex(null); } }, [open]);
 
-  const addSlide = (id) => { if (id && !slides.includes(id)) setSlides((s) => [...s, id]); };
-  const removeSlide = (i) => setSlides((s) => s.filter((_, k) => k !== i));
-  const move = (i, dir) => setSlides((s) => {
-    const n = [...s]; const j = i + dir;
-    if (j < 0 || j >= n.length) return n;
-    [n[i], n[j]] = [n[j], n[i]]; return n;
-  });
+  const kit = getBrandKit(resolved);
+  const copyOptions = [
+    ...(kit?.storyBlocks || []).map((b) => ({ label: `Story — ${b.title}`, value: b.body })),
+    ...(kit?.storyTopics || []).map((t) => ({ label: `Topic — ${t.title}`, value: t.line })),
+    ...(kit?.voice?.readyPhrases || []).map((p, i) => ({ label: `Phrase ${i + 1}`, value: p })),
+  ];
+
+  const addSlide = () => { setEditIndex(slides.length); setSlides((s) => [...s, { t: tpl, slots: {} }]); };
+  const removeSlide = (i) => { setEditIndex(null); setSlides((s) => s.filter((_, k) => k !== i)); };
+  const move = (i, dir) => setSlides((s) => { const n = [...s]; const j = i + dir; if (j < 0 || j >= n.length) return n; [n[i], n[j]] = [n[j], n[i]]; return n; });
+  const setSlot = (i, key, val) => setSlides((s) => s.map((sl, k) => (k === i ? { ...sl, slots: { ...sl.slots, [key]: val } } : sl)));
 
   const valid = title.trim() && slides.length > 0;
   function save() {
+    const coverId = slides.map(firstImageId).find(Boolean);
     onSave({
       title: title.trim(),
       eyebrow: eyebrow.trim(),
       kind: "deck",
       category: "slide-deck",
-      cover: cldUrl(slides[0], "card"),
-      slides: slides.map((id) => cldUrl(id, "preview")),
+      cover: coverId ? cldUrl(coverId, "card") : "",
+      slides,
     });
   }
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-lg max-h-[88vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Compose a slide deck</DialogTitle>
-          <DialogDescription>Build a presentation from your Media Hub images — no upload. It plays in the viewer and shares by link.</DialogDescription>
+          <DialogDescription>Pick a template per slide and fill the slots — each paints in {resolved.brand.name}'s brand. Saved link-based; plays + shares from the Content Library.</DialogDescription>
         </DialogHeader>
         <div className="mt-2 space-y-3">
-          <L label="Title *"><I value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Monti Trentini — Asiago Story" /></L>
-          <L label="Eyebrow"><I value={eyebrow} onChange={(e) => setEyebrow(e.target.value)} placeholder="Presentation · 2026" /></L>
+          <div className="grid grid-cols-2 gap-3">
+            <L label="Title *"><I value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Monti Trentini — Asiago Story" /></L>
+            <L label="Eyebrow"><I value={eyebrow} onChange={(e) => setEyebrow(e.target.value)} placeholder="Presentation · 2026" /></L>
+          </div>
 
-          <L label={`Add slides from Media Hub (${slides.length})`}>
-            <MediaPicker resolved={resolved} value="" defaultTag="" label="Pick an image to add as a slide" onChange={addSlide} allowClear={false} />
-          </L>
+          <div className="flex items-end gap-2">
+            <L label="Add a slide">
+              <select value={tpl} onChange={(e) => setTpl(e.target.value)} className="h-9 w-full rounded-base border border-border bg-bg px-2 text-sm text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
+                {SLIDE_TEMPLATES.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
+              </select>
+            </L>
+            <Button variant="outline" onClick={addSlide}><Plus className="h-4 w-4" /> Add</Button>
+          </div>
 
-          {slides.length > 0 ? (
-            <div className="space-y-1.5">
-              {slides.map((id, i) => (
-                <div key={id} className="flex items-center gap-2 rounded-base border border-border bg-bg p-1.5">
-                  <span className="w-5 text-center text-xs text-fg-muted">{i + 1}</span>
-                  <img src={cldUrl(id, "thumb")} alt="" className="h-10 w-14 flex-none rounded-base border border-border bg-white object-contain" />
-                  <span className="min-w-0 flex-1 truncate text-xs text-fg-muted">{id.split("/").pop()}</span>
-                  <button type="button" onClick={() => move(i, -1)} disabled={i === 0} aria-label="Move up" className="rounded p-1 text-fg-muted hover:text-fg disabled:opacity-30"><ArrowUp className="h-4 w-4" /></button>
-                  <button type="button" onClick={() => move(i, 1)} disabled={i === slides.length - 1} aria-label="Move down" className="rounded p-1 text-fg-muted hover:text-fg disabled:opacity-30"><ArrowDown className="h-4 w-4" /></button>
-                  <button type="button" onClick={() => removeSlide(i)} aria-label="Remove" className="rounded p-1 text-red-500 hover:text-red-700"><X className="h-4 w-4" /></button>
-                </div>
-              ))}
-            </div>
+          {slides.length === 0 ? (
+            <p className="rounded-base border border-dashed border-border p-4 text-center text-xs text-fg-muted">No slides yet — choose a template and Add. Each slide paints in the brand automatically.</p>
           ) : (
-            <p className="rounded-base border border-dashed border-border p-4 text-center text-xs text-fg-muted">No slides yet — add images above. The first becomes the cover.</p>
+            <div className="space-y-2">
+              {slides.map((sl, i) => {
+                const tplDef = getSlideTemplate(sl.t);
+                const editing = editIndex === i;
+                return (
+                  <div key={i} className="rounded-base border border-border bg-bg p-2">
+                    <div className="flex items-center gap-2">
+                      <span className="w-5 text-center text-xs text-fg-muted">{i + 1}</span>
+                      <div className="h-12 w-20 flex-none overflow-hidden rounded-base border border-border"><SlideRenderer slide={sl} resolved={resolved} /></div>
+                      <span className="min-w-0 flex-1 truncate text-sm text-fg">{tplDef.label}</span>
+                      <button type="button" onClick={() => setEditIndex(editing ? null : i)} className="rounded px-2 py-1 text-xs font-medium text-brand-primary hover:underline">{editing ? "Done" : "Edit"}</button>
+                      <button type="button" onClick={() => move(i, -1)} disabled={i === 0} aria-label="Move up" className="rounded p-1 text-fg-muted hover:text-fg disabled:opacity-30"><ArrowUp className="h-4 w-4" /></button>
+                      <button type="button" onClick={() => move(i, 1)} disabled={i === slides.length - 1} aria-label="Move down" className="rounded p-1 text-fg-muted hover:text-fg disabled:opacity-30"><ArrowDown className="h-4 w-4" /></button>
+                      <button type="button" onClick={() => removeSlide(i)} aria-label="Remove" className="rounded p-1 text-red-500 hover:text-red-700"><X className="h-4 w-4" /></button>
+                    </div>
+                    {editing && (
+                      <div className="mt-2 space-y-2 border-t border-border pt-2 pl-7">
+                        {tplDef.slots.map((slot) => (
+                          <L key={slot.key} label={slot.label}>
+                            {slot.type === "image" ? (
+                              <MediaPicker resolved={resolved} value={sl.slots[slot.key] || ""} defaultTag="" label={`Pick ${slot.label.toLowerCase()}`} onChange={(id) => setSlot(i, slot.key, id)} />
+                            ) : slot.type === "brandCopy" ? (
+                              <div className="space-y-1">
+                                <select value="" onChange={(e) => { if (e.target.value) setSlot(i, slot.key, e.target.value); }} className="h-8 w-full rounded-base border border-border bg-bg px-2 text-xs text-fg">
+                                  <option value="">Insert from brand voice…</option>
+                                  {copyOptions.map((o, k) => <option key={k} value={o.value}>{o.label}</option>)}
+                                </select>
+                                <textarea value={sl.slots[slot.key] || ""} onChange={(e) => setSlot(i, slot.key, e.target.value)} rows={2} placeholder="…or type" className="w-full rounded-base border border-border bg-bg px-2 py-1 text-sm text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand" />
+                              </div>
+                            ) : (
+                              <I value={sl.slots[slot.key] || ""} onChange={(e) => setSlot(i, slot.key, e.target.value)} placeholder={slot.label} />
+                            )}
+                          </L>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           )}
         </div>
         <DialogFooter>
@@ -400,7 +445,7 @@ function I(props) {
   return <input {...props} className="h-9 w-full rounded-base border border-border bg-bg px-2 text-sm text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand" />;
 }
 
-export function DeckViewer({ deck, showBack, onBack }) {
+export function DeckViewer({ deck, showBack, onBack, resolved }) {
   const [index, setIndex] = useState(0);
   const [fullscreen, setFullscreen] = useState(false);
   const stageRef = useRef(null);
@@ -432,7 +477,7 @@ export function DeckViewer({ deck, showBack, onBack }) {
   }
 
   const preload = useMemo(
-    () => [deck.slides[index + 1], deck.slides[index - 1]].filter(Boolean),
+    () => [deck.slides[index + 1], deck.slides[index - 1]].filter((x) => typeof x === "string"),
     [deck.slides, index]
   );
   useEffect(() => { preload.forEach((src) => { const im = new Image(); im.src = src; }); }, [preload]);
@@ -475,12 +520,16 @@ export function DeckViewer({ deck, showBack, onBack }) {
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
       >
-        <img
-          src={deck.slides[index]}
-          alt={`${deck.title} — slide ${index + 1}`}
-          className="mx-auto block max-h-[82vh] w-full object-contain"
-          draggable={false}
-        />
+        {typeof deck.slides[index] === "string" ? (
+          <img
+            src={deck.slides[index]}
+            alt={`${deck.title} — slide ${index + 1}`}
+            className="mx-auto block max-h-[82vh] w-full object-contain"
+            draggable={false}
+          />
+        ) : (
+          <SlideRenderer slide={deck.slides[index]} resolved={resolved} />
+        )}
         <button
           onClick={prev}
           disabled={index === 0}
@@ -521,7 +570,9 @@ export function DeckViewer({ deck, showBack, onBack }) {
               (i === index ? "border-brand-primary ring-2 ring-brand-primary/40" : "border-border opacity-70 hover:opacity-100")
             }
           >
-            <img src={src} alt="" loading="lazy" className="h-full w-full object-cover" />
+            {typeof src === "string"
+              ? <img src={src} alt="" loading="lazy" className="h-full w-full object-cover" />
+              : <SlideRenderer slide={src} resolved={resolved} />}
           </button>
         ))}
       </div>

@@ -135,7 +135,7 @@ export function ProposalView({ resolved, proposal: given }) {
       {deck && (
         <div className={`${sp.section} print:hidden`}>
           <h2 className={`${sp.heading} mb-4 text-2xl`} style={{ color: tc.onCanvas }}>The story deck</h2>
-          <DeckViewer deck={deck} showBack={false} />
+          <DeckViewer deck={deck} showBack={false} resolved={resolved} />
         </div>
       )}
 

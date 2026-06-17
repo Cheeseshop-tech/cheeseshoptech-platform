@@ -19,6 +19,27 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-17 (cont.) — Template Engine: spec + v1 (Content Studio templates)
+
+Rick: Content Studio needs templates. Model decided & spec'd (`docs/TEMPLATE_ENGINE_SPEC.md`) + diagrammed:
+**a template = layout SLOTS + brand-kit PAINT + slot BINDINGS** (image slots → MediaPicker; copy slots →
+story blocks/topics; text → input; logo/colors/fonts → auto-painted from the Brand Kit). One engine serves
+slides now, then social (size-aware, image export) / blog (HTML) / email (email-safe) — only layouts+sizes
+differ. Reuses ~80% of existing parts (Brand Kit, Theme Engine, MediaPicker, story blocks, DeckViewer).
+**v1 build (slides):** `src/lib/slide-templates.js` (Image/Cover/Statement/Story slot defs) + `SlideRenderer`
+(brand-painted) + template-based DeckComposer (pick template → fill slots → live preview) + DeckViewer renders
+structured slides (`{t, slots}`), with string slides kept as legacy full-bleed images (backward compatible).
+Decks save link-based to the Content Library (category slide-deck). Clone fit: shared templates + per-tenant
+Brand Kit paint → instant on-brand starter deck for any client (the `_template` onboarding model).
+
+## 2026-06-17 (cont.) — CRM tool card on the Operations Portal landing page
+
+Added a **CRM** entry to Monti's `config/clients/montitrentini.json` `tools` array (registered the `contact`
+icon in `src/lib/icons.js`; `type: internal`, `route: "crm"`, `tag: "CRM · live"`) so it appears in the
+dashboard **Tools** grid → opens the CRM page via `onNavigate("crm")`. Pure **config** change — clone-friendly:
+include or omit the CRM tool per client in the `_template`, zero code. Build clean. (CRM now reachable three
+ways: side-panel nav, Tools-grid card, and the house CRM-snapshot card.)
+
 ## 2026-06-17 (cont.) — CRM surfaced: house snapshot + tenant CRM page
 
 **Verified live** earlier: the read-only HubSpot connection returned 632 contacts · 514 companies · 0 deals.
