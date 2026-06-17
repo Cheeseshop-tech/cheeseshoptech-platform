@@ -36,6 +36,57 @@ export const SLIDE_TEMPLATES = [
       { key: "body", label: "Body", type: "brandCopy" },
     ],
   },
+  {
+    id: "threeUp",
+    label: "Three-up (pillars)",
+    slots: [
+      { key: "heading", label: "Heading", type: "text" },
+      { key: "img1", label: "Image 1", type: "image" },
+      { key: "cap1", label: "Caption 1", type: "text" },
+      { key: "img2", label: "Image 2", type: "image" },
+      { key: "cap2", label: "Caption 2", type: "text" },
+      { key: "img3", label: "Image 3", type: "image" },
+      { key: "cap3", label: "Caption 3", type: "text" },
+    ],
+  },
+  {
+    id: "stat",
+    label: "Big stat",
+    slots: [
+      { key: "value", label: "Stat (e.g. 300%)", type: "text" },
+      { key: "label", label: "Label", type: "text" },
+    ],
+  },
+  {
+    id: "quote",
+    label: "Quote",
+    slots: [
+      { key: "quote", label: "Quote", type: "brandCopy" },
+      { key: "attribution", label: "Attribution", type: "text" },
+    ],
+  },
+  {
+    id: "range",
+    label: "Product range",
+    slots: [
+      { key: "heading", label: "Heading", type: "text" },
+      { key: "img1", label: "Product 1 image", type: "image" },
+      { key: "name1", label: "Product 1 name", type: "text" },
+      { key: "img2", label: "Product 2 image", type: "image" },
+      { key: "name2", label: "Product 2 name", type: "text" },
+      { key: "img3", label: "Product 3 image", type: "image" },
+      { key: "name3", label: "Product 3 name", type: "text" },
+    ],
+  },
+  {
+    id: "closing",
+    label: "Closing / CTA",
+    slots: [
+      { key: "headline", label: "Headline", type: "brandCopy" },
+      { key: "cta", label: "Call to action", type: "text" },
+      { key: "contact", label: "Contact", type: "text" },
+    ],
+  },
 ];
 
 export const getSlideTemplate = (id) => SLIDE_TEMPLATES.find((t) => t.id === id) || SLIDE_TEMPLATES[0];

@@ -32,6 +32,13 @@ structured slides (`{t, slots}`), with string slides kept as legacy full-bleed i
 Decks save link-based to the Content Library (category slide-deck). Clone fit: shared templates + per-tenant
 Brand Kit paint → instant on-brand starter deck for any client (the `_template` onboarding model).
 
+**v1.1 — template library expanded (5 added).** Beyond Image/Cover/Statement/Story, added five layouts to
+`slide-templates.js` + `SlideRenderer`: **Three-up (pillars)** (3 image+caption columns), **Big stat**
+(large figure + label on brand field), **Quote** (pull-quote + attribution), **Product range** (3 product
+cards, image + name), **Closing / CTA** (logo + headline + CTA pill + contact). All brand-painted via
+`--cs-color-*` tokens with cqw sizing; empty slots render on-brand placeholders. Build clean. Nine templates
+now selectable in the Content Studio composer.
+
 ## 2026-06-17 (cont.) — CRM tool card on the Operations Portal landing page
 
 Added a **CRM** entry to Monti's `config/clients/montitrentini.json` `tools` array (registered the `contact`
