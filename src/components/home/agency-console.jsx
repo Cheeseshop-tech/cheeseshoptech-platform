@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Users, PlugZap, Database, ExternalLink, RefreshCw, CheckCircle2, AlertTriangle, CircleDashed } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
@@ -22,11 +22,64 @@ export function AgencyConsole({ onNavigate }) {
         Tenants, integration wiring, and data freshness — the answers that used to live only in HANDOFF.md.
       </p>
       <div className="space-y-5">
+        <CrmSnapshotPanel />
         <TenantPanel clients={clients} onNavigate={onNavigate} />
         <IntegrationPanel clients={clients} />
         <PipelinePanel clients={clients} />
       </div>
     </div>
+  );
+}
+
+/* ---------------- CRM snapshot (live, read-only HubSpot) ---------------- */
+
+// Auto-loads on mount from the read-only crm-summary function (HubSpot via the service key, server-side).
+// Falls back gracefully to "—"/unavailable in dev (no functions) or if the token/scopes aren't set.
+function CrmSnapshotPanel() {
+  const [state, setState] = useState("loading"); // "loading" | "error" | { counts }
+  useEffect(() => {
+    let alive = true;
+    fetch("/.netlify/functions/crm-summary")
+      .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+      .then((d) => { if (alive) setState(d?.counts ? d : "error"); })
+      .catch(() => { if (alive) setState("error"); });
+    return () => { alive = false; };
+  }, []);
+
+  const ok = state && typeof state === "object";
+  const tiles = [
+    { label: "Contacts", key: "contacts" },
+    { label: "Companies", key: "companies" },
+    { label: "Deals", key: "deals" },
+  ];
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center gap-3">
+        <PanelIcon icon={Users} />
+        <div>
+          <CardTitle>CRM snapshot <span className="text-xs font-normal text-fg-muted">· HubSpot, read-only</span></CardTitle>
+          <CardDescription>Live totals from the connected CRM.</CardDescription>
+        </div>
+        {ok && <Badge variant="success" className="ml-auto"><CheckCircle2 className="mr-1 h-3 w-3" />live</Badge>}
+        {state === "error" && <Badge variant="muted" className="ml-auto">unavailable</Badge>}
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-3 gap-4">
+          {tiles.map((t) => {
+            const v = ok ? state.counts[t.key] : null;
+            return (
+              <div key={t.key} className="rounded-base border border-border bg-bg p-4 text-center">
+                <div className="font-heading text-3xl text-brand-primary">
+                  {state === "loading" ? "…" : (typeof v === "number" ? v.toLocaleString() : "—")}
+                </div>
+                <div className="mt-1 text-xs uppercase tracking-wide text-fg-muted">{t.label}</div>
+              </div>
+            );
+          })}
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
