@@ -65,3 +65,41 @@ Two ways, pick one:
   This sidesteps the Google OAuth that kept failing (a plain share needs no authorization).
 - Once shared: Claude reads it, confirms the column→inventory mapping, builds `sync-inventory.mjs`.
 - Start with Path A (today); add Path B (live, hands-off) when ready.
+
+## UNBLOCKED 2026-06-18 — Path A built and verified
+
+The availability sheet was shared (Viewer) to the connected `rick.posada@gmail.com` Drive,
+clearing the 06-13 blocker. Path A is now built and tested end-to-end:
+
+- **Source export:** `src/data/montitrentini/source/availability_2026-06-18.csv` — the live sheet's
+  first tab (summary cols A–G + lot detail cols I–Q side by side), exported via the Drive connector.
+  Banner row carries "Updated on: 18 June 2026 16:47".
+- **Transform:** `scripts/sync-inventory.mjs` — CSV → canonical `inventory.json` (schema v1.2).
+  Run: `node scripts/sync-inventory.mjs --out inventory.NEW.json` (newest source CSV is auto-picked).
+- **Verification (this run):** 112 SKUs, 122 lots parsed (== sheet lot rows), 40 sellable-now SKUs.
+  `pricing-core.allocate()` consumes it correctly (FIFO by earliest expiry; fully-reserved lots
+  yield 0). Lot math reconciles to the sheet headline (e.g. Grana 1/8 = 4×104 on-hand + 10×104
+  in-transit = 1,456).
+- **NOT yet promoted:** output written to `inventory.NEW.json`; original `inventory.json` untouched.
+  Backup at `archive/backup_2026-06-18_before_inventory_sync/`. To go live: review NEW, then
+  `mv inventory.NEW.json inventory.json`, commit, deploy.
+
+### Mapping (sheet → inventory.json)
+| Sheet column | inventory field | Notes |
+|---|---|---|
+| Item / Description | `code` / `name` | from summary; lot table fills any gaps |
+| Cases Available (summary) | `casesAvail` | producer headline (≈ on-hand + in-transit − reserved); lots are the truth |
+| Lot# · Receipt Date · Cases · Reserved · Net Available · Expiration | `lots[]` | MM/DD/YYYY receipt ⇒ `on_hand`; `ETA mm/dd` / `AIR FREIGHT` ⇒ `in_transit` |
+| (derived) | `casesInTransit` | Σ in-transit lot cases |
+
+### Caveats flagged
+- In-transit lots: `expDate=null` (matches v1.2 / allocate excludes in-transit); month-year hint
+  preserved in new `expMonth` field (display only).
+- Summary "Cases Available" can differ from Σ on-hand lots — this is a **source-sheet** trait, not a
+  transform bug (the headline folds in in-transit/reserved).
+- Roster vs 06-04 snapshot: dropped `11111` (SAMPLES, synthetic), `02169`; added `30016`/`30017`
+  (Apericheese Orange/White). Confirm `02169` is intentionally gone.
+
+### Weekly automation
+Sheet refreshes weekly. A scheduled watch re-exports + regenerates + diffs and reports for review
+(test-before-replace); it does not auto-promote or deploy. See scheduled task "Monti inventory watch".
