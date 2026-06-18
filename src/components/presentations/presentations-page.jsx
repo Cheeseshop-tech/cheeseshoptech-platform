@@ -19,6 +19,7 @@ import { MediaPicker } from "@/components/media/media-picker.jsx";
 import { SlideRenderer } from "./slide-renderer.jsx";
 import { SLIDE_TEMPLATES, getSlideTemplate, firstImageId } from "@/lib/slide-templates.js";
 import { getBrandKit } from "@/lib/brandKit.js";
+import { voiceOptions } from "@/lib/brand-tokens.js";
 
 // Presentations = a CATALOG of finished proposals (built in the Proposals tool) to organize and SHARE.
 // Config decks (image slide decks) still render in the built-in viewer; saved entries link out to the
@@ -337,17 +338,18 @@ export function DeckComposer({ open, onClose, onSave, resolved }) {
   const [editIndex, setEditIndex] = useState(null);
   useEffect(() => { if (open) { setTitle(""); setEyebrow(""); setSlides([]); setTpl(SLIDE_TEMPLATES[0].id); setEditIndex(null); } }, [open]);
 
-  const kit = getBrandKit(resolved);
-  const copyOptions = [
-    ...(kit?.storyBlocks || []).map((b) => ({ label: `Story — ${b.title}`, value: b.body })),
-    ...(kit?.storyTopics || []).map((t) => ({ label: `Topic — ${t.title}`, value: t.line })),
-    ...(kit?.voice?.readyPhrases || []).map((p, i) => ({ label: `Phrase ${i + 1}`, value: p })),
-  ];
+  const voice = voiceOptions(resolved);
 
-  const addSlide = () => { setEditIndex(slides.length); setSlides((s) => [...s, { t: tpl, slots: {} }]); };
+  const addSlide = () => { setEditIndex(slides.length); setSlides((s) => [...s, { t: tpl, slots: { ...(getSlideTemplate(tpl).sample || {}) } }]); };
   const removeSlide = (i) => { setEditIndex(null); setSlides((s) => s.filter((_, k) => k !== i)); };
   const move = (i, dir) => setSlides((s) => { const n = [...s]; const j = i + dir; if (j < 0 || j >= n.length) return n; [n[i], n[j]] = [n[j], n[i]]; return n; });
   const setSlot = (i, key, val) => setSlides((s) => s.map((sl, k) => (k === i ? { ...sl, slots: { ...sl.slots, [key]: val } } : sl)));
+  const setOff = (i, id, hidden) => setSlides((s) => s.map((sl, k) => {
+    if (k !== i) return sl;
+    const off = { ...(sl.slots.__off || {}) };
+    if (hidden) off[id] = true; else delete off[id];
+    return { ...sl, slots: { ...sl.slots, __off: off } };
+  }));
 
   const valid = title.trim() && slides.length > 0;
   function save() {
@@ -403,24 +405,44 @@ export function DeckComposer({ open, onClose, onSave, resolved }) {
                       <button type="button" onClick={() => removeSlide(i)} aria-label="Remove" className="rounded p-1 text-red-500 hover:text-red-700"><X className="h-4 w-4" /></button>
                     </div>
                     {editing && (
-                      <div className="mt-2 space-y-2 border-t border-border pt-2 pl-7">
-                        {tplDef.slots.map((slot) => (
-                          <L key={slot.key} label={slot.label}>
-                            {slot.type === "image" ? (
-                              <MediaPicker resolved={resolved} value={sl.slots[slot.key] || ""} defaultTag="" label={`Pick ${slot.label.toLowerCase()}`} onChange={(id) => setSlot(i, slot.key, id)} />
-                            ) : slot.type === "brandCopy" ? (
+                      <div className="mt-2 space-y-3 border-t border-border pt-3">
+                        <div className="overflow-hidden rounded-base border border-border shadow-sm">
+                          <SlideRenderer slide={sl} resolved={resolved} />
+                        </div>
+                        <div className="space-y-2">
+                        {tplDef.slots.filter((s) => s.role === "var" || s.role === "brand" || s.toggle).map((slot) => (
+                          <L key={slot.id} label={slot.label || slot.id}>
+                            {slot.toggle && (
+                              <label className="mb-1 flex items-center gap-2 text-xs text-fg-muted">
+                                <input type="checkbox" checked={!(sl.slots.__off && sl.slots.__off[slot.id])} onChange={(e) => setOff(i, slot.id, !e.target.checked)} />
+                                Show on this slide
+                              </label>
+                            )}
+                            {slot.kind === "image" ? (
+                              <MediaPicker resolved={resolved} value={sl.slots[slot.id] || ""} defaultTag={slot.tag || ""} label={`Pick ${(slot.label || "image").toLowerCase()}`} onChange={(id) => setSlot(i, slot.id, id)} />
+                            ) : slot.as === "story" ? (
                               <div className="space-y-1">
-                                <select value="" onChange={(e) => { if (e.target.value) setSlot(i, slot.key, e.target.value); }} className="h-8 w-full rounded-base border border-border bg-bg px-2 text-xs text-fg">
+                                <select value="" onChange={(e) => { if (e.target.value) { const o = JSON.parse(e.target.value); setSlot(i, slot.id, { headline: o.h, narrative: o.n }); } }} className="h-8 w-full rounded-base border border-border bg-bg px-2 text-xs text-fg">
                                   <option value="">Insert from brand voice…</option>
-                                  {copyOptions.map((o, k) => <option key={k} value={o.value}>{o.label}</option>)}
+                                  {voice.stories.map((o, k) => <option key={k} value={JSON.stringify({ h: o.title.toUpperCase(), n: o.body })}>{o.title}</option>)}
                                 </select>
-                                <textarea value={sl.slots[slot.key] || ""} onChange={(e) => setSlot(i, slot.key, e.target.value)} rows={2} placeholder="…or type" className="w-full rounded-base border border-border bg-bg px-2 py-1 text-sm text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand" />
+                                <textarea value={(sl.slots[slot.id] || {}).headline || ""} onChange={(e) => setSlot(i, slot.id, { ...(sl.slots[slot.id] || {}), headline: e.target.value })} rows={2} placeholder="Headline" className="w-full rounded-base border border-border bg-bg px-2 py-1 text-sm text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand" />
+                                <textarea value={(sl.slots[slot.id] || {}).narrative || ""} onChange={(e) => setSlot(i, slot.id, { ...(sl.slots[slot.id] || {}), narrative: e.target.value })} rows={2} placeholder="Narrative" className="w-full rounded-base border border-border bg-bg px-2 py-1 text-sm text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand" />
                               </div>
                             ) : (
-                              <I value={sl.slots[slot.key] || ""} onChange={(e) => setSlot(i, slot.key, e.target.value)} placeholder={slot.label} />
+                              <div className="space-y-1">
+                                <select value="" onChange={(e) => { if (e.target.value) setSlot(i, slot.id, e.target.value); }} className="h-8 w-full rounded-base border border-border bg-bg px-2 text-xs text-fg">
+                                  <option value="">Insert from brand voice…</option>
+                                  {voice.phrases.length > 0 && <optgroup label="Ready phrases">{voice.phrases.map((p, k) => <option key={k} value={p}>{p}</option>)}</optgroup>}
+                                  {voice.stories.length > 0 && <optgroup label="Story titles">{voice.stories.map((s2, k) => <option key={k} value={s2.title}>{s2.title}</option>)}</optgroup>}
+                                  {voice.lines.length > 0 && <optgroup label="Brand lines">{voice.lines.map((l, k) => <option key={k} value={l.text}>{l.label}: {l.text}</option>)}</optgroup>}
+                                </select>
+                                <I value={sl.slots[slot.id] || ""} onChange={(e) => setSlot(i, slot.id, e.target.value)} placeholder={slot.label} />
+                              </div>
                             )}
                           </L>
                         ))}
+                        </div>
                       </div>
                     )}
                   </div>

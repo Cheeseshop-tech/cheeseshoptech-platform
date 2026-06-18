@@ -64,3 +64,47 @@ Backward-compatible: a slide that is a plain string is treated as a legacy full-
 ## 9. Clone fit
 Templates are shared platform assets; the per-tenant Brand Kit paints them. A blank `_template` tenant + the
 shared templates = an instant on-brand starter deck for any new client — zero code (the onboarding model).
+
+---
+
+## 10. v2 — tokenized manifest engine (POC approved 2026-06-17)
+Validated in `prototypes/template-engine-prototype.html`. A template = a **manifest of coordinate slots**
+(role `var/brand/lock`, kind `text/image/shape`, absolute `x/y/w/h` on a fixed canvas, `z`, per-slot font/color
+as **Brand-Kit tokens**). One generic renderer paints any manifest from any tenant's kit. Refinements over the
+PPTX handoff: tokenized paint (not literal hexes), platform-shared (not tenant-namespaced) templates, text
+auto-fit, fixed-canvas scope (slides/social; blog/email separate), HTML render is source / PPTX·PDF·PNG derived.
+
+### 10.1 New files (React port)
+- `src/lib/template-manifests.js` — the `TEMPLATES` array (tokenized), `getTemplate(id)`, `firstImageSlotId()`.
+- `src/lib/brand-tokens.js` — `resolveToken("$accent"|"$display"|"$logo", resolved)` → maps to the existing
+  `--cs-color-*` / `--cs-font-*` CSS vars and `getBrandKit(resolved)` assets. (In-app, tokens resolve to the
+  **live theme vars**, so Brand-Management edits propagate automatically — better than the POC's literals.)
+- `src/components/presentations/manifest-renderer.jsx` — generic `<SlideRenderer slide resolved>` that stamps
+  slots by `z`, paints lock/brand from kit, fills var from payload. Supersedes `slide-renderer.jsx`; keeps the
+  string-slide legacy fallback.
+
+### 10.2 Content Studio = template-first
+Replace the composer flow in `proposal-builder.jsx` / `presentations-page.jsx`:
+1. **Template browser** (grid of painted thumbnails via the renderer) → pick.
+2. **Painted preview** + **slot-fill panel**, bindings declared in the manifest:
+   - `image` slot → live **`MediaPicker`** (`defaultTag = slot.tag`, `onChange` stores the `public_id`).
+   - `text` / `story` slot → **brand-voice dropdown** from `getBrandKit(resolved)` (storyBlocks / readyPhrases /
+     lines) + free text.
+   - `brand` slot → MediaPicker over brand-tagged assets; `lock` → painted from kit, no control.
+3. **Required Title** per template (validator + UI asterisk).
+4. Save → Content Library entry `{ kind:"deck", category:"slide-deck", cover, slides:[{t, slots}] }`. Image slot
+   values are **public_ids** (link-based — no file moved); copy values are strings. `cover = cldUrl(firstImageId, "card")`.
+
+### 10.3 Media Hub / Cloudinary combo
+- **Read (compose/render):** image slots store Cloudinary `public_id`s; the renderer delivers them with
+  `cldUrl(id, "hero"|"preview")`. Link-based references — Media Hub stays the single source of truth.
+- **Write (new asset):** Content Studio uploads via `uploadFileAuto({file, tenantFolder, subfolder:"presentations"})`
+  → returns a `public_id` → dispatched to the **Media Hub** for tagging (per `CONTENT_ORCHESTRATION_SPEC.md`).
+- **Lock/brand assets** (logo, seal, sprig) are brand-kit `public_id`s in Cloudinary, delivered via `cldUrl`.
+  TODO: `brand-kit.assets.sprig` is empty — upload + tag the sprig PNG, then set it in the kit.
+- **Export (later):** HTML render → html-to-image (or Cloudinary) → PNG/PDF; PPTX is the deferred `render.ts` path.
+
+### 10.4 Port order
+POC ✅ → build a 10-slide Monti deck in the POC (stress-test the 9) → port `template-manifests.js` +
+`brand-tokens.js` + `manifest-renderer.jsx` → make the composer template-first with live MediaPicker + brand
+voice → wire `uploadFileAuto` dispatch → validator → build/deploy.

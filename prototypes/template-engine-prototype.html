@@ -1,0 +1,794 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CheeseShop TECH — Template Engine (tokenized prototype)</title>
+<style>
+  :root{
+    --primary:#064E22; --accent:#009640; --sage:#70C883; --mint:#C8E2C5;
+    --cream:#FFFBDC; --paper:#FAF9F5; --charcoal:#716A6A; --ink:#141413;
+    --ui:"Futura PT","Futura",Inter,system-ui,sans-serif;
+    --display:"Cora","Fraunces",Georgia,serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--cream);color:var(--ink);font-family:var(--ui);line-height:1.4}
+  header.app{background:var(--primary);color:var(--cream);padding:14px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  header.app h1{font-family:var(--display);font-style:italic;font-weight:500;font-size:20px;margin:0}
+  header.app .sub{font-size:12px;opacity:.85}
+  .legend{display:flex;gap:14px;font-size:11px;align-items:center}
+  .dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+  .dot.var{background:#2f6df6}.dot.brand{background:#e0a23c}.dot.lock{background:#9aa0a6}
+  main{padding:22px;max-width:1280px;margin:0 auto}
+  .crumbs{font-size:13px;color:var(--charcoal);margin-bottom:14px}
+  .crumbs a{color:var(--accent);cursor:pointer;text-decoration:none}
+  /* canvas */
+  .canvas{position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;background:var(--cream);container-type:inline-size;border-radius:6px;border:1px solid #e6dbcb}
+  .slot{position:absolute;overflow:hidden}
+  .ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;text-align:center;
+      border:1.5px dashed rgba(112,200,131,.8);background:rgba(200,226,197,.18);color:#2f6df6;
+      font-size:2.4cqw;font-family:var(--ui);gap:.5ch;padding:2cqw}
+  .ph.brandph{border-color:rgba(224,162,60,.9);color:#b7791f;background:rgba(224,162,60,.12)}
+  img.slotimg{width:100%;height:100%;display:block}
+  /* browser grid */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px}
+  .card{background:#fff;border:1px solid #e6dbcb;border-radius:10px;overflow:hidden;cursor:pointer;transition:transform .12s,box-shadow .12s}
+  .card:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(6,78,34,.14)}
+  .card .meta{padding:10px 12px;display:flex;align-items:center;justify-content:space-between}
+  .card .meta b{font-size:14px;color:var(--primary)}
+  .card .meta span{font-size:11px;color:var(--charcoal)}
+  /* editor */
+  .editor{display:grid;grid-template-columns:1.55fr 1fr;gap:22px;align-items:start}
+  @media(max-width:900px){.editor{grid-template-columns:1fr}}
+  .stage{position:sticky;top:16px}
+  .panel{background:#fff;border:1px solid #e6dbcb;border-radius:10px;padding:16px}
+  .panel h3{margin:0 0 4px;font-family:var(--display);font-style:italic;color:var(--primary);font-size:18px}
+  .panel .hint{font-size:12px;color:var(--charcoal);margin:0 0 14px}
+  .group{margin-top:16px}
+  .group .gh{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--charcoal);margin-bottom:8px;font-weight:700}
+  .field{margin-bottom:12px}
+  .field label{display:block;font-size:12px;font-weight:600;margin-bottom:4px;color:var(--ink)}
+  .field label .req{color:#b42318}
+  .field input[type=text],.field textarea{width:100%;border:1px solid #d9cfc0;border-radius:6px;padding:7px 9px;font:inherit;font-size:13px;background:#fff}
+  .field textarea{resize:vertical;min-height:48px}
+  .field .role{float:right;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:1px 6px;border-radius:4px}
+  .role.var{background:#e7efff;color:#2f6df6}.role.brand{background:#fbf0db;color:#b7791f}.role.lock{background:#eef0f1;color:#6b7177}
+  .lockrow{display:flex;align-items:center;gap:8px;font-size:12px;color:#6b7177;padding:7px 9px;background:#f6f7f8;border-radius:6px;margin-bottom:8px}
+  .filebtn{display:inline-block;font-size:12px;border:1px solid #d9cfc0;border-radius:6px;padding:6px 10px;cursor:pointer;background:#faf6f0}
+  .filebtn:hover{background:#f1e9dd}
+  .warn{font-size:12px;color:#b42318;margin-top:2px;display:none}
+  .warn.show{display:block}
+  .assetthumb{width:36px;height:36px;object-fit:contain;border:1px solid #e6dbcb;border-radius:6px;background:#fff;vertical-align:middle;margin-right:8px}
+  .note{font-size:12px;background:#eef6ef;border:1px solid #cfe6d4;border-radius:8px;padding:10px 12px;color:#2c5638;margin-top:14px}
+  code{background:#eef0f1;padding:1px 5px;border-radius:4px;font-size:12px}
+  /* deck-builder chrome */
+  .bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:16px}
+  .tb{font:inherit;font-size:13px;border:1px solid #d9cfc0;background:#fff;color:var(--ink);border-radius:7px;padding:7px 12px;cursor:pointer}
+  .tb:hover{background:#f3eee4}
+  .tb.primary{background:var(--primary);color:var(--cream);border-color:var(--primary)}
+  .tb.danger{color:#b42318;border-color:#e7c9c4}
+  .tb:disabled{opacity:.4;cursor:default}
+  .count{font-size:13px;color:var(--charcoal);margin:0 4px}
+  .film{display:flex;gap:8px;overflow-x:auto;padding:12px 0 4px;margin-top:8px}
+  .filmcard{flex:0 0 158px;border:2px solid transparent;border-radius:8px;overflow:hidden;cursor:pointer;position:relative;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  .filmcard.active{border-color:var(--accent)}
+  .filmcard .n{position:absolute;top:4px;left:4px;background:rgba(0,0,0,.55);color:#fff;font-size:10px;border-radius:4px;padding:0 5px;z-index:20}
+  .filmadd{flex:0 0 158px;border:2px dashed #cdbfa8;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--charcoal);font-size:13px;aspect-ratio:16/9}
+  .filmadd:hover{background:#fff}
+  .clr{float:right;font-size:11px;color:#b42318;cursor:pointer;border:none;background:none;padding:0;margin-left:8px}
+  .clr:hover{text-decoration:underline}
+  .present{position:fixed;inset:0;background:#0b140d;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:60;padding:24px}
+  .present .pcanvas{width:min(94vw,1280px)}
+  .present .pbar{position:fixed;bottom:18px;display:flex;gap:10px;align-items:center}
+  /* PDF export: one slide per landscape page */
+  #toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--primary);color:var(--cream);padding:10px 18px;border-radius:8px;font-size:13px;box-shadow:0 6px 20px rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:opacity .2s;z-index:80}
+  #toast.show{opacity:1}
+  #printwrap{display:none}
+  @media print{
+    @page{ size:landscape; margin:0; }
+    body.printing > *:not(#printwrap){ display:none !important; }
+    #printwrap{display:block}
+    .printpage{ width:100%; break-after:page; page-break-after:always; }
+    .printpage:last-child{ break-after:auto; page-break-after:auto; }
+    .printpage .canvas{ border:none !important; border-radius:0 !important; }
+  }
+</style>
+</head>
+<body>
+<header class="app">
+  <div>
+    <h1>Template Engine — tokenized prototype</h1>
+    <div class="sub">One manifest · painted from any Brand Kit · current tenant: <b>Monti Trentini</b></div>
+  </div>
+  <div class="legend">
+    <span><span class="dot var"></span>var — you fill</span>
+    <span><span class="dot brand"></span>brand — swappable asset</span>
+    <span><span class="dot lock"></span>lock — painted from kit</span>
+  </div>
+</header>
+<main id="app"></main>
+
+<script>
+/* ============================================================
+   BRAND KIT  (the only Monti-specific data; swap this object per tenant)
+   ============================================================ */
+const CLD = "https://res.cloudinary.com/sofcvmwa/image/upload/f_auto,q_auto/";
+const BRAND_KIT = {
+  name:"Monti Trentini",
+  colors:{ primary:"#064E22", accent:"#009640", sage:"#70C883", mint:"#C8E2C5",
+           cream:"#FFFBDC", paper:"#FAF9F5", charcoal:"#716A6A", ink:"#141413", red:"#CE2B37" },
+  fonts:{ display:'"Cora","Fraunces",Georgia,serif', ui:'"Futura PT","Futura",Inter,system-ui,sans-serif' },
+  assets:{ logo: CLD+"monti/brand/logo", seal: CLD+"monti/brand/aicc-seal", sprig:"" }
+};
+
+/* ============================================================
+   BINDINGS (built into the template now; live versions plug in later)
+   image slots -> MEDIA HUB (tag-filtered) · copy slots -> BRAND VOICE
+   In the app these become the live MediaPicker + the tenant's brand-voice doc.
+   ============================================================ */
+const _C=BRAND_KIT.colors;
+function tile(label,bg,fg){
+  const svg=`<svg xmlns='http://www.w3.org/2000/svg' width='480' height='360'><rect width='100%' height='100%' fill='${bg}'/><text x='50%' y='53%' font-family='Georgia,serif' font-style='italic' font-size='30' fill='${fg}' text-anchor='middle'>${label}</text></svg>`;
+  return "data:image/svg+xml,"+encodeURIComponent(svg);
+}
+// product photo with the background REMOVED (transparent PNG variant — composites onto any brand color)
+function ptile(label){
+  const svg=`<svg xmlns='http://www.w3.org/2000/svg' width='420' height='360'>`
+    +`<ellipse cx='210' cy='322' rx='118' ry='15' fill='rgba(0,0,0,0.18)'/>`
+    +`<rect x='110' y='120' width='200' height='150' rx='10' fill='#f3e3a8' stroke='#c9a945' stroke-width='3'/>`
+    +`<rect x='110' y='120' width='200' height='42' rx='10' fill='#f7eec2'/>`
+    +`<text x='210' y='348' font-family='Georgia,serif' font-style='italic' font-size='26' fill='#064E22' text-anchor='middle'>${label}</text></svg>`;
+  return "data:image/svg+xml,"+encodeURIComponent(svg);
+}
+function sealTile(){
+  const svg=`<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'>`
+    +`<circle cx='150' cy='150' r='142' fill='#064E22'/><circle cx='150' cy='150' r='118' fill='#FFFBDC'/>`
+    +`<text x='150' y='138' font-family='sans-serif' font-size='21' font-weight='700' fill='#064E22' text-anchor='middle'>AUTHENTIC</text>`
+    +`<text x='150' y='168' font-family='sans-serif' font-size='15' fill='#CE2B37' text-anchor='middle'>ITALIAN · CERTIFIED</text></svg>`;
+  return "data:image/svg+xml,"+encodeURIComponent(svg);
+}
+const MEDIA_HUB = [
+  // photography
+  { id:"alpine-pasture",  url:tile("Alpine pasture",_C.sage,"#ffffff"),   tags:["hero","lifestyle","story"] },
+  { id:"dolomites-peaks", url:tile("Dolomites peaks",_C.primary,_C.mint), tags:["hero","lifestyle"] },
+  { id:"family-dairy",    url:tile("Family dairy",_C.mint,_C.primary),    tags:["lifestyle","story"] },
+  { id:"grazing-cows",    url:tile("Grazing cows",_C.sage,"#ffffff"),     tags:["lifestyle","story"] },
+  // product photos — BACKGROUND REMOVED (transparent)
+  { id:"asiago (bg-removed)",   url:ptile("Asiago"),   tags:["product","hero"], png:true, product:"Asiago DOP" },
+  { id:"squared (bg-removed)",  url:ptile("Squared"),  tags:["product","hero"], png:true, product:"Squared Table Cheese" },
+  { id:"classic (bg-removed)",  url:ptile("Classic"),  tags:["product"],        png:true, product:"Alpine Classic" },
+  // brand assets
+  { id:"aicc-seal",   url:sealTile(),              tags:["brand","seal"] },
+  { id:"wheat-sprig", url:tile("✿ sprig",_C.cream,_C.sage), tags:["brand","sprig"] },
+  { id:"monti-logo",  url:BRAND_KIT.assets.logo,   tags:["brand","logo"] },
+];
+// Product catalog (real source = Custom Price List Creator). Cloudinary assets carry the product name in
+// metadata; picking a product photo auto-fills the linked name field. The dropdown offers direct fill.
+const PRODUCTS = ["Asiago DOP","Squared Table Cheese","Alpine Classic","Mountain Toma","Trentino Smoked","Fresh Caciotta"];
+function defaultTag(id){ if(id.startsWith("hero"))return "hero"; if(id.startsWith("img"))return "lifestyle"; if(id.startsWith("name")||id.startsWith("card"))return "product"; return ""; }
+
+const BRAND_VOICE = {
+  phrases:[
+    "Made at altitude in the Trentino mountains.",
+    "Milk from our neighborhood — within 90 km of our dairy in Grigno.",
+    "Where cows graze in the Dolomites' shades.",
+    "A certified dairy at 800 metres above sea level.",
+    "Four generations of cheesemakers. One hundred years of family tradition.",
+    "We do everything at home — milk processing, cheese making, aging and packaging.",
+    "Casa Finco — casari dal 1925.",
+  ],
+  lines:[
+    { label:"Motto", text:"High level of happiness." },
+    { label:"Mantra", text:"Happiness has plenty of shapes — Monti Trentini brings them on your table." },
+    { label:"Hook", text:"Product of the Mountains — the mountain origin IS the story." },
+    { label:"Heritage", text:"Casa Finco — casari dal 1925." },
+  ],
+  stories:[
+    { title:"A hundred-year story", body:"A hundred-year story does not happen by chance — guided by family, respect for territory, and quality." },
+    { title:"Everything at home", body:"Milk processing, cheese making, aging and packaging happen only in our own plants. Every wheel is handled start to finish." },
+    { title:"Why the mountains matter", body:"Where cows graze in the Dolomites' shades, the milk is different — and so is the cheese." },
+    { title:"A new taste for the future", body:"We work daily to give the future a new taste — a solar plant generating ~650,000 kWh a year, used entirely in-house." },
+    { title:"A partner for your shelves", body:"A complete, authentic Italian Alpine range for specialty and retail shelves — heritage PDO wheels alongside ready-to-merchandise formats." },
+    { title:"For the chef's table", body:"For chefs: Alpine cheeses with real provenance, aged in the maker's own plants, from milk grazed in the Dolomites' shades." },
+  ],
+};
+
+function buildSelect(groups,onPick,placeholder){
+  const sel=document.createElement("select");
+  sel.style.cssText="width:100%;border:1px solid #d9cfc0;border-radius:6px;padding:7px 9px;font:inherit;font-size:12px;background:#fff;margin-bottom:6px";
+  const ph=document.createElement("option"); ph.value=""; ph.textContent=placeholder||"Insert…"; sel.appendChild(ph);
+  groups.forEach(g=>{ const og=document.createElement("optgroup"); og.label=g.group;
+    g.items.forEach(it=>{ const o=document.createElement("option"); o.value=it.value; o.textContent=it.label.length>62?it.label.slice(0,59)+"…":it.label; og.appendChild(o); });
+    sel.appendChild(og); });
+  sel.onchange=()=>{ if(sel.value){ onPick(sel.value); sel.value=""; } };
+  return sel;
+}
+
+function mediaField(slot,tagOverride){
+  const w=document.createElement("div");
+  const tag=tagOverride||slot.tag||defaultTag(slot.id);
+  const note=document.createElement("div"); note.style.cssText="font-size:11px;color:#6e5e48;margin-bottom:6px";
+  note.innerHTML="◆ Media Hub"+(tag?` · tag: <b>${tag}</b>`:"")+(tag==="product"?" · <b>bg-removed PNGs</b>":"");
+  w.appendChild(note);
+  const strip=document.createElement("div"); strip.style.cssText="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px";
+  let assets=MEDIA_HUB.filter(a=>!tag||a.tags.includes(tag));
+  if(!assets.length) assets=MEDIA_HUB;
+  if(slot.pick!=null && assets[slot.pick]) assets=[assets[slot.pick]];   // one box per field (keeps it organized)
+  assets.forEach(a=>{
+    const im=document.createElement("img"); im.src=a.url; im.title=a.id;
+    im.style.cssText="width:46px;height:46px;object-fit:"+(a.png?"contain":"cover")+";border-radius:6px;border:2px solid transparent;cursor:pointer;background:"+(a.png?"#fff":"#dfe6df");
+    im.onerror=()=>{ im.onerror=null; im.src=tile(a.id,"#e6dbcb","#716A6A"); };
+    if(PAYLOAD[slot.id]===a.url) im.style.borderColor="#009640";
+    im.onclick=()=>{
+      PAYLOAD[slot.id]=a.url;
+      [...strip.children].forEach(c=>c.style.borderColor="transparent"); im.style.borderColor="#009640";
+      if(slot.fills && a.product){ PAYLOAD[slot.fills]=a.product; buildInspector(curTpl()); }   // metadata → linked text field
+      drawStage();
+    };
+    strip.appendChild(im);
+  });
+  w.appendChild(strip);
+  w.appendChild(fileInput(slot.id));
+  return w;
+}
+
+/* token resolver — $primary / $display / $logo → kit value; literals pass through */
+function tok(v){
+  if(typeof v!=="string"||v[0]!=="$") return v;
+  const k=v.slice(1);
+  return BRAND_KIT.colors[k] ?? BRAND_KIT.fonts[k] ?? BRAND_KIT.assets[k] ?? v;
+}
+
+/* ============================================================
+   TEMPLATE LIBRARY  (platform-shared manifests — tokens only, no brand literals)
+   slot: {id, role:var|brand|lock, kind:text|image|shape, x,y,w,h, z, ...}
+   ============================================================ */
+const ACCENT_BAR = {id:"top_accent_bar",role:"lock",kind:"shape",x:0,y:0,w:960,h:8,z:2,fill:"$accent"};
+const LOGO_TC = {id:"brand_logo",role:"lock",kind:"image",fit:"contain",x:360,y:28,w:240,h:96,z:9,asset:"$logo",toggle:true,tag:"logo",label:"Logo"};
+const LOGO_TR = {id:"brand_logo",role:"lock",kind:"image",fit:"contain",x:806,y:16,w:130,h:54,z:9,asset:"$logo",toggle:true,tag:"logo",label:"Logo"};
+const LOGO_TL = {id:"brand_logo",role:"lock",kind:"image",fit:"contain",x:48,y:34,w:180,h:72,z:9,asset:"$logo",toggle:true,tag:"logo",label:"Logo"};
+
+const TEMPLATES = [
+{ id:"product-feature/v1", label:"Product Feature", tag:"flagship · from handoff",
+  canvas:{w:960,h:540},
+  slots:[
+    ACCENT_BAR,
+    {id:"hero_image",role:"var",kind:"image",fit:"cover",x:385,y:0,w:575,h:540,z:3,required:true,tag:"product",label:"Product photo"},
+    {id:"slide_title",role:"var",as:"title",kind:"text",x:35,y:41,w:353,h:90,z:8,fit:"shrink",
+      font:{font:"$display",size:24,bold:true,italic:true,color:"$accent",align:"left"},label:"Title"},
+    {id:"topic_label",role:"var",kind:"text",x:35,y:138,w:330,h:54,z:8,fit:"shrink",
+      font:{font:"$display",size:18,bold:true,italic:true,color:"$primary",align:"left"},label:"Topic"},
+    {id:"story_block",role:"var",as:"story",kind:"text",x:33,y:200,w:330,h:200,z:5,fit:"shrink",
+      parts:[
+        {id:"headline",font:{font:"$ui",size:13,uppercase:true,bold:true,color:"$accent",align:"left"}},
+        {id:"narrative",font:{font:"$display",size:15,italic:true,color:"$primary",align:"left"}}
+      ],label:"Story"},
+    {id:"emblem_overlay",role:"brand",kind:"image",fit:"contain",x:392,y:330,w:172,h:172,z:4,asset:"$seal",tag:"seal",label:"Cert emblem"},
+    {id:"brand_sprig",role:"brand",kind:"image",fit:"contain",x:40,y:415,w:226,h:97,z:7,asset:"$sprig",tag:"sprig",label:"Sprig accent"},
+  ],
+  sample:{ slide_title:"Italian Certified Excellence", topic_label:"Special squared format cheese",
+    story_block:{ headline:"PRODUCED EXCLUSIVELY WITH ITALIAN COW'S MILK FROM A SHORT SUPPLY CHAIN.",
+      narrative:"A compact, elastic texture, perfect for slicing — equally at home on panini, sandwiches or a burger." } } },
+
+{ id:"cover/v1", label:"Cover", tag:"opener",
+  canvas:{w:960,h:540},
+  slots:[
+    {id:"hero_image",role:"var",kind:"image",fit:"cover",x:0,y:0,w:960,h:540,z:1,required:true,label:"Background photo"},
+    {id:"scrim",role:"lock",kind:"shape",x:0,y:230,w:960,h:310,z:2,gradient:"linear-gradient(180deg,rgba(6,78,34,0),rgba(6,78,34,.82))"},
+    ACCENT_BAR, LOGO_TC,
+    {id:"slide_title",role:"var",as:"title",kind:"text",x:70,y:360,w:820,h:104,z:5,fit:"shrink",
+      font:{font:"$display",size:42,italic:true,color:"$cream",align:"left"},label:"Title"},
+    {id:"topic_label",role:"var",kind:"text",x:70,y:466,w:820,h:48,z:5,fit:"shrink",
+      font:{font:"$display",size:20,italic:true,color:"$mint",align:"left"},label:"Subtitle"},
+  ],
+  sample:{ slide_title:"Crafted for the Modern Table", topic_label:"Squared-format table cheese" } },
+
+{ id:"statement/v1", label:"Statement", tag:"big idea",
+  canvas:{w:960,h:540},
+  slots:[
+    {id:"bg",role:"lock",kind:"shape",x:0,y:0,w:960,h:540,z:1,fill:"$primary"},
+    ACCENT_BAR, LOGO_TC,
+    {id:"slide_title",role:"var",as:"title",kind:"text",x:110,y:175,w:740,h:200,z:5,fit:"shrink",
+      font:{font:"$display",size:46,italic:true,color:"$cream",align:"center"},label:"Statement"},
+    {id:"topic_label",role:"var",kind:"text",x:160,y:400,w:640,h:56,z:5,fit:"shrink",
+      font:{font:"$display",size:22,italic:true,color:"$mint",align:"center"},label:"Attribution"},
+  ],
+  sample:{ slide_title:"Made at altitude in the Trentino mountains.", topic_label:"Casa Finco — casari dal 1925." } },
+
+{ id:"story/v1", label:"Story", tag:"image + copy",
+  canvas:{w:960,h:540},
+  slots:[
+    {id:"bg_panel",role:"lock",kind:"shape",x:0,y:0,w:480,h:540,z:1,fill:"$cream"},
+    {id:"hero_image",role:"var",kind:"image",fit:"cover",x:480,y:0,w:480,h:540,z:2,required:true,label:"Photo"},
+    ACCENT_BAR, LOGO_TL,
+    {id:"slide_title",role:"var",as:"title",kind:"text",x:52,y:140,w:376,h:110,z:5,fit:"shrink",
+      font:{font:"$display",size:34,italic:true,color:"$primary",align:"left"},label:"Title"},
+    {id:"story_block",role:"var",as:"story",kind:"text",x:52,y:268,w:376,h:212,z:5,fit:"shrink",
+      parts:[
+        {id:"headline",font:{font:"$ui",size:13,uppercase:true,bold:true,color:"$accent",align:"left"}},
+        {id:"narrative",font:{font:"$display",size:15,italic:true,color:"$ink",align:"left"}}
+      ],label:"Story"},
+  ],
+  sample:{ slide_title:"A hundred-year story",
+    story_block:{ headline:"FOUR GENERATIONS · ONE HUNDRED YEARS",
+      narrative:"Milk from our neighborhood — within 90 km of our dairy in Grigno — processed, aged and packaged entirely in our own plants." } } },
+
+{ id:"three-up/v1", label:"Three-up (pillars)", tag:"3 columns",
+  canvas:{w:960,h:540},
+  slots:[
+    {id:"bg",role:"lock",kind:"shape",x:0,y:0,w:960,h:540,z:1,fill:"$cream"},
+    ACCENT_BAR, LOGO_TR,
+    {id:"slide_title",role:"var",as:"title",kind:"text",x:60,y:52,w:720,h:60,z:5,fit:"shrink",
+      font:{font:"$display",size:30,italic:true,color:"$primary",align:"left"},label:"Title"},
+    {id:"img1",role:"var",kind:"image",fit:"cover",x:60,y:150,w:260,h:250,z:4,label:"Image 1"},
+    {id:"cap1",role:"var",kind:"text",x:60,y:410,w:260,h:80,z:5,fit:"shrink",font:{font:"$ui",size:14,color:"$ink",align:"center"},label:"Caption 1"},
+    {id:"img2",role:"var",kind:"image",fit:"cover",x:350,y:150,w:260,h:250,z:4,label:"Image 2"},
+    {id:"cap2",role:"var",kind:"text",x:350,y:410,w:260,h:80,z:5,fit:"shrink",font:{font:"$ui",size:14,color:"$ink",align:"center"},label:"Caption 2"},
+    {id:"img3",role:"var",kind:"image",fit:"cover",x:640,y:150,w:260,h:250,z:4,label:"Image 3"},
+    {id:"cap3",role:"var",kind:"text",x:640,y:410,w:260,h:80,z:5,fit:"shrink",font:{font:"$ui",size:14,color:"$ink",align:"center"},label:"Caption 3"},
+  ],
+  sample:{ slide_title:"Why Monti Trentini", cap1:"Alpine milk, within 90 km", cap2:"Family dairy since 1925", cap3:"Certified mountain origin" } },
+
+{ id:"big-stat/v1", label:"Big stat", tag:"one number",
+  canvas:{w:960,h:540},
+  slots:[
+    {id:"bg",role:"lock",kind:"shape",x:0,y:0,w:960,h:540,z:1,fill:"$primary"},
+    ACCENT_BAR, LOGO_TC,
+    {id:"stat_value",role:"var",kind:"text",x:80,y:150,w:800,h:210,z:5,fit:"shrink",
+      font:{font:"$display",size:130,bold:true,color:"$cream",align:"center"},label:"Stat (e.g. 100)"},
+    {id:"slide_title",role:"var",as:"title",kind:"text",x:120,y:372,w:720,h:80,z:5,fit:"shrink",
+      font:{font:"$display",size:24,italic:true,color:"$mint",align:"center"},label:"Label"},
+  ],
+  sample:{ stat_value:"100", slide_title:"years of family cheesemaking" } },
+
+{ id:"quote/v1", label:"Quote", tag:"testimonial",
+  canvas:{w:960,h:540},
+  slots:[
+    {id:"bg",role:"lock",kind:"shape",x:0,y:0,w:960,h:540,z:1,fill:"$paper"},
+    {id:"hero_image",role:"var",kind:"image",fit:"cover",x:0,y:0,w:960,h:540,z:2,tag:"lifestyle",label:"Hero photo (optional)"},
+    {id:"scrim",role:"lock",kind:"shape",x:0,y:0,w:960,h:540,z:3,gradient:"linear-gradient(90deg, rgba(250,249,245,0.97) 34%, rgba(250,249,245,0.72) 56%, rgba(250,249,245,0) 100%)"},
+    {id:"top_accent_bar",role:"lock",kind:"shape",x:0,y:0,w:960,h:8,z:6,fill:"$accent"},
+    LOGO_TR,
+    {id:"slide_title",role:"var",as:"title",kind:"text",x:110,y:84,w:740,h:40,z:5,fit:"shrink",
+      font:{font:"$ui",size:14,uppercase:true,bold:true,color:"$accent",align:"left"},label:"Eyebrow / Title"},
+    {id:"quote_block",role:"var",kind:"text",x:110,y:150,w:740,h:230,z:5,fit:"shrink",
+      font:{font:"$display",size:40,italic:true,color:"$primary",align:"left"},label:"Quote"},
+    {id:"attribution",role:"var",kind:"text",x:110,y:410,w:740,h:50,z:5,fit:"shrink",
+      font:{font:"$ui",size:18,color:"$charcoal",align:"left"},label:"Attribution"},
+  ],
+  sample:{ slide_title:"From our buyers", quote_block:"The mountain origin you can actually taste.", attribution:"— Specialty buyer, New York" } },
+
+{ id:"product-range/v1", label:"Product range", tag:"catalog cards",
+  canvas:{w:960,h:540},
+  slots:[
+    {id:"bg",role:"lock",kind:"shape",x:0,y:0,w:960,h:540,z:1,fill:"$cream"},
+    ACCENT_BAR, LOGO_TR,
+    {id:"slide_title",role:"var",as:"title",kind:"text",x:60,y:52,w:840,h:60,z:5,fit:"shrink",
+      font:{font:"$display",size:30,italic:true,color:"$primary",align:"center"},label:"Title"},
+    {id:"card1",role:"lock",kind:"shape",x:60,y:150,w:260,h:330,z:2,fill:"$paper",radius:14},
+    {id:"img1",role:"var",kind:"image",fit:"contain",x:80,y:170,w:220,h:220,z:4,tag:"product",pick:0,fills:"name1",label:"Product 1 image"},
+    {id:"name1",role:"var",kind:"text",x:60,y:400,w:260,h:64,z:5,fit:"shrink",font:{font:"$ui",size:16,bold:true,color:"$primary",align:"center"},label:"Product 1 name"},
+    {id:"card2",role:"lock",kind:"shape",x:350,y:150,w:260,h:330,z:2,fill:"$paper",radius:14},
+    {id:"img2",role:"var",kind:"image",fit:"contain",x:370,y:170,w:220,h:220,z:4,tag:"product",pick:1,fills:"name2",label:"Product 2 image"},
+    {id:"name2",role:"var",kind:"text",x:350,y:400,w:260,h:64,z:5,fit:"shrink",font:{font:"$ui",size:16,bold:true,color:"$primary",align:"center"},label:"Product 2 name"},
+    {id:"card3",role:"lock",kind:"shape",x:640,y:150,w:260,h:330,z:2,fill:"$paper",radius:14},
+    {id:"img3",role:"var",kind:"image",fit:"contain",x:660,y:170,w:220,h:220,z:4,tag:"product",pick:2,fills:"name3",label:"Product 3 image"},
+    {id:"name3",role:"var",kind:"text",x:640,y:400,w:260,h:64,z:5,fit:"shrink",font:{font:"$ui",size:16,bold:true,color:"$primary",align:"center"},label:"Product 3 name"},
+  ],
+  sample:{ slide_title:"The Range", name1:"Asiago DOP", name2:"Squared Table", name3:"Alpine Classic" } },
+
+{ id:"closing/v1", label:"Closing / CTA", tag:"ender",
+  canvas:{w:960,h:540},
+  slots:[
+    {id:"bg",role:"lock",kind:"shape",x:0,y:0,w:960,h:540,z:1,fill:"$primary"},
+    ACCENT_BAR,
+    {id:"brand_logo",role:"lock",kind:"image",fit:"contain",x:360,y:78,w:240,h:96,z:9,asset:"$logo",toggle:true,tag:"logo",label:"Logo"},
+    {id:"slide_title",role:"var",as:"title",kind:"text",x:120,y:228,w:720,h:120,z:5,fit:"shrink",
+      font:{font:"$display",size:44,italic:true,color:"$cream",align:"center"},label:"Headline"},
+    {id:"cta_pill",role:"lock",kind:"shape",x:360,y:380,w:240,h:64,z:4,fill:"$cream",radius:999},
+    {id:"cta",role:"var",kind:"text",x:360,y:380,w:240,h:64,z:6,fit:"shrink",vcenter:true,
+      font:{font:"$ui",size:20,bold:true,color:"$primary",align:"center"},label:"Button text"},
+    {id:"contact",role:"var",kind:"text",x:120,y:472,w:720,h:40,z:6,fit:"shrink",
+      font:{font:"$ui",size:16,color:"$mint",align:"center"},label:"Contact"},
+  ],
+  sample:{ slide_title:"Let's bring the mountains to your table.", cta:"Request samples", contact:"hello@montitrentini.us" } },
+
+{ id:"image/v1", label:"Image (full-bleed)", tag:"photo + caption",
+  canvas:{w:960,h:540},
+  slots:[
+    {id:"hero_image",role:"var",kind:"image",fit:"cover",x:0,y:0,w:960,h:540,z:1,required:true,label:"Photo"},
+    {id:"scrim",role:"lock",kind:"shape",x:0,y:400,w:960,h:140,z:2,gradient:"linear-gradient(180deg,rgba(6,78,34,0),rgba(6,78,34,.78))"},
+    {id:"slide_title",role:"var",as:"title",kind:"text",x:40,y:470,w:880,h:52,z:3,fit:"shrink",
+      font:{font:"$display",size:22,italic:true,color:"$cream",align:"left"},label:"Caption / Title"},
+    {id:"top_accent_bar",role:"lock",kind:"shape",x:0,y:0,w:960,h:8,z:4,fill:"$accent"},
+  ],
+  sample:{ slide_title:"Where cows graze in the Dolomites' shades." } },
+];
+
+/* ============================================================
+   RENDERER  — stamp a manifest + payload onto a canvas, painted by the kit
+   ============================================================ */
+function pct(v,total){ return (v/total*100)+"%"; }
+function ptToCqw(pt,cw){ return (pt*96/72)/cw*100; }   // pt -> cqw on this canvas width
+
+function buildTextEl(slot,cw,value,present){
+  const el=document.createElement("div");
+  const f=slot.font||{};
+  el.style.display="flex";
+  el.style.flexDirection="column";
+  el.style.justifyContent = slot.vcenter ? "center" : "flex-start";
+  el.style.alignItems = f.align==="center" ? "center" : f.align==="right" ? "flex-end" : "flex-start";
+  el.style.textAlign=f.align||"left";
+  // scale-aware nodes
+  const nodes=[];
+  if(slot.as==="story"){
+    const v=value||{};
+    slot.parts.forEach((p,i)=>{
+      const d=document.createElement("div");
+      const pf=p.font||{};
+      d.textContent=(v[p.id]||"")|| (present?"":(i===0?"HEADLINE":"Narrative copy goes here."));
+      d._cqw=ptToCqw(pf.size||14,cw);
+      d.style.fontFamily=tok(pf.font||"$display");
+      d.style.color=tok(pf.color||"$ink");
+      d.style.fontStyle=pf.italic?"italic":"normal";
+      d.style.fontWeight=pf.bold?"700":"400";
+      if(pf.uppercase)d.style.textTransform="uppercase";
+      d.style.lineHeight=i===0?"1.15":"1.35";
+      d.style.margin=i===0?"0 0 1.4cqw":"0";
+      d.style.letterSpacing=pf.uppercase?".04em":"normal";
+      nodes.push(d); el.appendChild(d);
+    });
+  } else {
+    const d=document.createElement("div");
+    d.textContent=value || (present?"":(slot.label||""));
+    d._cqw=ptToCqw(f.size||18,cw);
+    d.style.fontFamily=tok(f.font||"$display");
+    d.style.color=tok(f.color||"$ink");
+    d.style.fontStyle=f.italic?"italic":"normal";
+    d.style.fontWeight=f.bold?"700":"400";
+    if(f.uppercase)d.style.textTransform="uppercase";
+    d.style.lineHeight="1.12";
+    d.style.letterSpacing=f.uppercase?".05em":"normal";
+    nodes.push(d); el.appendChild(d);
+  }
+  el._apply=(k)=>nodes.forEach(n=>n.style.fontSize=(n._cqw*k)+"cqw");
+  el._apply(1);
+  el._fit = (slot.fit!=="off");
+  return el;
+}
+
+function buildImageEl(slot,value,present){
+  const wrap=document.createElement("div");
+  wrap.style.width="100%";wrap.style.height="100%";
+  if(value){
+    const img=document.createElement("img");
+    img.className="slotimg";
+    img.style.objectFit=slot.fit==="contain"?"contain":"cover";
+    img.src=value;
+    img.onerror=()=>{ wrap.innerHTML=""; if(!present) wrap.appendChild(makePh(slot)); };
+    wrap.appendChild(img);
+  } else if(!present){
+    wrap.appendChild(makePh(slot));
+  }
+  return wrap;
+}
+function makePh(slot){
+  const p=document.createElement("div");
+  p.className="ph"+(slot.role==="brand"?" brandph":"");
+  p.textContent=(slot.role==="brand"?"⤿ ":"＋ ")+(slot.label||slot.id);
+  return p;
+}
+
+function renderCanvas(host,tpl,payload,opts){
+  const present = !!(opts&&opts.present);
+  host.innerHTML="";
+  const cv=document.createElement("div");
+  cv.className="canvas";
+  const cw=tpl.canvas.w, ch=tpl.canvas.h;
+  cv.style.background = tok("$cream");
+  [...tpl.slots].sort((a,b)=>(a.z||0)-(b.z||0)).forEach(slot=>{
+    if(payload.__off && payload.__off[slot.id]) return;   // hidden on this slide (e.g. logo)
+    const s=document.createElement("div");
+    s.className="slot";
+    s.style.left=pct(slot.x,cw); s.style.top=pct(slot.y,ch);
+    s.style.width=pct(slot.w,cw); s.style.height=pct(slot.h,ch);
+    s.style.zIndex=slot.z||0;
+    if(slot.kind==="shape"){
+      s.style.background = slot.gradient ? slot.gradient : tok(slot.fill||"$primary");
+      if(slot.radius) s.style.borderRadius=(slot.radius>=999?"999px":pct(slot.radius,cw));
+    } else if(slot.kind==="image"){
+      const val = slot.role==="var" ? (payload[slot.id]||null) : (payload[slot.id]||tok(slot.asset));
+      s.appendChild(buildImageEl(slot, val||null, present));
+    } else if(slot.kind==="text"){
+      s.style.padding="0.6cqw 0";
+      const val = slot.role==="var" ? payload[slot.id] : undefined;
+      const t=buildTextEl(slot,cw,val,present);
+      s.appendChild(t); s._txt=t;
+    }
+    cv.appendChild(s);
+  });
+  host.appendChild(cv);
+  // fit pass (after layout)
+  requestAnimationFrame(()=>{
+    cv.querySelectorAll(".slot").forEach(s=>{
+      const t=s._txt; if(!t||!t._fit) return;
+      let k=1,guard=0;
+      while((s.scrollHeight>s.clientHeight+1) && k>0.45 && guard<40){ k-=0.05; t._apply(k); guard++; }
+    });
+  });
+  return cv;
+}
+
+/* ============================================================
+   VIEWS — deck builder
+   ============================================================ */
+const app=document.getElementById("app");
+let DECK=[], IDX=0, PAYLOAD={};
+
+const getTpl=(id)=>TEMPLATES.find(t=>t.id===id)||TEMPLATES[0];
+const curSlide=()=>DECK[IDX];
+const curTpl=()=>getTpl(curSlide().templateId);
+
+function render(){ if(DECK.length===0) renderStart(); else renderEditor(); }
+function addSlide(tpl){ DECK.push({templateId:tpl.id, payload:{...(tpl.sample||{})}}); IDX=DECK.length-1; render(); }
+
+function templateGrid(onPick){
+  const grid=document.createElement("div"); grid.className="grid";
+  TEMPLATES.forEach(tpl=>{
+    const card=document.createElement("div"); card.className="card";
+    const holder=document.createElement("div"); card.appendChild(holder);
+    const meta=document.createElement("div"); meta.className="meta";
+    meta.innerHTML=`<b>${tpl.label}</b><span>${tpl.tag}</span>`;
+    card.appendChild(meta);
+    card.onclick=()=>onPick(tpl);
+    grid.appendChild(card);
+    renderCanvas(holder,tpl,{...tpl.sample},{present:true});
+  });
+  return grid;
+}
+
+function renderStart(){
+  app.innerHTML=`<div class="crumbs"><b>Start your deck</b> — pick a template for your first slide. Each opens already painted in the brand; every template carries a required Title.</div>`;
+  app.appendChild(templateGrid(addSlide));
+}
+
+function showAddPicker(){
+  app.innerHTML=`<div class="crumbs"><a id="back">← Back to slide ${IDX+1}</a> &nbsp;/&nbsp; <b>Add a slide</b> — pick a template.</div>`;
+  document.getElementById("back").onclick=render;
+  app.appendChild(templateGrid(addSlide));
+}
+
+function renderEditor(){
+  const tpl=curTpl(); PAYLOAD=curSlide().payload;
+  app.innerHTML="";
+  const bar=document.createElement("div"); bar.className="bar";
+  bar.innerHTML=`
+    <button class="tb" id="prev">◀ Prev</button>
+    <span class="count">Slide ${IDX+1} / ${DECK.length}</span>
+    <button class="tb" id="next">Next ▶</button>
+    <button class="tb primary" id="add">＋ Add slide</button>
+    <button class="tb" id="present">▶ Present</button>
+    <span style="flex:1"></span>
+    <button class="tb" id="clear">↺ Clear slide</button>
+    <button class="tb danger" id="del">🗑 Delete slide</button>
+    <button class="tb" id="lib">▸ Save to Library</button>
+    <button class="tb" id="save">⤓ Export PDF</button>`;
+  app.appendChild(bar);
+
+  const wrap=document.createElement("div"); wrap.className="editor";
+  wrap.innerHTML=`<div class="stage"><div id="stage"></div>
+      <div class="note">Image slots → <b>Media Hub</b> (tag-filtered) · copy slots → <b>Monti brand voice</b> · the emblem &amp; sprig are swappable <b>brand</b> assets · product photos use <b>background-removed PNGs</b> so they sit cleanly on any brand color. <b>Present</b> hides every empty slot and the wireframe for a clean final deck.</div></div>
+    <div class="panel" id="panel"></div>`;
+  app.appendChild(wrap);
+
+  drawStage(); buildInspector(tpl);
+
+  const $=id=>document.getElementById(id);
+  $("prev").disabled=IDX===0; $("prev").onclick=()=>{ if(IDX>0){IDX--;render();} };
+  $("next").disabled=IDX>=DECK.length-1; $("next").onclick=()=>{ if(IDX<DECK.length-1){IDX++;render();} };
+  $("add").onclick=showAddPicker;
+  $("present").onclick=enterPresent;
+  $("clear").onclick=()=>{ curSlide().payload={}; PAYLOAD=curSlide().payload; drawStage(); buildInspector(curTpl()); };
+  $("del").onclick=()=>{ DECK.splice(IDX,1); if(IDX>=DECK.length) IDX=Math.max(0,DECK.length-1); render(); };
+  $("lib").onclick=saveToLibrary;
+  $("save").onclick=exportPDF;
+
+  const film=document.createElement("div"); film.className="film";
+  DECK.forEach((sl,i)=>{
+    const fc=document.createElement("div"); fc.className="filmcard"+(i===IDX?" active":"");
+    const h=document.createElement("div"); fc.appendChild(h);
+    const n=document.createElement("div"); n.className="n"; n.textContent=i+1; fc.appendChild(n);
+    fc.onclick=()=>{ IDX=i; render(); };
+    film.appendChild(fc);
+    renderCanvas(h,getTpl(sl.templateId),sl.payload,{present:true});
+  });
+  const fa=document.createElement("div"); fa.className="filmadd"; fa.textContent="＋ Add slide"; fa.onclick=showAddPicker;
+  film.appendChild(fa);
+  app.appendChild(film);
+}
+
+function drawStage(){ const st=document.getElementById("stage"); if(st) renderCanvas(st,curTpl(),PAYLOAD); }
+
+function enterPresent(){
+  let i=IDX;
+  const ov=document.createElement("div"); ov.className="present";
+  const c=document.createElement("div"); c.className="pcanvas"; ov.appendChild(c);
+  const bar=document.createElement("div"); bar.className="pbar";
+  bar.innerHTML=`<button class="tb" id="pp">◀</button><span class="count" id="pc" style="color:#fff"></span><button class="tb" id="pn">▶</button><button class="tb" id="px">Exit ✕</button>`;
+  ov.appendChild(bar); document.body.appendChild(ov);
+  const draw=()=>{ renderCanvas(c,getTpl(DECK[i].templateId),DECK[i].payload,{present:true}); document.getElementById("pc").textContent=(i+1)+" / "+DECK.length; };
+  const close=()=>{ ov.remove(); document.removeEventListener("keydown",key); };
+  function key(e){ if(e.key==="ArrowRight"&&i<DECK.length-1){i++;draw();} else if(e.key==="ArrowLeft"&&i>0){i--;draw();} else if(e.key==="Escape"){close();} }
+  bar.querySelector("#pp").onclick=()=>{ if(i>0){i--;draw();} };
+  bar.querySelector("#pn").onclick=()=>{ if(i<DECK.length-1){i++;draw();} };
+  bar.querySelector("#px").onclick=close;
+  document.addEventListener("keydown",key); draw();
+}
+
+function firstImageOf(payload,tpl){
+  const slot=tpl.slots.find(s=>s.kind==="image"&&s.role==="var"&&payload[s.id]);
+  return slot?payload[slot.id]:"";
+}
+function deckObject(){
+  const first=DECK.find(s=>s.payload.slide_title)||DECK[0];
+  return {
+    id:"deck_"+Date.now(),
+    kind:"deck",
+    category:"slide-deck",
+    title:(first&&first.payload.slide_title)||"Untitled deck",
+    cover:DECK.length?firstImageOf(DECK[0].payload,getTpl(DECK[0].templateId)):"",
+    savedAt:new Date().toISOString(),
+    slides:DECK.map(s=>({t:s.templateId, slots:s.payload})),
+  };
+}
+function saveToLibrary(){
+  let lib=[]; try{ lib=JSON.parse(localStorage.getItem("cstLibrary")||"[]"); }catch(e){}
+  lib.push(deckObject());
+  try{ localStorage.setItem("cstLibrary",JSON.stringify(lib)); }catch(e){}
+  toast(`Saved to Content Library · ${lib.length} deck${lib.length>1?"s":""}`);
+}
+function toast(msg){
+  let t=document.getElementById("toast");
+  if(!t){ t=document.createElement("div"); t.id="toast"; document.body.appendChild(t); }
+  t.textContent=msg; t.className="show";
+  clearTimeout(toast._t); toast._t=setTimeout(()=>{ t.className=""; },2600);
+}
+
+function exportPDF(){
+  const wrap=document.createElement("div"); wrap.id="printwrap";
+  DECK.forEach(sl=>{
+    const page=document.createElement("div"); page.className="printpage";
+    wrap.appendChild(page);
+    renderCanvas(page,getTpl(sl.templateId),sl.payload,{present:true});
+  });
+  document.body.appendChild(wrap);
+  document.body.classList.add("printing");
+  const done=()=>{ document.body.classList.remove("printing"); wrap.remove(); window.removeEventListener("afterprint",done); };
+  window.addEventListener("afterprint",done);
+  // let the fit/layout pass settle, then open the browser's Print → Save as PDF dialog
+  setTimeout(()=>window.print(), 250);
+}
+
+function buildInspector(tpl){
+  const panel=document.getElementById("panel");
+  panel.innerHTML=`<h3>Fill the template</h3><p class="hint">Each section prompts for its content. Locked brand elements are already in place. Use <b>clear</b> on any field, or <b>Clear slide</b> to start over.</p>`;
+  const order={var:[],brand:[],lock:[]};
+  tpl.slots.forEach(s=>{ if(order[s.role]) order[s.role].push(s); });
+  const vSorted=[...order.var].sort((a,b)=>(a.as==="title"?-1:0)-(b.as==="title"?-1:0));
+  panel.appendChild(group("You fill (var)", vSorted.map(varField)));
+  if(order.brand.length) panel.appendChild(group("Brand assets (swappable)", order.brand.map(brandField)));
+  const lockToggle=order.lock.filter(s=>s.toggle), lockStatic=order.lock.filter(s=>!s.toggle);
+  if(lockToggle.length) panel.appendChild(group("Logo & marks — show per slide", lockToggle.map(lockToggleField)));
+  if(lockStatic.length) panel.appendChild(group("Locked — painted from kit", lockStatic.map(lockField)));
+}
+
+function lockToggleField(slot){
+  const f=document.createElement("div"); f.className="field";
+  const lab=document.createElement("label");
+  lab.innerHTML=`${slot.label||slot.id}<span class="role lock">lock</span>`;
+  const clr=document.createElement("button"); clr.type="button"; clr.className="clr"; clr.textContent="clear";
+  clr.title="Remove an uploaded logo and revert to the Brand Kit logo";
+  clr.onclick=()=>{ delete PAYLOAD[slot.id]; drawStage(); buildInspector(curTpl()); };
+  lab.appendChild(clr);
+  f.appendChild(lab);
+  const on = !(PAYLOAD.__off && PAYLOAD.__off[slot.id]);
+  const row=document.createElement("label"); row.style.cssText="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500;margin-bottom:8px;cursor:pointer";
+  const cb=document.createElement("input"); cb.type="checkbox"; cb.checked=on;
+  const body=document.createElement("div"); body.style.opacity=on?"1":".4";
+  cb.onchange=()=>{ PAYLOAD.__off=PAYLOAD.__off||{}; if(cb.checked) delete PAYLOAD.__off[slot.id]; else PAYLOAD.__off[slot.id]=true; body.style.opacity=cb.checked?"1":".4"; drawStage(); };
+  row.appendChild(cb); row.appendChild(document.createTextNode("Show on this slide"));
+  f.appendChild(row);
+  body.appendChild(mediaField(slot,"logo"));
+  f.appendChild(body);
+  return f;
+}
+
+function group(title,children){
+  const g=document.createElement("div"); g.className="group";
+  const h=document.createElement("div"); h.className="gh"; h.textContent=title; g.appendChild(h);
+  children.forEach(c=>g.appendChild(c)); return g;
+}
+
+function varField(slot){
+  const f=document.createElement("div"); f.className="field";
+  const isTitle=slot.as==="title";
+  const lab=document.createElement("label");
+  lab.innerHTML=`${slot.label||slot.id}${isTitle?' <span class="req">*</span>':''}<span class="role var">var</span>`;
+  const clr=document.createElement("button"); clr.type="button"; clr.className="clr"; clr.textContent="clear";
+  clr.onclick=()=>{ delete PAYLOAD[slot.id]; drawStage(); buildInspector(curTpl()); };
+  lab.appendChild(clr);
+  f.appendChild(lab);
+
+  if(slot.kind==="image"){
+    f.appendChild(mediaField(slot));
+    return f;
+  }
+
+  if(slot.as==="story"){
+    const sel=buildSelect(
+      [{group:"Fill from a brand story", items:BRAND_VOICE.stories.map(s=>({label:s.title,value:JSON.stringify({h:s.title.toUpperCase(),n:s.body})}))}],
+      val=>{ const o=JSON.parse(val); PAYLOAD[slot.id]={headline:o.h,narrative:o.n};
+        f.querySelectorAll("textarea").forEach(ta=>{ ta.value=PAYLOAD[slot.id][ta.dataset.part]||""; }); drawStage(); },
+      "Insert from brand voice…");
+    f.appendChild(sel);
+    ["headline","narrative"].forEach(part=>{
+      const ta=document.createElement("textarea"); ta.placeholder=part; ta.dataset.part=part;
+      ta.value=(PAYLOAD[slot.id]||{})[part]||"";
+      ta.oninput=()=>{ PAYLOAD[slot.id]=PAYLOAD[slot.id]||{}; PAYLOAD[slot.id][part]=ta.value; drawStage(); };
+      f.appendChild(ta);
+    });
+    return f;
+  }
+
+  // plain text → Brand Voice insert + free text
+  const groups=[
+    {group:"Products", items:PRODUCTS.map(p=>({label:p,value:p}))},
+    {group:"Ready phrases", items:BRAND_VOICE.phrases.map(p=>({label:p,value:p}))},
+    {group:"Story titles", items:BRAND_VOICE.stories.map(s=>({label:s.title,value:s.title}))},
+    {group:"Brand lines", items:BRAND_VOICE.lines.map(l=>({label:l.label+": "+l.text,value:l.text}))},
+  ];
+  const inp=document.createElement("input"); inp.type="text"; inp.value=PAYLOAD[slot.id]||"";
+  const warn=document.createElement("div"); warn.className="warn"; warn.textContent="A title is required.";
+  inp.oninput=()=>{ PAYLOAD[slot.id]=inp.value; drawStage(); if(isTitle)checkTitle(inp,warn); };
+  f.appendChild(buildSelect(groups, val=>{ inp.value=val; PAYLOAD[slot.id]=val; drawStage(); if(isTitle)checkTitle(inp,warn); }, "Insert product / brand voice…"));
+  f.appendChild(inp);
+  if(isTitle){ f.appendChild(warn); checkTitle(inp,warn); }
+  return f;
+}
+function checkTitle(inp,warn){ if(warn) warn.classList.toggle("show", !inp.value.trim()); }
+
+function fileInput(id){
+  const w=document.createElement("div");
+  const btn=document.createElement("label"); btn.className="filebtn"; btn.textContent="Upload image…";
+  const inp=document.createElement("input"); inp.type="file"; inp.accept="image/*"; inp.style.display="none";
+  inp.onchange=()=>{ const file=inp.files[0]; if(!file)return; PAYLOAD[id]=URL.createObjectURL(file); drawStage(); btn.textContent="Replace image…"; };
+  btn.appendChild(inp); w.appendChild(btn); return w;
+}
+
+function brandField(slot){
+  const f=document.createElement("div"); f.className="field";
+  const lab=document.createElement("label");
+  lab.innerHTML=`${slot.label||slot.id}<span class="role brand">brand</span>`;
+  const clr=document.createElement("button"); clr.type="button"; clr.className="clr"; clr.textContent="clear";
+  clr.title="Remove an uploaded asset and revert to the Brand Kit default";
+  clr.onclick=()=>{ delete PAYLOAD[slot.id]; drawStage(); buildInspector(curTpl()); };
+  lab.appendChild(clr);
+  f.appendChild(lab);
+  const cur=PAYLOAD[slot.id]||tok(slot.asset);
+  if(cur){ const im=document.createElement("img"); im.className="assetthumb"; im.src=cur; im.onerror=()=>im.style.display="none"; f.appendChild(im); }
+  f.appendChild(mediaField(slot,"brand"));
+  return f;
+}
+
+function lockField(slot){
+  const r=document.createElement("div"); r.className="lockrow";
+  const a=slot.asset?` · ${slot.asset}`:slot.fill?` · ${slot.fill}`:slot.gradient?" · gradient":"";
+  r.innerHTML=`🔒 <b style="margin:0 4px">${slot.label||slot.id}</b> painted from Brand Kit<span style="opacity:.7">${a}</span>`;
+  return r;
+}
+
+window.addEventListener("resize",()=>{ if(DECK.length) drawStage(); });
+render();
+</script>
+</body>
+</html>

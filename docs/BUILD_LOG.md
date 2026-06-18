@@ -19,6 +19,54 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-17 (cont. 3) — Template Engine v2 PORTED into the React app
+
+POC approved → ported the manifest engine into Content Studio. New/changed:
+- `src/lib/brand-tokens.js` (new) — `brandTokens(resolved)` resolves `$accent/$display/$logo/…` from the
+  tenant Brand Kit (colors, type cssStacks, logo/seal); `resolveTok` + `voiceOptions` (story blocks, ready
+  phrases, lines) for copy slots.
+- `src/lib/slide-templates.js` (rewritten) — now the 10 tokenized **manifests** (coordinate slots, roles
+  var/brand/lock, z-order, tags, fills, pick, logo toggle). Same export names (`SLIDE_TEMPLATES`,
+  `getSlideTemplate`, `firstImageId`) so callers didn't change.
+- `src/components/presentations/slide-renderer.jsx` (rewritten) — coordinate renderer painted by tokens; cqw
+  fonts; gradient/scrim shapes; per-slide hide (`slots.__off`); brand/lock asset overrides; present mode
+  (hides empty slots + wireframe); legacy string-slide fallback kept.
+- `DeckComposer` (presentations-page.jsx) — template-first slot panel: image slots → live **MediaPicker**
+  (`defaultTag = slot.tag`, stores Cloudinary public_id), copy slots → **brand-voice** dropdown + free text,
+  story slots → story-block filler, logo → "show on this slide" toggle + swap. Saves link-based deck
+  `{kind:"deck", category:"slide-deck", cover, slides:[{t,slots}]}`. DeckViewer/proposal-view already render
+  structured slides via SlideRenderer.
+
+Quote template (#7) gained an optional hero photo with a left→right gradient fade. **Text auto-fit ported**
+(imperative shrink-to-box pass in SlideRenderer via data-cqw nodes + ResizeObserver). `vite build` clean.
+Deferred (matches POC stubs): Cloudinary bg-removal pipeline + tag, product-name metadata link (Custom Price
+List), server-side PDF, Content-Library write seam.
+Prototype kept at `prototypes/template-engine-prototype.html` as the reference spec.
+
+## 2026-06-17 (cont. 2) — Template Engine v2: tokenized manifest POC + bindings
+
+Rick supplied a PowerPoint-derived **handoff** (`product-feature-v1`): a coordinate field-map — slots with
+roles **var/brand/lock**, absolute x/y/w/h on a 960×540 canvas, z-order, per-slot fonts/colors. Adopted the
+slot model over v1's region approach (marketing slides are compositions, not reflowing docs — that's why the
+handoff JPEGs look polished). **Challenged & refined it** before building:
+- **Critical fix — tokenize the paint.** Handoff hard-coded Monti hexes/fonts (`#00963F`, Georgia). That makes
+  a *Monti* template, not a *platform* template, and breaks the clone canon. Refined so slots reference Brand-Kit
+  **tokens** (`$accent`, `$display`, `$logo`); the renderer resolves them against the active tenant's kit. Same
+  manifest → any brand, zero edits. (Migration trivial: the literal hexes already *are* Monti tokens.)
+- **Templates are platform-shared** (`templates/<family>/vN`), painted per tenant — not tenant-namespaced.
+- **Text auto-fit** (shrink-to-box) so real copy doesn't overflow fixed boxes.
+- **Scope honestly:** coordinate manifests = fixed-canvas (slides + social per ratio); blog/email = separate
+  flow engine later. **HTML is the source render; PPTX/PDF/PNG are derived** (defer the `render.ts` PPTX path).
+- **Bindings live in the manifest** (built ahead of the plug-in phase): image slots → **Media Hub** (tag-filtered),
+  copy slots → **brand voice** (story blocks / phrases / lines), lock → painted from kit.
+
+**Built:** `prototypes/template-engine-prototype.html` — a self-contained, tokenized POC. Template browser of
+10 templates (product-feature + the 9), all painted from ONE `BRAND_KIT` object via tokens; template-first
+editor (pick → painted → fill each slot); required Title per template; Media-Hub pickers for images, brand-voice
+dropdowns for copy; Monti Heritage Cream canvas. Decision (Rick): **tokenized paint**. This is the "smart brand-kit
+plug-in + smart slide-deck builder" foundation. Next: build a 10-slide Monti deck to stress-test the 9, then port
+the manifest engine into the React Content Studio (live MediaPicker + brand-voice doc + Cloudinary).
+
 ## 2026-06-17 (cont.) — Template Engine: spec + v1 (Content Studio templates)
 
 Rick: Content Studio needs templates. Model decided & spec'd (`docs/TEMPLATE_ENGINE_SPEC.md`) + diagrammed:
