@@ -44,7 +44,8 @@ function SlideInner({ slide, tk, present }) {
         }
 
         if (slot.kind === "image") {
-          const raw = slot.role === "var" ? slots[slot.id] : resolveTok(slot.asset, tk);
+          // honor a per-slide override (incl. logo/brand asset swaps); else kit asset for lock/brand
+          const raw = slots[slot.id] || (slot.role === "var" ? null : resolveTok(slot.asset, tk));
           if (!raw) return present ? null : <div key={idx} style={box}><Ph slot={slot} /></div>;
           const src = /^(https?:|data:)/.test(raw) ? raw : cldUrl(raw, "hero");
           const adj = (slots.__img || {})[slot.id];
