@@ -61,6 +61,14 @@
   .assetthumb{width:36px;height:36px;object-fit:contain;border:1px solid #e6dbcb;border-radius:6px;background:#fff;vertical-align:middle;margin-right:8px}
   .note{font-size:12px;background:#eef6ef;border:1px solid #cfe6d4;border-radius:8px;padding:10px 12px;color:#2c5638;margin-top:14px}
   code{background:#eef0f1;padding:1px 5px;border-radius:4px;font-size:12px}
+  /* content-type switcher */
+  .typebar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px;border-bottom:1px solid #e6dbcb;padding-bottom:12px}
+  .typetab{font:inherit;font-size:13px;border:1px solid #d9cfc0;background:#fff;color:var(--ink);border-radius:999px;padding:7px 16px;cursor:pointer}
+  .typetab:hover{background:#f3eee4}
+  .typetab.active{background:var(--primary);color:var(--cream);border-color:var(--primary)}
+  .soon{background:#fff;border:1px dashed #cdbfa8;border-radius:12px;padding:48px 40px;text-align:center;color:var(--charcoal)}
+  .soon h2{font-family:var(--display);font-style:italic;color:var(--primary);margin:0 0 8px;font-size:24px}
+  .soon p{max-width:580px;margin:0 auto;font-size:14px;line-height:1.55}
   /* deck-builder chrome */
   .bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:16px}
   .tb{font:inherit;font-size:13px;border:1px solid #d9cfc0;background:#fff;color:var(--ink);border-radius:7px;padding:7px 12px;cursor:pointer}
@@ -81,17 +89,28 @@
   .present .pcanvas{width:min(94vw,1280px)}
   .present .pbar{position:fixed;bottom:18px;display:flex;gap:10px;align-items:center}
   /* PDF export: one slide per landscape page */
+  .adjust{margin-top:8px;border:1px solid #e6dbcb;border-radius:8px;padding:9px;background:#faf6f0}
+  .adjust .ah{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#6e5e48;margin-bottom:7px}
+  .fitb{font:inherit;font-size:11px;border:1px solid #d9cfc0;background:#fff;border-radius:6px;padding:3px 12px;cursor:pointer;text-transform:capitalize}
+  .fitb.on{background:var(--primary);color:var(--cream);border-color:var(--primary)}
+  .resetb{font:inherit;font-size:11px;color:#b06a16;background:none;border:none;cursor:pointer;margin-top:2px;padding:0}
+  .resetb:hover{text-decoration:underline}
   #toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--primary);color:var(--cream);padding:10px 18px;border-radius:8px;font-size:13px;box-shadow:0 6px 20px rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:opacity .2s;z-index:80}
   #toast.show{opacity:1}
-  #printwrap{display:none}
+  /* off-screen at the exact print width (13.333in = 1280px @96dpi) so auto-fit measures before printing */
+  #printwrap{position:fixed;left:-20000px;top:0;width:1280px;z-index:-1}
   @media print{
-    @page{ size:landscape; margin:0; }
+    @page{ size:13.333in 7.5in; margin:0; }   /* true 16:9 widescreen — slide fills the page, no white */
+    html,body{ background:#fff !important; margin:0 !important; }
     body.printing > *:not(#printwrap){ display:none !important; }
-    #printwrap{display:block}
-    .printpage{ width:100%; break-after:page; page-break-after:always; }
+    #printwrap{position:static;left:auto;top:auto;width:100%;z-index:auto}
+    .printpage{ width:100%; height:7.5in; overflow:hidden; break-after:page; page-break-after:always; }
     .printpage:last-child{ break-after:auto; page-break-after:auto; }
-    .printpage .canvas{ border:none !important; border-radius:0 !important; }
+    .printpage .canvas{ width:100% !important; height:100% !important; aspect-ratio:auto !important; border:none !important; border-radius:0 !important; }
+    /* force brand backgrounds (cream, fills, photos) to print regardless of the dialog toggle */
+    #printwrap, #printwrap *{ -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
   }
+  .canvas{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
 </style>
 </head>
 <body>
@@ -221,15 +240,41 @@ function mediaField(slot,tagOverride){
     if(PAYLOAD[slot.id]===a.url) im.style.borderColor="#009640";
     im.onclick=()=>{
       PAYLOAD[slot.id]=a.url;
-      [...strip.children].forEach(c=>c.style.borderColor="transparent"); im.style.borderColor="#009640";
-      if(slot.fills && a.product){ PAYLOAD[slot.fills]=a.product; buildInspector(curTpl()); }   // metadata → linked text field
-      drawStage();
+      if(slot.fills && a.product) PAYLOAD[slot.fills]=a.product;   // metadata → linked text field
+      drawStage(); buildInspector(curTpl());
     };
     strip.appendChild(im);
   });
   w.appendChild(strip);
   w.appendChild(fileInput(slot.id));
+  if(PAYLOAD[slot.id]) w.appendChild(adjustPanel(slot));
   return w;
+}
+
+// Per-image adjust: fit, zoom (resize), reposition, and skew. Stored on the slide in __img[slotId].
+function setAdj(slot,key,val){
+  PAYLOAD.__img = PAYLOAD.__img || {};
+  const a = PAYLOAD.__img[slot.id] = PAYLOAD.__img[slot.id] || { fit:(slot.fit==="contain"?"contain":"cover"), scale:1, x:50, y:50, skewX:0, skewY:0 };
+  a[key]=val; drawStage();
+}
+function adjustPanel(slot){
+  const a = (PAYLOAD.__img||{})[slot.id] || { fit:(slot.fit==="contain"?"contain":"cover"), scale:1, x:50, y:50, skewX:0, skewY:0 };
+  const box=document.createElement("div"); box.className="adjust";
+  const h=document.createElement("div"); h.className="ah"; h.textContent="Adjust image"; box.appendChild(h);
+  const fitRow=document.createElement("div"); fitRow.style.cssText="display:flex;gap:6px;margin-bottom:8px";
+  ["cover","contain"].forEach(f=>{ const b=document.createElement("button"); b.type="button"; b.className="fitb"+(a.fit===f?" on":""); b.textContent=f; b.onclick=()=>{ setAdj(slot,"fit",f); buildInspector(curTpl()); }; fitRow.appendChild(b); });
+  box.appendChild(fitRow);
+  [["Zoom (resize)","scale",1,3,0.05],["Horizontal","x",0,100,1],["Vertical","y",0,100,1],["Skew X","skewX",-25,25,1],["Skew Y","skewY",-25,25,1]].forEach(([label,key,min,max,step])=>{
+    const r=document.createElement("label"); r.style.cssText="display:block;font-size:11px;color:#6e5e48;margin-bottom:5px";
+    r.textContent=label;
+    const inp=document.createElement("input"); inp.type="range"; inp.min=min; inp.max=max; inp.step=step; inp.value=a[key]; inp.style.width="100%";
+    inp.oninput=()=>setAdj(slot,key,parseFloat(inp.value));
+    r.appendChild(inp); box.appendChild(r);
+  });
+  const reset=document.createElement("button"); reset.type="button"; reset.className="resetb"; reset.textContent="Reset image";
+  reset.onclick=()=>{ if(PAYLOAD.__img) delete PAYLOAD.__img[slot.id]; drawStage(); buildInspector(curTpl()); };
+  box.appendChild(reset);
+  return box;
 }
 
 /* token resolver — $primary / $display / $logo → kit value; literals pass through */
@@ -457,13 +502,15 @@ function buildTextEl(slot,cw,value,present){
   return el;
 }
 
-function buildImageEl(slot,value,present){
+function buildImageEl(slot,value,present,adj){
   const wrap=document.createElement("div");
   wrap.style.width="100%";wrap.style.height="100%";
   if(value){
     const img=document.createElement("img");
     img.className="slotimg";
-    img.style.objectFit=slot.fit==="contain"?"contain":"cover";
+    img.style.objectFit=(adj&&adj.fit)||(slot.fit==="contain"?"contain":"cover");
+    img.style.objectPosition=adj?`${adj.x??50}% ${adj.y??50}%`:"center";
+    if(adj){ const tf=[]; if(adj.scale&&adj.scale!==1)tf.push(`scale(${adj.scale})`); if(adj.skewX)tf.push(`skewX(${adj.skewX}deg)`); if(adj.skewY)tf.push(`skewY(${adj.skewY}deg)`); img.style.transform=tf.join(" "); img.style.transformOrigin="center"; }
     img.src=value;
     img.onerror=()=>{ wrap.innerHTML=""; if(!present) wrap.appendChild(makePh(slot)); };
     wrap.appendChild(img);
@@ -498,7 +545,8 @@ function renderCanvas(host,tpl,payload,opts){
       if(slot.radius) s.style.borderRadius=(slot.radius>=999?"999px":pct(slot.radius,cw));
     } else if(slot.kind==="image"){
       const val = slot.role==="var" ? (payload[slot.id]||null) : (payload[slot.id]||tok(slot.asset));
-      s.appendChild(buildImageEl(slot, val||null, present));
+      const adj = (payload.__img||{})[slot.id];
+      s.appendChild(buildImageEl(slot, val||null, present, adj));
     } else if(slot.kind==="text"){
       s.style.padding="0.6cqw 0";
       const val = slot.role==="var" ? payload[slot.id] : undefined;
@@ -523,13 +571,43 @@ function renderCanvas(host,tpl,payload,opts){
    VIEWS — deck builder
    ============================================================ */
 const app=document.getElementById("app");
-let DECK=[], IDX=0, PAYLOAD={};
+let DECK=[], IDX=0, PAYLOAD={}, CTYPE="slide-deck";
+const TYPES=[
+  {id:"slide-deck",label:"Slide deck"},
+  {id:"blog",label:"Blog"},
+  {id:"email",label:"Email"},
+  {id:"social-post",label:"Social post"},
+  {id:"social-carousel",label:"Social carousel"},
+  {id:"sales-sheet",label:"Sales sheet"},
+];
+const studio=()=>document.getElementById("studio");
 
 const getTpl=(id)=>TEMPLATES.find(t=>t.id===id)||TEMPLATES[0];
 const curSlide=()=>DECK[IDX];
 const curTpl=()=>getTpl(curSlide().templateId);
 
-function render(){ if(DECK.length===0) renderStart(); else renderEditor(); }
+function render(){
+  app.innerHTML="";
+  app.appendChild(typeBar());
+  const s=document.createElement("div"); s.id="studio"; app.appendChild(s);
+  if(CTYPE!=="slide-deck"){ s.appendChild(comingSoon()); return; }
+  if(DECK.length===0) renderStart(); else renderEditor();
+}
+function typeBar(){
+  const bar=document.createElement("div"); bar.className="typebar";
+  TYPES.forEach(t=>{
+    const b=document.createElement("button"); b.className="typetab"+(t.id===CTYPE?" active":"");
+    b.textContent=t.label; b.onclick=()=>{ CTYPE=t.id; render(); };
+    bar.appendChild(b);
+  });
+  return bar;
+}
+function comingSoon(){
+  const t=TYPES.find(x=>x.id===CTYPE)||{label:""};
+  const d=document.createElement("div"); d.className="soon";
+  d.innerHTML=`<h2>${t.label} templates</h2><p>Coming soon — built on the <b>same engine</b>: slots + Brand-Kit paint + Media Hub / Cloudinary bindings, sized for ${t.label.toLowerCase()}. The slide-deck builder proves the model; each new type ships as manifests wired to the image selector.</p>`;
+  return d;
+}
 function addSlide(tpl){ DECK.push({templateId:tpl.id, payload:{...(tpl.sample||{})}}); IDX=DECK.length-1; render(); }
 
 function templateGrid(onPick){
@@ -548,19 +626,19 @@ function templateGrid(onPick){
 }
 
 function renderStart(){
-  app.innerHTML=`<div class="crumbs"><b>Start your deck</b> — pick a template for your first slide. Each opens already painted in the brand; every template carries a required Title.</div>`;
-  app.appendChild(templateGrid(addSlide));
+  studio().innerHTML=`<div class="crumbs"><b>Start your deck</b> — pick a template for your first slide. Each opens already painted in the brand; every template carries a required Title.</div>`;
+  studio().appendChild(templateGrid(addSlide));
 }
 
 function showAddPicker(){
-  app.innerHTML=`<div class="crumbs"><a id="back">← Back to slide ${IDX+1}</a> &nbsp;/&nbsp; <b>Add a slide</b> — pick a template.</div>`;
+  studio().innerHTML=`<div class="crumbs"><a id="back">← Back to slide ${IDX+1}</a> &nbsp;/&nbsp; <b>Add a slide</b> — pick a template.</div>`;
   document.getElementById("back").onclick=render;
-  app.appendChild(templateGrid(addSlide));
+  studio().appendChild(templateGrid(addSlide));
 }
 
 function renderEditor(){
   const tpl=curTpl(); PAYLOAD=curSlide().payload;
-  app.innerHTML="";
+  studio().innerHTML="";
   const bar=document.createElement("div"); bar.className="bar";
   bar.innerHTML=`
     <button class="tb" id="prev">◀ Prev</button>
@@ -573,13 +651,13 @@ function renderEditor(){
     <button class="tb danger" id="del">🗑 Delete slide</button>
     <button class="tb" id="lib">▸ Save to Library</button>
     <button class="tb" id="save">⤓ Export PDF</button>`;
-  app.appendChild(bar);
+  studio().appendChild(bar);
 
   const wrap=document.createElement("div"); wrap.className="editor";
   wrap.innerHTML=`<div class="stage"><div id="stage"></div>
       <div class="note">Image slots → <b>Media Hub</b> (tag-filtered) · copy slots → <b>Monti brand voice</b> · the emblem &amp; sprig are swappable <b>brand</b> assets · product photos use <b>background-removed PNGs</b> so they sit cleanly on any brand color. <b>Present</b> hides every empty slot and the wireframe for a clean final deck.</div></div>
     <div class="panel" id="panel"></div>`;
-  app.appendChild(wrap);
+  studio().appendChild(wrap);
 
   drawStage(); buildInspector(tpl);
 
@@ -604,7 +682,7 @@ function renderEditor(){
   });
   const fa=document.createElement("div"); fa.className="filmadd"; fa.textContent="＋ Add slide"; fa.onclick=showAddPicker;
   film.appendChild(fa);
-  app.appendChild(film);
+  studio().appendChild(film);
 }
 
 function drawStage(){ const st=document.getElementById("stage"); if(st) renderCanvas(st,curTpl(),PAYLOAD); }
@@ -761,7 +839,7 @@ function fileInput(id){
   const w=document.createElement("div");
   const btn=document.createElement("label"); btn.className="filebtn"; btn.textContent="Upload image…";
   const inp=document.createElement("input"); inp.type="file"; inp.accept="image/*"; inp.style.display="none";
-  inp.onchange=()=>{ const file=inp.files[0]; if(!file)return; PAYLOAD[id]=URL.createObjectURL(file); drawStage(); btn.textContent="Replace image…"; };
+  inp.onchange=()=>{ const file=inp.files[0]; if(!file)return; PAYLOAD[id]=URL.createObjectURL(file); drawStage(); buildInspector(curTpl()); };
   btn.appendChild(inp); w.appendChild(btn); return w;
 }
 

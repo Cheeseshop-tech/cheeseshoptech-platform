@@ -17,7 +17,7 @@ import { codeImageUrl } from "@/lib/images.js";
 import { getBrandKit, AUDIENCES, storyBlocksFor } from "@/lib/brandKit.js";
 import { THEMES, getTheme } from "@/lib/themes.js";
 import { MediaPicker } from "@/components/media/media-picker.jsx";
-import { DeckComposer } from "@/components/presentations/presentations-page.jsx";
+import { SlideStudio } from "@/components/presentations/slide-studio.jsx";
 import { addEntry, loadCatalog, DEFAULT_QUOTA } from "@/lib/presentations-store.js";
 import { ProposalView } from "./proposal-view.jsx";
 
@@ -105,6 +105,25 @@ export function ProposalBuilder({ resolved }) {
         </div>
         <ProposalView resolved={resolved} proposal={p} />
       </div>
+    );
+  }
+
+  if (composeOpen) {
+    return (
+      <SlideStudio
+        resolved={resolved}
+        onClose={() => setComposeOpen(false)}
+        onSave={(entry) => {
+          if (loadCatalog(resolved.id).length >= (resolved.contentQuota || DEFAULT_QUOTA)) {
+            toast({ title: "Content Library full", description: "Delete or download an item in the Library to add more.", tone: "error" });
+            return;
+          }
+          const needsReview = resolved.reviewRequired && !isHouse;
+          addEntry(resolved.id, { ...entry, status: needsReview ? "submitted" : "posted" });
+          setComposeOpen(false);
+          toast({ title: needsReview ? "Deck submitted for review" : "Deck saved to Content Library", tone: "success" });
+        }}
+      />
     );
   }
 
@@ -313,23 +332,6 @@ export function ProposalBuilder({ resolved }) {
         </div>
       </div>
 
-      <DeckComposer
-        open={composeOpen}
-        onClose={() => setComposeOpen(false)}
-        resolved={resolved}
-        onSave={(entry) => {
-          if (loadCatalog(resolved.id).length >= (resolved.contentQuota || DEFAULT_QUOTA)) {
-            toast({ title: "Content Library full", description: "Delete or download an item in the Library to add more.", tone: "error" });
-            return;
-          }
-          // Review gate is OFF by default (quota + CST-controlled inputs already prevent junk). A client
-          // can opt into approval via resolved.reviewRequired; otherwise everything posts directly.
-          const needsReview = resolved.reviewRequired && !isHouse;
-          addEntry(resolved.id, { ...entry, status: needsReview ? "submitted" : "posted" });
-          setComposeOpen(false);
-          toast({ title: needsReview ? "Deck submitted for review" : "Deck saved to Content Library", tone: "success" });
-        }}
-      />
     </div>
   );
 }

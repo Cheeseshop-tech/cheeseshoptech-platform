@@ -19,6 +19,16 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-17 (cont. 4) — v1 retired; manifest engine is canonical
+
+Removed the dead region-based `DeckComposer` modal from `presentations-page.jsx` and its now-unused imports
+(SLIDE_TEMPLATES/getSlideTemplate/firstImageId, getBrandKit, voiceOptions). The **tokenized manifest engine
++ `SlideStudio`** is the single source of truth for Content Studio composition; `slide-templates.js` (manifests)
+and `slide-renderer.jsx` (coordinate renderer) fully replace the v1 region model. `vite build` clean.
+POC (`prototypes/template-engine-prototype.html`) extended this session with: content-type switcher, full-window
+deck builder, per-image Adjust panel (fit/zoom/reposition/skew), and 16:9 PDF export (cream + auto-fit hold).
+Still to port to the app: Adjust-image panel + 16:9 PDF export.
+
 ## 2026-06-17 (cont. 3) — Template Engine v2 PORTED into the React app
 
 POC approved → ported the manifest engine into Content Studio. New/changed:
@@ -36,6 +46,12 @@ POC approved → ported the manifest engine into Content Studio. New/changed:
   story slots → story-block filler, logo → "show on this slide" toggle + swap. Saves link-based deck
   `{kind:"deck", category:"slide-deck", cover, slides:[{t,slots}]}`. DeckViewer/proposal-view already render
   structured slides via SlideRenderer.
+
+**Full-window composer + content-type switcher** (`src/components/presentations/slide-studio.jsx`, new):
+Content Studio's "Compose deck" now renders inline as the main view (modal removed) — content-type switcher
+(slide-deck live; blog/email/social-post/social-carousel/sales-sheet coming-soon), slide filmstrip, per-slide
+template dropdown, slot inspector beside the live painted preview. `proposal-builder.jsx` renders `<SlideStudio>`
+when composing and saves via the same Content-Library seam.
 
 Quote template (#7) gained an optional hero photo with a left→right gradient fade. **Text auto-fit ported**
 (imperative shrink-to-box pass in SlideRenderer via data-cqw nodes + ResizeObserver). `vite build` clean.
