@@ -22,6 +22,27 @@ const CONTENT_TYPES = [
 function L({ label, children }) {
   return <label className="block"><span className="mb-1 block text-xs font-medium text-fg">{label}</span>{children}</label>;
 }
+// Per-image adjust: fit, zoom (resize), reposition, skew.
+function AdjustPanel({ slot, slide, onSet, onReset }) {
+  const a = { fit: "cover", scale: 1, x: 50, y: 50, skewX: 0, skewY: 0, ...((slide.slots.__img || {})[slot.id] || {}) };
+  const sliders = [["Zoom (resize)", "scale", 1, 3, 0.05], ["Horizontal", "x", 0, 100, 1], ["Vertical", "y", 0, 100, 1], ["Skew X", "skewX", -25, 25, 1], ["Skew Y", "skewY", -25, 25, 1]];
+  return (
+    <div className="mt-2 rounded-base border border-border bg-bg p-2">
+      <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-fg-muted">Adjust image</div>
+      <div className="mb-2 flex gap-1.5">
+        {["cover", "contain"].map((f) => (
+          <button key={f} type="button" onClick={() => onSet(slot.id, "fit", f)} className={"rounded border px-2.5 py-0.5 text-xs capitalize " + (a.fit === f ? "border-brand-primary bg-brand-primary text-brand-on-primary" : "border-border text-fg")}>{f}</button>
+        ))}
+      </div>
+      {sliders.map(([label, key, min, max, step]) => (
+        <label key={key} className="mb-1.5 block text-[11px] text-fg-muted">{label}
+          <input type="range" min={min} max={max} step={step} value={a[key]} onChange={(e) => onSet(slot.id, key, parseFloat(e.target.value))} className="w-full" />
+        </label>
+      ))}
+      <button type="button" onClick={() => onReset(slot.id)} className="text-[11px] text-amber-700 hover:underline">Reset image</button>
+    </div>
+  );
+}
 function I(props) {
   return <input {...props} className="h-9 w-full rounded-base border border-border bg-bg px-2 text-sm text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand" />;
 }
@@ -44,6 +65,18 @@ export function SlideStudio({ resolved, onClose, onSave }) {
   const addSlide = (tid) => { const t = tid || tpl; setIdx(deck.length); setDeck((d) => [...d, { t, slots: { ...(getSlideTemplate(t).sample || {}) } }]); };
   const removeSlide = (i) => { const n = deck.filter((_, k) => k !== i); setDeck(n); setIdx((x) => Math.max(0, Math.min(x, n.length - 1))); };
   const clearSlide = () => setDeck((d) => d.map((sl, k) => (k === idx ? { ...sl, slots: {} } : sl)));
+  const setImgAdj = (id, key, val) => setDeck((d) => d.map((sl, k) => {
+    if (k !== idx) return sl;
+    const img = { ...(sl.slots.__img || {}) };
+    const a = img[id] = { fit: "cover", scale: 1, x: 50, y: 50, skewX: 0, skewY: 0, ...(img[id] || {}) };
+    a[key] = val;
+    return { ...sl, slots: { ...sl.slots, __img: img } };
+  }));
+  const clearImgAdj = (id) => setDeck((d) => d.map((sl, k) => {
+    if (k !== idx) return sl;
+    const img = { ...(sl.slots.__img || {}) }; delete img[id];
+    return { ...sl, slots: { ...sl.slots, __img: img } };
+  }));
 
   const cur = deck[idx];
   const curTpl = cur ? getSlideTemplate(cur.t) : null;
@@ -62,7 +95,9 @@ export function SlideStudio({ resolved, onClose, onSave }) {
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <Button variant="ghost" size="sm" onClick={onClose}><ArrowLeft className="h-4 w-4" /> Back to Content Studio</Button>
+        {onClose
+          ? <Button variant="ghost" size="sm" onClick={onClose}><ArrowLeft className="h-4 w-4" /> Back</Button>
+          : <div><h1 className="font-heading text-3xl text-fg">Content Studio</h1><p className="text-sm text-fg-muted">Pick a template, fill it from your Media Hub + brand voice, save to the Library.</p></div>}
         <Button variant="primary" size="sm" disabled={!valid} onClick={save}>Save to Library</Button>
       </div>
 
@@ -125,7 +160,10 @@ export function SlideStudio({ resolved, onClose, onSave }) {
                       </label>
                     )}
                     {slot.kind === "image" ? (
-                      <MediaPicker resolved={resolved} value={cur.slots[slot.id] || ""} defaultTag={slot.tag || ""} label={`Pick ${(slot.label || "image").toLowerCase()}`} onChange={(id) => setSlot(slot.id, id)} />
+                      <>
+                        <MediaPicker resolved={resolved} value={cur.slots[slot.id] || ""} defaultTag={slot.tag || ""} label={`Pick ${(slot.label || "image").toLowerCase()}`} onChange={(id) => setSlot(slot.id, id)} />
+                        {cur.slots[slot.id] && <AdjustPanel slot={slot} slide={cur} onSet={setImgAdj} onReset={clearImgAdj} />}
+                      </>
                     ) : slot.as === "story" ? (
                       <div className="space-y-1">
                         <select value="" onChange={(e) => { if (e.target.value) { const o = JSON.parse(e.target.value); setSlot(slot.id, { headline: o.h, narrative: o.n }); } }} className="h-8 w-full rounded-base border border-border bg-bg px-2 text-xs text-fg">

@@ -47,9 +47,22 @@ function SlideInner({ slide, tk, present }) {
           const raw = slot.role === "var" ? slots[slot.id] : resolveTok(slot.asset, tk);
           if (!raw) return present ? null : <div key={idx} style={box}><Ph slot={slot} /></div>;
           const src = /^(https?:|data:)/.test(raw) ? raw : cldUrl(raw, "hero");
+          const adj = (slots.__img || {})[slot.id];
+          const imgStyle = {
+            width: "100%", height: "100%",
+            objectFit: (adj && adj.fit) || (slot.fit === "contain" ? "contain" : "cover"),
+            objectPosition: adj ? `${adj.x ?? 50}% ${adj.y ?? 50}%` : "center",
+          };
+          if (adj) {
+            const tf = [];
+            if (adj.scale && adj.scale !== 1) tf.push(`scale(${adj.scale})`);
+            if (adj.skewX) tf.push(`skewX(${adj.skewX}deg)`);
+            if (adj.skewY) tf.push(`skewY(${adj.skewY}deg)`);
+            if (tf.length) { imgStyle.transform = tf.join(" "); imgStyle.transformOrigin = "center"; }
+          }
           return (
             <div key={idx} style={box}>
-              <img src={src} alt="" style={{ width: "100%", height: "100%", objectFit: slot.fit === "contain" ? "contain" : "cover" }} onError={(e) => { e.currentTarget.style.display = "none"; }} />
+              <img src={src} alt="" style={imgStyle} onError={(e) => { e.currentTarget.style.display = "none"; }} />
             </div>
           );
         }

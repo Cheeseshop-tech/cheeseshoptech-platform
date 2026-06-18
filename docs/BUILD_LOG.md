@@ -19,6 +19,17 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-17 (cont. 5) — Content Studio IS the template engine
+
+Rick: "the template engine prototype is the app now." Made it so. `App.jsx` route `proposals` (Content Studio)
+now renders `ContentStudio` (`src/components/proposals/content-studio.jsx`) → opens **directly** into `SlideStudio`
+(full-window: type switcher, template gallery, filmstrip, slot inspector). The old `ProposalBuilder` "pitch/range"
+form is no longer routed (retired; will return as the **Sales sheet** type in the switcher). `SlideStudio` back
+button is now optional (page mode). **Image-adjust ported** to the live renderer + inspector: fit (cover/contain),
+zoom/resize, reposition, skew X/Y, reset (stored on the slide in `slots.__img`, applied in `slide-renderer.jsx`).
+Note: deploys were building but **auto-publish was off** in Netlify — turned on; that was why v2 looked "not live."
+Still to port for full prototype parity: **Present mode** + **16:9 Export PDF**. `vite build` clean.
+
 ## 2026-06-17 (cont. 4) — v1 retired; manifest engine is canonical
 
 Removed the dead region-based `DeckComposer` modal from `presentations-page.jsx` and its now-unused imports

@@ -18,7 +18,7 @@ import { Breadcrumb } from "@/components/ui/breadcrumb.jsx";
 import { MediaHub } from "@/components/media/media-hub.jsx";
 import { CatalogPage } from "@/components/catalog/buyer-catalog.jsx";
 import { PresentationsPage } from "@/components/presentations/presentations-page.jsx";
-import { ProposalBuilder } from "@/components/proposals/proposal-builder.jsx";
+import { ContentStudio } from "@/components/proposals/content-studio.jsx";
 import { ProposalView } from "@/components/proposals/proposal-view.jsx";
 import { BrandManagement } from "@/components/brand/brand-management.jsx";
 import { ToolsPage } from "@/components/tools/tools-page.jsx";
@@ -168,7 +168,7 @@ export default function App({ initialResolved }) {
       ) : effectivePage === "presentations" ? (
         <PresentationsPage resolved={resolved} />
       ) : effectivePage === "proposals" ? (
-        <ProposalBuilder resolved={resolved} />
+        <ContentStudio resolved={resolved} />
       ) : effectivePage === "proposal" ? (
         <ProposalView resolved={resolved} />
       ) : effectivePage === "brand" ? (
