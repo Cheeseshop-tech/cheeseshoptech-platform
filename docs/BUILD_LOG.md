@@ -19,6 +19,18 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-17 — Competitive landscape: Keychain strategic read
+
+**Action.** Added `docs/COMPETITIVE_LANDSCAPE.md` — full strategic read of **Keychain** (keychain.com,
+the CPG *manufacturing* network: KeychainOS + Keychain360; ~30k mfrs / 20k brands; ~$68M; free for
+brands, $5k–$100k/yr enhanced listings for manufacturers; no rev-share/API/partner program).
+**Decision/framing:** Keychain is a **strategic ADJACENCY — not a partner, not a competitor.** It's
+upstream (sourcing/make-it); CST is downstream (brand/sell-it). Key gap: Keychain promotes *makers to
+brands*, never a *brand/product to buyers or consumers* — that's CST. Doc covers: reselling angle
+(package Keychain's free buyer side as a "Source & Scale" managed service; manage Monti's producer
+listing) and a conceptual **downstream integration** (Keychain export → CST canonical-catalog adapter
+→ storefront; manual handoff until an API exists; never build a dependent feature). **Status.** Docs only.
+
 ## 2026-06-17 (cont. 5) — Content Studio IS the template engine
 
 Rick: "the template engine prototype is the app now." Made it so. `App.jsx` route `proposals` (Content Studio)
