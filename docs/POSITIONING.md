@@ -2,6 +2,8 @@
 
 **Owner:** Rick Posada · **Status:** Foundational (supersedes the narrow "storefront builder" framing) · **Last updated:** 2026-06-05
 
+**Related:** competitive landscape & adjacencies (e.g. **Keychain** — "make it / sell it") → `COMPETITIVE_LANDSCAPE.md`.
+
 ## What CheeseShop TECH is
 
 A **sales-led growth agency for specialty & perishable food brands.** The main focus is
