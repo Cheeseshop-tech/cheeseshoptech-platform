@@ -13,7 +13,7 @@
         "badge": "PDO",
         "tags": [],
         "age": "aged 30-40 days",
-        "milk": "Mountain milk",
+        "milk": "Cow milk",
         "featured": true,
         "grad": "linear-gradient(145deg, #C8E2C5, #064E22)"
       },
@@ -95,7 +95,7 @@
         "badge": "PDO",
         "tags": [],
         "age": "aged 5 months",
-        "milk": "Mountain milk",
+        "milk": "Cow milk",
         "featured": false,
         "grad": "linear-gradient(145deg, #70C883, #064E22)"
       },
@@ -155,7 +155,7 @@
         "badge": "PDO",
         "tags": [],
         "age": "aged 9 months",
-        "milk": "Mountain milk",
+        "milk": "Cow milk",
         "featured": true,
         "grad": "linear-gradient(145deg, #E3F0E1, #009640)"
       },
@@ -215,7 +215,7 @@
         "badge": "Mountain",
         "tags": [],
         "age": "aged 60-70 days",
-        "milk": "Mountain milk",
+        "milk": "Cow milk",
         "featured": false,
         "grad": "linear-gradient(145deg, #FFFBDC, #70C883)"
       },
@@ -253,7 +253,7 @@
         "badge": "Mountain",
         "tags": [],
         "age": "aged min 5 months",
-        "milk": "Mountain milk",
+        "milk": "Cow milk",
         "featured": false,
         "grad": "linear-gradient(145deg, #C8E2C5, #009640)"
       },
@@ -291,7 +291,7 @@
         "badge": "PDO",
         "tags": [],
         "age": "aged 6 months",
-        "milk": "Mountain milk",
+        "milk": "Cow milk",
         "featured": false,
         "grad": "linear-gradient(145deg, #70C883, #141413)"
       },
@@ -351,7 +351,7 @@
         "badge": "Mountain",
         "tags": [],
         "age": "aged 9 months",
-        "milk": "Mountain milk",
+        "milk": "Cow milk",
         "featured": false,
         "grad": "linear-gradient(145deg, #064E22, #141413)"
       },
@@ -411,7 +411,7 @@
         "badge": "Mountain",
         "tags": [],
         "age": "aged min. 10 months",
-        "milk": "Mountain milk",
+        "milk": "Cow milk",
         "featured": true,
         "grad": "linear-gradient(145deg, #FFFBDC, #064E22)"
       },
@@ -449,7 +449,7 @@
         "badge": "Mountain",
         "tags": [],
         "age": "aged 60-70 days",
-        "milk": "Mountain milk",
+        "milk": "Cow milk",
         "featured": false,
         "grad": "linear-gradient(145deg, #C8E2C5, #064E22)"
       },
@@ -509,7 +509,7 @@
         "badge": "Mountain",
         "tags": [],
         "age": "—",
-        "milk": "Mountain milk",
+        "milk": "Cow milk",
         "featured": false,
         "grad": "linear-gradient(145deg, #70C883, #064E22)"
       },
@@ -591,7 +591,7 @@
         "badge": "Mountain",
         "tags": [],
         "age": "—",
-        "milk": "Mountain milk",
+        "milk": "Cow milk",
         "featured": false,
         "grad": "linear-gradient(145deg, #E3F0E1, #009640)"
       },
@@ -695,7 +695,7 @@
         "badge": "Mountain",
         "tags": [],
         "age": "—",
-        "milk": "Mountain milk",
+        "milk": "Cow milk",
         "featured": false,
         "grad": "linear-gradient(145deg, #FFFBDC, #70C883)"
       },
@@ -799,7 +799,7 @@
         "badge": "Mountain",
         "tags": [],
         "age": "—",
-        "milk": "Mountain milk",
+        "milk": "Cow milk",
         "featured": false,
         "grad": "linear-gradient(145deg, #C8E2C5, #009640)"
       },
@@ -837,7 +837,7 @@
         "badge": "Mountain",
         "tags": [],
         "age": "—",
-        "milk": "Mountain milk",
+        "milk": "Cow milk",
         "featured": false,
         "grad": "linear-gradient(145deg, #70C883, #141413)"
       },
@@ -875,7 +875,7 @@
         "badge": "Mountain",
         "tags": [],
         "age": "—",
-        "milk": "Mountain milk",
+        "milk": "Cow milk",
         "featured": false,
         "grad": "linear-gradient(145deg, #064E22, #141413)"
       },
@@ -913,7 +913,7 @@
         "badge": "Mountain",
         "tags": [],
         "age": "—",
-        "milk": "Mountain milk",
+        "milk": "Cow milk",
         "featured": true,
         "grad": "linear-gradient(145deg, #FFFBDC, #064E22)"
       },
@@ -1017,7 +1017,7 @@
         "badge": "Mountain",
         "tags": [],
         "age": "—",
-        "milk": "Mountain milk",
+        "milk": "Cow milk",
         "featured": false,
         "grad": "linear-gradient(145deg, #C8E2C5, #064E22)"
       },
@@ -1055,7 +1055,7 @@
         "badge": "Mountain",
         "tags": [],
         "age": "—",
-        "milk": "Mountain milk",
+        "milk": "Cow milk",
         "featured": false,
         "grad": "linear-gradient(145deg, #70C883, #064E22)"
       },
@@ -1137,7 +1137,7 @@
         "badge": "Mountain",
         "tags": [],
         "age": "—",
-        "milk": "Mountain milk",
+        "milk": "Cow milk",
         "featured": false,
         "grad": "linear-gradient(145deg, #E3F0E1, #009640)"
       },
@@ -1175,7 +1175,7 @@
         "badge": "PDO",
         "tags": [],
         "age": "—",
-        "milk": "Mountain milk",
+        "milk": "Cow milk",
         "featured": false,
         "grad": "linear-gradient(145deg, #FFFBDC, #70C883)"
       },
@@ -1213,7 +1213,7 @@
         "badge": "PDO",
         "tags": [],
         "age": "—",
-        "milk": "Mountain milk",
+        "milk": "Cow milk",
         "featured": false,
         "grad": "linear-gradient(145deg, #C8E2C5, #009640)"
       },
@@ -1295,7 +1295,7 @@
         "badge": "PDO",
         "tags": [],
         "age": "—",
-        "milk": "Mountain milk",
+        "milk": "Cow milk",
         "featured": false,
         "grad": "linear-gradient(145deg, #70C883, #141413)"
       },
@@ -1333,7 +1333,7 @@
         "badge": "PDO",
         "tags": [],
         "age": "—",
-        "milk": "Mountain milk",
+        "milk": "Cow milk",
         "featured": false,
         "grad": "linear-gradient(145deg, #064E22, #141413)"
       },
@@ -1371,7 +1371,7 @@
         "badge": "Mountain",
         "tags": [],
         "age": "aged min. 12–16 months",
-        "milk": "Mountain milk",
+        "milk": "Cow milk",
         "featured": true,
         "grad": "linear-gradient(145deg, #FFFBDC, #064E22)"
       },
@@ -1453,7 +1453,7 @@
         "badge": "Mountain",
         "tags": [],
         "age": "aged min. 16–20 months",
-        "milk": "Mountain milk",
+        "milk": "Cow milk",
         "featured": false,
         "grad": "linear-gradient(145deg, #C8E2C5, #064E22)"
       },
@@ -1557,7 +1557,7 @@
         "badge": "PDO",
         "tags": [],
         "age": "—",
-        "milk": "Mountain milk",
+        "milk": "Cow milk",
         "featured": true,
         "grad": "linear-gradient(145deg, #70C883, #064E22)"
       },
@@ -1639,7 +1639,7 @@
         "badge": "PDO",
         "tags": [],
         "age": "—",
-        "milk": "Mountain milk",
+        "milk": "Sheep milk",
         "featured": false,
         "grad": "linear-gradient(145deg, #E3F0E1, #009640)"
       },
@@ -1699,7 +1699,7 @@
         "badge": "PDO",
         "tags": [],
         "age": "—",
-        "milk": "Mountain milk",
+        "milk": "Sheep milk",
         "featured": false,
         "grad": "linear-gradient(145deg, #FFFBDC, #70C883)"
       },
@@ -1759,7 +1759,7 @@
         "badge": "Mountain",
         "tags": [],
         "age": "—",
-        "milk": "Mountain milk",
+        "milk": "Cow milk",
         "featured": false,
         "grad": "linear-gradient(145deg, #C8E2C5, #009640)"
       },
@@ -1797,7 +1797,7 @@
         "badge": "Pre-order",
         "tags": [],
         "age": "—",
-        "milk": "Mountain milk",
+        "milk": "Sheep milk",
         "featured": false,
         "grad": "linear-gradient(145deg, #70C883, #141413)"
       },
@@ -1945,7 +1945,7 @@
         "badge": "PDO",
         "tags": [],
         "age": "—",
-        "milk": "Mountain milk",
+        "milk": "Cow milk",
         "featured": false,
         "grad": "linear-gradient(145deg, #064E22, #141413)"
       },
@@ -1983,7 +1983,7 @@
         "badge": "PDO",
         "tags": [],
         "age": "—",
-        "milk": "Mountain milk",
+        "milk": "Cow milk",
         "featured": false,
         "grad": "linear-gradient(145deg, #FFFBDC, #064E22)"
       },
@@ -2043,7 +2043,7 @@
         "badge": "PDO",
         "tags": [],
         "age": "—",
-        "milk": "Mountain milk",
+        "milk": "Cow milk",
         "featured": false,
         "grad": "linear-gradient(145deg, #C8E2C5, #064E22)"
       },
@@ -2081,7 +2081,7 @@
         "badge": "Limited",
         "tags": [],
         "age": "—",
-        "milk": "Mountain milk",
+        "milk": "Cow milk",
         "featured": false,
         "grad": "linear-gradient(145deg, #70C883, #064E22)"
       },

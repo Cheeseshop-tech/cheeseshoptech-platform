@@ -52,7 +52,9 @@ export function PricingTool({ resolved }) {
             Wholesale quoting, movement planning, and commitments — one source of truth.
             <span className="ml-2 font-mono text-xs">
               stock {data.inventory.lastUpdated || "—"}
-              {stockSource === "live" ? " · live" : stockSource === "loading" ? " · syncing…" : ""}
+              {stockSource === "live"
+                ? <span className="font-semibold" style={{ color: "#16a34a" }}> · live</span>
+                : stockSource === "loading" ? <span className="text-fg-muted"> · syncing…</span> : null}
             </span>
           </p>
         </div>
@@ -98,6 +100,8 @@ function Proforma({ data, brand, resolved }) {
   }, [commitments]);
 
   const [customer, setCustomer] = useState("");
+  const [newCust, setNewCust] = useState(false);
+  const [openLots, setOpenLots] = useState({});
   const [tierId, setTierId] = useState(config.pricing.defaultTier || config.pricing.tiers[0].id);
   const [basis, setBasis] = useState("pickup");
   const [volumeId, setVolumeId] = useState("");
@@ -186,8 +190,19 @@ function Proforma({ data, brand, resolved }) {
         <div className="flex flex-wrap items-end gap-3">
           <div className="flex flex-col gap-1">
             <span className={fieldLabel}>Customer</span>
-            <input list="cust-list" className={selCls + " min-w-[180px]"} value={customer} onChange={(e) => setCustomer(e.target.value)} placeholder="Select or type…" />
-            <datalist id="cust-list">{cust.map((c) => <option key={c} value={c} />)}</datalist>
+            {!newCust ? (
+              <select className={selCls + " min-w-[180px]"} value={customer}
+                onChange={(e) => { if (e.target.value === "__new") { setNewCust(true); setCustomer(""); } else setCustomer(e.target.value); }}>
+                <option value="">— Select customer —</option>
+                {cust.map((c) => <option key={c} value={c}>{c}</option>)}
+                <option value="__new">+ New customer…</option>
+              </select>
+            ) : (
+              <div className="flex items-center gap-1">
+                <input className={selCls + " min-w-[150px]"} value={customer} autoFocus placeholder="New customer name" onChange={(e) => setCustomer(e.target.value)} />
+                <button type="button" title="Back to list" className="rounded-base border border-border px-2 py-2 text-xs text-fg-muted hover:text-fg" onClick={() => { setNewCust(false); setCustomer(""); }}>↩</button>
+              </div>
+            )}
           </div>
           <div className="flex flex-col gap-1">
             <span className={fieldLabel}>Class of trade</span>
@@ -329,17 +344,26 @@ function Proforma({ data, brand, resolved }) {
                             {inv.casesInTransit > 0 && <span className="text-info">⚓ {inv.casesInTransit} cs on the water</span>}
                           </div>
                           {inv.lots && inv.lots.length > 0 && (
-                            <div className="mt-2 grid w-fit grid-cols-[auto_auto_auto] items-center gap-x-8 gap-y-1.5 font-mono text-xs">
-                              {inv.lots.map((l, i) => (
-                                <Fragment key={i}>
-                                  <span className="text-fg-muted">lot {l.lotNum}</span>
-                                  <span className="text-right text-fg">{l.status === "in_transit" ? l.cases : l.cases - (l.reserved || 0)} cs</span>
-                                  {l.status === "in_transit"
-                                    ? <span className="whitespace-nowrap text-info">⚓ ETA {fmtDate(l.eta)}</span>
-                                    : <span className="whitespace-nowrap text-fg-muted">exp {fmtDate(l.expDate)}</span>}
-                                </Fragment>
-                              ))}
-                            </div>
+                            <>
+                              <button type="button" onClick={() => setOpenLots((o) => ({ ...o, [s.code]: !o[s.code] }))}
+                                className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-brand-primary hover:underline">
+                                <span className="inline-block w-3 text-center">{openLots[s.code] ? "▾" : "▸"}</span>
+                                {inv.lots.length} lot{inv.lots.length > 1 ? "s" : ""}
+                              </button>
+                              {openLots[s.code] && (
+                                <div className="mt-2 grid w-fit grid-cols-[auto_auto_auto] items-center gap-x-8 gap-y-1.5 font-mono text-xs">
+                                  {inv.lots.map((l, i) => (
+                                    <Fragment key={i}>
+                                      <span className="text-fg-muted">lot {l.lotNum}</span>
+                                      <span className="text-right text-fg">{l.status === "in_transit" ? l.cases : l.cases - (l.reserved || 0)} cs</span>
+                                      {l.status === "in_transit"
+                                        ? <span className="whitespace-nowrap text-info">⚓ ETA {fmtDate(l.eta)}</span>
+                                        : <span className="whitespace-nowrap text-fg-muted">exp {fmtDate(l.expDate)}</span>}
+                                    </Fragment>
+                                  ))}
+                                </div>
+                              )}
+                            </>
                           )}
                         </div>
                       ) : <span className="text-fg-muted">—</span>}
@@ -385,8 +409,8 @@ function ProductDetailDialog({ sku, onClose, imgUrl, unit, inv, tierLabel }) {
     <Dialog open={!!sku} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-w-3xl p-0">
         <div className="grid md:grid-cols-[1fr_1.1fr]">
-          <div className="flex items-center justify-center bg-white p-4 md:rounded-l-base">
-            <img src={imgUrl} alt={sku.productName} className="max-h-[60vh] w-auto max-w-full object-contain" />
+          <div className="flex items-center justify-center bg-white p-3 md:rounded-l-base min-h-[360px]">
+            <img src={imgUrl} alt={sku.productName} className="max-h-[72vh] w-full object-contain" />
           </div>
           <div className="max-h-[80vh] overflow-y-auto p-6">
             <div className="flex flex-wrap items-center gap-2">
