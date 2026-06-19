@@ -96,8 +96,8 @@ renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 0.95;
 const maxAniso = renderer.capabilities.getMaxAnisotropy();
 const scene = new THREE.Scene();
-const cam = new THREE.PerspectiveCamera(33, 1, 0.1, 100); cam.position.set(0,0,6.0);
-function size(){ const w=canvas.clientWidth,h=canvas.clientHeight; renderer.setSize(w,h,false); cam.aspect=w/h; cam.updateProjectionMatrix(); }
+const cam = new THREE.PerspectiveCamera(26, 1, 0.1, 100); cam.position.set(0,0.45,8.4); cam.lookAt(0,0,0);
+function size(){ const w=canvas.clientWidth,h=canvas.clientHeight; renderer.setSize(w,h,false); cam.aspect=w/h; cam.updateProjectionMatrix(); cam.lookAt(0,0,0); }
 const pmrem = new THREE.PMREMGenerator(renderer);
 scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
 
@@ -168,7 +168,7 @@ const pasteMat=new THREE.MeshPhysicalMaterial({map:pT.map,bumpMap:pT.bump,bumpSc
 const rindMat =new THREE.MeshStandardMaterial({map:rT.map,bumpMap:rT.bump,bumpScale:0.06,roughness:0.94,metalness:0,envMapIntensity:0.35});
 
 /* ---------- assemble the wheel (tilted back on a rig so we read its 3D depth + rim) ---------- */
-const rig=new THREE.Group(); rig.rotation.x=-0.40; scene.add(rig);   // top recedes, bottom slot tips toward viewer
+const rig=new THREE.Group(); rig.rotation.x=-0.24; rig.position.y=0.2; scene.add(rig);   // gentle lean + lift so the slot has room
 const wheel=new THREE.Group(); rig.add(wheel);
 const D=R*0.6;                       // centroid distance along the slice axis (pop/spin pivot)
 const slices=[]; const meshes=[];
@@ -185,16 +185,19 @@ const key=new THREE.DirectionalLight(0xfff2da,1.5); key.position.set(3.5,5,3.5);
 const fill=new THREE.DirectionalLight(0xcfe0ff,0.35); fill.position.set(-4,1.2,-1.5); scene.add(fill);
 const rim=new THREE.DirectionalLight(0xffe2a8,0.7); rim.position.set(-1.5,-1,-4); scene.add(rim);
 
-/* ---------- selection + spin state ---------- */
-let selected=-1, targetRot=SLOT, freeSpin=false;
-const POP=1.3;
+/* ---------- selection + DETERMINISTIC motion ---------- */
+let selected=-1, freeSpin=false, anim=null;            // anim = one scripted select sequence
+const RAD_OUT=0.42, POP_Z=0.72;                         // eject: slide radially out of the wheel + toward camera
+const T_ROT=0.7, T_EJ=0.95;                             // phase durations (s): rotate-to-slot, then eject+present
+const clock=new THREE.Clock();
+const easeIO=p=>p<.5?2*p*p:1-Math.pow(-2*p+2,2)/2;
+const easeOut=p=>1-Math.pow(1-p,3);
 function norm(a){ while(a> Math.PI)a-=2*Math.PI; while(a<-Math.PI)a+=2*Math.PI; return a; }
 function selectIndex(i){
-  selected=i; freeSpin=false;
-  // rotate wheel so slice i sits at the bottom slot, taking the short way around
-  const want = SLOT - i*ALPHA;
-  targetRot = wheel.rotation.z + norm(want - wheel.rotation.z);
-  paintPicker(); typeReadout(APPS[i]);
+  freeSpin=false;
+  const fromRot=wheel.rotation.z, want=SLOT-i*ALPHA;    // shortest way to drop slice i into the slot
+  anim={ t0:clock.getElapsedTime(), fromRot, toRot:fromRot+norm(want-fromRot) };
+  selected=i; paintPicker(); typeReadout(APPS[i]);
 }
 function nearestToSlot(){ let best=0,bd=9; for(let i=0;i<N;i++){ const wa=wheel.rotation.z+i*ALPHA; const d=Math.abs(norm(wa-SLOT)); if(d<bd){bd=d;best=i;} } return best; }
 
@@ -222,7 +225,7 @@ const _v=new THREE.Vector3();
 let down=false, moved=0, lastX=0;
 canvas.addEventListener("pointerdown",e=>{ down=true; moved=0; lastX=e.clientX; canvas.setPointerCapture(e.pointerId); });
 canvas.addEventListener("pointermove",e=>{ if(!down)return; const dx=e.clientX-lastX; lastX=e.clientX; moved+=Math.abs(dx);
-  if(moved>3){ freeSpin=true; selected=-1; paintPicker(); wheel.rotation.z+=dx*0.009; targetRot=wheel.rotation.z; } });
+  if(moved>3){ freeSpin=true; selected=-1; anim=null; paintPicker(); wheel.rotation.z+=dx*0.009; } });
 canvas.addEventListener("pointerup",e=>{ down=false;
   if(moved<4){ // click → raycast a slice
     const r=canvas.getBoundingClientRect(); const nd=new THREE.Vector2(((e.clientX-r.left)/r.width)*2-1, -((e.clientY-r.top)/r.height)*2+1);
@@ -232,17 +235,24 @@ canvas.addEventListener("pointerup",e=>{ down=false;
   selectIndex(nearestToSlot());   // snap the nearest slice into the slot
 });
 
-/* ---------- render loop ---------- */
-const clock=new THREE.Clock();
+/* ---------- render loop (scripted, repeatable path) ---------- */
 function frame(){
   requestAnimationFrame(frame); const t=clock.getElapsedTime();
-  if(!freeSpin) wheel.rotation.z += (targetRot-wheel.rotation.z)*0.12;   // ease toward target
+  if(anim){ const pr=THREE.MathUtils.clamp((t-anim.t0)/T_ROT,0,1);       // phase 1: rotate slice to the slot
+    wheel.rotation.z = anim.fromRot+(anim.toRot-anim.fromRot)*easeIO(pr); }
   slices.forEach(s=>{
     const on = s.i===selected;
-    s.pop.position.z += ((on?POP:0)-s.pop.position.z)*0.12;              // push forward
-    const ramp=THREE.MathUtils.clamp(s.pop.position.z/POP,0,1);
-    const target = on ? Math.sin(t*1.25)*0.62*ramp : 0;                  // rock on its own axis
-    s.spin.rotation.x += (target-s.spin.rotation.x)*0.15;
+    if(on && anim){
+      const pe=THREE.MathUtils.clamp((t-anim.t0-T_ROT*0.55)/T_EJ,0,1);   // phase 2: eject + ONE clean revolution
+      s.pop.position.x = RAD_OUT*easeOut(pe);                            // slide radially OUT of the wheel (down at the slot)
+      s.pop.position.z = POP_Z *easeOut(pe);                            // and push toward the camera
+      s.spin.rotation.x = easeIO(pe)*Math.PI*2;                          // exactly 360° → settles facing front
+    } else {                                                            // others retract: flush + nearest front face
+      const full=Math.round(s.spin.rotation.x/(2*Math.PI))*2*Math.PI;
+      s.pop.position.x += (0-s.pop.position.x)*0.18;
+      s.pop.position.z += (0-s.pop.position.z)*0.18;
+      s.spin.rotation.x += (full-s.spin.rotation.x)*0.18;
+    }
   });
   // project orbiting labels
   slices.forEach((s,i)=>{ _v.set(D, 0, T/2+0.02); s.pop.localToWorld(_v); _v.project(cam);

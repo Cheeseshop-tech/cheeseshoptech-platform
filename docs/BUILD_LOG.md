@@ -19,6 +19,16 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-17 — Wheel v3.1 — fixed perspective + deterministic motion
+
+**Action (Rick notes).** (1) *Out of perspective* → dollied camera back + narrowed FOV (26°), eased the
+rig lean to −0.24 and lifted it; the wheel now reads as a clean round 3D object, no skew. (2) *No random
+rotation* → replaced the sine-wave rock with a **scripted, repeatable timeline**: rotate slice to slot
+(`T_ROT`) → slide it **radially out of the wheel** (`RAD_OUT`, reads as pulling a slice from the pie) +
+push toward camera (`POP_Z`) → **one clean 360°** revolution → settle facing front and **hold**.
+Identical path + end pose every time; non-selected wedges retract to the nearest full-turn (no unwind).
+Drag-spin still snaps nearest-to-slot on release. **Status.** Prototype.
+
 ## 2026-06-17 — Full spinnable Asiago WHEEL selector (v3)
 
 **Action.** Built `prototypes/asiago-wheel-3d-prototype.html` — the slices assemble into a **complete
