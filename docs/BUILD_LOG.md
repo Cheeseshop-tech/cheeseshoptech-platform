@@ -19,6 +19,19 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-17 — Photo-textured wheel (render-plan stage 2, lean path)
+
+**Action.** Kicked off the photoreal track from `ASIAGO_WHEEL_RENDER_PLAN.md`. Baked **real reference
+crops** into PBR maps with PIL (the in-session stand-in for Substance/Firefly): **paste** (eyes) from
+`formaggio…stagionato` bottom-left block crop, **rind** from `slider_vecchio`'s clean brown side.
+De-lit each via **divide-by-blur** (kills the shadow gradient → flat albedo, keeps eyes/pores), retinted,
+derived **bump** from luminance. Masters saved to `design/asiago-wheel/textures/` (paste/rind ×
+albedo+bump, ~185 KB total). New prototype `prototypes/asiago-wheel-3d-photoref.html` inlines them as
+base64 data-URIs (avoids file:// canvas-taint) and swaps the procedural canvas textures for
+`TextureLoader` maps — same geometry, same deterministic eject, real photographic paste on every wedge.
+**Open follow-ups:** per-wedge UV offset/rotation to break the pinwheel repetition · deepen paste
+contrast · richer rind on the arc · then Blender bevel+bake+HDRI (stage 3). **Status.** Prototype.
+
 ## 2026-06-17 — Wheel v3.1 — fixed perspective + deterministic motion
 
 **Action (Rick notes).** (1) *Out of perspective* → dollied camera back + narrowed FOV (26°), eased the
