@@ -149,10 +149,15 @@ function Proforma({ data, brand, resolved }) {
     </style></head><body>
       <div class="hd"><div><h1>${esc(b.name || "Monti Trentini")}</h1><div class="sub">${esc(b.tagline || "")}</div></div><div><div class="pf">PROFORMA</div><div class="sub">${TODAY}</div></div></div>
       <div class="meta"><div><b>Bill to</b>${esc(customer || "—")}</div><div><b>Basis</b>${basis === "pickup" ? "Pickup (EXW)" : "Delivered"}</div><div><b>Class of trade</b>${esc(tier.label || "")}</div>${customPct ? `<div><b>Custom</b>${customPct > 0 ? "+" : ""}${customPct}%</div>` : ""}</div>
-      <table><thead><tr><th>Item</th><th>Product</th><th class="r">Cases</th><th class="r">Lbs</th><th class="r">$/lb</th><th class="r">Line total</th></tr></thead>
+      <table><thead><tr><th>Item</th><th>Product</th><th class="r">Cases</th><th class="r">Lbs (est.)</th><th class="r">$/lb (firm)</th><th class="r">Line total (est.)</th></tr></thead>
       <tbody>${rows}</tbody>
-      <tfoot><tr><td colspan="5" class="r">Merchandise (${order.lines.length} lines · ${lbsFmt(order.totalLbs)} lb)</td><td class="r">${money(order.merchSubtotal)}</td></tr>${fees}<tr class="grand"><td colspan="5" class="r">GRAND TOTAL</td><td class="r">${money(order.grandTotal)}</td></tr></tfoot></table>
-      <div class="ft">Casa Finco · casari dal 1925 — quote valid 30 days. Freight is estimated and confirmed at booking.</div>
+      <tfoot><tr><td colspan="5" class="r">Merchandise (${order.lines.length} lines · ${lbsFmt(order.totalLbs)} lb)</td><td class="r">${money(order.merchSubtotal)}</td></tr>${fees}<tr class="grand"><td colspan="5" class="r">GRAND TOTAL (estimate)</td><td class="r">${money(order.grandTotal)}</td></tr></tfoot></table>
+      <div class="ft" style="text-align:left;line-height:1.5;max-width:760px;margin-left:auto;margin-right:auto">
+        Prices are quoted <b>per pound (firm)</b>. Bulk cheese is sold by <b>catch weight</b> — line and order totals are
+        <b>estimates based on average weights</b>; the actual weight of each item will vary and is confirmed when the order
+        is weighed at our warehouse. The trucking fee shown is an <b>estimate pending confirmation with the logistics
+        provider</b>. Processing and logistics are billed as separate line items. Quote valid 30 days. &nbsp;·&nbsp; Casa Finco · casari dal 1925.
+      </div>
       <script>window.onload=function(){window.print();}<\/script></body></html>`;
     const w = window.open("", "_blank");
     if (!w) { toast({ title: "Pop-up blocked", description: "Allow pop-ups to print or save the proforma as PDF.", tone: "warning" }); return; }
@@ -220,7 +225,7 @@ function Proforma({ data, brand, resolved }) {
 
               <div className="ml-auto flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-2 rounded-base bg-brand-primary px-4 py-2 text-brand-on-primary">
-                  <span className="font-heading text-sm">Grand total</span><span className="font-mono text-lg font-semibold">{money(order.grandTotal)}</span>
+                  <span className="font-heading text-sm">Grand total</span><span className="font-mono text-lg font-semibold">{money(order.grandTotal)}</span><span className="text-[10px] uppercase tracking-wide opacity-80">est.</span>
                 </div>
                 <Button variant="outline" onClick={printProforma}>Print / PDF</Button>
                 <Button variant="primary" onClick={recordSale}>Record sale</Button>

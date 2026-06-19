@@ -39,9 +39,10 @@
       "_note": "Freight/handling are SEPARATE LINE ITEMS on the proforma — NEVER folded into $/lb, added at proforma time. Pickup (EXW SEAFRIGO) = no freight lines.",
       "delivered": {
         "truckingPerLb": 0.30,
+        "truckingMinLocal": 300,
         "processingFlat": 135,
         "processingBelowThresholdOnly": true,
-        "_note": "Trucking = $0.30/lb on all delivered orders. Processing fee = $135 on delivered orders under the 1,500 lb threshold."
+        "_note": "Trucking = $0.30/lb, floored at the local tri-state minimum of $300 (rep overrides for distance); it is an estimate until confirmed with the logistics provider. Processing fee = $135 on delivered orders under the 1,500 lb threshold."
       }
     },
 

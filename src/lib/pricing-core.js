@@ -38,8 +38,12 @@ export function freightLines(orderLbs, opts, config) {
   orderLbs = Number(orderLbs) || 0;
   const d = fr.delivered || {};
   const lines = [];
-  if (d.truckingPerLb) {
-    lines.push({ id: "trucking", label: "Trucking", amount: round2(d.truckingPerLb * orderLbs) });
+  if (d.truckingPerLb || d.truckingMinLocal) {
+    // Trucking is distance-based but never below the local tri-state minimum (rep overrides for
+    // distance). Estimate only — confirmed with the logistics provider before the final invoice.
+    const byWeight = round2((d.truckingPerLb || 0) * orderLbs);
+    const amount = Math.max(byWeight, d.truckingMinLocal || 0);
+    lines.push({ id: "trucking", label: "Trucking (est.)", amount, estimate: true });
   }
   const addProcessing = d.processingFlat &&
     (!d.processingBelowThresholdOnly || orderLbs < fr.thresholdLb);
