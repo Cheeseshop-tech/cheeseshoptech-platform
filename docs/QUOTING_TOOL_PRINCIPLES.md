@@ -91,11 +91,12 @@ reads from those sources and writes back to them, so the whole ecosystem stays c
 | Pricing rules: tiers, margins, freight, fees, min/max | `client.config.json` → `pricing` | ✅ canonical |
 | Inventory: stock, lots, shelf life, in-transit | Live store (Netlify Blobs, weekly sync) | ✅ live (2026-06-18) |
 | Standing commitments (regular customers) | `commitments.json` | ✅ canonical |
-| **History: quotes issued, movement sold/missed, approvals** | **per-browser localStorage today** | ❌ **needs central store** |
+| Movement history (sold / missed cases) | Live store (Netlify Blobs) + localStorage layer | ✅ shared (2026-06-18) |
+| Quotes issued / approvals (logging) | not captured yet | ⏳ future (extend the history store) |
 
-The forecasting goal **depends on** moving history out of per-browser `localStorage` into one central,
-shared store (same pattern as the live inventory feed) — otherwise each rep has a different, partial
-"mind" and projections can't be trusted.
+Movement history now lives in a **central shared store** (`netlify/functions/history.js` over Netlify
+Blobs, `src/lib/history.js`), so every rep's captures accrue into one record and forecasting can be
+trusted. Remaining: log issued quotes/approvals into the same store.
 
 ## 10. Gap log (build backlog, against this doc)
 1. **Shelf-life alerts** — surface remaining shelf life at quote time; flag lots < 4 months as "must move." (high)
