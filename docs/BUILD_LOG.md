@@ -19,6 +19,17 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-17 — Showpiece cheese → WHEEL OF ASIAGO (Monti flagship); source folder
+
+**Decision (Rick).** The dynamic-landing cheese-wheel is now a **wheel of Asiago** (Monti's flagship
+Asiago PDO, "Product of the Mountains") — ties the showpiece to the hero product + brand story (was
+BellaVitano-form). **Created `design/asiago-wheel/`** for source assets: `references/` (drop reference
+photos) + README (shot list — top-down whole wheel · cut wedge w/ eyes + rind cross-section · rind
+close-up · 3⁄4 views; look = pale straw→golden, irregular eyes, natural rind; illustration over
+photoreal). Pipeline: compile → enhance (Adobe/Firefly) → 3D (Three.js wedge/wheel) → embed as a
+`kind:"code"`/scene slot in a `flow` manifest. The cheese-wheel POC's color/texture get retuned to
+Asiago once refs are in. **Status.** Folder + brief; awaiting Rick's reference images.
+
 ## 2026-06-17 — cheese-wheel nav (interaction POC) — the dynamic-landing concept
 
 **Action.** Built `prototypes/cheese-wheel-nav-prototype.html` — proves the core interaction of Rick's
