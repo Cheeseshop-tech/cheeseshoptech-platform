@@ -19,6 +19,20 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-17 — Full spinnable Asiago WHEEL selector (v3)
+
+**Action.** Built `prototypes/asiago-wheel-3d-prototype.html` — the slices assemble into a **complete
+wheel** and become the nav. **7 sector wedges** (apex-at-origin geometry, PBR paste face + eyes, rind
+rim/arc) seated at `i·(2π/7)` on a `wheel` group, tilted back on a `rig` so the depth + rind band read.
+**Spinnable** (pointer-drag → `wheel.rotation.z` with snap-to-slot on release) and **selectable**
+(raycast a slice, or a tool-chip picker). The selected slice eases to the **bottom ACTIVE SLOT**, then
+**pushes forward** (`pop` group +Z toward camera) and **rotates on its own slice axis** (`spin` group,
+pivot at the wedge centroid) to present itself — while the readout types its `page · id · function` and
+HTML labels **orbit** each slice (projected per-frame). All 7 tools wired (Proforma…Commitments).
+Self-contained (procedural textures, no external assets). **NEXT:** real-photo albedo texture · tune
+eject (distance / full barrel-roll vs rock) · then embed as a `kind:"code"` scene-slot in a `flow`
+manifest (apex landing hero). **Status.** Prototype only.
+
 ## 2026-06-17 — Photoreal PBR skin on the 3D wedge (v2)
 
 **Action.** Built `prototypes/asiago-wedge-3d-photoreal.html` — the wedge gets a real **PBR skin**.

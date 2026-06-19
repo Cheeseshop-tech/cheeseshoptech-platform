@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>CheeseShop TECH — 3D Asiago WHEEL (spinnable selector)</title>
+<!--
+  THE WHEEL. Seven Asiago wedges assembled into a full wheel (PBR paste face + eyes, rind rim).
+  Spin it (drag) or click a slice / app button. The selected slice rotates to the BOTTOM SLOT, then
+  PUSHES FORWARD (toward camera) and rotates on its own axis to present itself, while the readout
+  types its page ID + function. Self-contained (procedural canvas textures, no external assets).
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,400..700&family=Jost:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{ --primary:#064E22; --accent:#009640; --cream:#FFFBDC; --ink:#141413; --charcoal:#716A6A;
+    --display:"Fraunces",Georgia,serif; --ui:"Jost",system-ui,sans-serif; --mono:"IBM Plex Mono",monospace; }
+  *{box-sizing:border-box;margin:0}
+  body{font-family:var(--ui);color:var(--ink);background:radial-gradient(120% 120% at 50% 0%,#fffdef,var(--cream));min-height:100vh}
+  .stage{max-width:1040px;margin:0 auto;padding:22px 24px;display:grid;grid-template-columns:1fr 330px;gap:20px;align-items:center}
+  .head{grid-column:1/-1}
+  .ey{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);font-weight:700}.ey b{color:var(--primary)}
+  .head h1{font-family:var(--display);font-style:italic;font-weight:600;font-size:30px;color:var(--primary);margin-top:6px;line-height:1.05}
+  .head p{color:var(--charcoal);font-size:14px;margin-top:6px}
+  .wrap{position:relative}
+  #scene{width:100%;height:500px;cursor:grab;touch-action:none;display:block}
+  #scene:active{cursor:grabbing}
+  .lab{position:absolute;transform:translate(-50%,-50%);font-family:var(--ui);font-size:11px;font-weight:600;
+    color:#5b4a23;background:rgba(255,253,239,.78);border:1px solid rgba(120,95,40,.25);padding:2px 7px;border-radius:20px;
+    pointer-events:none;white-space:nowrap;backdrop-filter:blur(2px);transition:color .2s,background .2s,border-color .2s;letter-spacing:.01em}
+  .lab.sel{color:#fff;background:var(--primary);border-color:var(--primary);box-shadow:0 4px 14px rgba(6,78,34,.3)}
+  .slot{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);text-align:center;pointer-events:none}
+  .slot .arw{font-size:18px;color:var(--accent);line-height:1}
+  .slot .lb{font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--charcoal);margin-top:1px}
+  .read .tag{font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--charcoal);font-weight:700}
+  .read .name{font-family:var(--display);font-style:italic;font-weight:600;font-size:34px;color:var(--primary);line-height:1.04;margin-top:8px;min-height:38px}
+  .read .pid{font-family:var(--mono);font-size:12.5px;color:var(--accent);margin-top:12px}.read .pid .id{color:var(--charcoal)}
+  .read .fn{font-size:15px;line-height:1.5;margin-top:13px;min-height:66px;color:#2c2c2a}
+  .read .fn .cur{display:inline-block;width:8px;height:1em;background:var(--accent);margin-left:1px;animation:blink 1s steps(1) infinite;vertical-align:-2px}
+  @keyframes blink{50%{opacity:0}}
+  .picker{margin-top:16px;display:flex;flex-wrap:wrap;gap:6px}
+  .picker button{font-family:var(--ui);font-size:11.5px;font-weight:600;color:var(--primary);background:#fff;
+    border:1px solid rgba(6,78,34,.18);padding:5px 10px;border-radius:18px;cursor:pointer;transition:.18s}
+  .picker button:hover{border-color:var(--accent);color:var(--accent)}
+  .picker button.on{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .hint{grid-column:1/-1;text-align:center;font-size:11.5px;color:var(--charcoal);margin-top:4px}.hint b{color:var(--primary)}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="head">
+    <div class="ey">CheeseShop TECH · <b>the wheel</b> · interactive selector</div>
+    <h1>The whole wheel — spin to your tool.</h1>
+    <p>Seven Asiago wedges, seven portal tools. Drag to spin, or pick one — it drops to the slot, pushes forward, and turns to present itself.</p>
+  </div>
+  <div class="wrap">
+    <canvas id="scene"></canvas>
+    <div class="slot"><div class="arw">▲</div><div class="lb">active slot</div></div>
+  </div>
+  <div class="read">
+    <div class="tag">Portal tool · market segment</div>
+    <div class="name" id="rName">—</div>
+    <div class="pid" id="rPid"></div>
+    <div class="fn" id="rFn"></div>
+    <div class="picker" id="picker"></div>
+  </div>
+  <div class="hint"><b>Drag</b> the wheel to spin · <b>click a slice</b> or a tool chip to select · the active wedge ejects at the slot and rotates on its axis.</div>
+</div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+}}
+</script>
+<script type="module">
+import * as THREE from "three";
+import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
+
+/* ---------- the seven tools ---------- */
+const APPS = [
+  {name:"Proforma",       page:"/pricing",     id:"PRC-01", fn:"Wholesale quoting — class-of-trade, freight line items, FIFO lots."},
+  {name:"Storefront",     page:"/store",       id:"STO-01", fn:"DTC catalog — cart, checkout, EUR pricing, shipping."},
+  {name:"Campaigns",      page:"/campaigns",   id:"CMP-01", fn:"Email + social pushes, synced out to HubSpot."},
+  {name:"Movement",       page:"/movement",    id:"MOV-01", fn:"Inventory in/out — lots, containers, arrival ETAs."},
+  {name:"Media Hub",      page:"/media",       id:"MED-01", fn:"The asset library — tagged Cloudinary imagery."},
+  {name:"Content Studio", page:"/studio",      id:"CNT-01", fn:"Template-guided, brand-painted content engine."},
+  {name:"Commitments",    page:"/commitments", id:"CMT-01", fn:"Pending allocations against incoming stock."},
+];
+const N = APPS.length, ALPHA = Math.PI*2/N, SLOT = -Math.PI/2;   // bottom of the wheel
+
+const canvas = document.getElementById("scene");
+const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 0.95;
+const maxAniso = renderer.capabilities.getMaxAnisotropy();
+const scene = new THREE.Scene();
+const cam = new THREE.PerspectiveCamera(33, 1, 0.1, 100); cam.position.set(0,0,6.0);
+function size(){ const w=canvas.clientWidth,h=canvas.clientHeight; renderer.setSize(w,h,false); cam.aspect=w/h; cam.updateProjectionMatrix(); }
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+
+/* ---------- procedural Asiago textures ---------- */
+function cv(w,h){ const c=document.createElement("canvas"); c.width=w; c.height=h; return c; }
+function grain(ctx,w,h,a){ const im=ctx.getImageData(0,0,w,h),d=im.data; for(let i=0;i<d.length;i+=4){const n=(Math.random()-.5)*a; d[i]+=n;d[i+1]+=n;d[i+2]+=n;} ctx.putImageData(im,0,0); }
+function blob(ctx,w,h,n,r0,r1,cols,a0,a1){ for(let i=0;i<n;i++){ ctx.globalAlpha=a0+Math.random()*(a1-a0); ctx.fillStyle=cols[(Math.random()*cols.length)|0];
+  const x=Math.random()*w,y=Math.random()*h,r=r0+Math.random()*(r1-r0); ctx.beginPath(); ctx.ellipse(x,y,r,r*(.7+Math.random()*.6),Math.random()*6.28,0,6.28); ctx.fill(); } ctx.globalAlpha=1; }
+function tex(c,srgb){ const t=new THREE.CanvasTexture(c); t.anisotropy=maxAniso; if(srgb)t.colorSpace=THREE.SRGBColorSpace; return t; }
+function pasteTextures(){
+  const S=1024, eyes=[]; for(let i=0;i<40;i++) eyes.push({x:Math.random()*S,y:Math.random()*S,r:3+Math.random()*9});
+  const a=cv(S,S),c=a.getContext("2d");
+  let g=c.createLinearGradient(0,0,0,S); g.addColorStop(0,"#E8D492"); g.addColorStop(1,"#D6BD75"); c.fillStyle=g; c.fillRect(0,0,S,S);
+  g=c.createRadialGradient(S*.42,S*.4,40,S*.5,S*.5,S*.78); g.addColorStop(0,"rgba(255,248,210,.4)"); g.addColorStop(1,"rgba(210,185,118,0)"); c.fillStyle=g; c.fillRect(0,0,S,S);
+  blob(c,S,S,240,8,46,["#F1E5B0","#D9BE78","#CBB06C","#E8D696"],.05,.13); grain(c,S,S,10);
+  eyes.forEach(e=>{ let r=c.createRadialGradient(e.x,e.y,0,e.x,e.y,e.r); r.addColorStop(0,"#A8905A"); r.addColorStop(.65,"#C2A86E"); r.addColorStop(1,"rgba(200,176,116,0)");
+    c.fillStyle=r; c.beginPath(); c.arc(e.x,e.y,e.r,0,6.28); c.fill();
+    c.strokeStyle="rgba(120,95,40,.45)"; c.lineWidth=1; c.beginPath(); c.arc(e.x,e.y,e.r*.92,0,6.28); c.stroke();
+    c.strokeStyle="rgba(255,248,214,.55)"; c.lineWidth=1.1; c.beginPath(); c.arc(e.x,e.y,e.r*.78,3.6,5.2); c.stroke(); });
+  const b=cv(S,S),d=b.getContext("2d"); d.fillStyle="#838383"; d.fillRect(0,0,S,S);
+  blob(d,S,S,200,10,44,["#9a9a9a","#6d6d6d","#888"],.06,.14); grain(d,S,S,14);
+  eyes.forEach(e=>{ let r=d.createRadialGradient(e.x,e.y,0,e.x,e.y,e.r*1.1); r.addColorStop(0,"#3a3a3a"); r.addColorStop(.7,"#5e5e5e"); r.addColorStop(1,"rgba(131,131,131,0)");
+    d.fillStyle=r; d.beginPath(); d.arc(e.x,e.y,e.r*1.1,0,6.28); d.fill(); });
+  return { map:tex(a,true), bump:tex(b,false) };
+}
+function rindTextures(){
+  const S=512, a=cv(S,S),c=a.getContext("2d");
+  let g=c.createLinearGradient(0,0,0,S); g.addColorStop(0,"#BB9052"); g.addColorStop(1,"#946E34"); c.fillStyle=g; c.fillRect(0,0,S,S);
+  blob(c,S,S,180,12,60,["#A87E42","#8A6630","#C49C5E","#7C5C2C"],.08,.17); grain(c,S,S,16);
+  c.strokeStyle="rgba(70,50,24,.35)"; c.lineWidth=1; for(let i=0;i<26;i++){ c.beginPath(); let x=Math.random()*S,y=Math.random()*S; c.moveTo(x,y); for(let k=0;k<4;k++){x+=(Math.random()-.5)*60;y+=(Math.random()-.5)*60;c.lineTo(x,y);} c.stroke(); }
+  const b=cv(S,S),d=b.getContext("2d"); d.fillStyle="#7d7d7d"; d.fillRect(0,0,S,S);
+  blob(d,S,S,170,12,58,["#9a9a9a","#5e5e5e","#888"],.1,.2); grain(d,S,S,22);
+  return { map:tex(a,true), bump:tex(b,false) };
+}
+const pT=pasteTextures(), rT=rindTextures();
+
+/* ---------- one wedge: sector in XY (apex at origin, centered on +X), extruded ±T/2 in Z ----------
+   PASTE = front + back caps + two radial cut faces ; RIND = curved arc ---------- */
+function sector(R,T,half,segs){
+  const pos=[],uv=[]; const push=(p,u,v)=>{pos.push(p[0],p[1],p[2]); uv.push(u,v);};
+  const P=(ang,r,z)=>[r*Math.cos(ang),r*Math.sin(ang),z];
+  const z0=-T/2,z1=T/2, aF=[0,0,z1], aB=[0,0,z0];
+  const capUV=p=>[(p[0]/R+1)/2,(p[1]/R+1)/2];
+  // front cap (PASTE, +Z)
+  for(let i=0;i<segs;i++){ const a0=-half+2*half*i/segs,a1=-half+2*half*(i+1)/segs; const A0=P(a0,R,z1),A1=P(a1,R,z1);
+    push(aF,...capUV(aF)); push(A0,...capUV(A0)); push(A1,...capUV(A1)); }
+  // back cap (PASTE, -Z)
+  for(let i=0;i<segs;i++){ const a0=-half+2*half*i/segs,a1=-half+2*half*(i+1)/segs; const A0=P(a0,R,z0),A1=P(a1,R,z0);
+    push(aB,...capUV(aB)); push(A1,...capUV(A1)); push(A0,...capUV(A0)); }
+  // radial face @ -half (PASTE)
+  { const oF=P(-half,R,z1),oB=P(-half,R,z0); push(aF,0,1); push(aB,0,0); push(oB,1,0); push(aF,0,1); push(oB,1,0); push(oF,1,1); }
+  // radial face @ +half (PASTE)
+  { const oF=P(half,R,z1),oB=P(half,R,z0); push(aF,0,1); push(oF,1,1); push(oB,1,0); push(aF,0,1); push(oB,1,0); push(aB,0,0); }
+  const pasteV=pos.length/3;
+  // arc (RIND)
+  for(let i=0;i<segs;i++){ const a0=-half+2*half*i/segs,a1=-half+2*half*(i+1)/segs,u0=i/segs,u1=(i+1)/segs;
+    const F0=P(a0,R,z1),F1=P(a1,R,z1),B0=P(a0,R,z0),B1=P(a1,R,z0);
+    push(F0,u0,1); push(B0,u0,0); push(B1,u1,0); push(F0,u0,1); push(B1,u1,0); push(F1,u1,1); }
+  const g=new THREE.BufferGeometry();
+  g.setAttribute("position",new THREE.Float32BufferAttribute(pos,3));
+  g.setAttribute("uv",new THREE.Float32BufferAttribute(uv,2));
+  g.computeVertexNormals();
+  g.addGroup(0,pasteV,0); g.addGroup(pasteV,pos.length/3-pasteV,1);
+  return g;
+}
+const R=1.55, T=0.5, geo=sector(R,T,ALPHA/2*0.985,18);   // tiny gap between slices
+const pasteMat=new THREE.MeshPhysicalMaterial({map:pT.map,bumpMap:pT.bump,bumpScale:0.04,roughness:0.62,metalness:0,clearcoat:0.1,clearcoatRoughness:0.65,envMapIntensity:0.6});
+const rindMat =new THREE.MeshStandardMaterial({map:rT.map,bumpMap:rT.bump,bumpScale:0.06,roughness:0.94,metalness:0,envMapIntensity:0.35});
+
+/* ---------- assemble the wheel (tilted back on a rig so we read its 3D depth + rim) ---------- */
+const rig=new THREE.Group(); rig.rotation.x=-0.40; scene.add(rig);   // top recedes, bottom slot tips toward viewer
+const wheel=new THREE.Group(); rig.add(wheel);
+const D=R*0.6;                       // centroid distance along the slice axis (pop/spin pivot)
+const slices=[]; const meshes=[];
+for(let i=0;i<N;i++){
+  const seat=new THREE.Group(); seat.rotation.z=i*ALPHA; wheel.add(seat);
+  const pop=new THREE.Group(); seat.add(pop);                 // pushes toward camera (+Z)
+  const spin=new THREE.Group(); spin.position.x=D; pop.add(spin);  // rotates on the slice axis
+  const mesh=new THREE.Mesh(geo,[pasteMat,rindMat]); mesh.position.x=-D; mesh.userData.index=i; spin.add(mesh);
+  slices.push({seat,pop,spin,mesh,i}); meshes.push(mesh);
+}
+/* lights — env softens, directional sculpts */
+scene.add(new THREE.AmbientLight(0xfff3da,0.12));
+const key=new THREE.DirectionalLight(0xfff2da,1.5); key.position.set(3.5,5,3.5); scene.add(key);
+const fill=new THREE.DirectionalLight(0xcfe0ff,0.35); fill.position.set(-4,1.2,-1.5); scene.add(fill);
+const rim=new THREE.DirectionalLight(0xffe2a8,0.7); rim.position.set(-1.5,-1,-4); scene.add(rim);
+
+/* ---------- selection + spin state ---------- */
+let selected=-1, targetRot=SLOT, freeSpin=false;
+const POP=1.3;
+function norm(a){ while(a> Math.PI)a-=2*Math.PI; while(a<-Math.PI)a+=2*Math.PI; return a; }
+function selectIndex(i){
+  selected=i; freeSpin=false;
+  // rotate wheel so slice i sits at the bottom slot, taking the short way around
+  const want = SLOT - i*ALPHA;
+  targetRot = wheel.rotation.z + norm(want - wheel.rotation.z);
+  paintPicker(); typeReadout(APPS[i]);
+}
+function nearestToSlot(){ let best=0,bd=9; for(let i=0;i<N;i++){ const wa=wheel.rotation.z+i*ALPHA; const d=Math.abs(norm(wa-SLOT)); if(d<bd){bd=d;best=i;} } return best; }
+
+/* readout typewriter */
+const rName=document.getElementById("rName"), rPid=document.getElementById("rPid"), rFn=document.getElementById("rFn");
+let typeTimer=null;
+function typeReadout(app){
+  rName.textContent=app.name;
+  rPid.innerHTML=`page · ${app.page}<span class="id">  ·  ${app.id}</span>`;
+  if(typeTimer)clearInterval(typeTimer); rFn.innerHTML="";
+  const cur=document.createElement("span"); cur.className="cur"; rFn.appendChild(document.createTextNode("")); rFn.appendChild(cur);
+  let i=0; typeTimer=setInterval(()=>{ if(i>=app.fn.length){clearInterval(typeTimer); cur.remove(); return;} rFn.firstChild.textContent+=app.fn[i++]; },18);
+}
+/* picker chips */
+const picker=document.getElementById("picker");
+APPS.forEach((a,i)=>{ const b=document.createElement("button"); b.textContent=a.name; b.onclick=()=>selectIndex(i); picker.appendChild(b); });
+function paintPicker(){ [...picker.children].forEach((b,i)=>b.classList.toggle("on",i===selected)); }
+
+/* labels that orbit with the slices */
+const wrap=document.querySelector(".wrap");
+const labels=APPS.map(a=>{ const d=document.createElement("div"); d.className="lab"; d.textContent=a.name; wrap.appendChild(d); return d; });
+const _v=new THREE.Vector3();
+
+/* ---------- pointer: drag to spin, click to select ---------- */
+let down=false, moved=0, lastX=0;
+canvas.addEventListener("pointerdown",e=>{ down=true; moved=0; lastX=e.clientX; canvas.setPointerCapture(e.pointerId); });
+canvas.addEventListener("pointermove",e=>{ if(!down)return; const dx=e.clientX-lastX; lastX=e.clientX; moved+=Math.abs(dx);
+  if(moved>3){ freeSpin=true; selected=-1; paintPicker(); wheel.rotation.z+=dx*0.009; targetRot=wheel.rotation.z; } });
+canvas.addEventListener("pointerup",e=>{ down=false;
+  if(moved<4){ // click → raycast a slice
+    const r=canvas.getBoundingClientRect(); const nd=new THREE.Vector2(((e.clientX-r.left)/r.width)*2-1, -((e.clientY-r.top)/r.height)*2+1);
+    const rc=new THREE.Raycaster(); rc.setFromCamera(nd,cam); const hit=rc.intersectObjects(meshes,false)[0];
+    if(hit){ selectIndex(hit.object.userData.index); return; }
+  }
+  selectIndex(nearestToSlot());   // snap the nearest slice into the slot
+});
+
+/* ---------- render loop ---------- */
+const clock=new THREE.Clock();
+function frame(){
+  requestAnimationFrame(frame); const t=clock.getElapsedTime();
+  if(!freeSpin) wheel.rotation.z += (targetRot-wheel.rotation.z)*0.12;   // ease toward target
+  slices.forEach(s=>{
+    const on = s.i===selected;
+    s.pop.position.z += ((on?POP:0)-s.pop.position.z)*0.12;              // push forward
+    const ramp=THREE.MathUtils.clamp(s.pop.position.z/POP,0,1);
+    const target = on ? Math.sin(t*1.25)*0.62*ramp : 0;                  // rock on its own axis
+    s.spin.rotation.x += (target-s.spin.rotation.x)*0.15;
+  });
+  // project orbiting labels
+  slices.forEach((s,i)=>{ _v.set(D, 0, T/2+0.02); s.pop.localToWorld(_v); _v.project(cam);
+    const x=(_v.x*0.5+0.5)*canvas.clientWidth, y=(-_v.y*0.5+0.5)*canvas.clientHeight;
+    const L=labels[i]; L.style.left=x+"px"; L.style.top=y+"px"; L.classList.toggle("sel",i===selected); });
+  renderer.render(scene,cam);
+}
+addEventListener("resize",size); size();
+selectIndex(0);            // open on Proforma at the slot
+frame();
+</script>
+</body>
+</html>
