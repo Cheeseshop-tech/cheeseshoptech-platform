@@ -61,10 +61,12 @@ export function PricingTool({ resolved }) {
       <Tabs defaultValue="proforma">
         <TabsList>
           <TabsTrigger value="proforma">Proforma</TabsTrigger>
+          <TabsTrigger value="shelflife">Shelf Life</TabsTrigger>
           <TabsTrigger value="movement">Movement</TabsTrigger>
           <TabsTrigger value="commitments">Commitments</TabsTrigger>
         </TabsList>
         <TabsContent value="proforma"><Proforma data={data} brand={resolved.brand} resolved={resolved} /></TabsContent>
+        <TabsContent value="shelflife"><ShelfLife data={data} /></TabsContent>
         <TabsContent value="movement"><Movement data={data} /></TabsContent>
         <TabsContent value="commitments"><Commitments data={data} /></TabsContent>
       </Tabs>
@@ -405,6 +407,91 @@ function ProductDetailDialog({ sku, onClose, imgUrl, unit, inv, tierLabel }) {
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/* ---------------- Shelf Life (monitoring) ----------------
+   Live view of on-hand stock by remaining shelf life. The "move it before < 4 months" rule
+   (QUOTING_TOOL_PRINCIPLES §4) made visible: expired / under-4mo / watch buckets, cases at risk,
+   soonest-expiry first. Reserved cases are netted out; in-transit is excluded (no firm expiry). */
+function ShelfLife({ data }) {
+  const { catalog, inventory } = data;
+  const names = useMemo(() => { const m = {}; catalog.products.forEach((p) => p.skus.forEach((s) => (m[s.code] = titleCase(p.name) + " · " + s.packing))); return m; }, [catalog]);
+  const [filter, setFilter] = useState("active");
+  const rows = useMemo(() => {
+    const now = new Date(), dayMs = 86400000, out = [];
+    for (const code in inventory.skus) {
+      const s = inventory.skus[code];
+      for (const l of s.lots || []) {
+        if (l.status !== "on_hand" || !l.expDate) continue;
+        const dleft = Math.round((new Date(l.expDate) - now) / dayMs);
+        let bucket = null;
+        if (dleft < 0) bucket = "expired";
+        else if (dleft <= 122) bucket = "urgent";   // ~4 months
+        else if (dleft <= 183) bucket = "watch";    // ~6 months
+        if (!bucket) continue;
+        out.push({ code, name: names[code] || s.name, lot: l.lotNum, cases: l.cases || 0, reserved: l.reserved || 0, net: (l.cases || 0) - (l.reserved || 0), netLb: l.netAvailLb, exp: l.expDate, dleft, bucket });
+      }
+    }
+    return out.sort((a, b) => a.dleft - b.dleft);
+  }, [inventory, names]);
+
+  const counts = { expired: 0, urgent: 0, watch: 0, atRisk: 0 };
+  rows.forEach((r) => { counts[r.bucket]++; if ((r.bucket === "expired" || r.bucket === "urgent") && r.net > 0) counts.atRisk += r.net; });
+  const shown = rows.filter((r) => (filter === "active" ? true : r.bucket === filter));
+  const chips = [["active", "All"], ["expired", "Expired"], ["urgent", "< 4 months"], ["watch", "4–6 months"]];
+
+  return (
+    <div>
+      <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <Stat label="Expired lots" value={counts.expired} />
+        <Stat label="Under 4 months" value={counts.urgent} />
+        <Stat label="Watch (4–6 mo)" value={counts.watch} />
+        <Stat label="Cases at risk" value={counts.atRisk} />
+      </div>
+      <div className="mb-3 inline-flex rounded-base border border-border bg-bg p-0.5">
+        {chips.map(([v, label]) => (
+          <button key={v} onClick={() => setFilter(v)}
+            className={"rounded-base px-3 py-1.5 text-sm font-medium " + (filter === v ? "bg-brand-primary text-brand-on-primary" : "text-fg-muted hover:text-fg")}>{label}</button>
+        ))}
+      </div>
+      <p className="mb-3 rounded-base border border-border bg-surface px-3 py-2 text-xs text-fg-muted">
+        On-hand stock by remaining shelf life (live). Goal: move product before it drops under ~4 months for buyers. Reserved cases are netted out; soonest-expiry first.
+      </p>
+      <Card>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Product</TableHead>
+              <TableHead>Lot</TableHead>
+              <TableHead className="text-right">Net cases</TableHead>
+              <TableHead className="text-right">Net lb</TableHead>
+              <TableHead>Expires</TableHead>
+              <TableHead className="text-right">Status</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {shown.map((r, i) => (
+              <TableRow key={r.code + "-" + r.lot + "-" + i}>
+                <TableCell><span className="font-mono text-xs font-semibold text-brand-primary">{r.code}</span><div className="font-medium text-fg">{r.name}</div></TableCell>
+                <TableCell className="font-mono text-xs text-fg-muted">{r.lot}</TableCell>
+                <TableCell className="text-right font-mono">{r.net}{r.reserved ? <span className="text-fg-muted"> /{r.cases}</span> : null}</TableCell>
+                <TableCell className="text-right font-mono text-fg-muted">{r.netLb != null ? lbsFmt(r.netLb) : "—"}</TableCell>
+                <TableCell className="font-mono text-xs">{fmtDate(r.exp)}</TableCell>
+                <TableCell className="text-right">
+                  {r.bucket === "expired"
+                    ? <span className="text-[12px] font-semibold" style={{ color: "#b91c1c" }}>⛔ Expired {Math.abs(r.dleft)}d</span>
+                    : r.bucket === "urgent"
+                      ? <Badge variant="warning">⚠ {r.dleft}d left</Badge>
+                      : <Badge variant="muted">{r.dleft}d</Badge>}
+                </TableCell>
+              </TableRow>
+            ))}
+            {shown.length === 0 && <TableRow><TableCell colSpan={6}><span className="text-fg-muted">Nothing in this bucket.</span></TableCell></TableRow>}
+          </TableBody>
+        </Table>
+      </Card>
+    </div>
   );
 }
 
