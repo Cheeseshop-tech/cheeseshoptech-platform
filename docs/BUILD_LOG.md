@@ -19,6 +19,19 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-17 — In-engine beauty still + Stage-3 decision (Blender/Substance)
+
+**Action.** Built `prototypes/asiago-wheel-beauty-render.html` — a standalone hero still (photo
+materials, per-wedge mirror-flip variation, RoomEnvironment + PCFSoft **cast shadows**, 3⁄4 angle, one
+wedge ejected, high-res supersample); saved `design/asiago-wheel/beauty-render-inengine.png`. **Finding:**
+two hard ceilings on photoreal *here* — (1) web-res references → only ~150px clean paste, soft/swirly at
+hero scale; (2) no Blender/Node in-env → no path-tracer. **Decision (Rick):** go **Stage 3** — real
+Blender + Substance on his machine. Wrote `docs/ASIAGO_WHEEL_BLENDER_BUILD.md`: specs matched to the
+prototype (7 wedges · 51.43° · R:H 3:1 · paste=cut faces · apex at origin), Substance paste/rind recipe,
+Blender model→bevel→UV→materials→HDRI→Cycles, then bake + **glTF/Draco/KTX2** export back into the
+runtime (eject code unchanged). Two outputs from one model: hero still (Track B) + web GLB (Track A).
+**Status.** Guide ready; Rick to build offline, then hand back the `.glb` + still.
+
 ## 2026-06-17 — Photo-textured wheel (render-plan stage 2, lean path)
 
 **Action.** Kicked off the photoreal track from `ASIAGO_WHEEL_RENDER_PLAN.md`. Baked **real reference
