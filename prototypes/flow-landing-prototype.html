@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>CheeseShop TECH — flow renderer POC (animated landing)</title>
+<!--
+  PROOF OF: the `flow` layout mode of docs/SLOT_MANIFEST_SCHEMA.md.
+  A flow MANIFEST (sections[] of typed slots, role/kind/binding/$token paint + anim) → a generic
+  renderer → a brand-painted, animated landing page. Same slot vocabulary as the fixed (slide) mode.
+  Self-contained: open directly in a browser. Scroll to see entrance/scroll animations.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Jost:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{ /* paint = resolved from the Brand Kit ($tokens) — here, CheeseShop TECH house */
+    --primary:#064E22; --accent:#009640; --sage:#70C883; --mint:#C8E2C5;
+    --cream:#FFFBDC; --paper:#FAF9F5; --charcoal:#716A6A; --ink:#141413;
+    --display:"Fraunces",Georgia,serif; --ui:"Jost",system-ui,sans-serif; --mono:"IBM Plex Mono",monospace;
+  }
+  *{box-sizing:border-box;margin:0} html{scroll-behavior:smooth}
+  body{font-family:var(--ui);color:var(--ink);background:var(--cream)}
+  .sec{padding:0 24px}
+  .wrap{max-width:1080px;margin:0 auto}
+  /* roles for the live POC overlay */
+  /* slot kinds */
+  .k-eyebrow{font-size:12px;letter-spacing:.22em;text-transform:uppercase;font-weight:700}
+  .k-title{font-family:var(--display);font-style:italic;font-weight:600;line-height:1.04;letter-spacing:-.01em}
+  .k-sub{font-size:19px;line-height:1.5;color:var(--charcoal)}
+  .k-body{line-height:1.6;color:var(--charcoal)}
+  .k-stat{font-family:var(--display);font-style:italic;font-weight:600}
+  .btn{display:inline-block;border-radius:9px;padding:13px 22px;font-size:14px;font-weight:700;text-decoration:none;letter-spacing:.02em}
+  .btn.primary{background:var(--accent);color:#fff} .btn.ghost{border:1px solid rgba(20,20,19,.18);color:var(--ink)}
+  .panel{background:var(--paper);border:1px solid rgba(20,20,19,.08);border-radius:18px}
+  .imgph{background:linear-gradient(150deg,var(--primary),#0a3d1d 70%);border-radius:18px;position:relative;overflow:hidden}
+  .imgph::after{content:"";position:absolute;inset:0;opacity:.14;background-image:linear-gradient(135deg,transparent 46%,rgba(255,255,255,.5) 47%,transparent 48%),linear-gradient(45deg,transparent 46%,rgba(255,255,255,.5) 47%,transparent 48%);background-size:30px 30px}
+  /* nav */
+  .nav{display:flex;align-items:center;justify-content:space-between;padding:18px 24px;max-width:1080px;margin:0 auto}
+  .word{font-family:var(--display);font-style:italic;font-weight:600;font-size:22px;color:var(--primary)}
+  .word b{font-family:var(--ui);font-style:normal;font-weight:700;letter-spacing:.18em;color:var(--ink);font-size:15px}
+  .nav a{font-size:13px;color:var(--charcoal);text-decoration:none}
+  /* animations */
+  .anim{opacity:0;transform:translateY(22px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}
+  .anim.in{opacity:1;transform:none}
+  .stagger>.anim{transition-delay:calc(var(--i,0)*90ms)}
+  @media (prefers-reduced-motion:reduce){.anim{opacity:1;transform:none;transition:none}}
+  footer{border-top:1px solid rgba(20,20,19,.1);text-align:center;padding:30px;color:var(--charcoal);font-size:12.5px;margin-top:40px}
+  .badge{position:fixed;bottom:14px;right:14px;background:var(--primary);color:var(--cream);font-size:10.5px;font-family:var(--mono);padding:6px 11px;border-radius:8px;opacity:.85;z-index:50}
+</style>
+</head>
+<body>
+<div id="page"></div>
+<div class="badge">flow renderer · driven by manifest</div>
+<script>
+/* ---- paint: $token → value (brand-tokens.js equivalent, CST house kit) ---- */
+const KIT = getComputedStyle(document.documentElement);
+const tok = v => (typeof v==="string" && v[0]==="$") ? KIT.getPropertyValue("--"+v.slice(1)).trim() : v;
+
+/* ---- THE FLOW MANIFEST (per docs/SLOT_MANIFEST_SCHEMA.md · mode:"flow") ----
+   sections[] of typed slots. role var/brand/lock × kind text/image/shape, $token paint, anim. */
+const MANIFEST = {
+  id:"cst-apex/v1", label:"CST Apex Landing", mode:"flow",
+  sections:[
+    { id:"nav", role:"lock", anim:"none", kind:"nav" },
+    { id:"hero", pad:"96px 0 88px", anim:"stagger", align:"center", cols:1, slots:[
+      { id:"eyebrow", role:"var", kind:"text", as:"eyebrow", color:"$accent", text:"By invitation" },
+      { id:"headline", role:"var", kind:"text", as:"title", size:60, color:"$ink", text:"The brand power of a big team.\nThe focus of a small one." },
+      { id:"subhead", role:"var", kind:"text", as:"sub", text:"We don’t run campaigns. We run your brand-to-sales engine — one voice, every channel, built to sell." },
+      { id:"ctas", role:"lock", kind:"cta", primary:"Request an invitation", ghost:"Partner & staff log in" },
+    ]},
+    { id:"pillars", pad:"20px 0 80px", anim:"stagger", cols:2, slots:[
+      { id:"p1", role:"var", kind:"story", title:"One voice, everywhere it sells", body:"Your brand kit and voice, consistent across every touch — enforced by the system, not re-remembered per project." },
+      { id:"p2", role:"var", kind:"story", title:"Owns the outcome, not the busywork", body:"Judged on sales impact, not clicks. The whole engine points at one scoreboard: revenue." },
+      { id:"p3", role:"var", kind:"story", title:"Full stack, small senior team", body:"Strategy, a production studio, and the tech — the Content Engine wired into your CRM — under one roof." },
+      { id:"p4", role:"var", kind:"story", title:"Curated, not mass", body:"By invitation. A limited number of partner brands at a time, so you get senior attention and total focus." },
+    ]},
+    { id:"proof", pad:"20px 0 80px", anim:"fade", bg:"$paper", slots:[
+      { id:"stat", role:"var", kind:"countup", to:20, prefix:"10–", suffix:"%", color:"$accent" },
+      { id:"statcap", role:"var", kind:"text", as:"sub", text:"revenue growth is what brands with strong, consistent presence tend to see. Consistency isn’t cosmetic — it sells." },
+      { id:"founder", role:"var", kind:"text", as:"body", text:"Built by a seller, for sellers. Our founder has taken brands from unknown to national — even tripling sales — and built the teams to do it, then built the solutions into the platform behind CheeseShop TECH." },
+    ]},
+    { id:"closing", pad:"20px 0 40px", anim:"fade", align:"center", slots:[
+      { id:"ch", role:"var", kind:"text", as:"title", size:40, color:"$primary", text:"A few brands. Total focus. Real sales." },
+      { id:"cl", role:"var", kind:"text", as:"sub", text:"If that’s the partner you’ve been looking for, request an invitation." },
+      { id:"cta", role:"lock", kind:"cta", primary:"Request an invitation" },
+    ]},
+    { id:"footer", role:"lock", kind:"footer", text:"CheeseShop TECH · cheeseshoptech.com" },
+  ]
+};
+
+/* ---- the FLOW RENDERER: walk the manifest → DOM, paint from tokens, tag anim ---- */
+const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/\n/g,"<br>");
+function slotEl(s){
+  const c = s.color?`style="color:${tok(s.color)}"`:"";
+  if(s.kind==="text"){
+    const cls = s.as==="eyebrow"?"k-eyebrow":s.as==="title"?"k-title":s.as==="sub"?"k-sub":"k-body";
+    const sz = s.size?`font-size:clamp(28px,${s.size/14}vw,${s.size}px);`:"";
+    const mx = s.as==="sub"||s.as==="body"?"max-width:42rem;margin:14px auto 0;":"margin-top:14px;";
+    return `<div class="anim ${cls}" style="${sz}${mx}${s.color?'color:'+tok(s.color)+';':''}">${esc(s.text)}</div>`;
+  }
+  if(s.kind==="countup") return `<div class="anim k-stat" data-to="${s.to}" data-pre="${s.prefix||''}" data-suf="${s.suffix||''}" style="font-size:clamp(48px,8vw,72px);color:${tok(s.color)}">${s.prefix||''}0${s.suffix||''}</div>`;
+  if(s.kind==="story") return `<div class="anim panel" style="padding:26px 28px"><div class="k-title" style="font-size:22px;color:${tok('$primary')}">${esc(s.title)}</div><p class="k-body" style="margin-top:10px">${esc(s.body)}</p></div>`;
+  if(s.kind==="cta"){ let h=`<a class="btn primary" href="#">${esc(s.primary)}</a>`; if(s.ghost)h+=` <a class="btn ghost" href="#">${esc(s.ghost)}</a>`; return `<div class="anim" style="margin-top:26px">${h}</div>`; }
+  if(s.kind==="image") return `<div class="anim imgph" style="aspect-ratio:16/9"></div>`;
+  return "";
+}
+function render(m){
+  let html="";
+  for(const sec of m.sections){
+    if(sec.kind==="nav"){ html+=`<div class="nav"><span class="word">CheeseShop <b>TECH</b></span><a href="#">Log in</a></div>`; continue; }
+    if(sec.kind==="footer"){ continue; } // rendered as <footer> below
+    const inner = (sec.slots||[]).map(slotEl).join("");
+    const cols = sec.cols===2?"display:grid;grid-template-columns:1fr 1fr;gap:20px;":"";
+    const align = sec.align==="center"?"text-align:center;":"";
+    const bg = sec.bg?`background:${tok(sec.bg)};`:"";
+    const stag = sec.anim==="stagger"?"stagger":"";
+    html+=`<section class="sec ${stag}" style="${sec.pad?'padding:'+sec.pad:''}"><div class="wrap" style="${cols}${align}${bg}${sec.bg?'border-radius:22px;padding:54px 40px;':''}">${inner}</div></section>`;
+  }
+  const f=m.sections.find(s=>s.kind==="footer");
+  if(f) html+=`<footer>${esc(f.text)}</footer>`;
+  document.getElementById("page").innerHTML=html;
+  // index staggered children
+  document.querySelectorAll(".stagger").forEach(g=>[...g.querySelectorAll(".anim")].forEach((el,i)=>el.style.setProperty("--i",i)));
+}
+render(MANIFEST);
+
+/* ---- animation engine: reveal on scroll + count-up ---- */
+function countUp(el){ const to=+el.dataset.to,pre=el.dataset.pre,suf=el.dataset.suf; let n=0; const step=()=>{ n+=Math.max(1,to/28); if(n>=to)n=to; el.textContent=pre+Math.round(n)+suf; if(n<to)requestAnimationFrame(step); }; step(); }
+const io=new IntersectionObserver((es)=>es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add("in"); if(e.target.dataset.to)countUp(e.target); io.unobserve(e.target);} }),{threshold:.18});
+document.querySelectorAll(".anim").forEach(el=>io.observe(el));
+// safety: ensure everything reveals (and for static capture) shortly after load
+setTimeout(()=>document.querySelectorAll(".anim:not(.in)").forEach(el=>{el.classList.add("in"); if(el.dataset.to)countUp(el);}),2200);
+</script>
+</body>
+</html>

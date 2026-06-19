@@ -19,6 +19,18 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-17 — flow renderer POC (animated landing) — schema `flow` mode proven
+
+**Action.** Built `prototypes/flow-landing-prototype.html` — a self-contained POC of the **`flow`**
+layout mode (`SLOT_MANIFEST_SCHEMA.md`). The CST apex landing as a flow **manifest** (`sections[]` of
+typed slots: role/kind/`$token` paint + `anim`) → a generic **flow renderer** (walks manifest → DOM,
+paints from tokens, tags animations) → a brand-painted **animated** landing page (fade-up · stagger ·
+count-up via IntersectionObserver; reduced-motion safe). **Same slot vocabulary as the fixed/slide
+mode** — only the layout + renderer differ. Proves the new half of the locked contract. Matches the
+existing `prototypes/template-engine-prototype.html` (fixed-mode POC). **NEXT:** port to React
+(`flow-renderer.jsx` + an apex flow template) when the fixed engine port lands; then `code` kind +
+Composer flow authoring. **Status.** Prototype only — no app code touched.
+
 ## 2026-06-17 — Canonical slot-manifest schema LOCKED (Option A)
 
 **Decision (Rick).** Locked the Content Engine contract in `docs/SLOT_MANIFEST_SCHEMA.md`. Verified the
