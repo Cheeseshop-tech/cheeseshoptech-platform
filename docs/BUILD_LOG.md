@@ -19,6 +19,27 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-17 — Slot Kit = foundational language for the Content Engine (+ handoff)
+
+**Decision (Rick).** The **Slot Kit** is the foundational core of the Content Engine: a
+template-guided, **brand-painted** content language. Wireframe a layout on a **960×540** canvas
+(Excalidraw); every box is a **slot** = one **role** (`VAR` fill-per-use · `BRAND` swappable asset ·
+`LOCK` auto-painted from the Brand Kit) × one **kind** (`image` · `text` · `story` · `shape`). It
+compiles to a template **manifest** the engine renders. One slot-defined template → many outputs.
+
+**Direction.** Fan the same manifest across channels: slides/PPTX (done) → **email** + **HubSpot
+(social)** + **animated landing pages** (new). The Brand Kit paints the LOCK/BRAND slots so every
+output is on-brand by construction. **NEXT: design the first animated landing page as a Slot Kit
+wireframe in Excalidraw → hand off → manifest → renderer.**
+
+**Tracked now.** Committed `design/slot-kit.excalidraw` + `design/SLOT_KIT_GUIDE.md` (were untracked;
+now preserved as the engine's source language). The guide = the labeling vocabulary.
+
+**Handoff for the design/build surface.** The **slot language is the CONTRACT.** Build the
+landing-page, email, and social renderers to consume the *same manifest shape* the slide engine uses;
+keep roles/kinds identical across renderers. Don't fork the vocabulary per output. (`brand/
+monti-logo-transparent.png` still untracked — commit if it's the canonical mark.)
+
 ## 2026-06-17 — Competitive landscape: Keychain strategic read
 
 **Action.** Added `docs/COMPETITIVE_LANDSCAPE.md` — full strategic read of **Keychain** (keychain.com,
