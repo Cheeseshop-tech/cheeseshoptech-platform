@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>CheeseShop TECH — Cheese-Wheel Nav (interaction POC)</title>
+<!--
+  PROOF OF the core interaction for the dynamic landing concept:
+  a market-size wheel rendered as an ILLUSTRATED wheel of cheese; each wedge is sized to a real
+  market/segment weight AND is a portal tool. Hover a wedge → it lifts + tilts (pseudo-3D) and the
+  tool's page ID + function TYPE in. Illustration over photoreal. SVG + vanilla JS (no 3D/Higgsfield
+  yet — those layer on next). Open in a browser and hover the wedges.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,400..700&family=Jost:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{ --primary:#064E22; --accent:#009640; --cream:#FFFBDC; --paper:#FAF9F5; --ink:#141413; --charcoal:#716A6A;
+    --display:"Fraunces",Georgia,serif; --ui:"Jost",system-ui,sans-serif; --mono:"IBM Plex Mono",monospace; }
+  *{box-sizing:border-box;margin:0}
+  body{font-family:var(--ui);color:var(--ink);background:radial-gradient(120% 120% at 50% 0%,#fffdef,var(--cream));min-height:100vh}
+  .stage{max-width:980px;margin:0 auto;padding:28px 24px;display:grid;grid-template-columns:480px 1fr;gap:8px;align-items:center}
+  .head{grid-column:1/-1;margin-bottom:2px}
+  .ey{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);font-weight:700}
+  .head h1{font-family:var(--display);font-style:italic;font-weight:600;font-size:30px;color:var(--primary);margin-top:6px;line-height:1.05}
+  .head p{color:var(--charcoal);font-size:14px;margin-top:6px;max-width:60ch}
+  svg{display:block;overflow:visible}
+  .wedge{cursor:pointer;transition:transform .45s cubic-bezier(.2,.8,.2,1),filter .3s}
+  .wedge .body{transition:filter .3s}
+  .wedge:hover{filter:drop-shadow(0 14px 22px rgba(120,80,20,.34))}
+  .hub{pointer-events:none}
+  /* readout */
+  .read{min-height:300px}
+  .read .tag{font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--charcoal);font-weight:700}
+  .read .name{font-family:var(--display);font-style:italic;font-weight:600;font-size:38px;color:var(--primary);line-height:1.04;margin-top:8px;min-height:42px}
+  .read .pid{font-family:var(--mono);font-size:12.5px;color:var(--accent);margin-top:12px}
+  .read .pid .id{color:var(--charcoal)}
+  .read .fn{font-size:16px;line-height:1.55;color:var(--ink);margin-top:14px;min-height:50px}
+  .read .fn .cur{display:inline-block;width:8px;background:var(--accent);margin-left:1px;animation:blink 1s steps(1) infinite;vertical-align:-1px}
+  @keyframes blink{50%{opacity:0}}
+  .bar{margin-top:20px;max-width:280px}
+  .bar .br{display:flex;justify-content:space-between;font-size:11px;color:var(--charcoal);margin-bottom:5px}
+  .bar .track{height:7px;background:#ece6d4;border-radius:99px;overflow:hidden}
+  .bar .fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--primary));border-radius:99px;transition:width .5s cubic-bezier(.2,.8,.2,1)}
+  .hint{margin-top:22px;font-size:12px;color:var(--charcoal)}
+  .hint b{color:var(--primary)}
+  .legend{grid-column:1/-1;margin-top:6px;font-size:11.5px;color:var(--charcoal);text-align:center}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="head">
+    <div class="ey">CheeseShop TECH · the wheel</div>
+    <h1>Market segments become portal tools.</h1>
+    <p>The market-size wheel, rendered as a wheel of cheese — each wedge is sized to a segment’s share and <i>is</i> a tool. Hover a wedge.</p>
+  </div>
+
+  <div><svg id="wheel" viewBox="0 0 480 480" role="img" aria-label="Interactive cheese-wheel navigation"></svg></div>
+
+  <div class="read" id="read">
+    <div class="tag">Portal tool · market segment</div>
+    <div class="name" id="rName">Hover a wedge</div>
+    <div class="pid" id="rPid"></div>
+    <div class="fn" id="rFn"></div>
+    <div class="bar"><div class="br"><span>Segment share</span><span id="rPct">—</span></div><div class="track"><div class="fill" id="rFill" style="width:0"></div></div></div>
+    <div class="hint">Wedge size = segment $. Hover lifts + tilts the slice (pseudo-3D) and types its <b>page ID + function</b>.</div>
+  </div>
+
+  <div class="legend">Illustration over photorealism · next layer: true 3D wedge (Three.js) + Higgsfield-generated morph (graph → cheese).</div>
+</div>
+
+<script>
+/* slices = portal tools, sized by a real channel/segment weight (from the channel research + tool mix) */
+const SLICES = [
+  { name:"Proforma",        pid:"/pricing",     id:"PRC-01", fn:"Wholesale quoting — class-of-trade, freight line items, FIFO lots.", w:24 },
+  { name:"Storefront",      pid:"/storefront",  id:"STF-01", fn:"The DTC + wholesale front door, painted from the Brand Kit.",       w:19 },
+  { name:"Campaigns",       pid:"/campaigns",   id:"CMP-01", fn:"The sales + social engine — one voice, every channel.",            w:15 },
+  { name:"Movement",        pid:"/movement",    id:"MOV-01", fn:"Demand vs. supply — reorder + next-container signals.",             w:12 },
+  { name:"Media Hub",       pid:"/media",       id:"MED-01", fn:"The brand + product asset library, tag-filtered.",                 w:11 },
+  { name:"Content Studio",  pid:"/studio",      id:"CST-01", fn:"Template-painted content — slides, email, landing, social.",        w:10 },
+  { name:"Commitments",     pid:"/commitments", id:"COM-01", fn:"Standing customer plans, parsed from the ops notes.",               w:9  },
+];
+const TOTAL = SLICES.reduce((s,x)=>s+x.w,0);
+const cx=240, cy=240, R=188, hubR=58;
+const NS="http://www.w3.org/2000/svg";
+const rad = d => (d-90)*Math.PI/180;             // 0° at top
+const pt  = (r,d)=>[cx+r*Math.cos(rad(d)), cy+r*Math.sin(rad(d))];
+const el  = (n,a)=>{const e=document.createElementNS(NS,n); for(const k in a)e.setAttribute(k,a[k]); return e;};
+
+const svg=document.getElementById("wheel");
+// defs: cheese gradients
+svg.innerHTML=`<defs>
+  <radialGradient id="cheese" cx="42%" cy="38%" r="72%">
+    <stop offset="0%" stop-color="#F6DD95"/><stop offset="48%" stop-color="#EBBE54"/>
+    <stop offset="82%" stop-color="#D7A23A"/><stop offset="100%" stop-color="#C68C2C"/>
+  </radialGradient>
+  <radialGradient id="cheeseHot" cx="42%" cy="38%" r="72%">
+    <stop offset="0%" stop-color="#FCE9AE"/><stop offset="55%" stop-color="#F3C863"/><stop offset="100%" stop-color="#E0A93C"/>
+  </radialGradient>
+  <radialGradient id="hub" cx="40%" cy="34%" r="75%"><stop offset="0%" stop-color="#0a6b30"/><stop offset="100%" stop-color="#053b1a"/></radialGradient>
+</defs>`;
+// soft plate shadow
+svg.appendChild(el("ellipse",{cx:cx,cy:cy+R+14,rx:R*0.92,ry:20,fill:"rgba(120,80,20,.16)"}));
+
+let a=0;
+SLICES.forEach((s,i)=>{
+  const a0=a, a1=a + s.w/TOTAL*360, mid=(a0+a1)/2; a=a1;
+  const lg = (a1-a0)>180?1:0;
+  const [x0,y0]=pt(R,a0), [x1,y1]=pt(R,a1);
+  const d=`M${cx} ${cy} L${x0} ${y0} A${R} ${R} 0 ${lg} 1 ${x1} ${y1} Z`;
+  // rind arc (outer edge, dark amber)
+  const [rx0,ry0]=pt(R,a0+0.4),[rx1,ry1]=pt(R,a1-0.4);
+  const g=el("g",{class:"wedge"});
+  const dx=Math.cos(rad(mid))*0, dy=Math.sin(rad(mid))*0;
+  g.dataset.i=i;
+  g.appendChild(el("path",{class:"body",d:d,fill:"url(#cheese)",stroke:"#FFFBDC","stroke-width":2.5,"stroke-linejoin":"round"}));
+  g.appendChild(el("path",{d:`M${rx0} ${ry0} A${R} ${R} 0 ${lg} 1 ${rx1} ${ry1}`,fill:"none",stroke:"#7A4E22","stroke-width":7,"stroke-linecap":"round",opacity:.92}));
+  // texture: eyes + a crack
+  for(let k=0;k<4;k++){ const rr=hubR+30+Math.random()*(R-hubR-55), dd=a0+6+Math.random()*Math.max(2,(a1-a0)-12); const [ex,ey]=pt(rr,dd);
+    g.appendChild(el("circle",{cx:ex,cy:ey,r:1.6+Math.random()*3.4,fill:Math.random()>.5?"#B9842E":"#F6DD95",opacity:.55})); }
+  const [c1x,c1y]=pt(hubR+22,mid-1.5),[c2x,c2y]=pt(R-26,mid+2.2);
+  g.appendChild(el("path",{d:`M${c1x} ${c1y} Q${(c1x+c2x)/2+5} ${(c1y+c2y)/2} ${c2x} ${c2y}`,fill:"none",stroke:"#B07F2A","stroke-width":1.2,opacity:.4}));
+  // label on the wedge
+  const [lx,ly]=pt((hubR+R)/2+6, mid);
+  const t=el("text",{x:lx,y:ly,"text-anchor":"middle","dominant-baseline":"middle","font-family":"Jost, sans-serif","font-size":12.5,"font-weight":700,fill:"#5a3c12","pointer-events":"none"});
+  t.textContent=s.name; g.appendChild(t);
+  // store pull-out vector
+  g._pull=[Math.cos(rad(mid))*20, Math.sin(rad(mid))*20];
+  g.addEventListener("mouseenter",()=>select(i));
+  svg.appendChild(g);
+});
+// hub
+const hub=el("g",{class:"hub"});
+hub.appendChild(el("circle",{cx:cx,cy:cy,r:hubR,fill:"url(#hub)",stroke:"#FFFBDC","stroke-width":3}));
+const ht=el("text",{x:cx,y:cy-4,"text-anchor":"middle","font-family":"Fraunces, serif","font-style":"italic","font-size":15,"font-weight":600,fill:"#FFFBDC"}); ht.textContent="CheeseShop"; hub.appendChild(ht);
+const ht2=el("text",{x:cx,y:cy+13,"text-anchor":"middle","font-family":"Jost, sans-serif","font-size":10,"font-weight":700,"letter-spacing":"3",fill:"#9ed3b4"}); ht2.textContent="TECH"; hub.appendChild(ht2);
+svg.appendChild(hub);
+
+/* interaction: lift+tilt the hovered wedge, type the readout */
+const wedges=[...svg.querySelectorAll(".wedge")];
+let typer=null;
+function type(node, str){ clearInterval(typer); node.innerHTML=""; let i=0; const cur=el("span",{class:"cur"}); cur.style.height="1em"; node.appendChild(document.createTextNode("")); node.appendChild(cur);
+  typer=setInterval(()=>{ if(i>=str.length){clearInterval(typer); cur.remove(); return;} node.firstChild.textContent+=str[i++]; },18); }
+function select(i){
+  const s=SLICES[i];
+  wedges.forEach((g,j)=>{ const lifted=j===i; const [px,py]=g._pull;
+    g.style.transformOrigin=`${cx}px ${cy}px`;
+    g.style.transform = lifted ? `translate(${px}px,${py}px) rotate(2.2deg) scale(1.05)` : "translate(0,0)";
+    g.querySelector(".body").setAttribute("fill", lifted?"url(#cheeseHot)":"url(#cheese)");
+  });
+  document.getElementById("rName").textContent=s.name;
+  document.getElementById("rPid").innerHTML=`page · ${s.pid}<span class="id">  ·  ${s.id}</span>`;
+  type(document.getElementById("rFn"), s.fn);
+  const pct=Math.round(s.w/TOTAL*100);
+  document.getElementById("rPct").textContent=pct+"%";
+  document.getElementById("rFill").style.width=pct+"%";
+}
+// demo: auto-select the biggest wedge shortly after load (for first paint / capture)
+setTimeout(()=>select(0), 650);
+</script>
+</body>
+</html>

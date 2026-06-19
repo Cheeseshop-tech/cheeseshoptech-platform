@@ -19,6 +19,19 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-17 — cheese-wheel nav (interaction POC) — the dynamic-landing concept
+
+**Action.** Built `prototypes/cheese-wheel-nav-prototype.html` — proves the core interaction of Rick's
+dynamic-landing idea: a **market-size wheel rendered as an ILLUSTRATED wheel of cheese** (golden body
++ amber rind + eyes/cracks, BellaVitano-form inspired — form only, not the brand's trade dress).
+Wedges sized to segment/tool weights (from channel research); each wedge **is** a portal tool. Hover
+→ the wedge **lifts + tilts (pseudo-3D) + brightens** and the tool's **page ID + function TYPE in**
+(typewriter) + a segment-share bar. SVG + vanilla JS, illustration-over-photoreal, on-brand (CST green
+UI + Fraunces italic). 7 tool slices. **NEXT layers:** true 3D wedge (Three.js/R3F); **Higgsfield**-
+generated graph→cheese morph + illustrated art (Higgsfield = linear video, NOT interactive — assets
+only, can't drive from here); then embed the showpiece as a `kind:"code"`/scene slot in a `flow`
+manifest (stays inside the engine, not a fork). **Status.** Prototype only — no app code.
+
 ## 2026-06-17 — flow renderer POC (animated landing) — schema `flow` mode proven
 
 **Action.** Built `prototypes/flow-landing-prototype.html` — a self-contained POC of the **`flow`**
