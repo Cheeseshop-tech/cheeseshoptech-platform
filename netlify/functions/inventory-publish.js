@@ -6,7 +6,7 @@
 // Auth: a shared secret in header `x-publish-secret`, compared to env INVENTORY_PUBLISH_SECRET.
 // (No Netlify token / no Google Cloud needed — the write happens inside the site's own function,
 // which has implicit Blobs access.)
-import { getStore } from "@netlify/blobs";
+import { connectLambda, getStore } from "@netlify/blobs";
 
 const json = (status, body) => ({
   statusCode: status,
@@ -46,6 +46,7 @@ export const handler = async (event) => {
   if (errs.length) return json(422, { error: "Validation failed", details: errs });
 
   try {
+    connectLambda(event); // wire Blobs context for handler-style functions
     const store = getStore("inventory");
     await store.set(tenant, JSON.stringify({ inventory, updatedAt: new Date().toISOString() }));
     return json(200, { ok: true, tenant, skus: Object.keys(inventory.skus).length });

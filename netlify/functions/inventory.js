@@ -5,7 +5,7 @@
 //
 // Front end uses this when VITE_PRICING_BACKEND=function (see src/lib/pricing.js).
 // Read side needs NO secret — it only returns inventory/stock for the app to display.
-import { getStore } from "@netlify/blobs";
+import { connectLambda, getStore } from "@netlify/blobs";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -26,6 +26,7 @@ export const handler = async (event) => {
   if (!tenant) return json(400, { error: "Missing tenant" });
 
   try {
+    connectLambda(event); // wire Blobs context for handler-style functions
     const store = getStore("inventory");
     const raw = await store.get(tenant); // string or null
     if (!raw) return json(200, { inventory: null, source: "none" }); // -> client uses bundled fallback
