@@ -8,7 +8,8 @@ import { Stat } from "@/components/ui/stat.jsx";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs.jsx";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table.jsx";
 import { useToast } from "@/components/ui/toast.jsx";
-import { getPricingData, appendLedger } from "@/lib/pricing.js";
+import { appendLedger } from "@/lib/pricing.js";
+import { usePricingData } from "@/lib/use-pricing-data.js";
 import { codeImageUrl } from "@/lib/images.js";
 import * as PC from "@/lib/pricing-core.js";
 import * as FC from "@/lib/forecast-core.js";
@@ -25,7 +26,7 @@ const selCls =
 const fieldLabel = "text-[10px] font-semibold uppercase tracking-wide text-fg-muted";
 
 export function PricingTool({ resolved }) {
-  const data = useMemo(() => getPricingData(resolved), [resolved.id]);
+  const { data, stockSource } = usePricingData(resolved);
 
   if (!data) {
     return (
@@ -49,7 +50,10 @@ export function PricingTool({ resolved }) {
           <h1 className="font-heading text-3xl text-fg">Pricing &amp; Inventory</h1>
           <p className="mt-1 text-fg-muted">
             Wholesale quoting, movement planning, and commitments — one source of truth.
-            <span className="ml-2 font-mono text-xs">stock {data.inventory.lastUpdated || "—"}</span>
+            <span className="ml-2 font-mono text-xs">
+              stock {data.inventory.lastUpdated || "—"}
+              {stockSource === "live" ? " · live" : stockSource === "loading" ? " · syncing…" : ""}
+            </span>
           </p>
         </div>
       </div>

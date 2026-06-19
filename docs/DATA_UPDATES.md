@@ -101,5 +101,35 @@ clearing the 06-13 blocker. Path A is now built and tested end-to-end:
   (Apericheese Orange/White). Confirm `02169` is intentionally gone.
 
 ### Weekly automation
-Sheet refreshes weekly. A scheduled watch re-exports + regenerates + diffs and reports for review
-(test-before-replace); it does not auto-promote or deploy. See scheduled task "Monti inventory watch".
+Sheet refreshes weekly. The "monti-inventory-watch" scheduled task (daily 08:10) detects a new drop,
+regenerates, runs the integrity gate, and publishes LIVE (below) — no app rebuild.
+
+## RUNTIME inventory (no rebuild) — 2026-06-18
+
+Inventory used to be **bundled at build time** (`src/lib/pricing.js` imported `inventory.json`), so a
+stock change required a full redeploy. It now loads at **runtime** so weekly drops update the live app
+with zero rebuild. The bundled JSON stays as an instant, offline-safe fallback.
+
+**Flow:** weekly Cowork sync reads the private sheet (Drive connector) → `sync-inventory.mjs --promote`
+(integrity gate + backup + writes `inventory.json`) → `publish-inventory.mjs` POSTs it to
+`/.netlify/functions/inventory-publish` → stored in **Netlify Blobs** → `/.netlify/functions/inventory`
+serves it to the browser on next load. No GCP, no Netlify token (the write happens inside the site's own
+function); auth is one shared secret.
+
+**Pieces added:**
+- `netlify/functions/inventory.js` — GET live inventory from Blobs (bundled fallback if empty).
+- `netlify/functions/inventory-publish.js` — POST (secret-gated) → validates → writes Blobs.
+- `src/lib/pricing.js` — `getPricingData` always returns the bundled base; `fetchInventory()` pulls live.
+- `src/lib/use-pricing-data.js` — hook: instant bundled render, then hydrates live stock (Pricing tool shows "· live").
+- `scripts/publish-inventory.mjs` — POSTs `inventory.json` to the publish function.
+- Flag-gated by `VITE_PRICING_BACKEND` (default `mock` = bundled only; `function` = live). Verified: `vite build` green, 1654 modules.
+
+### One-time activation (Rick)
+1. In **Netlify env**: set `INVENTORY_PUBLISH_SECRET` = a long random string; set `VITE_PRICING_BACKEND=function`.
+2. Create **`scripts/.inventory-publish.json`** locally (gitignored):
+   `{ "url": "https://<your-site>/.netlify/functions/inventory-publish", "secret": "<same secret>" }`
+3. `npm install` (picks up `@netlify/blobs`), then **deploy once** (this single rebuild ships the runtime loader + functions).
+4. Smoke test: `npm run inventory:publish` → open the Pricing tool, header should read "stock 2026-06-18 · live".
+
+After that, weekly updates are deploy-free: the daily task publishes new stock straight to the live store.
+A malformed sheet is blocked twice (sync `--promote` exit 2, and the function's 422) — bad data can't go live.

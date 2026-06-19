@@ -11,13 +11,32 @@ const BUNDLES = {
   montitrentini: { config: mtConfig, catalog: mtCatalog, inventory: mtInventory, commitments: mtCommitments },
 };
 
-const USE_MOCK = (import.meta.env.VITE_PRICING_BACKEND || "mock") === "mock";
+// Backend switch. "mock" (default) = use the bundled JSON only. "function" = also pull LIVE
+// inventory at runtime from /.netlify/functions/inventory (written by the weekly sync), with
+// the bundled inventory as offline fallback — no app rebuild needed when stock changes.
+export const PRICING_BACKEND = import.meta.env.VITE_PRICING_BACKEND || "mock";
 
-/** Canonical pricing/inventory bundle for a tenant. Null if none configured. */
+/** Canonical pricing/inventory bundle for a tenant. Always the bundled snapshot (config +
+ *  catalog + commitments + last-known inventory). This is the instant, offline-safe base;
+ *  live inventory hydrates over it via fetchInventory(). Null if the tenant isn't configured. */
 export function getPricingData(resolved) {
-  if (USE_MOCK) return BUNDLES[resolved.id] || null;
-  // Real adapter (deferred): GET /.netlify/functions/pricing?tenant=<id>
-  return null;
+  return BUNDLES[resolved.id] || null;
+}
+
+/** Runtime inventory fetch (no rebuild). Resolves to the canonical inventory object, or null
+ *  when the backend is "mock", the tenant has no live data yet, or the network/Blobs is down —
+ *  in every null case the caller simply keeps the bundled inventory. Safe to call always. */
+export async function fetchInventory(tenantId) {
+  if (PRICING_BACKEND === "mock") return null;
+  try {
+    const res = await fetch(`/.netlify/functions/inventory?tenant=${encodeURIComponent(tenantId)}`,
+      { headers: { Accept: "application/json" } });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data && data.inventory ? data.inventory : null;
+  } catch {
+    return null;
+  }
 }
 
 // Captured movement history (sold + missed) lives client-side until the backend lands —
