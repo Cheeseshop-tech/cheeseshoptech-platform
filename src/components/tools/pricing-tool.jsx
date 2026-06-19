@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useMemo, useState } from "react";
-import { Calculator, Package, Handshake, Search, Share2, ArrowRight, Check } from "lucide-react";
+import { Calculator, Package, Handshake, Search, Share2, ArrowRight, Check, Download, Link as LinkIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card.jsx";
 import { Dialog, DialogContent } from "@/components/ui/dialog.jsx";
 import { Button } from "@/components/ui/button.jsx";
@@ -404,13 +404,25 @@ function ProductDetailDialog({ sku, onClose, imgUrl, unit, inv, tierLabel, onNav
   if (!sku) return null;
   const m = sku.marketing || {};
   const p = sku.pack || {};
+  async function copyLink() {
+    try { await navigator.clipboard.writeText(imgUrl); setCopied(true); setTimeout(() => setCopied(false), 1600); } catch { /* blocked */ }
+  }
   async function shareImage() {
     const payload = { title: sku.productName, text: m.blurb || sku.productName, url: imgUrl };
-    try {
-      if (navigator.share) await navigator.share(payload);
-      else { await navigator.clipboard.writeText(imgUrl); setCopied(true); setTimeout(() => setCopied(false), 1600); }
-    } catch { /* user cancelled */ }
+    try { if (navigator.share) await navigator.share(payload); else await copyLink(); } catch { /* cancelled */ }
   }
+  async function downloadImage() {
+    try {
+      const res = await fetch(imgUrl, { mode: "cors" });
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = `${sku.code || "product"}.jpg`;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+    } catch { window.open(imgUrl, "_blank", "noopener"); }
+  }
+  const chip = "inline-flex items-center gap-1 rounded-base border border-border bg-surface/90 px-2.5 py-1.5 text-xs font-medium text-fg shadow-sm backdrop-blur hover:border-brand-primary";
   const spec = (label, value) => value != null && value !== "" ? (
     <div><dt className="text-[11px] uppercase tracking-wide text-fg-muted">{label}</dt><dd className="text-sm text-fg">{value}</dd></div>
   ) : null;
@@ -421,12 +433,14 @@ function ProductDetailDialog({ sku, onClose, imgUrl, unit, inv, tierLabel, onNav
           {/* hero photo on top, full width */}
           <div className="relative flex items-center justify-center bg-white p-4 md:rounded-t-base">
             <img src={imgUrl} alt={sku.productName} className="max-h-[56vh] w-auto max-w-full object-contain" />
-            <button type="button" onClick={shareImage} title="Share image"
-              className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-base border border-border bg-surface/90 px-2.5 py-1.5 text-xs font-medium text-fg shadow-sm backdrop-blur hover:border-brand-primary">
-              {copied
-                ? <><Check className="h-3.5 w-3.5" style={{ color: "#16a34a" }} /> Copied link</>
-                : <><Share2 className="h-3.5 w-3.5" /> Share</>}
-            </button>
+            {/* action group sits top-left so it clears the dialog's X close button (top-right) */}
+            <div className="absolute left-3 top-3 flex flex-wrap items-center gap-1.5">
+              <button type="button" onClick={shareImage} title="Share" className={chip}><Share2 className="h-3.5 w-3.5" /> Share</button>
+              <button type="button" onClick={downloadImage} title="Download image" className={chip}><Download className="h-3.5 w-3.5" /> Download</button>
+              <button type="button" onClick={copyLink} title="Copy image link" className={chip}>
+                {copied ? <><Check className="h-3.5 w-3.5" style={{ color: "#16a34a" }} /> Copied</> : <><LinkIcon className="h-3.5 w-3.5" /> Copy link</>}
+              </button>
+            </div>
           </div>
 
           {/* details below, scrollable */}
