@@ -19,6 +19,17 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-19 — Wheel embedded as the flow landing HERO (code-slot)
+
+**Action (Rick: "the version you have now").** Built `prototypes/flow-landing-wheel-hero.html` — the
+interactive photo-textured Asiago wheel mounted as the **`kind:"code"`/scene HERO slot** of a `flow`
+landing (per `docs/SLOT_MANIFEST_SCHEMA.md`). Brand-painted CST house kit (Forest/cream/Fraunces), nav +
+eyebrow→title→sub hero, the live wheel (drag/click → eject + readout, unchanged), then flow band
+("One platform. Every channel. Built to sell." + CTA) + footer, all scroll-revealed. Wheel module
+(textures + deterministic mechanic) reused **verbatim** from `…-photoref.html` via Python splice — proves
+the showpiece drops into the Content Engine flow renderer as-is. **NEXT:** when Stage-3 `.glb` lands, swap
+geometry/material inside the same hero slot (no landing changes). **Status.** Prototype.
+
 ## 2026-06-17 — In-engine beauty still + Stage-3 decision (Blender/Substance)
 
 **Action.** Built `prototypes/asiago-wheel-beauty-render.html` — a standalone hero still (photo
