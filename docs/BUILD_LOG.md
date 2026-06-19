@@ -19,6 +19,19 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-17 — Photoreal PBR skin on the 3D wedge (v2)
+
+**Action.** Built `prototypes/asiago-wedge-3d-photoreal.html` — the wedge gets a real **PBR skin**.
+Procedural **canvas textures**: paste albedo with scattered **eyes** (dark-cored holes + ring +
+highlight) over mottled aged straw, plus rind albedo with grain + cracking; matching **bump maps** so
+light catches the surface. **UV-mapped** geometry (radial×height on the cut faces, angle×height on the
+curve, planar caps). `RoomEnvironment` + PMREM for soft studio reflections, **ACES** tone mapping;
+paste = `MeshPhysicalMaterial` w/ faint clearcoat (waxy aged look), rind = rougher standard. Warm key +
+cool fill + warm rim restore dimensional shaping. Fully **interactive** (drag/hover/readout intact),
+**self-contained** (no external assets, no CORS). Interactive-grade realism — a true-photographic pass
+would map the enhanced reference photo as albedo; the **Higgsfield** route is the *non-interactive*
+cinematic graph→cheese intro (art layer, linear video), not this nav. **Status.** Prototype only.
+
 ## 2026-06-17 — 3D Asiago wedge POC (Three.js) — the wheel goes 3D
 
 **Action.** Built `prototypes/asiago-wedge-3d-prototype.html` — a **true 3D** Asiago wedge in Three.js
