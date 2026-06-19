@@ -19,6 +19,20 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-17 — Canonical slot-manifest schema LOCKED (Option A)
+
+**Decision (Rick).** Locked the Content Engine contract in `docs/SLOT_MANIFEST_SCHEMA.md`. Verified the
+manifest **already exists** as the v2 POC (`prototypes/template-engine-prototype.html`) and IS the Slot
+Kit 1:1 (role var/brand/lock × kind image/text/shape, `as:"title"|"story"`, `$token` paint via
+`brand-tokens.js`, bindings via tag/asset/voice). **Chose Option A: ONE slot vocabulary, TWO layout
+modes** — `fixed` (absolute x/y/w/h canvas → slides/social, the locked POC shape) + `flow` (stacked
+`sections[]`, responsive → landing/email, NEW). Extensions added to the vocab: `kind:"code"` (sanitized
+embed) + `anim` attribute (none/fade-up/stagger/count-up/parallax). Build order off the contract:
+(1) port fixed engine `template-manifests.js`+`manifest-renderer.jsx`; (2) build flow renderer (landing
+first); (3) add code+anim; (4) Slot Composer emits both modes. **Status.** Schema doc only — no code.
+Current files: v1 `slide-templates.js`+`slide-renderer.jsx` exist; `brand-tokens.js` exists; v2 manifest
+files NOT yet ported.
+
 ## 2026-06-17 — Slot Composer spec (house-admin visual template builder)
 
 **Decision (Rick).** Greenlit the **Slot Composer** — a HOUSE-ADMIN-ONLY drag-and-drop canvas that
