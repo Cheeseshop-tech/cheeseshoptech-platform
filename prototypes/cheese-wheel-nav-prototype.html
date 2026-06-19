@@ -89,12 +89,12 @@ const el  = (n,a)=>{const e=document.createElementNS(NS,n); for(const k in a)e.s
 const svg=document.getElementById("wheel");
 // defs: cheese gradients
 svg.innerHTML=`<defs>
-  <radialGradient id="cheese" cx="42%" cy="38%" r="72%">
-    <stop offset="0%" stop-color="#F6DD95"/><stop offset="48%" stop-color="#EBBE54"/>
-    <stop offset="82%" stop-color="#D7A23A"/><stop offset="100%" stop-color="#C68C2C"/>
+  <radialGradient id="cheese" cx="42%" cy="38%" r="74%"><!-- aged Asiago paste: pale straw → golden -->
+    <stop offset="0%" stop-color="#F3E7B6"/><stop offset="46%" stop-color="#E7D193"/>
+    <stop offset="80%" stop-color="#D6BB74"/><stop offset="100%" stop-color="#C5A65A"/>
   </radialGradient>
-  <radialGradient id="cheeseHot" cx="42%" cy="38%" r="72%">
-    <stop offset="0%" stop-color="#FCE9AE"/><stop offset="55%" stop-color="#F3C863"/><stop offset="100%" stop-color="#E0A93C"/>
+  <radialGradient id="cheeseHot" cx="42%" cy="38%" r="74%">
+    <stop offset="0%" stop-color="#FAF0CC"/><stop offset="54%" stop-color="#EFDCA2"/><stop offset="100%" stop-color="#DEC57C"/>
   </radialGradient>
   <radialGradient id="hub" cx="40%" cy="34%" r="75%"><stop offset="0%" stop-color="#0a6b30"/><stop offset="100%" stop-color="#053b1a"/></radialGradient>
 </defs>`;
@@ -113,10 +113,11 @@ SLICES.forEach((s,i)=>{
   const dx=Math.cos(rad(mid))*0, dy=Math.sin(rad(mid))*0;
   g.dataset.i=i;
   g.appendChild(el("path",{class:"body",d:d,fill:"url(#cheese)",stroke:"#FFFBDC","stroke-width":2.5,"stroke-linejoin":"round"}));
-  g.appendChild(el("path",{d:`M${rx0} ${ry0} A${R} ${R} 0 ${lg} 1 ${rx1} ${ry1}`,fill:"none",stroke:"#7A4E22","stroke-width":7,"stroke-linecap":"round",opacity:.92}));
-  // texture: eyes + a crack
-  for(let k=0;k<4;k++){ const rr=hubR+30+Math.random()*(R-hubR-55), dd=a0+6+Math.random()*Math.max(2,(a1-a0)-12); const [ex,ey]=pt(rr,dd);
-    g.appendChild(el("circle",{cx:ex,cy:ey,r:1.6+Math.random()*3.4,fill:Math.random()>.5?"#B9842E":"#F6DD95",opacity:.55})); }
+  g.appendChild(el("path",{d:`M${rx0} ${ry0} A${R} ${R} 0 ${lg} 1 ${rx1} ${ry1}`,fill:"none",stroke:"#B5945A","stroke-width":7,"stroke-linecap":"round",opacity:.95}));
+  g.appendChild(el("path",{d:`M${rx0} ${ry0} A${R} ${R} 0 ${lg} 1 ${rx1} ${ry1}`,fill:"none",stroke:"#8C6B3C","stroke-width":2.4,"stroke-linecap":"round",opacity:.5}));
+  // texture: irregular Asiago eyes + a crack
+  for(let k=0;k<5;k++){ const rr=hubR+26+Math.random()*(R-hubR-50), dd=a0+6+Math.random()*Math.max(2,(a1-a0)-12); const [ex,ey]=pt(rr,dd);
+    g.appendChild(el("circle",{cx:ex,cy:ey,r:1.2+Math.random()*3.2,fill:Math.random()>.45?"#B89F5E":"#F6EBBE",opacity:.5})); }
   const [c1x,c1y]=pt(hubR+22,mid-1.5),[c2x,c2y]=pt(R-26,mid+2.2);
   g.appendChild(el("path",{d:`M${c1x} ${c1y} Q${(c1x+c2x)/2+5} ${(c1y+c2y)/2} ${c2x} ${c2y}`,fill:"none",stroke:"#B07F2A","stroke-width":1.2,opacity:.4}));
   // label on the wedge
