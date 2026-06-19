@@ -102,6 +102,8 @@ function Proforma({ data, brand, resolved }) {
   const [basis, setBasis] = useState("pickup");
   const [volumeId, setVolumeId] = useState("");
   const [customPct, setCustomPct] = useState(0);
+  const [truckOverride, setTruckOverride] = useState(null); // null = use engine-suggested
+  const [procOverride, setProcOverride] = useState(null);
   const [search, setSearch] = useState("");
   const [qty, setQty] = useState({});
   const [detail, setDetail] = useState(null); // sku whose product-detail dialog is open
@@ -115,6 +117,18 @@ function Proforma({ data, brand, resolved }) {
   const visible = skus.filter((s) => !search || (s.code + " " + s.name + " " + s.category).toLowerCase().includes(search.trim().toLowerCase()));
   const items = skus.filter((s) => qty[s.code] > 0).map((s) => ({ sku: s, cases: qty[s.code] }));
   const order = PC.quoteOrder(items, opts, config);
+
+  // Editable freight: default to the engine-suggested amounts (trucking floored at the local
+  // minimum, processing per the 1,500 lb rule), but let the rep pick a preset or type any value.
+  const suggTruck = order.freight.find((f) => f.id === "trucking")?.amount ?? 0;
+  const suggProc = order.freight.find((f) => f.id === "processing")?.amount ?? 0;
+  const effTruck = truckOverride != null ? truckOverride : suggTruck;
+  const effProc = procOverride != null ? procOverride : suggProc;
+  const effFreight = basis === "delivered"
+    ? [{ id: "trucking", label: "Trucking (est.)", amount: PC.round2(effTruck) },
+       { id: "processing", label: "Processing fee", amount: PC.round2(effProc) }].filter((f) => f.amount > 0)
+    : [];
+  const grand = PC.round2(order.merchSubtotal + effFreight.reduce((s, f) => s + f.amount, 0));
 
   const tier = config.pricing.tiers.find((t) => t.id === tierId) || {};
   const gate = config.pricing.freight.thresholdLb;
@@ -137,7 +151,7 @@ function Proforma({ data, brand, resolved }) {
       return `<tr><td>${esc(l.code)}</td><td>${esc(l.name)}</td><td class="r">${l.cases}</td><td class="r">${lbsFmt(l.lbs)}</td><td class="r">${money(l.unitPrice)}</td><td class="r">${money(l.lineTotal)}</td></tr>`
         + (lots ? `<tr class="lot"><td></td><td colspan="5">↳ ${esc(lots)}${a.shortfall > 0 ? ` · <b>${a.shortfall} cs short</b>` : ""}</td></tr>` : "");
     }).join("");
-    const fees = order.freight.map((f) => `<tr class="fee"><td colspan="5" class="r">${esc(f.label)}</td><td class="r">${money(f.amount)}</td></tr>`).join("");
+    const fees = effFreight.map((f) => `<tr class="fee"><td colspan="5" class="r">${esc(f.label)}</td><td class="r">${money(f.amount)}</td></tr>`).join("");
     const html = `<!doctype html><html><head><meta charset="utf-8"><title>Proforma — ${esc(customer || b.name || "")}</title><style>
       *{box-sizing:border-box}body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#141413;margin:0;padding:34px;font-size:13px}
       .hd{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid ${brandColor};padding-bottom:14px;margin-bottom:18px}
@@ -153,7 +167,7 @@ function Proforma({ data, brand, resolved }) {
       <div class="meta"><div><b>Bill to</b>${esc(customer || "—")}</div><div><b>Basis</b>${basis === "pickup" ? "Pickup (EXW)" : "Delivered"}</div><div><b>Class of trade</b>${esc(tier.label || "")}</div>${customPct ? `<div><b>Custom</b>${customPct > 0 ? "+" : ""}${customPct}%</div>` : ""}</div>
       <table><thead><tr><th>Item</th><th>Product</th><th class="r">Cases</th><th class="r">Lbs (est.)</th><th class="r">$/lb (firm)</th><th class="r">Line total (est.)</th></tr></thead>
       <tbody>${rows}</tbody>
-      <tfoot><tr><td colspan="5" class="r">Merchandise (${order.lines.length} lines · ${lbsFmt(order.totalLbs)} lb)</td><td class="r">${money(order.merchSubtotal)}</td></tr>${fees}<tr class="grand"><td colspan="5" class="r">GRAND TOTAL (estimate)</td><td class="r">${money(order.grandTotal)}</td></tr></tfoot></table>
+      <tfoot><tr><td colspan="5" class="r">Merchandise (${order.lines.length} lines · ${lbsFmt(order.totalLbs)} lb)</td><td class="r">${money(order.merchSubtotal)}</td></tr>${fees}<tr class="grand"><td colspan="5" class="r">GRAND TOTAL (estimate)</td><td class="r">${money(grand)}</td></tr></tfoot></table>
       <div class="ft" style="text-align:left;line-height:1.5;max-width:760px;margin-left:auto;margin-right:auto">
         Prices are quoted <b>per pound (firm)</b>. Bulk cheese is sold by <b>catch weight</b> — line and order totals are
         <b>estimates based on average weights</b>; the actual weight of each item will vary and is confirmed when the order
@@ -201,6 +215,24 @@ function Proforma({ data, brand, resolved }) {
             <span className={fieldLabel}>Custom ±%</span>
             <input type="number" step="0.5" className={selCls + " w-20"} value={customPct} onChange={(e) => setCustomPct(Number(e.target.value) || 0)} />
           </div>
+          {basis === "delivered" && (
+            <>
+              <div className="flex flex-col gap-1">
+                <span className={fieldLabel}>Trucking $ (est.)</span>
+                <input type="number" min="0" step="25" list="truck-presets" className={selCls + " w-28"}
+                  value={truckOverride != null ? truckOverride : ""} placeholder={`auto ${suggTruck}`}
+                  onChange={(e) => setTruckOverride(e.target.value === "" ? null : Math.max(0, Number(e.target.value) || 0))} />
+                <datalist id="truck-presets"><option value="300" /><option value="350" /><option value="400" /><option value="500" /><option value="750" /></datalist>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className={fieldLabel}>Processing $</span>
+                <input type="number" min="0" step="5" list="proc-presets" className={selCls + " w-24"}
+                  value={procOverride != null ? procOverride : ""} placeholder={`auto ${suggProc}`}
+                  onChange={(e) => setProcOverride(e.target.value === "" ? null : Math.max(0, Number(e.target.value) || 0))} />
+                <datalist id="proc-presets"><option value="135" /><option value="0" /></datalist>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Summary bar — bill-to + running totals, full-width and sticky so it stays visible while
@@ -221,13 +253,13 @@ function Proforma({ data, brand, resolved }) {
 
               <div className="hidden text-sm sm:block">
                 <div className="flex justify-between gap-6"><span className="text-fg-muted">Merchandise <span className="text-xs">({order.lines.length})</span></span><span className="font-mono">{money(order.merchSubtotal)}</span></div>
-                {order.freight.map((f) => <div key={f.id} className="flex justify-between gap-6 text-info"><span>{f.label}</span><span className="font-mono">{money(f.amount)}</span></div>)}
+                {effFreight.map((f) => <div key={f.id} className="flex justify-between gap-6 text-info"><span>{f.label}</span><span className="font-mono">{money(f.amount)}</span></div>)}
                 <div className="flex justify-between gap-6 text-fg-muted"><span>Weight</span><span className="font-mono">{lbsFmt(order.totalLbs)} lb{order.totalLbs >= gate ? "" : ` / ${lbsFmt(gate)}`}</span></div>
               </div>
 
               <div className="ml-auto flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-2 rounded-base bg-brand-primary px-4 py-2 text-brand-on-primary">
-                  <span className="font-heading text-sm">Grand total</span><span className="font-mono text-lg font-semibold">{money(order.grandTotal)}</span><span className="text-[10px] uppercase tracking-wide opacity-80">est.</span>
+                  <span className="font-heading text-sm">Grand total</span><span className="font-mono text-lg font-semibold">{money(grand)}</span><span className="text-[10px] uppercase tracking-wide opacity-80">est.</span>
                 </div>
                 <Button variant="outline" onClick={printProforma}>Print / PDF</Button>
                 <Button variant="primary" onClick={recordSale}>Record sale</Button>
