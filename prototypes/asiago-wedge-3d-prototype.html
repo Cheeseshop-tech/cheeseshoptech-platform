@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>CheeseShop TECH — 3D Asiago wedge (POC)</title>
+<!--
+  PROOF: the cheese-wheel nav goes TRUE 3D. A real Three.js Asiago wedge — extruded sector geometry
+  with separate PASTE (pale straw-gold cut faces) and RIND (tan curved edge + caps) materials, warm
+  lighting. Auto-spins + drag to rotate; hover types the tool's page ID + function. Procedural
+  material now; the enhanced Asiago reference becomes the real texture next. Open in a browser.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,400..700&family=Jost:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{ --primary:#064E22; --accent:#009640; --cream:#FFFBDC; --ink:#141413; --charcoal:#716A6A;
+    --display:"Fraunces",Georgia,serif; --ui:"Jost",system-ui,sans-serif; --mono:"IBM Plex Mono",monospace; }
+  *{box-sizing:border-box;margin:0}
+  body{font-family:var(--ui);color:var(--ink);background:radial-gradient(120% 120% at 50% 0%,#fffdef,var(--cream));min-height:100vh}
+  .stage{max-width:980px;margin:0 auto;padding:26px 24px;display:grid;grid-template-columns:1fr 360px;gap:18px;align-items:center}
+  .head{grid-column:1/-1}
+  .ey{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);font-weight:700}
+  .head h1{font-family:var(--display);font-style:italic;font-weight:600;font-size:30px;color:var(--primary);margin-top:6px;line-height:1.05}
+  .head p{color:var(--charcoal);font-size:14px;margin-top:6px}
+  #scene{width:100%;height:440px;cursor:grab;touch-action:none}
+  #scene:active{cursor:grabbing}
+  .read .tag{font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--charcoal);font-weight:700}
+  .read .name{font-family:var(--display);font-style:italic;font-weight:600;font-size:38px;color:var(--primary);line-height:1.04;margin-top:8px}
+  .read .pid{font-family:var(--mono);font-size:12.5px;color:var(--accent);margin-top:12px}
+  .read .pid .id{color:var(--charcoal)}
+  .read .fn{font-size:16px;line-height:1.55;margin-top:14px;min-height:54px}
+  .read .fn .cur{display:inline-block;width:8px;height:1em;background:var(--accent);margin-left:1px;animation:blink 1s steps(1) infinite;vertical-align:-2px}
+  @keyframes blink{50%{opacity:0}}
+  .hint{margin-top:20px;font-size:12px;color:var(--charcoal)}.hint b{color:var(--primary)}
+  .note{grid-column:1/-1;text-align:center;font-size:11.5px;color:var(--charcoal);margin-top:2px}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="head">
+    <div class="ey">CheeseShop TECH · the wheel · 3D</div>
+    <h1>One wedge, in three dimensions.</h1>
+    <p>A real 3D Asiago wedge — drag to rotate. In the full wheel, each wedge is a portal tool.</p>
+  </div>
+  <canvas id="scene"></canvas>
+  <div class="read">
+    <div class="tag">Portal tool · market segment</div>
+    <div class="name" id="rName">Proforma</div>
+    <div class="pid" id="rPid">page · /pricing<span class="id">  ·  PRC-01</span></div>
+    <div class="fn" id="rFn"></div>
+    <div class="hint">Real Three.js geometry — paste on the cut faces, tan rind on the curve + caps.
+      <b>Next:</b> map the enhanced Asiago photo as the texture.</div>
+  </div>
+  <div class="note">Procedural material POC · the real Asiago texture (eyes, crystalline paste, rind detail) maps on next from design/asiago-wheel/references.</div>
+</div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+}}
+</script>
+<script type="module">
+import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
+const canvas = document.getElementById("scene");
+const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+function size(){ const w=canvas.clientWidth,h=canvas.clientHeight; renderer.setSize(w,h,false); cam.aspect=w/h; cam.updateProjectionMatrix(); }
+const scene = new THREE.Scene();
+const cam = new THREE.PerspectiveCamera(34, 1, 0.1, 100); cam.position.set(0.2,0.5,3.4);
+
+/* ---- build an Asiago wedge: paste (radial cut faces) + rind (curved edge + caps) ---- */
+function wedge(R,H,theta,segs){
+  const pos=[]; const tri=(a,b,c)=>pos.push(...a,...b,...c);
+  const P=(ang,y)=>[R*Math.cos(ang),y,R*Math.sin(ang)];
+  const bc=[0,0,0], tc=[0,H,0];
+  // PASTE — the two radial cut faces
+  { const b=P(0,0),t=P(0,H); tri(bc,b,t); tri(bc,t,tc); }
+  { const b=P(theta,0),t=P(theta,H); tri(bc,t,b); tri(bc,tc,t); }
+  const pasteVerts = pos.length/3;
+  // RIND — curved outer strip + top/bottom sector caps
+  for(let i=0;i<segs;i++){
+    const a0=theta*i/segs, a1=theta*(i+1)/segs;
+    const A0b=P(a0,0),A1b=P(a1,0),A0t=P(a0,H),A1t=P(a1,H);
+    tri(A0b,A1b,A1t); tri(A0b,A1t,A0t);     // curved face
+    tri(tc,A0t,A1t);                         // top cap
+    tri(bc,A1b,A0b);                          // bottom cap
+  }
+  const g=new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.Float32BufferAttribute(pos,3));
+  g.computeVertexNormals(); g.center();
+  g.addGroup(0, pasteVerts, 0);
+  g.addGroup(pasteVerts, pos.length/3 - pasteVerts, 1);
+  return g;
+}
+const paste = new THREE.MeshStandardMaterial({ color:0xF2E6B0, roughness:0.72, metalness:0, side:THREE.DoubleSide });
+const rind  = new THREE.MeshStandardMaterial({ color:0x9E7740, roughness:0.96, metalness:0, side:THREE.DoubleSide });
+const mesh = new THREE.Mesh(wedge(1.5,0.9,Math.PI/3,30), [paste, rind]);
+mesh.rotation.set(0.26, -2.02, 0);   // point toward viewer, two paste faces splayed, top rind cap visible
+scene.add(mesh);
+// shadow disk
+const disk = new THREE.Mesh(new THREE.CircleGeometry(1.3,40), new THREE.MeshBasicMaterial({color:0x7a5a22, transparent:true, opacity:0.14}));
+disk.rotation.x=-Math.PI/2; disk.position.y=-0.95; scene.add(disk);
+
+/* lights — warm key, cool fill, soft ambient */
+scene.add(new THREE.AmbientLight(0xfff3da, 0.7));
+const key=new THREE.DirectionalLight(0xffffff,1.45); key.position.set(3,5,4); scene.add(key);
+const fill=new THREE.DirectionalLight(0xcfe0ff,0.45); fill.position.set(-4,1.5,-2); scene.add(fill);
+const rim=new THREE.DirectionalLight(0xffe6b0,0.5); rim.position.set(0,-2,-4); scene.add(rim);
+
+const controls=new OrbitControls(cam, canvas);
+controls.enableZoom=false; controls.enablePan=false; controls.autoRotate=false; controls.autoRotateSpeed=1.6;
+controls.target.set(0,0,0);
+// gentle auto-spin only while hovering (deterministic default angle for capture/first paint)
+canvas.addEventListener("pointerenter", ()=>controls.autoRotate=true);
+canvas.addEventListener("pointerleave", ()=>controls.autoRotate=false);
+
+addEventListener("resize", size); size();
+(function loop(){ requestAnimationFrame(loop); controls.update(); renderer.render(scene,cam); })();
+
+/* type the function line */
+const FN="Wholesale quoting — class-of-trade, freight line items, FIFO lots.";
+const fnEl=document.getElementById("rFn"); let i=0; const cur=document.createElement("span"); cur.className="cur";
+fnEl.appendChild(document.createTextNode("")); fnEl.appendChild(cur);
+setTimeout(()=>{ const t=setInterval(()=>{ if(i>=FN.length){clearInterval(t); cur.remove(); return;} fnEl.firstChild.textContent+=FN[i++]; },20); }, 650);
+</script>
+</body>
+</html>

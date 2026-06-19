@@ -19,6 +19,17 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-17 — 3D Asiago wedge POC (Three.js) — the wheel goes 3D
+
+**Action.** Built `prototypes/asiago-wedge-3d-prototype.html` — a **true 3D** Asiago wedge in Three.js
+(ES module + OrbitControls via CDN importmap). Custom **extruded sector geometry** with two material
+groups: **PASTE** (pale straw-gold) on the radial cut faces, **RIND** (tan/amber) on the curved edge +
+caps; warm key/fill/rim lighting; **drag-to-rotate** (OrbitControls) + hover auto-spin; tool readout
+type-on. Renders headless via swiftshader (`--use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader`).
+Procedural material POC. **NEXT:** map the **enhanced Asiago reference photo** as the texture
+(eyes/crystalline paste/rind detail) → replicate around the **full 3D wheel** → embed as a
+`kind:"code"`/scene slot in a `flow` manifest (apex landing hero). **Status.** Prototype only.
+
 ## 2026-06-17 — Showpiece cheese → WHEEL OF ASIAGO (Monti flagship); source folder
 
 **Decision (Rick).** The dynamic-landing cheese-wheel is now a **wheel of Asiago** (Monti's flagship
