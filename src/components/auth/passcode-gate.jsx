@@ -52,35 +52,76 @@ export function PasscodeGate({ resolved, children }) {
     }
   }
 
+  const brand = resolved.brand;
+  const motto = brand.tagline || resolved.home?.eyebrow || "";
   return (
-    <div className="flex min-h-screen items-center justify-center bg-bg px-4">
-      <div className="w-full max-w-sm">
-        <div className="mb-6 text-center">
-          {resolved.brand.logo ? (
-            <img src={resolved.brand.logo} alt={resolved.brand.name} className="mx-auto h-10 w-auto" />
-          ) : (
-            <div className="cs-display text-3xl text-brand-primary">{resolved.brand.name}</div>
-          )}
-          <p className="cs-eyebrow mt-2 text-fg-muted">{resolved.isHouse ? "Staff & partners" : "Private portal"}</p>
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-bg px-4">
+      {/* soft brand-tinted backdrop so the gate feels designed, not bare */}
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.06]"
+        style={{ background: "radial-gradient(60% 55% at 50% 0%, var(--cs-color-brand-primary), transparent)" }}
+      />
+      <div className="relative w-full max-w-sm">
+        <div className="overflow-hidden rounded-2xl border border-border bg-surface shadow-md">
+          {/* branded header band — mirrors the home-hub masthead */}
+          <div
+            className="relative px-6 pb-7 pt-8 text-center"
+            style={{
+              background:
+                "linear-gradient(160deg, var(--cs-color-brand-primary), color-mix(in srgb, var(--cs-color-brand-primary) 55%, #000))",
+              color: "var(--cs-color-on-primary)",
+            }}
+          >
+            <div
+              className="pointer-events-none absolute inset-0 opacity-[0.12]"
+              style={{
+                backgroundImage:
+                  "linear-gradient(135deg, transparent 46%, rgba(255,255,255,.5) 47%, transparent 48%), linear-gradient(45deg, transparent 46%, rgba(255,255,255,.5) 47%, transparent 48%)",
+                backgroundSize: "28px 28px",
+              }}
+            />
+            <div className="relative">
+              {brand.logo ? (
+                <span className="mx-auto inline-flex rounded-xl bg-white px-3 py-2">
+                  <img src={brand.logo} alt={brand.name} className="block h-9 w-auto" />
+                </span>
+              ) : (
+                <div className="cs-display text-2xl" style={{ color: "var(--cs-color-on-primary)" }}>{brand.name}</div>
+              )}
+              {motto && (
+                <p className="cs-eyebrow mt-3" style={{ color: "color-mix(in srgb, var(--cs-color-on-primary) 80%, transparent)" }}>
+                  {motto}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* form body */}
+          <form onSubmit={submit} className="space-y-4 p-6">
+            <div>
+              <h1 className="cs-display text-xl text-fg">{resolved.isHouse ? "Staff & partners" : "Welcome"}</h1>
+              <p className="mt-0.5 text-sm text-fg-muted">
+                Enter your passcode to open the {resolved.isHouse ? "console" : "portal"}.
+              </p>
+            </div>
+            <label htmlFor="passcode" className="flex items-center gap-2 text-sm font-medium text-fg">
+              <Lock className="h-4 w-4 text-brand-primary" /> Passcode
+            </label>
+            <Input
+              id="passcode"
+              type="password"
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              autoFocus
+              autoComplete="off"
+              placeholder="••••••••"
+            />
+            {error && <p className="text-sm text-error">{error}</p>}
+            <Button type="submit" variant="primary" className="w-full" disabled={busy || !code}>
+              {busy ? "Checking…" : "Enter portal"}
+            </Button>
+          </form>
         </div>
-        <form onSubmit={submit} className="space-y-4 rounded-lg border border-border bg-surface p-6 shadow-sm">
-          <label htmlFor="passcode" className="flex items-center gap-2 text-sm font-medium text-fg">
-            <Lock className="h-4 w-4 text-brand-primary" /> Enter passcode
-          </label>
-          <Input
-            id="passcode"
-            type="password"
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            autoFocus
-            autoComplete="off"
-            placeholder="••••••••"
-          />
-          {error && <p className="text-sm text-error">{error}</p>}
-          <Button type="submit" variant="primary" className="w-full" disabled={busy || !code}>
-            {busy ? "Checking…" : "Enter portal"}
-          </Button>
-        </form>
         <p className="cs-eyebrow mt-4 text-center text-fg-muted">Powered by CheeseShop TECH</p>
       </div>
     </div>
