@@ -19,6 +19,19 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-06-17 — Slot Composer spec (house-admin visual template builder)
+
+**Decision (Rick).** Greenlit the **Slot Composer** — a HOUSE-ADMIN-ONLY drag-and-drop canvas that
+composes templates in the Slot Kit language and emits the existing template manifest
+(`slide-templates.js` shape, rendered by `slide-renderer.jsx`). Spec: `docs/SLOT_COMPOSER_SPEC.md`.
+Drag containers/cards/shapes → tag each slot (role VAR/BRAND/LOCK × kind image/text/story/shape/code
+× binding: upload / Media Hub / brand voice / Brand Kit token / code × anim) → save to template
+library → renderers paint per client. Lives in the House Console (`agency-console.jsx`), admin-gated;
+clients consume + fill VAR only. **Sequencing locked:** manifest + renderers first (Excalidraw bridge
+now) → Composer is Phase 2 (a GUI over stable JSON; build the contract before the GUI). Reuses
+component catalogue + Media Hub + Brand Kit + template engine. Templates = house IP (not transferred
+at buyout). **Status.** Spec only — no code.
+
 ## 2026-06-17 — Slot Kit = foundational language for the Content Engine (+ handoff)
 
 **Decision (Rick).** The **Slot Kit** is the foundational core of the Content Engine: a
