@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge.jsx";
 import { Button } from "@/components/ui/button.jsx";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table.jsx";
 import { listClients } from "@/lib/clientConfig.js";
-import { getPricingData } from "@/lib/pricing.js";
+import { getPricingData, fetchInventory } from "@/lib/pricing.js";
 import { getBuyerCatalog } from "@/lib/catalog.js";
 
 // Agency Console — the house dashboard's P0 panels (ADMIN_DASHBOARDS_SPEC §3, built per
@@ -284,12 +284,23 @@ function IntegrationPanel({ clients }) {
 const STALE_DAYS = 14;
 
 function PipelinePanel({ clients }) {
+  // Live freshness: pull each tenant's inventory from the live store (one mind / one body).
+  // fetchInventory returns null for tenants without a live feed → we keep the bundled snapshot.
+  const [liveInv, setLiveInv] = useState({});
+  useEffect(() => {
+    let alive = true;
+    Promise.all(clients.map((c) => fetchInventory(c.id).then((inv) => [c.id, inv]).catch(() => [c.id, null])))
+      .then((pairs) => { if (!alive) return; const m = {}; for (const [id, inv] of pairs) if (inv) m[id] = inv; setLiveInv(m); });
+    return () => { alive = false; };
+  }, [clients]);
+
   const rows = useMemo(() => clients.map((c) => {
     const pricing = getPricingData({ id: c.id });
     const buyerCatalog = getBuyerCatalog({ id: c.id });
-    const lastUpdated = pricing?.inventory?.lastUpdated || null;
+    const inv = liveInv[c.id] || pricing?.inventory;
+    const lastUpdated = inv?.lastUpdated || null;
     const ageDays = lastUpdated ? Math.floor((Date.now() - new Date(lastUpdated).getTime()) / 86400000) : null;
-    const skus = pricing?.inventory?.skus;
+    const skus = inv?.skus;
     return {
       id: c.id,
       name: c.brand?.name || c.id,
@@ -301,8 +312,9 @@ function PipelinePanel({ clients }) {
       lastUpdated,
       ageDays,
       stale: ageDays != null && ageDays > STALE_DAYS,
+      live: !!liveInv[c.id],
     };
-  }), [clients]);
+  }), [clients, liveInv]);
 
   return (
     <Card>

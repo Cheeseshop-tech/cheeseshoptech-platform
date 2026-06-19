@@ -9,7 +9,7 @@ import { EmptyState } from "@/components/ui/empty-state.jsx";
 import { useToast } from "@/components/ui/toast.jsx";
 import { useAuth } from "@/lib/auth-context.jsx";
 import { rolesOf } from "@/lib/auth.js";
-import { getPricingData } from "@/lib/pricing.js";
+import { usePricingData } from "@/lib/use-pricing-data.js";
 import {
   emptyProposal, loadDraft, saveDraft, buildShareUrl, flattenSkus,
 } from "@/lib/proposals.js";
@@ -27,7 +27,7 @@ import { ProposalView } from "./proposal-view.jsx";
 // client admin pitches buyers with theirs. Output = preview + shareable gated link
 // (the proposal travels in the URL; prices always quote live).
 export function ProposalBuilder({ resolved }) {
-  const pricing = getPricingData(resolved);
+  const { data: pricing } = usePricingData(resolved);
   const { toast } = useToast();
   const { user } = useAuth();
   const isHouse = rolesOf(user).includes("admin"); // house/CST posts directly; clients submit for review

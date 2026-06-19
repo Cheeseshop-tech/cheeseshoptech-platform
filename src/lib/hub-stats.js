@@ -5,7 +5,7 @@
 import { getPricingData } from "@/lib/pricing.js";
 import { listClients } from "@/lib/clientConfig.js";
 
-export function getHubStats(resolved) {
+export function getHubStats(resolved, liveData) {
   // 1. Explicit stats authored in config win (static content).
   if (Array.isArray(resolved.home?.stats) && resolved.home.stats.length) {
     return resolved.home.stats;
@@ -25,15 +25,16 @@ export function getHubStats(resolved) {
     ];
   }
 
-  // 3. Tenant with a canonical pricing/inventory bundle: the ops rollup.
-  const data = getPricingData(resolved);
-  if (data?.inventory?.skus && data?.catalog) {
-    const skus = Object.values(data.inventory.skus);
+  // 3. Tenant ops rollup — prefer the live-hydrated bundle passed in (one mind / one body),
+  //    fall back to the bundled snapshot when none is supplied.
+  const bundle = liveData || getPricingData(resolved);
+  if (bundle?.inventory?.skus && bundle?.catalog) {
+    const skus = Object.values(bundle.inventory.skus);
     const onHand = skus.reduce((n, s) => n + (s.casesAvail || 0), 0);
     const inTransit = skus.reduce((n, s) => n + (s.casesInTransit || 0), 0);
     const arriving = skus.filter((s) => (s.casesInTransit || 0) > 0).length;
-    const plans = (data.commitments?.commitments || []).filter((c) => c.kind === "standing_plan").length;
-    const products = (data.catalog.products || []).length;
+    const plans = (bundle.commitments?.commitments || []).filter((c) => c.kind === "standing_plan").length;
+    const products = (bundle.catalog.products || []).length;
     return [
       { value: products, label: "Products", accent: "brand" },
       { value: onHand.toLocaleString(), label: "Cases on hand", accent: "accent" },

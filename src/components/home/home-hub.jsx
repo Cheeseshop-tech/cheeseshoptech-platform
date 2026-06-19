@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card.jsx";
 import { Stat } from "@/components/ui/stat.jsx";
 import { toolIcon } from "@/lib/icons.js";
 import { getHubStats } from "@/lib/hub-stats.js";
+import { usePricingData } from "@/lib/use-pricing-data.js";
 import { hasCrm } from "@/lib/crm.js";
 import { CommandCenter } from "@/components/home/command-center.jsx";
 import { AgencyConsole } from "@/components/home/agency-console.jsx";
@@ -16,7 +17,8 @@ import { RoleGate } from "@/components/auth/require-auth.jsx";
 export function HomeHub({ resolved, onNavigate }) {
   const home = resolved.home || {};
   const brand = resolved.brand;
-  const stats = useMemo(() => getHubStats(resolved), [resolved]);
+  const { data: liveData } = usePricingData(resolved);
+  const stats = useMemo(() => getHubStats(resolved, liveData), [resolved, liveData]);
   const tools = resolved.tools || [];
 
   function openTool(tool) {

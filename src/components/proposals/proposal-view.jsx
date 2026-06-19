@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
 import { EmptyState } from "@/components/ui/empty-state.jsx";
 import { DeckViewer } from "@/components/presentations/presentations-page.jsx";
-import { getPricingData } from "@/lib/pricing.js";
+import { usePricingData } from "@/lib/use-pricing-data.js";
 import { quoteUnitPrice } from "@/lib/pricing-core.js";
 import { proposalFromLocation, resolveSkus } from "@/lib/proposals.js";
 import { codeImageUrl } from "@/lib/images.js";
@@ -19,7 +19,7 @@ import { cldUrl } from "@/lib/cloudinary.js";
 // drift. The kit is the single source; the theme is a register of it.
 export function ProposalView({ resolved, proposal: given }) {
   const proposal = given || proposalFromLocation();
-  const pricing = getPricingData(resolved);
+  const { data: pricing } = usePricingData(resolved);
   const config = pricing?.config;
   const kit = getBrandKit(resolved);
 
