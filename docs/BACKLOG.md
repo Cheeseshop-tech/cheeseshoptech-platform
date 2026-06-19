@@ -4,13 +4,12 @@ One list. Add items here (or tell Claude). Format: `- [impact/effort] descriptio
 See `docs/CONTINUAL_IMPROVEMENT.md` for the loop. Updated 2026-06-18.
 
 ## Now (next batch)
-- [high/med] **Central history store** — move quotes + movement out of per-browser localStorage into one
-  shared store (same Blobs pattern as inventory). Unlocks trustworthy monthly/yearly forecasting and
-  satisfies one-mind/one-body. (Forecast engine already exists; it's starved of shared history.)
-
-## Next
 - [med/med] **Catch vs exact weight in the UI + invoice states** — mark catch-weight lines "estimate" and
   exact-weight "firm" in the on-screen proforma; carry proforma → weighed → final-invoice states.
+
+## Next
+- [med/high] **Forecasting view** — now that shared history accrues (central store shipped), surface
+  monthly run-rate + YoY in the Movement tab as it fills.
 - [med/low] **Shelf-life → action** — from the Shelf Life tab, one-click "build a clear-out list / draft"
   for a chosen customer group (path to the per-customer sales sheet).
 - [low/low] **Weekly shelf-life email** — auto-draft the <4mo list each week (extends monti-inventory-watch).
@@ -30,3 +29,6 @@ See `docs/CONTINUAL_IMPROVEMENT.md` for the loop. Updated 2026-06-18.
 - ✅ 2026-06-18 $300 local trucking floor + proforma firm/estimate labels & liner notes — `c63348b`
 - ✅ 2026-06-18 Shelf Life monitoring tab — `a618253`
 - ✅ 2026-06-18 Live-wired home dashboard, proposals, agency data-health panel — `8926647`
+- ✅ 2026-06-18 Polished passcode sign-in gate for go-live testing — `e21e389`
+- ✅ 2026-06-18 Editable trucking + processing fees (base 300/135, presets + free entry) — `a6c0a74`
+- ✅ 2026-06-18 Central movement history store (Netlify Blobs, shared) — unlocks forecasting

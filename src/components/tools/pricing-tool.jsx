@@ -1,4 +1,4 @@
-import { Fragment, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { Calculator, Package, Handshake, Search } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card.jsx";
 import { Dialog, DialogContent } from "@/components/ui/dialog.jsx";
@@ -8,7 +8,7 @@ import { Stat } from "@/components/ui/stat.jsx";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs.jsx";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table.jsx";
 import { useToast } from "@/components/ui/toast.jsx";
-import { appendLedger } from "@/lib/pricing.js";
+import { appendHistory, loadHistory } from "@/lib/history.js";
 import { usePricingData } from "@/lib/use-pricing-data.js";
 import { codeImageUrl } from "@/lib/images.js";
 import * as PC from "@/lib/pricing-core.js";
@@ -67,7 +67,7 @@ export function PricingTool({ resolved }) {
         </TabsList>
         <TabsContent value="proforma"><Proforma data={data} brand={resolved.brand} resolved={resolved} /></TabsContent>
         <TabsContent value="shelflife"><ShelfLife data={data} /></TabsContent>
-        <TabsContent value="movement"><Movement data={data} /></TabsContent>
+        <TabsContent value="movement"><Movement data={data} resolved={resolved} /></TabsContent>
         <TabsContent value="commitments"><Commitments data={data} /></TabsContent>
       </Tabs>
     </div>
@@ -136,8 +136,8 @@ function Proforma({ data, brand, resolved }) {
   function recordSale() {
     if (!items.length) { toast({ title: "Nothing to record", description: "Enter case quantities first.", tone: "warning" }); return; }
     const recs = items.map((it) => ({ period: TODAY.slice(0, 7), skuCode: it.sku.code, customer: customer || "(unspecified)", soldCases: it.cases, missedCases: 0, at: TODAY }));
-    appendLedger(recs);
-    toast({ title: "Sale recorded", description: `${items.length} line(s) added to the movement ledger.`, tone: "success" });
+    appendHistory(resolved.id, recs);
+    toast({ title: "Sale recorded", description: `${items.length} line(s) added to shared movement history.`, tone: "success" });
   }
 
   // Print / save-as-PDF: open a clean branded proforma document and trigger print.
@@ -528,11 +528,17 @@ function ShelfLife({ data }) {
 }
 
 /* ---------------- Movement ---------------- */
-function Movement({ data }) {
+function Movement({ data, resolved }) {
   const { catalog, inventory, commitments, config } = data;
   const [horizon, setHorizon] = useState(3);
   const names = useMemo(() => { const m = {}; catalog.products.forEach((p) => p.skus.forEach((s) => (m[s.code] = titleCase(p.name) + " · " + s.packing))); return m; }, [catalog]);
-  let ledger = []; try { ledger = JSON.parse(localStorage.getItem("mt-movement-ledger")) || []; } catch { ledger = []; }
+  // Shared movement history (one mind / one body): the central store merged with local captures.
+  const [ledger, setLedger] = useState([]);
+  useEffect(() => {
+    let alive = true;
+    loadHistory(resolved?.id).then((recs) => { if (alive) setLedger(recs); });
+    return () => { alive = false; };
+  }, [resolved?.id]);
   const movement = { records: ledger };
   const codes = Object.keys(inventory.skus);
   const rep = FC.report(codes, { commitments, inventory, movement, config }, horizon).filter((r) => r.hasSignal || r.onHand > 0 || r.inTransit > 0);
