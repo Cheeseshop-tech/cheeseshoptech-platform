@@ -1,0 +1,32 @@
+# Backlog — the single source of truth for what's next
+
+One list. Add items here (or tell Claude). Format: `- [impact/effort] description — why / blocker`.
+See `docs/CONTINUAL_IMPROVEMENT.md` for the loop. Updated 2026-06-18.
+
+## Now (next batch)
+- [high/med] **Central history store** — move quotes + movement out of per-browser localStorage into one
+  shared store (same Blobs pattern as inventory). Unlocks trustworthy monthly/yearly forecasting and
+  satisfies one-mind/one-body. (Forecast engine already exists; it's starved of shared history.)
+
+## Next
+- [med/med] **Catch vs exact weight in the UI + invoice states** — mark catch-weight lines "estimate" and
+  exact-weight "firm" in the on-screen proforma; carry proforma → weighed → final-invoice states.
+- [med/low] **Shelf-life → action** — from the Shelf Life tab, one-click "build a clear-out list / draft"
+  for a chosen customer group (path to the per-customer sales sheet).
+- [low/low] **Weekly shelf-life email** — auto-draft the <4mo list each week (extends monti-inventory-watch).
+
+## Blocked
+- [high/low] **Class-of-trade margin alignment** — reshape tiers to importer +15% / retail distrib +20–30% /
+  food-service +25–35%. BLOCKED on Stefano's real numbers. (On the next Stefano list.)
+
+## Later
+- [med/high] **Forecasting dashboards** — monthly/yearly projections once the history store has accrued data.
+- [low/high] **Cost-of-goods / tariff + FX watch** — landed-cost versioning + trend for competitive positioning.
+- [low/med] **Per-customer sales sheet** — generate a targeted sheet for a specific customer group from
+  live availability + shelf life.
+
+## Done (log)
+- ✅ 2026-06-18 Live inventory feed (Netlify Blobs, weekly sync, no rebuild) — `e31086a`, `cc7229a`, `04ba2e4`
+- ✅ 2026-06-18 $300 local trucking floor + proforma firm/estimate labels & liner notes — `c63348b`
+- ✅ 2026-06-18 Shelf Life monitoring tab — `a618253`
+- ✅ 2026-06-18 Live-wired home dashboard, proposals, agency data-health panel — `8926647`
