@@ -151,7 +151,7 @@ export default function App({ initialResolved }) {
     >
       {activeFeatured ? (
         activeFeatured.route === "pricing"
-          ? <PricingTool resolved={resolved} />
+          ? <PricingTool resolved={resolved} onNavigate={setPage} />
           : <FeaturedTool tool={activeFeatured} resolved={resolved} />
       ) : effectivePage === "media" ? (
         <MediaHub resolved={resolved} />

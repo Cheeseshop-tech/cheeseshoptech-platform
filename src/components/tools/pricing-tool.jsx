@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useMemo, useState } from "react";
-import { Calculator, Package, Handshake, Search } from "lucide-react";
+import { Calculator, Package, Handshake, Search, Share2, ArrowRight, Check } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card.jsx";
 import { Dialog, DialogContent } from "@/components/ui/dialog.jsx";
 import { Button } from "@/components/ui/button.jsx";
@@ -25,7 +25,7 @@ const selCls =
   "rounded-base border border-border bg-bg px-2.5 py-2 text-sm text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand";
 const fieldLabel = "text-[10px] font-semibold uppercase tracking-wide text-fg-muted";
 
-export function PricingTool({ resolved }) {
+export function PricingTool({ resolved, onNavigate }) {
   const { data, stockSource } = usePricingData(resolved);
 
   if (!data) {
@@ -67,7 +67,7 @@ export function PricingTool({ resolved }) {
           <TabsTrigger value="movement">Movement</TabsTrigger>
           <TabsTrigger value="commitments">Commitments</TabsTrigger>
         </TabsList>
-        <TabsContent value="proforma"><Proforma data={data} brand={resolved.brand} resolved={resolved} /></TabsContent>
+        <TabsContent value="proforma"><Proforma data={data} brand={resolved.brand} resolved={resolved} onNavigate={onNavigate} /></TabsContent>
         <TabsContent value="shelflife"><ShelfLife data={data} /></TabsContent>
         <TabsContent value="movement"><Movement data={data} resolved={resolved} /></TabsContent>
         <TabsContent value="commitments"><Commitments data={data} /></TabsContent>
@@ -77,7 +77,7 @@ export function PricingTool({ resolved }) {
 }
 
 /* ---------------- Proforma ---------------- */
-function Proforma({ data, brand, resolved }) {
+function Proforma({ data, brand, resolved, onNavigate }) {
   const { config, catalog, inventory, commitments } = data;
   const { toast } = useToast();
   const skus = useMemo(
@@ -391,6 +391,7 @@ function Proforma({ data, brand, resolved }) {
           unit={detail ? PC.quoteUnitPrice(detail, opts, config) : null}
           inv={detail ? inventory.skus[detail.code] : null}
           tierLabel={tier.label}
+          onNavigate={onNavigate}
         />
     </div>
   );
@@ -398,21 +399,38 @@ function Proforma({ data, brand, resolved }) {
 
 /* Product detail — opens from the proforma thumbnail. Built for live customer conversations:
    big image + description + the specs and questions a buyer actually asks. */
-function ProductDetailDialog({ sku, onClose, imgUrl, unit, inv, tierLabel }) {
+function ProductDetailDialog({ sku, onClose, imgUrl, unit, inv, tierLabel, onNavigate }) {
+  const [copied, setCopied] = useState(false);
   if (!sku) return null;
   const m = sku.marketing || {};
   const p = sku.pack || {};
+  async function shareImage() {
+    const payload = { title: sku.productName, text: m.blurb || sku.productName, url: imgUrl };
+    try {
+      if (navigator.share) await navigator.share(payload);
+      else { await navigator.clipboard.writeText(imgUrl); setCopied(true); setTimeout(() => setCopied(false), 1600); }
+    } catch { /* user cancelled */ }
+  }
   const spec = (label, value) => value != null && value !== "" ? (
     <div><dt className="text-[11px] uppercase tracking-wide text-fg-muted">{label}</dt><dd className="text-sm text-fg">{value}</dd></div>
   ) : null;
   return (
     <Dialog open={!!sku} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-w-3xl p-0">
-        <div className="grid md:grid-cols-[1fr_1.1fr]">
-          <div className="flex items-center justify-center bg-white p-3 md:rounded-l-base min-h-[360px]">
-            <img src={imgUrl} alt={sku.productName} className="max-h-[72vh] w-full object-contain" />
+        <div className="flex max-h-[88vh] flex-col">
+          {/* hero photo on top, full width */}
+          <div className="relative flex items-center justify-center bg-white p-4 md:rounded-t-base">
+            <img src={imgUrl} alt={sku.productName} className="max-h-[56vh] w-auto max-w-full object-contain" />
+            <button type="button" onClick={shareImage} title="Share image"
+              className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-base border border-border bg-surface/90 px-2.5 py-1.5 text-xs font-medium text-fg shadow-sm backdrop-blur hover:border-brand-primary">
+              {copied
+                ? <><Check className="h-3.5 w-3.5" style={{ color: "#16a34a" }} /> Copied link</>
+                : <><Share2 className="h-3.5 w-3.5" /> Share</>}
+            </button>
           </div>
-          <div className="max-h-[80vh] overflow-y-auto p-6">
+
+          {/* details below, scrollable */}
+          <div className="overflow-y-auto p-6">
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-mono text-xs font-semibold text-brand-primary">{sku.code}</span>
               {m.badge && <Badge variant="accent">{m.badge}</Badge>}
@@ -421,7 +439,13 @@ function ProductDetailDialog({ sku, onClose, imgUrl, unit, inv, tierLabel }) {
             <h2 className="mt-2 font-heading text-2xl text-fg">{sku.productName}</h2>
             <p className="text-sm text-fg-muted">{sku.packing}</p>
 
-            {m.blurb && <p className="mt-3 text-sm leading-relaxed text-fg">{m.blurb}</p>}
+            {m.blurb && <p className="mt-3 max-w-2xl text-sm leading-relaxed text-fg">{m.blurb}</p>}
+            {onNavigate && (
+              <button type="button" onClick={() => { onClose(); onNavigate("catalog"); }}
+                className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-brand-primary hover:underline">
+                Story &amp; provenance in the catalog <ArrowRight className="h-3.5 w-3.5" />
+              </button>
+            )}
 
             <div className="mt-4 flex items-baseline gap-2">
               <span className="font-heading text-2xl text-fg">{money(unit)}</span>
@@ -433,7 +457,7 @@ function ProductDetailDialog({ sku, onClose, imgUrl, unit, inv, tierLabel }) {
               </p>
             )}
 
-            <dl className="mt-5 grid grid-cols-2 gap-3 border-t border-border pt-4">
+            <dl className="mt-5 grid grid-cols-2 gap-3 border-t border-border pt-4 sm:grid-cols-3">
               {spec("Category", sku.category)}
               {spec("Milk", m.milk)}
               {spec("Aging", m.age)}
@@ -448,7 +472,7 @@ function ProductDetailDialog({ sku, onClose, imgUrl, unit, inv, tierLabel }) {
             {inv && inv.lots && inv.lots.length > 0 && (
               <div className="mt-4 border-t border-border pt-4">
                 <p className="mb-1.5 text-[11px] uppercase tracking-wide text-fg-muted">Lots</p>
-                <div className="space-y-0.5">
+                <div className="grid gap-x-8 gap-y-0.5 sm:grid-cols-2">
                   {inv.lots.map((l, i) => (
                     <div key={i} className="font-mono text-xs text-fg-muted">
                       {l.status === "in_transit"
