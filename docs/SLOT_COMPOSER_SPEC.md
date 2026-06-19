@@ -4,10 +4,15 @@
 **Read with:** `design/SLOT_KIT_GUIDE.md` (the language), `TEMPLATE_ENGINE_SPEC.md` (the engine),
 `HOUSE_CONSOLE_SPEC.md` (where it lives), `DESIGN_SYSTEM.md` (tokens/components), `BRAND_KIT_AND_PROPOSAL_SPEC.md`.
 
-> **One line.** A house-admin-only, drag-and-drop canvas that composes templates in the Slot Kit
-> language and **emits the same manifest** the renderers already consume. It replaces the
-> "draw in Excalidraw → hand-compile" loop with a native authoring surface. Build it *after* the
-> manifest + renderers are stable — it's "a nicer way to write the same JSON."
+> **One line.** A core **House-admin tool inside Content Studio** — a drag-and-drop canvas that
+> composes templates in the Slot Kit language and **emits the same manifest** the renderers already
+> consume. It replaces the "draw in Excalidraw → hand-compile" loop with a native authoring surface.
+> Build it *after* the manifest + renderers are stable — it's "a nicer way to write the same JSON."
+
+> **What it is NOT (scope guard).** It is a **tool, not a page.** It is *not* the portal's marketing
+> landing page, and *not* a landing page for Content Studio. It builds reusable **templates**;
+> landing pages — like slides, email, and social — are **outputs** the tool produces. The tool is the
+> deliverable; any specific landing page is just a test output that exercises the manifest.
 
 ---
 
@@ -15,10 +20,13 @@
 
 - **Purpose:** let the house author/edit content templates visually — drag containers, cards, and
   shapes onto a canvas; tag each as a slot; bind its source; emit a template manifest.
-- **Access: CheeseShop TECH HOUSE ADMIN ONLY.** Lives in the House Console (`agency-console.jsx`),
-  gated to `admin`. **Not client-facing.** Clients *consume* templates and fill `VAR` slots / pick
-  Media Hub assets; they never author structure. (Consistent with DESIGN_SYSTEM B0/Part E + the
-  canonical fact — templates are house IP, never transferred at buyout.)
+- **Home:** **inside Content Studio** (`src/components/proposals/content-studio.jsx`) — the
+  house-admin content-authoring environment, reached from the House Console (`agency-console.jsx`).
+  It's a **main tool of Content Studio**, beside the slide/proposal authoring.
+- **Access: CheeseShop TECH HOUSE ADMIN ONLY**, gated to `admin`. **Not client-facing.** Clients
+  *consume* templates and fill `VAR` slots / pick Media Hub assets; they never author structure.
+  (Consistent with DESIGN_SYSTEM B0/Part E + the canonical fact — templates are house IP, never
+  transferred at buyout.)
 
 ## 2. What it emits (the contract)
 
