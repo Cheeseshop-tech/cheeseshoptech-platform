@@ -9,7 +9,7 @@
       "name": "Asiago Fresco DOP",
       "category": "Asiago",
       "marketing": {
-        "blurb": "Aged 30-40 days. Mountain milk from the Trentino Alps, made and aged in our own plants in Grigno.",
+        "blurb": "Aged 30-40 days. Cow's milk from the Trentino Alps, made and aged in our own plants in Grigno.",
         "badge": "PDO",
         "tags": [],
         "age": "aged 30-40 days",
@@ -91,7 +91,7 @@
       "name": "Asiago Stagionato DOP",
       "category": "Asiago",
       "marketing": {
-        "blurb": "Aged 5 months. Mountain milk from the Trentino Alps, made and aged in our own plants in Grigno.",
+        "blurb": "Aged 5 months. Cow's milk from the Trentino Alps, made and aged in our own plants in Grigno.",
         "badge": "PDO",
         "tags": [],
         "age": "aged 5 months",
@@ -151,7 +151,7 @@
       "name": "Asiago Vecchio DOP",
       "category": "Asiago",
       "marketing": {
-        "blurb": "Aged 9 months. Mountain milk from the Trentino Alps, made and aged in our own plants in Grigno.",
+        "blurb": "Aged 9 months. Cow's milk from the Trentino Alps, made and aged in our own plants in Grigno.",
         "badge": "PDO",
         "tags": [],
         "age": "aged 9 months",
@@ -211,7 +211,7 @@
       "name": "Asiago Fresco della Montagna",
       "category": "Asiago",
       "marketing": {
-        "blurb": "Aged 60-70 days. Mountain milk from the Trentino Alps, made and aged in our own plants in Grigno.",
+        "blurb": "Aged 60-70 days. Cow's milk from the Trentino Alps, made and aged in our own plants in Grigno.",
         "badge": "Mountain",
         "tags": [],
         "age": "aged 60-70 days",
@@ -249,7 +249,7 @@
       "name": "Asiago Stagionato della Montagna",
       "category": "Asiago",
       "marketing": {
-        "blurb": "Aged min 5 months. Mountain milk from the Trentino Alps, made and aged in our own plants in Grigno.",
+        "blurb": "Aged min 5 months. Cow's milk from the Trentino Alps, made and aged in our own plants in Grigno.",
         "badge": "Mountain",
         "tags": [],
         "age": "aged min 5 months",
@@ -287,7 +287,7 @@
       "name": "Montasio Cheese DOP",
       "category": "Alpine & Specialty",
       "marketing": {
-        "blurb": "Aged 6 months. Mountain milk from the Trentino Alps, made and aged in our own plants in Grigno.",
+        "blurb": "Aged 6 months. Cow's milk from the Trentino Alps, made and aged in our own plants in Grigno.",
         "badge": "PDO",
         "tags": [],
         "age": "aged 6 months",
@@ -347,7 +347,7 @@
       "name": "Vezzena Cheese",
       "category": "Alpine & Specialty",
       "marketing": {
-        "blurb": "Aged 9 months. Mountain milk from the Trentino Alps, made and aged in our own plants in Grigno.",
+        "blurb": "Aged 9 months. Cow's milk from the Trentino Alps, made and aged in our own plants in Grigno.",
         "badge": "Mountain",
         "tags": [],
         "age": "aged 9 months",
@@ -407,7 +407,7 @@
       "name": "Alpeggio Cheese",
       "category": "Alpine & Specialty",
       "marketing": {
-        "blurb": "Aged min. 10 months. Mountain milk from the Trentino Alps, made and aged in our own plants in Grigno.",
+        "blurb": "Aged min. 10 months. Cow's milk from the Trentino Alps, made and aged in our own plants in Grigno.",
         "badge": "Mountain",
         "tags": [],
         "age": "aged min. 10 months",
@@ -445,7 +445,7 @@
       "name": "Lagorai Cheese",
       "category": "Alpine & Specialty",
       "marketing": {
-        "blurb": "Aged 60-70 days. Mountain milk from the Trentino Alps, made and aged in our own plants in Grigno.",
+        "blurb": "Aged 60-70 days. Cow's milk from the Trentino Alps, made and aged in our own plants in Grigno.",
         "badge": "Mountain",
         "tags": [],
         "age": "aged 60-70 days",
@@ -1367,7 +1367,7 @@
       "name": "Grana Padano",
       "category": "Grana Padano",
       "marketing": {
-        "blurb": "Aged min. 12–16 months. Mountain milk from the Trentino Alps, made and aged in our own plants in Grigno.",
+        "blurb": "Aged min. 12–16 months. Cow's milk from the Trentino Alps, made and aged in our own plants in Grigno.",
         "badge": "Mountain",
         "tags": [],
         "age": "aged min. 12–16 months",
@@ -1449,7 +1449,7 @@
       "name": "Grana Padano Riserva",
       "category": "Grana Padano",
       "marketing": {
-        "blurb": "Aged min. 16–20 months. Mountain milk from the Trentino Alps, made and aged in our own plants in Grigno.",
+        "blurb": "Aged min. 16–20 months. Cow's milk from the Trentino Alps, made and aged in our own plants in Grigno.",
         "badge": "Mountain",
         "tags": [],
         "age": "aged min. 16–20 months",

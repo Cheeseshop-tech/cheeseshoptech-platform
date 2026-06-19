@@ -433,8 +433,8 @@ function ProductDetailDialog({ sku, onClose, imgUrl, unit, inv, tierLabel, onNav
           {/* hero photo on top, full width */}
           <div className="relative flex items-center justify-center bg-white p-4 md:rounded-t-base">
             <img src={imgUrl} alt={sku.productName} className="max-h-[56vh] w-auto max-w-full object-contain" />
-            {/* action group sits top-left so it clears the dialog's X close button (top-right) */}
-            <div className="absolute left-3 top-3 flex flex-wrap items-center gap-1.5">
+            {/* action group sits along the bottom of the photo, clear of the X close (top-right) */}
+            <div className="absolute inset-x-0 bottom-3 flex flex-wrap items-center justify-center gap-1.5 px-3">
               <button type="button" onClick={shareImage} title="Share" className={chip}><Share2 className="h-3.5 w-3.5" /> Share</button>
               <button type="button" onClick={downloadImage} title="Download image" className={chip}><Download className="h-3.5 w-3.5" /> Download</button>
               <button type="button" onClick={copyLink} title="Copy image link" className={chip}>
