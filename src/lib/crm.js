@@ -85,7 +85,10 @@ const MOCK = {
   },
 };
 
-const USE_MOCK = (import.meta.env.VITE_CRM_BACKEND || "mock") === "mock";
+// "mock" (bundled sample) | "hubspot" (direct read-only, companies+contacts only — see
+// netlify/functions/crm-hubspot.js scope note) | anything else = Make-webhook proxy (crm.js).
+export const CRM_BACKEND = import.meta.env.VITE_CRM_BACKEND || "mock";
+const USE_MOCK = CRM_BACKEND === "mock";
 // True while CRM data is sample (no live backend). Real source = HubSpot (INTEGRATION_WIRING_BRIEF.md).
 // UI uses this to mark mock-backed sections "Sample" so they're never mistaken for live numbers.
 export const crmIsSample = USE_MOCK;
@@ -94,7 +97,8 @@ export const crmIsSample = USE_MOCK;
 export async function getCrmData(resolved) {
   if (!hasCrm(resolved)) return null;
   if (USE_MOCK) return MOCK[resolved.id] || emptyDataset();
-  const res = await fetch(`/.netlify/functions/crm?tenant=${encodeURIComponent(resolved.id)}`);
+  const fn = CRM_BACKEND === "hubspot" ? "crm-hubspot" : "crm";
+  const res = await fetch(`/.netlify/functions/${fn}?tenant=${encodeURIComponent(resolved.id)}`);
   return res.ok ? await res.json() : emptyDataset();
 }
 

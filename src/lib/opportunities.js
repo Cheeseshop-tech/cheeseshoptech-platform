@@ -22,10 +22,17 @@ const TYPE_TIMELINESS = {
 
 const firstSentence = (s) => (s ? String(s).split(/(?<=\.)\s/)[0] : "");
 
-/** Collapse CRM orders + activity into a de-duplicated account list (by name). */
+/** Collapse CRM companies + orders + activity into a de-duplicated account list (by name).
+ *  companies (real HubSpot backend, Slice 2) carries the Channel that drives audienceOf() —
+ *  orders/activity (mock + Make backend) stay first so their richer account-value signal wins
+ *  if a name happens to appear in both sources. */
 function accountsFromCrm(crm) {
   if (!crm) return [];
   const map = new Map();
+  for (const c of crm.companies || []) {
+    if (!c?.name) continue;
+    map.set(c.name, { id: c.id ?? c.name, name: c.name, channel: c.channel });
+  }
   for (const o of crm.orders || []) {
     if (!map.has(o.account)) {
       map.set(o.account, { id: o.account, name: o.account, channel: o.channel, lastOrder: o.date, value: o.total || 0 });

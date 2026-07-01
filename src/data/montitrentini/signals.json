@@ -21,7 +21,7 @@
     "insight": "Grocers lock gift & DTC box programs in summer for Q4; a heritage story sells the gift, not the spec sheet.",
     "suggestedAngle": "Frame the 100-year family story — a gift with a place and a name behind it.",
     "storyHints": ["origin-provenance", "sustainability"],
-    "skus": ["asiago-vecchio-dop", "grana-padano-dop"],
+    "skus": ["asiago-vecchio-dop", "grana-padano"],
     "source": "seasonal-calendar",
     "freshness": "2026-07-01"
   },
@@ -47,7 +47,7 @@
     "insight": "Chefs refresh pasta and risotto menus into fall; hard grating cheeses with a real DOP story upsell the plate.",
     "suggestedAngle": "Everything made at home — one hand, start to finish; the grating cheese a chef can name on the menu.",
     "storyHints": ["supply-chain-quality", "foodservice-chef"],
-    "skus": ["grana-padano-dop", "parmigiano-reggiano-dop"],
+    "skus": ["grana-padano", "parmigiano-reggiano-pdo"],
     "source": "category-trend",
     "freshness": "2026-06-25"
   },
@@ -73,7 +73,7 @@
     "insight": "Retail and trade attention on genuine PDO labeling favors certified DOP producers over imitators.",
     "suggestedAngle": "Certified DOP, made and aged in our own Alpine plants — the certification and the place both check out.",
     "storyHints": ["supply-chain-quality", "why-trentino"],
-    "skus": ["asiago-fresco-dop", "grana-padano-dop"],
+    "skus": ["asiago-fresco-dop", "grana-padano"],
     "source": "category-trend",
     "freshness": "2026-06-20"
   },
@@ -99,7 +99,7 @@
     "insight": "Post-summer deli resets favor dependable everyday SKUs with a warm, family-brand feel.",
     "suggestedAngle": "A family creamery's everyday range — quality you can put a name and a hundred-year story to.",
     "storyHints": ["retail-partnership", "origin-provenance"],
-    "skus": ["provolone-dolce", "caciotta-basket-rind"],
+    "skus": ["mild-provolone", "caciotta-basket-rind"],
     "source": "seasonal-calendar",
     "freshness": "2026-06-15"
   }

@@ -9,6 +9,7 @@ import { getCampaigns, CHANNELS, compact, campaignsAreSample } from "@/lib/campa
 import { getSignals, signalsAreSample } from "@/lib/signals.js";
 import { rankOpportunities } from "@/lib/opportunities.js";
 import { getBrandKit } from "@/lib/brandKit.js";
+import { getPricingData } from "@/lib/pricing.js";
 import { emptyProposal, saveDraft } from "@/lib/proposals.js";
 
 // Small "Sample" chip for sections still on mock data (CRM = HubSpot, campaigns = HubSpot marketing —
@@ -34,7 +35,8 @@ export function CommandCenter({ resolved, onNavigate }) {
     Promise.all([getCrmData(resolved), getCampaigns(resolved), getSignals(resolved)]).then(([crm, campaigns, signals]) => {
       if (!alive) return;
       const brandKit = getBrandKit(resolved);
-      const opportunities = rankOpportunities({ crm, signals, brandKit });
+      const catalog = getPricingData(resolved)?.catalog;
+      const opportunities = rankOpportunities({ crm, signals, brandKit, catalog });
       setData({ crm, campaigns, opportunities });
     });
     return () => { alive = false; };
@@ -108,7 +110,7 @@ export function CommandCenter({ resolved, onNavigate }) {
       )}
 
       <div className="grid gap-6 lg:grid-cols-2">
-        {crm && hasCrm(resolved) && (
+        {crm && hasCrm(resolved) && crm.pipeline?.length > 0 && (
           <Card>
             <CardHeader><CardTitle>Pipeline by stage<SampleTag show={crmIsSample} /></CardTitle></CardHeader>
             <CardContent className="space-y-3">
@@ -153,7 +155,7 @@ export function CommandCenter({ resolved, onNavigate }) {
           </CardContent>
         </Card>
 
-        {crm && (
+        {crm && crm.activity?.length > 0 && (
           <Card>
             <CardHeader><CardTitle>Recent activity<SampleTag show={crmIsSample} /></CardTitle></CardHeader>
             <CardContent className="space-y-3">
