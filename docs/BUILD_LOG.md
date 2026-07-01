@@ -19,6 +19,74 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-07-01 (cont. 2) — Push unblocked (PAT auth) + Opportunity Engine Slice 3: Market News card
+
+**Deploy fix (root cause found).** The recurring "push not working": (1) GitHub HTTPS auth had no
+credential — Terminal was silently prompting `Username for 'https://github.com':` inside a window that
+closed unseen. Fixed with a classic PAT (repo scope, no expiration, note "MacBook push"), now stored in
+macOS keychain — future pushes just work. (2) The stale `.git/index.lock` blocking commits is created by
+the *Cowork sandbox itself*: it can create files under `.git/` but not delete them, so any lock-taking
+sandbox git command (even `git status`) strands a lock. Rule going forward: sandbox uses
+`GIT_OPTIONAL_LOCKS=0`; `FIX GIT LOCK AND PUSH.command` (repo root) self-heals lock + push on double-click.
+`7f94011` + `1742a94` confirmed on origin 2026-07-01 ~17:00; Netlify deploy triggered.
+
+**Action — Slice 3 (spec §5), on mock.** The Tier 1 "morning read" + the Tier 1→2 bridge:
+- `data/montitrentini/market-news.json` — 6 sample items (trade + consumer), spec §2a shape.
+- `lib/market-news.js` — `getMarketNews()` behind `VITE_MARKETNEWS_BACKEND` (mock|function),
+  `marketNewsAreSample`, `NEWS_CATEGORIES`. Newest-first sort in the seam.
+- `components/home/market-news.jsx` — `MarketNewsCard`: Trade/Consumer tabs, headline · source · date
+  rows opening the article, Sample chip. House-only **"→ Signal"** action distills a headline into a
+  Tier 2 signal (deterministic `distill()` — no AI pass yet).
+- `lib/signals.js` — localStorage overlay (`cs-signals-local-<tenant>`, same model as brand kit /
+  Library catalog): `loadLocalSignals` / `addLocalSignal` / `removeLocalSignal`, merged in `getSignals()`.
+  Promoted signals immediately feed `rankOpportunities`.
+- `command-center.jsx` — renders the card in the At-a-glance grid; `signalsVersion` bump on promote
+  re-ranks the Opportunities lane without flashing the whole strip.
+- `agency-console.jsx` — `market-news` row added to the SEAMS integration panel.
+**Status:** `npx vite build` clean (to `/tmp/dist-check`; sandbox can't empty `dist/` on the mount —
+same create-not-delete asymmetry as the lock). Next: wire the real overnight source (scheduled morning
+research task writing `market-news.json` — spec-recommended v1), then Slice 4 (one live signal feed).
+
+## 2026-07-01 (cont.) — SKU pre-select + Slice 2 (HubSpot companies, scoped) — committed, NOT yet pushed
+
+**Action — SKU pre-select (closes the Slice 0+1 gap).** `command-center.jsx` now passes
+`getPricingData(resolved)?.catalog` into `rankOpportunities` — the catalog arg was never passed before, so
+`skuCodes` was silently always empty and Compose never pre-selected anything. Also fixed 5 product-id refs in
+`signals.json` that didn't match `catalog.json` (best-effort placeholders flagged in the prior handoff):
+`grana-padano-dop`→`grana-padano`, `parmigiano-reggiano-dop`→`parmigiano-reggiano-pdo` (×2),
+`provolone-dolce`→`mild-provolone`. All 8 signals now resolve cleanly against the catalog.
+
+**Action — Slice 2, scoped to companies/contacts (deals don't exist yet).** Tested the live
+`crm-summary` function directly: `HUBSPOT_TOKEN` already existed in Netlify and works — 697 contacts, 591
+companies, **0 deals**. Since the mock CRM shape (`pipeline`/`orders`/`invoices`) is deal-centric, decided
+(Rick) to scope Slice 2 to real accounts only and leave pipeline/invoices on mock until deal-stage tracking
+exists in HubSpot for real — rather than ship a dashboard with a misleadingly-empty pipeline.
+
+- `netlify/functions/crm-hubspot.js` (new) — read-only, paginated HubSpot companies + contacts count. Leaves
+  `pipeline`/`orders`/`invoices`/`activity` empty on purpose (see scope note above).
+- `lib/crm.js` — `getCrmData()` branches on `VITE_CRM_BACKEND`: `mock` → bundled sample, `hubspot` → the new
+  function, anything else → the existing Make-webhook proxy (unchanged).
+- `lib/opportunities.js` — `accountsFromCrm()` now also ingests `crm.companies`, so real HubSpot accounts
+  (with their Channel) flow into the ranking.
+- `command-center.jsx` — Pipeline-by-stage / Recent-activity cards now hide when their array is empty,
+  instead of rendering misleading all-zero rows once a real backend is live.
+- **Company property `Channel` internal name confirmed live in HubSpot as `channel`** (Settings > Properties
+  > Company properties > Channel > Internal name) — matches what the code assumed, no fix needed.
+
+**Status.** Committed as `1742a94` (on top of `7f94011`) — build compiles clean. **NOT yet pushed** as of
+this writing; multiple push attempts from the Cowork sandbox and from Rick's Terminal have not landed on
+`origin/phase-2-6-build` (still shows "ahead 2" after `git fetch`) — root cause not yet confirmed, see
+`HANDOFF.md` for the exact retry steps. Netlify env var `VITE_CRM_BACKEND=hubspot` was added with **Builds**
+scope (all scopes) — confirmed correct scope (Post processing, the first attempt, would NOT have worked;
+`VITE_*` vars need the Builds scope since Vite reads them at build time) — but the value can't take effect
+until the push lands and a new deploy runs.
+
+**Unblocks (once pushed + deployed).** Live re-test of `crm-hubspot` endpoint + Opportunities lane showing
+real Monti accounts. **Next after that:** Slice 3 (Market News card + scheduled morning brief, no connector
+needed).
+
+---
+
 ## 2026-07-01 — Market Intelligence / Opportunity Engine — Slice 0 + 1 shipped (on mock)
 
 **Decision.** Extend the Content Engine from one input (brand voice) to three — **brand voice + market

@@ -11,6 +11,7 @@ import { rankOpportunities } from "@/lib/opportunities.js";
 import { getBrandKit } from "@/lib/brandKit.js";
 import { getPricingData } from "@/lib/pricing.js";
 import { emptyProposal, saveDraft } from "@/lib/proposals.js";
+import { MarketNewsCard } from "./market-news.jsx";
 
 // Small "Sample" chip for sections still on mock data (CRM = HubSpot, campaigns = HubSpot marketing —
 // not wired yet, see INTEGRATION_WIRING_BRIEF.md). Auto-disappears once the live backend is set.
@@ -28,10 +29,12 @@ function SampleTag({ show }) {
 // CRM (the agency house has none, so its hub stays clean). Data via the same mock-or-real seams.
 export function CommandCenter({ resolved, onNavigate }) {
   const [data, setData] = useState(undefined);
+  // Bumped when Market News promotes a headline to a signal, so the Opportunities lane re-ranks.
+  const [signalsVersion, setSignalsVersion] = useState(0);
 
   useEffect(() => {
     let alive = true;
-    setData(undefined);
+    if (signalsVersion === 0) setData(undefined); // keep the strip stable on re-rank
     Promise.all([getCrmData(resolved), getCampaigns(resolved), getSignals(resolved)]).then(([crm, campaigns, signals]) => {
       if (!alive) return;
       const brandKit = getBrandKit(resolved);
@@ -40,7 +43,7 @@ export function CommandCenter({ resolved, onNavigate }) {
       setData({ crm, campaigns, opportunities });
     });
     return () => { alive = false; };
-  }, [resolved]);
+  }, [resolved, signalsVersion]);
 
   if (data === undefined) {
     return (
@@ -110,6 +113,8 @@ export function CommandCenter({ resolved, onNavigate }) {
       )}
 
       <div className="grid gap-6 lg:grid-cols-2">
+        <MarketNewsCard resolved={resolved} onPromoted={() => setSignalsVersion((v) => v + 1)} />
+
         {crm && hasCrm(resolved) && crm.pipeline?.length > 0 && (
           <Card>
             <CardHeader><CardTitle>Pipeline by stage<SampleTag show={crmIsSample} /></CardTitle></CardHeader>

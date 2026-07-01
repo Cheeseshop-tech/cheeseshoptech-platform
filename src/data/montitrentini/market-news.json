@@ -1,0 +1,62 @@
+[
+  {
+    "id": "news-2026-07-01-01",
+    "category": "trade",
+    "headline": "Specialty grocers expand imported alpine cheese sets for fall resets",
+    "summary": "Category buyers report provenance-led SKUs earning more shelf space in Q4 planograms; alpine and DOP labels called out.",
+    "url": "https://www.cheesemarketnews.com/",
+    "source": "Cheese Market News",
+    "date": "2026-07-01",
+    "tags": ["provenance", "fall-reset", "specialty-grocer"]
+  },
+  {
+    "id": "news-2026-07-01-02",
+    "category": "trade",
+    "headline": "Container rates from Mediterranean ports ease for third straight month",
+    "summary": "Import freight costs trending down into Q3 — a margin tailwind for FOB import programs.",
+    "url": "https://www.freightwaves.com/",
+    "source": "FreightWaves",
+    "date": "2026-07-01",
+    "tags": ["freight", "import-margin"]
+  },
+  {
+    "id": "news-2026-06-30-01",
+    "category": "consumer",
+    "headline": "Cheese boards keep climbing on social — 'girl dinner' grazing formats persist",
+    "summary": "Short-form video keeps board culture growing; provenance stories and unusual formats outperform generic content.",
+    "url": "https://www.tastingtable.com/",
+    "source": "Tasting Table",
+    "date": "2026-06-30",
+    "tags": ["boards", "social", "grazing"]
+  },
+  {
+    "id": "news-2026-06-29-01",
+    "category": "trade",
+    "headline": "Distributors consolidate specialty lines — fewer, deeper import partners",
+    "summary": "Regional distributors trimming duplicate specialty SKUs; producers with a full range and story win the consolidated slot.",
+    "url": "https://www.specialtyfood.com/",
+    "source": "Specialty Food Association",
+    "date": "2026-06-29",
+    "tags": ["distributor", "assortment", "consolidation"]
+  },
+  {
+    "id": "news-2026-06-28-01",
+    "category": "consumer",
+    "headline": "Shoppers trade up on 'affordable luxury' groceries even as baskets shrink",
+    "summary": "Premium cheese remains a resilient small-indulgence category; sub-$12 provenance items sweet spot.",
+    "url": "https://www.foodnavigator-usa.com/",
+    "source": "FoodNavigator USA",
+    "date": "2026-06-28",
+    "tags": ["premiumization", "price-point"]
+  },
+  {
+    "id": "news-2026-06-27-01",
+    "category": "consumer",
+    "headline": "Menus lean Italian: aperitivo culture drives cheese-forward starters",
+    "summary": "Restaurant menu data shows aperitivo boards and Italian starters growing YoY — chef demand for named-origin cheeses.",
+    "url": "https://www.restaurantbusinessonline.com/",
+    "source": "Restaurant Business",
+    "date": "2026-06-27",
+    "tags": ["foodservice", "aperitivo", "menu-trend"]
+  }
+]

@@ -1,22 +1,34 @@
 # HANDOFF — CheeseShop TECH platform
 
-**Updated:** 2026-06-16 (evening) · **HEAD:** `phase-2-6-build` @ `4b819bf` (positioning brief live; content-orchestration v1 deployed) · **Surface:** Cowork
-**Read first:** `CLAUDE_CODE_BRIEF.md` → this → `docs/BUILD_LOG.md` (top, incl. SESSION RECAP) → `docs/CONTENT_ORCHESTRATION_SPEC.md` + `docs/CST_POSITIONING_BRIEF.md`.
+**Updated:** 2026-07-01 (evening) · **HEAD (local):** `phase-2-6-build` @ `1742a94` + Slice 3 (Market News)
+uncommitted on disk · **HEAD (origin):** `1742a94` — **push CONFIRMED landed 2026-07-01 ~17:00** ·
+**Surface:** Cowork
+**Read first:** `CLAUDE_CODE_BRIEF.md` → this → `docs/BUILD_LOG.md` (top, incl. SESSION RECAP) → `docs/MARKET_INTELLIGENCE_SPEC.md`.
 
-## ⚠️ DEPLOY FIRST — landing page (built + build-clean, not yet pushed)
-The CheeseShop TECH **landing page v1** + apex wiring + build log are written and build-verified but **not yet
-pushed** (sandbox can't manage `.git` locks). Run in **Terminal**:
+## ✅ DEPLOY UNBLOCKED — root cause found & fixed (2026-07-01, evening)
+The recurring push failure was **missing GitHub HTTPS credentials**: Terminal was silently prompting
+`Username for 'https://github.com':` in a window that closed before anyone read it (first retry then failed
+visibly with "Invalid username or token" — an account password was entered where GitHub requires a token).
+Fixed with a classic PAT (repo scope, no expiration, note "MacBook push — CheeseShop TECH deploys"), created
+at github.com/settings/tokens while signed in as `Cheeseshop-tech`, now stored in macOS keychain — future
+pushes just work. Second finding: the stranded `.git/index.lock` is created by the **Cowork sandbox itself**
+(mount lets it create files under `.git/` but not delete them — even a plain `git status` strands a lock).
+Rules going forward: sandbox git = read-only with `GIT_OPTIONAL_LOCKS=0`, never sandbox `git add/commit`;
+**`FIX GIT LOCK AND PUSH.command`** (repo root) clears any lock + pushes on double-click.
+`7f94011` + `1742a94` confirmed on origin; Netlify deploy triggered. To ship the new Slice 3 work below:
+double-click **`COMMIT MARKET NEWS.command`**.
 
-```
-cd "/Users/richardposada/Cheese Shop TECH BUILD/Cheese Shop TECH  Agency Build" && \
-rm -f .git/index.lock .git/*.lock && \
-find .git/objects -name 'tmp_obj_*' -delete 2>/dev/null; \
-git add src/App.jsx src/components/marketing/landing-page.jsx docs/BUILD_LOG.md HANDOFF.md && \
-git commit -m "feat(marketing): CheeseShop TECH landing page v1 at apex + session recap" && \
-git push origin phase-2-6-build
-```
-Expect a real commit hash + `phase-2-6-build -> phase-2-6-build` (NOT "Everything up-to-date"). The resume
-`Richard_Posada_Resume.docx` is intentionally **left untracked** (personal doc, not for the repo).
+**Now unblocked on the Netlify side (verify next session):** `VITE_CRM_BACKEND=hubspot` was added as a site env var with **Builds**
+scope (confirmed correct — Post processing, the first attempt, would NOT work for a Vite build-time var) —
+but it can't take effect until the push above lands and triggers a new deploy. Once deployed, re-test
+`https://montitrentini.cheeseshoptech.com/.netlify/functions/crm-hubspot` (should return JSON with real
+company data, not the SPA HTML shell) and check the Opportunities lane for real Monti accounts.
+
+### Earlier still-open item (2026-06-16, may be resolved — verify before redoing)
+The CheeseShop TECH **landing page v1** + apex wiring were written and build-verified as of 2026-06-16 but
+were also stuck unpushed at the time for the same `.git/index.lock` reason. Confirm whether this landed before
+assuming it's still open. The resume `Richard_Posada_Resume.docx` is intentionally **left untracked**
+(personal doc, not for the repo).
 
 ## NEXT UP (tomorrow, 2026-06-17)
 **Platform / framework build continues — Track A never waits on client approval ([[cst-build-strategy]]).**
