@@ -1,14 +1,18 @@
 import { useEffect, useState } from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card.jsx";
 import { Button } from "@/components/ui/button.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
 import { Skeleton } from "@/components/ui/skeleton.jsx";
 import { getCrmData, hasCrm, money, PIPELINE_STAGES, crmIsSample } from "@/lib/crm.js";
 import { getCampaigns, CHANNELS, compact, campaignsAreSample } from "@/lib/campaigns.js";
+import { getSignals, signalsAreSample } from "@/lib/signals.js";
+import { rankOpportunities } from "@/lib/opportunities.js";
+import { getBrandKit } from "@/lib/brandKit.js";
+import { emptyProposal, saveDraft } from "@/lib/proposals.js";
 
-// Small "Sample" chip for sections still on mock data (CRM = Salesforce, campaigns = HubSpot —
-// not wired yet, see INTEGRATIONS_PLAN.md). Auto-disappears once the live backend is set.
+// Small "Sample" chip for sections still on mock data (CRM = HubSpot, campaigns = HubSpot marketing —
+// not wired yet, see INTEGRATION_WIRING_BRIEF.md). Auto-disappears once the live backend is set.
 function SampleTag({ show }) {
   if (!show) return null;
   return (
@@ -27,8 +31,11 @@ export function CommandCenter({ resolved, onNavigate }) {
   useEffect(() => {
     let alive = true;
     setData(undefined);
-    Promise.all([getCrmData(resolved), getCampaigns(resolved)]).then(([crm, campaigns]) => {
-      if (alive) setData({ crm, campaigns });
+    Promise.all([getCrmData(resolved), getCampaigns(resolved), getSignals(resolved)]).then(([crm, campaigns, signals]) => {
+      if (!alive) return;
+      const brandKit = getBrandKit(resolved);
+      const opportunities = rankOpportunities({ crm, signals, brandKit });
+      setData({ crm, campaigns, opportunities });
     });
     return () => { alive = false; };
   }, [resolved]);
@@ -42,14 +49,64 @@ export function CommandCenter({ resolved, onNavigate }) {
     );
   }
 
-  const { crm, campaigns } = data;
+  const { crm, campaigns, opportunities } = data;
   const activeCampaigns = (campaigns || []).filter((c) => c.status === "active");
   const overdue = crm?.invoices?.filter((i) => i.status === "Overdue") || [];
   const maxStage = crm ? Math.max(...crm.pipeline.map((p) => p.value), 1) : 1;
 
+  // Compose: seed a proposal draft from the opportunity, then jump into the (revived) builder.
+  function compose(opp) {
+    saveDraft(resolved.id, {
+      ...emptyProposal(),
+      buyer: opp.who,
+      buyerId: opp.accountId || "",
+      audience: opp.audience || "",
+      headline: opp.headline || "",
+      intro: opp.intro || "",
+      storyKeys: opp.storyKeys || [],
+      signalKeys: opp.signalKeys || [],
+      skus: opp.skuCodes || [],
+    });
+    onNavigate?.("compose");
+  }
+
   return (
     <>
       <h2 className="cs-display mb-4 mt-12 text-2xl text-brand-primary">At a glance</h2>
+
+      {opportunities?.length > 0 && (
+        <Card className="mb-6 border-brand-primary/30">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-brand-primary" />
+              Opportunities
+              <SampleTag show={signalsAreSample || crmIsSample} />
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="-mt-1 mb-1 text-xs text-fg-muted">
+              Where a market signal meets an account — the brand-story angle that fits, ready to compose.
+            </p>
+            {opportunities.slice(0, 4).map((opp) => (
+              <div key={opp.id} className="flex items-start justify-between gap-4 border-b border-border pb-3 last:border-0 last:pb-0">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-sm font-medium text-fg">{opp.who}</p>
+                    {opp.audience && <Badge variant="muted" className="text-[10px] uppercase tracking-wide">{opp.audience}</Badge>}
+                    <span className="text-xs text-fg-muted" title="Brand-fit × timeliness × account value">fit {opp.score}</span>
+                  </div>
+                  <p className="mt-0.5 text-sm text-fg-muted"><span className="font-medium text-fg">Why now:</span> {opp.whyNow}</p>
+                  <p className="mt-0.5 text-sm text-fg-muted"><span className="font-medium text-fg">Angle:</span> {opp.angle}</p>
+                </div>
+                <Button size="sm" onClick={() => compose(opp)} className="shrink-0">
+                  <Sparkles className="h-4 w-4" /> Compose
+                </Button>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
       <div className="grid gap-6 lg:grid-cols-2">
         {crm && hasCrm(resolved) && (
           <Card>

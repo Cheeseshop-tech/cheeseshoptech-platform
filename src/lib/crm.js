@@ -1,7 +1,8 @@
-// CRM data layer (OM §7, walkthrough Phase 6). Client CRM (HubSpot/etc.) flows into the
-// dashboard via a Make scenario — zero new infra. Today this serves a MOCK so the dashboard
-// is fully buildable; the real backend drops in behind getCrmData() as a Netlify function
-// that calls the Make webhook (secrets server-side only). See docs/CRM_CONNECTOR.md.
+// CRM data layer (OM §7). The CRM of record is HubSpot (Salesforce was dropped — see
+// INTEGRATION_WIRING_BRIEF.md, 2026-06-17). Today this serves a MOCK so the dashboard is
+// fully buildable; the real backend drops in behind getCrmData() as a Netlify function
+// (netlify/functions/crm.js) that calls the HubSpot API read-only with the token held
+// server-side (Netlify env HUBSPOT_TOKEN). Direct-HubSpot, not Make. See docs/CRM_CONNECTOR.md.
 
 import { rolesOf } from "./auth.js";
 
@@ -16,6 +17,36 @@ export function canViewCrm(user) {
 }
 
 export const PIPELINE_STAGES = ["Lead", "Qualified", "Sample sent", "Negotiation", "Won"];
+
+// HubSpot `Channel` (5 values) → brand-voice audience (3, from brandKit.AUDIENCES). The single
+// authoring home for the customer-profile → brand-voice join: once a buyer's channel is known,
+// audienceOf() selects the right story blocks + readyPhrases (they're already audience-tagged).
+// See docs/MARKET_INTELLIGENCE_SPEC.md §2b. Amend the mapping here only.
+export const CHANNEL_TO_AUDIENCE = {
+  "Distributor":       "distributor",
+  "Restaurant / Chef": "foodservice",
+  "Specialty grocer":  "retail",
+  "Retail chain":      "retail",
+  "Partner / Producer": null, // not a sell-to buyer — excluded from targeting
+};
+
+/** The brand-voice audience for a CRM account (by its HubSpot Channel), or null if none/non-buyer. */
+export function audienceOf(account) {
+  if (!account) return null;
+  const ch = account.channel || account.Channel;
+  // Accept either the canonical HubSpot label or the app's lowercase channel token (mock orders).
+  if (ch && ch in CHANNEL_TO_AUDIENCE) return CHANNEL_TO_AUDIENCE[ch];
+  return TOKEN_TO_AUDIENCE[String(ch || "").toLowerCase()] ?? null;
+}
+
+// Lowercase channel tokens used in mock orders (channel: "distributor" | "restaurant" | "grocer" | "chain").
+const TOKEN_TO_AUDIENCE = {
+  distributor: "distributor",
+  restaurant: "foodservice",
+  chef: "foodservice",
+  grocer: "retail",
+  chain: "retail",
+};
 
 const fmtUSD = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
 export function money(n) {
@@ -55,7 +86,7 @@ const MOCK = {
 };
 
 const USE_MOCK = (import.meta.env.VITE_CRM_BACKEND || "mock") === "mock";
-// True while CRM data is sample (no live backend). Real source = Salesforce (INTEGRATIONS_PLAN.md).
+// True while CRM data is sample (no live backend). Real source = HubSpot (INTEGRATION_WIRING_BRIEF.md).
 // UI uses this to mark mock-backed sections "Sample" so they're never mistaken for live numbers.
 export const crmIsSample = USE_MOCK;
 

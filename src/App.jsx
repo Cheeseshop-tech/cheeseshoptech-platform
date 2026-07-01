@@ -19,6 +19,7 @@ import { MediaHub } from "@/components/media/media-hub.jsx";
 import { CatalogPage } from "@/components/catalog/buyer-catalog.jsx";
 import { PresentationsPage } from "@/components/presentations/presentations-page.jsx";
 import { ContentStudio } from "@/components/proposals/content-studio.jsx";
+import { ProposalBuilder } from "@/components/proposals/proposal-builder.jsx";
 import { ProposalView } from "@/components/proposals/proposal-view.jsx";
 import { BrandManagement } from "@/components/brand/brand-management.jsx";
 import { ToolsPage } from "@/components/tools/tools-page.jsx";
@@ -96,9 +97,11 @@ export default function App({ initialResolved }) {
   const brandNav = resolved.isHouse ? [{ key: "brand", label: "Brand kits", icon: Palette, allowed: ["admin"] }] : [];
   const baseNav = [NAV[0], ...featuredNav, ...presentationsNav, ...proposalsNav, ...brandNav, ...NAV.slice(1)];
   const nav = baseNav.filter((n) => n.allowed.some((r) => userRoles.includes(r)));
-  // "proposal" (the rendered share link, ?page=proposal#p=…) is reachable by ANY portal
-  // role — it's what a buyer opens — so it bypasses the nav-membership check.
-  const effectivePage = page === "proposal" ? "proposal" : nav.some((n) => n.key === page) ? page : nav[0]?.key;
+  // "proposal" (the rendered share link, ?page=proposal#p=…) is reachable by ANY portal role —
+  // it's what a buyer opens. "compose" is the non-nav Proposal Builder target the Opportunity
+  // Engine seeds and jumps into (MARKET_INTELLIGENCE_SPEC §4). Both bypass the nav-membership check.
+  const bypassNav = page === "proposal" || page === "compose";
+  const effectivePage = bypassNav ? page : nav.some((n) => n.key === page) ? page : nav[0]?.key;
   const activeFeatured = featuredTools.find((t) => `tool:${t.key}` === effectivePage);
 
   function switchTenant(subdomain) {
@@ -169,6 +172,8 @@ export default function App({ initialResolved }) {
         <PresentationsPage resolved={resolved} />
       ) : effectivePage === "proposals" ? (
         <ContentStudio resolved={resolved} />
+      ) : effectivePage === "compose" ? (
+        <ProposalBuilder resolved={resolved} />
       ) : effectivePage === "proposal" ? (
         <ProposalView resolved={resolved} />
       ) : effectivePage === "brand" ? (

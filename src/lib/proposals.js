@@ -14,11 +14,13 @@ const DRAFT_KEY = (tenantId) => `cs-proposal-draft-${tenantId}`;
 export const emptyProposal = () => ({
   v: 1,
   buyer: "",
+  buyerId: "",        // CRM account ref (customer-profile join) — the source of truth for `buyer`
   audience: "",       // retail | foodservice | distributor — drives story-block suggestions
   headline: "",
   intro: "",
   deckKey: "",
   storyKeys: [],      // selected brand-kit story blocks (Proposal v2)
+  signalKeys: [],     // market-signal angles this piece capitalizes on (MARKET_INTELLIGENCE_SPEC §2c)
   heroImageId: "",    // Media Hub public_id for the cover/hero zone (overrides brand-kit hero)
   storyImages: {},    // { [storyKey]: Media Hub public_id } — per-story zone image overrides
   themeId: "",        // selected design theme (Theme Engine)

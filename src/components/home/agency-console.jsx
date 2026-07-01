@@ -159,10 +159,11 @@ function TenantPanel({ clients }) {
 const ENV = import.meta.env;
 // Build-time backend switches: what each seam is wired to in THIS build.
 const SEAMS = [
-  { key: "crm", label: "CRM", flag: ENV.VITE_CRM_BACKEND || "mock", liveWhen: "make" },
+  { key: "crm", label: "CRM", flag: ENV.VITE_CRM_BACKEND || "mock", liveWhen: "hubspot" },
   { key: "store", label: "Storefront", flag: ENV.VITE_STORE_BACKEND || "mock", liveWhen: "shopify" },
   { key: "media", label: "Media", flag: ENV.VITE_MEDIA_BACKEND || "mock", liveWhen: "cloudinary" },
   { key: "campaigns", label: "Campaigns", flag: ENV.VITE_CAMPAIGNS_BACKEND || "mock", liveWhen: "make" },
+  { key: "signals", label: "Market signals", flag: ENV.VITE_SIGNALS_BACKEND || "mock", liveWhen: "function" },
   { key: "pricing", label: "Pricing data", flag: ENV.VITE_PRICING_BACKEND || "mock", liveWhen: "function" },
 ];
 

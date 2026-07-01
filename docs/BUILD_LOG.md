@@ -19,6 +19,103 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-07-01 — Market Intelligence / Opportunity Engine — Slice 0 + 1 shipped (on mock)
+
+**Decision.** Extend the Content Engine from one input (brand voice) to three — **brand voice + market
+signal + customer profile** — fused into ranked "who / why-now / what-to-say" content actions. The brand
+story is the **selector** (brand-fit scoring picks the angle), not a passive input. Full architecture:
+`docs/MARKET_INTELLIGENCE_SPEC.md`.
+
+**Action — Slice 0 (reconcile).** Salesforce is dead; **HubSpot IS the CRM**. Fixed stale Salesforce refs
+in `lib/crm.js`, `command-center.jsx`, and `agency-console.jsx` (`SEAMS`: CRM `liveWhen:"hubspot"`, added a
+`signals` seam row). Added the channel→audience crosswalk `CHANNEL_TO_AUDIENCE`/`audienceOf` in `crm.js`
+(Distributor→distributor · Restaurant/Chef→foodservice · Specialty grocer + Retail chain→retail ·
+Partner/Producer→excluded).
+
+**Action — Slice 1 (engine, on mock).** `data/montitrentini/signals.json` (8 real Monti signals) ·
+`lib/signals.js` (`getSignals` seam, `VITE_SIGNALS_BACKEND`) · `lib/opportunities.js` (`rankOpportunities`,
+brand-fit-weighted 0.45/0.30/0.25) · `emptyProposal()` gains `buyerId` + `signalKeys` · **Opportunities lane**
+on the Command Center → **Compose** seeds a proposal draft and jumps into the builder. Compose target = the
+previously **orphaned `ProposalBuilder`, revived behind a non-nav `compose` route** in `App.jsx`
+(ContentStudio/SlideStudio keeps the "proposals" nav slot).
+
+**Status.** Build compiles clean (`vite build` — only the pre-existing chunk-size warning). Engine verified
+against mock CRM: Eataly (distributor, active reorder) tops at 97 with the supply-chain angle. **Uncommitted
+on disk — Rick reviews, then pushes.** No new credentials used.
+
+**Unblocks.** Demo-ready proof of the "Content Engine wired to the CRM" pitch on mock — waits on no one.
+Next: Slice 2 (wire HubSpot read-only, needs `HUBSPOT_TOKEN` in Netlify env) · Slice 3 (Market News card +
+scheduled morning brief) · pass a real `catalog` into `rankOpportunities` so Compose pre-selects SKUs.
+
+---
+
+## 2026-06-20 (cont.) — Wheel: motion locked in Blender, photoreal ceiling, pivot to illustrated
+
+**Track A (Higgsfield photoreal intro) — stalled on the rigid tilt.** Higgsfield
+(Cinema Studio / Seedance) renders gorgeous photoreal cheese but **morphs** the
+wedge instead of a rigid hinge — failed repeatedly across v2/v3 prompts, end-frame
+anchoring, and the "imitate the diagram" wording. Checked Higgsfield's Edit tab:
+Grok Imagine Edit / Kling Video Edit exist but there's **no outline→photoreal
+restyle (ControlNet) mode** — Method A is a dead end for line-art input.
+
+**Blender owns the MOTION.** Built the exact rigid hinge: a wedge tilts up 90°
+about its **bottom outer rim edge** (the lever), rigid, no morph, wheel stays
+whole. Scripts in `design/asiago-wheel/handoff/blender/`: `previz_rigid_tilt.py`
+(spin+flyover), `outline_motion.py` (Freestyle OUTLINE plate, photo perspective,
+wedge right-of-center via BASE_SPIN, stand+hold), `solid_standing.py`,
+`photoreal_standing.py`. Renders + `wedge_storyboard.png` + `key_*` frames + the
+clips copied to **`~/Downloads/Wheel Story/`**. Geometry/axis spec:
+`docs/WEDGE_GEOMETRY_AND_AXIS.md`.
+
+**Photoreal-in-Blender hit a ceiling (Rick: "terrible").** Procedural materials =
+smooth golden "clay" (no skin); the only photo texture maps we have
+(`textures/paste_*`,`rind_*`) are low-res web crops = bad. True photoreal needs a
+GOOD texture source we don't have (high-res cut-face/rind photo, or Firefly
+seamless textures). **Decision (Rick): drop photoreal, focus the ILLUSTRATED
+animation** per `docs/CST_OPENING_ANIMATION_STORYBOARD.md`.
+
+**Track B (illustrated explainer) — started.** Built Phase 1, the **data-viz open**:
+`prototypes/cst-data-open.html` — an 8-slice pie chart that draws itself on in CST
+brand colors with leader lines + typewriter business-term labels (Pricing, Content,
+Sales, Inventory, Social Media, Content Studio, Orders, Dashboard). Self-contained
+HTML, doubles as a landing asset. **NEXT:** grid + pie→cheese morph → 8 app labels
+→ rigid wedge reveal + app window → colored-pencil logo. Blender MCP connector is
+installed but the **add-on server isn't started** (N-panel → BlenderMCP → Connect);
+until then Blender is driven via console clipboard-paste. **Status.** In progress.
+
+## 2026-06-20 — Asiago wheel goes 3D in Blender + split into TWO tracks
+
+**Action.** Built the Asiago wheel for real in **Blender 5.1** (driven via app
+control — the Blender MCP connector never linked). `build_asiago_wheel.py` = a
+one-click procedural build: separate wedge objects (apex at origin), beveled,
+procedural paste/rind, 3-point studio rig, camera, Cycles. Rendered photoreal
+hero stills (`renders/wheel_hero2.png`), then a clay **motion previz**
+(`renders/previz.mp4` via `previz_animation.py` — spin + camera push-in + one
+wedge eject). Saved `design/asiago-wheel/asiago_wheel.blend`.
+
+**Decisions (Rick).** (1) **Wedge count = 8** (one per portal app:
+Dashboard·Campaigns·Catalog·Orders·CRM·Media hub·Tools·Content Studio) — rebuilt
+from 7. (2) **Paused photoreal**, pivoted the styled version to an **illustrated
+"art + tech"** look — cel-shaded brand tones + Freestyle ink outlines
+(`style_illustrated.py`, `renders/wheel_illustrated.png`). (3) Split the effort
+into **two parallel, separate tracks** (see `design/asiago-wheel/handoff/docs/
+TRACKS_AND_AGENDA.md`):
+- **Track A — Higgsfield cinematic intro (photoreal):** rotation + a wedge
+  standing (tilt **corrected** vs the awkward v1) + zoom-in + camera flyover,
+  **longer** cut, **no app/label text** → then **After Effects** for the CST logo
+  build + animation overlay. Assets: Firefly photoreal still + Higgsfield v1 clip.
+  Paste-ready prompt: `HIGGSFIELD_INTRO_LONG_PROMPT.md` (+ `HIGGSFIELD_SPIN_TILT_PROMPT.md`).
+- **Track B — art-tech illustrated wheel (Blender):** the branded opening
+  animation (pie→cheese morph → spin → per-wedge portal reveal with labels) and
+  the same-engine real-time **app launcher**. Storyboard + art direction:
+  `CST_OPENING_ANIMATION_STORYBOARD.md`.
+
+**Shared.** After Effects is the post home for both (logo/titles/music); the video
+engines output clean plates. Higgsfield watermark removes only via a
+watermark-free export tier, not the prompt. **Status.** Track A: longer corrected
+prompt ready → Rick to generate in Higgsfield, then AE. Track B: 8-wedge model +
+illustrated style v1 + clay previz done → refine look, add morph, labels.
+
 ## 2026-06-19 — Wheel embedded as the flow landing HERO (code-slot)
 
 **Action (Rick: "the version you have now").** Built `prototypes/flow-landing-wheel-hero.html` — the
