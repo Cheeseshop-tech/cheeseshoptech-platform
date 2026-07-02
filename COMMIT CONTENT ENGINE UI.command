@@ -17,6 +17,8 @@ git add \
   "config/clients/montitrentini.json" \
   "public/coming-soon/index.html" \
   "public/coming-soon/_redirects" \
+  "public/tools/brand-systems-engine/index.html" \
+  "public/series/queso-couture/index.html" \
   "docs/CONTENT_ENGINE_WIRING_SPEC.md" \
   "docs/BUILD_LOG.md" \
   "HANDOFF.md" \
@@ -35,7 +37,10 @@ git commit -m "feat(ui): Content Engine reorg + dashboard priority window + comi
 - At a glance order: Opportunities -> Active campaigns -> Market news -> rest
 - Coming-soon page: quiet Log in link + /login 302 to the platform house gate
   (re-drop public/coming-soon/ on the 'cheeseshoptech' Netlify site to go live)
-- docs/CONTENT_ENGINE_WIRING_SPEC.md: Studio Director intelligence spec (Stages 0-3)"
+- docs/CONTENT_ENGINE_WIRING_SPEC.md: Studio Director intelligence spec (Stages 0-3)
+- sidebar order: Dashboard / Pricing & Inventory / CRM / Campaigns / Orders / Content Engine /
+  Storefront (NAV_ORDER); Catalog off the sidebar, reachable via its dashboard card
+- back buttons on branched pages: Brand Systems Engine + Queso Couture (house rule)"
 
 echo
 echo "Pushing (triggers Netlify deploy)…"

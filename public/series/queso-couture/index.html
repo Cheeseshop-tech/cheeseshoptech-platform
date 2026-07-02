@@ -49,6 +49,12 @@
 </style>
 </head>
 <body>
+<!-- Back to the site — every page branched off cheeseshoptech.com carries this (house rule, 2026-07-02). -->
+<a href="https://cheeseshoptech.com/" id="cst-back"
+   style="position:fixed; top:14px; right:16px; z-index:999; font-family:'Courier New',monospace; font-size:.62rem; letter-spacing:.18em; text-transform:uppercase; text-decoration:none; color:var(--bone); border:1px solid var(--line); border-radius:999px; padding:6px 14px; background:rgba(18,16,9,.7); backdrop-filter:blur(4px);"
+   onmouseover="this.style.color='var(--gold)';this.style.borderColor='var(--gold)'"
+   onmouseout="this.style.color='var(--bone)';this.style.borderColor='var(--line)'">&larr; Back</a>
+<script>document.getElementById("cst-back").addEventListener("click",function(e){if(history.length>1&&document.referrer){e.preventDefault();history.back();}});</script>
 <header class="wrap">
   <div class="eyebrow mono">A CheeseShop TECH Series</div>
   <h1>QUESO<br>COUTURE</h1>

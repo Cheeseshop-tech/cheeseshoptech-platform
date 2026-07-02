@@ -139,6 +139,13 @@
 </style>
 </head>
 <body>
+<!-- Back to the site — every page branched off cheeseshoptech.com carries this (house rule,
+     2026-07-02). Same-tab history when it exists; otherwise back to the brand home. -->
+<a href="https://cheeseshoptech.com/" id="cst-back"
+   style="position:fixed; top:14px; right:16px; z-index:999; font-family:Helvetica,Arial,sans-serif; font-size:.66rem; letter-spacing:.16em; text-transform:uppercase; text-decoration:none; color:var(--muted); border:1px solid var(--muted); border-radius:999px; padding:6px 14px; background:rgba(255,255,255,.65); backdrop-filter:blur(4px);"
+   onmouseover="this.style.color='var(--ink)';this.style.borderColor='var(--ink)'"
+   onmouseout="this.style.color='var(--muted)';this.style.borderColor='var(--muted)'">&larr; Back</a>
+<script>document.getElementById("cst-back").addEventListener("click",function(e){if(history.length>1&&document.referrer){e.preventDefault();history.back();}});</script>
 <header>
   <h1>CheeseShop&nbsp;<b>TECH</b> <span style="font-family:Helvetica,Arial,sans-serif; font-size:.66rem; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin-left:10px;">Brand Systems Engine · v1</span></h1>
   <div class="sub">CST Brand System · Headless Content Formula · Attribute → Market Response</div>
