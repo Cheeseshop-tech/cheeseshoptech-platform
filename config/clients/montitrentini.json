@@ -50,24 +50,14 @@
       "tag": "Quoting · priority #1"
     },
     {
-      "key": "image-catalog",
-      "label": "Media hub",
-      "description": "Asset management — upload, tag, and organize product & brand media.",
-      "icon": "images",
+      "key": "crm",
+      "label": "CRM",
+      "description": "Contacts, companies and pipeline — live from HubSpot, read-only.",
+      "icon": "contact",
       "type": "internal",
-      "route": "media",
+      "route": "crm",
       "status": "live",
-      "tag": "Media"
-    },
-    {
-      "key": "buyer-catalog",
-      "label": "Image Catalog",
-      "description": "Buyer-facing product image library — search, preview, download, share.",
-      "icon": "images",
-      "type": "internal",
-      "route": "catalog",
-      "status": "live",
-      "tag": "Catalog"
+      "tag": "CRM · live"
     },
     {
       "key": "trade-portal",
@@ -78,6 +68,26 @@
       "route": "presentations",
       "status": "live",
       "tag": "Sales deck"
+    },
+    {
+      "key": "campaigns",
+      "label": "Campaigns",
+      "description": "Active campaigns across channels — reach, revenue and status at a glance.",
+      "icon": "megaphone",
+      "type": "internal",
+      "route": "campaigns",
+      "status": "live",
+      "tag": "Active campaigns"
+    },
+    {
+      "key": "buyer-catalog",
+      "label": "Image Catalog",
+      "description": "Buyer-facing product image library — search, preview, download, share.",
+      "icon": "images",
+      "type": "internal",
+      "route": "catalog",
+      "status": "live",
+      "tag": "Catalog"
     },
     {
       "key": "shopify",
@@ -91,16 +101,6 @@
       "embed": true,
       "admin": true,
       "tag": "DTC · live"
-    },
-    {
-      "key": "crm",
-      "label": "CRM",
-      "description": "Contacts, companies and pipeline — live from HubSpot, read-only.",
-      "icon": "contact",
-      "type": "internal",
-      "route": "crm",
-      "status": "live",
-      "tag": "CRM · live"
     }
   ]
 }

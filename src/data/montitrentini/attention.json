@@ -1,0 +1,29 @@
+[
+  {
+    "id": "att-email-1",
+    "kind": "email",
+    "urgency": "urgent",
+    "who": "Zuercher & Co. (distributor)",
+    "what": "Asiago pricing question on the open PO — buyer is holding the order for your reply.",
+    "due": "2026-07-02",
+    "action": "Reply"
+  },
+  {
+    "id": "att-email-2",
+    "kind": "email",
+    "urgency": "high",
+    "who": "Stefano — Monti Trentini",
+    "what": "SEAFRIGO freight confirmation arrived; needs your OK before it goes into the price list.",
+    "due": "2026-07-02",
+    "action": "Reply"
+  },
+  {
+    "id": "att-task-1",
+    "kind": "task",
+    "urgency": "high",
+    "who": "Sample follow-up",
+    "what": "Formaggeria Chicago — Asiago samples delivered 6 days ago, feedback call is due today.",
+    "due": "2026-07-02",
+    "action": "Call"
+  }
+]

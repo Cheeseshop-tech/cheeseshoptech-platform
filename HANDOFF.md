@@ -1,9 +1,33 @@
 # HANDOFF — CheeseShop TECH platform
 
-**Updated:** 2026-07-01 (evening) · **HEAD (local):** `phase-2-6-build` @ `1742a94` + Slice 3 (Market News)
-uncommitted on disk · **HEAD (origin):** `1742a94` — **push CONFIRMED landed 2026-07-01 ~17:00** ·
-**Surface:** Cowork
-**Read first:** `CLAUDE_CODE_BRIEF.md` → this → `docs/BUILD_LOG.md` (top, incl. SESSION RECAP) → `docs/MARKET_INTELLIGENCE_SPEC.md`.
+**Updated:** 2026-07-02 · **HEAD (local):** `phase-2-6-build` @ `6b58f1f` (ahead of origin by 1:
+coming-soon proxy files) + the 2026-07-02 Content Engine reorg **on disk, uncommitted** · **Surface:** Cowork
+**To sync:** double-click **`COMMIT BRAND SYSTEMS ENGINE.command`** (if `6b58f1f` still unpushed), then
+**`COMMIT CONTENT ENGINE UI.command`** (today's reorg + docs).
+**Read first:** `CLAUDE_CODE_BRIEF.md` → this → `docs/BUILD_LOG.md` (top) → `docs/CONTENT_ENGINE_WIRING_SPEC.md`.
+
+## 🔧 ON DISK (2026-07-02) — Content Engine reorg + dashboard priority window (uncommitted)
+UI reorg per Rick: **"Tools" nav → CONTENT ENGINE** (new `content-engine-page.jsx` — app cards for
+Content Studio · Content Library · Brand Systems · Brand Kits · Brand Voice · Media Hub; old top-level
+tabs removed, routes reachable via `NON_NAV_PAGES`). **Dashboard leads with operations** (Pricing &
+Inventory · CRM · Trade Portal · Campaigns — new campaigns card) + a **"Priority — response needed"**
+window at the top (new `lib/attention.js` seam, `VITE_ATTENTION_BACKEND`, mock). At-a-glance order:
+Opportunities → Active campaigns → Market news. **Coming-soon page** gains a quiet **Log in** →
+`/login` 302 → house gate — goes live only when Rick **re-drops `public/coming-soon/`** on the
+"cheeseshoptech" Netlify Drop site. Build clean + `validate:clients` ✓. Ship via
+**`COMMIT CONTENT ENGINE UI.command`**. Spec for next build: `docs/CONTENT_ENGINE_WIRING_SPEC.md`
+(Studio Director Stages 0–3; Stage 0 = deterministic auto-fill, no AI). Still open from last night:
+**gate the BSE** · sending-address decision (now also gates the live attention/mailbox feed).
+
+## ✅ LIVE TONIGHT (2026-07-01 late) — Brand Systems Engine + Queso Couture on the brand domain
+Verified working end-to-end: **cheeseshoptech.com/tools/brand-systems-engine/** (BSE v1: headless brand-kit
+architecture, canonical MT kit, Brand Systems guide view) and **cheeseshoptech.com/series/queso-couture/**
+(QC showcase room, correspondence capture). Routing: the custom domain is held by the separate **coming-soon
+Netlify Drop site** — its new `_redirects` proxies `/series/*` + `/tools/*` to `cheeseshoptech-platform`.
+Iterate = edit source in `Projects/Monti trentini Ecommerce strategy/`, re-copy to `public/…` here, commit-
+script, push; coming-soon changes = re-drop `public/coming-soon/` on the "cheeseshoptech" Netlify project.
+Full detail: BUILD_LOG 2026-07-01 (cont. 3). **Immediate next:** gate the engine (ungated, full MT kit
+inside) · sending-address decision (gates HubSpot auth + QC mailto→Make swap) · first QC Pinterest dispatch.
 
 ## ✅ DEPLOY UNBLOCKED — root cause found & fixed (2026-07-01, evening)
 The recurring push failure was **missing GitHub HTTPS credentials**: Terminal was silently prompting

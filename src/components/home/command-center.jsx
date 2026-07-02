@@ -112,7 +112,32 @@ export function CommandCenter({ resolved, onNavigate }) {
         </Card>
       )}
 
+      {/* Order (Rick, 2026-07-02): Opportunities above, then Active campaigns · Market news,
+          then the rest. */}
       <div className="grid gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader><CardTitle>Active campaigns<SampleTag show={campaignsAreSample} /></CardTitle></CardHeader>
+          <CardContent className="space-y-3">
+            {activeCampaigns.length === 0 ? (
+              <p className="text-sm text-fg-muted">No active campaigns right now.</p>
+            ) : activeCampaigns.map((c) => (
+              <div key={c.id} className="flex items-start justify-between gap-3 border-b border-border pb-3 last:border-0 last:pb-0">
+                <div>
+                  <p className="text-sm font-medium text-fg">{c.name}</p>
+                  <div className="mt-1 flex flex-wrap gap-1.5">
+                    {c.channels.map((ch) => <span key={ch} className="rounded-full border border-border px-2 py-0.5 text-xs text-fg-muted">{CHANNELS[ch] || ch}</span>)}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="font-heading text-lg text-fg">{money(c.kpis.revenue)}</p>
+                  <p className="text-xs text-fg-muted">{compact(c.kpis.reach)} reach</p>
+                </div>
+              </div>
+            ))}
+            <Button variant="ghost" size="sm" onClick={() => onNavigate?.("campaigns")}>All campaigns <ArrowRight className="h-4 w-4" /></Button>
+          </CardContent>
+        </Card>
+
         <MarketNewsCard resolved={resolved} onPromoted={() => setSignalsVersion((v) => v + 1)} />
 
         {crm && hasCrm(resolved) && crm.pipeline?.length > 0 && (
@@ -136,29 +161,6 @@ export function CommandCenter({ resolved, onNavigate }) {
             </CardContent>
           </Card>
         )}
-
-        <Card>
-          <CardHeader><CardTitle>Active campaigns<SampleTag show={campaignsAreSample} /></CardTitle></CardHeader>
-          <CardContent className="space-y-3">
-            {activeCampaigns.length === 0 ? (
-              <p className="text-sm text-fg-muted">No active campaigns right now.</p>
-            ) : activeCampaigns.map((c) => (
-              <div key={c.id} className="flex items-start justify-between gap-3 border-b border-border pb-3 last:border-0 last:pb-0">
-                <div>
-                  <p className="text-sm font-medium text-fg">{c.name}</p>
-                  <div className="mt-1 flex flex-wrap gap-1.5">
-                    {c.channels.map((ch) => <span key={ch} className="rounded-full border border-border px-2 py-0.5 text-xs text-fg-muted">{CHANNELS[ch] || ch}</span>)}
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="font-heading text-lg text-fg">{money(c.kpis.revenue)}</p>
-                  <p className="text-xs text-fg-muted">{compact(c.kpis.reach)} reach</p>
-                </div>
-              </div>
-            ))}
-            <Button variant="ghost" size="sm" onClick={() => onNavigate?.("campaigns")}>All campaigns <ArrowRight className="h-4 w-4" /></Button>
-          </CardContent>
-        </Card>
 
         {crm && crm.activity?.length > 0 && (
           <Card>

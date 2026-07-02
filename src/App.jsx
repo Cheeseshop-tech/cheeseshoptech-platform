@@ -5,11 +5,8 @@ import {
   ShoppingCart,
   Images,
   LogOut,
-  LayoutGrid,
+  Layers,
   Megaphone,
-  MonitorPlay,
-  FileText,
-  Palette,
   Contact,
 } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell.jsx";
@@ -22,7 +19,7 @@ import { ContentStudio } from "@/components/proposals/content-studio.jsx";
 import { ProposalBuilder } from "@/components/proposals/proposal-builder.jsx";
 import { ProposalView } from "@/components/proposals/proposal-view.jsx";
 import { BrandManagement } from "@/components/brand/brand-management.jsx";
-import { ToolsPage } from "@/components/tools/tools-page.jsx";
+import { ContentEnginePage } from "@/components/tools/content-engine-page.jsx";
 import { CampaignsPage } from "@/components/campaigns/campaigns-page.jsx";
 import { FeaturedTool } from "@/components/tools/featured-tool.jsx";
 import { PricingTool } from "@/components/tools/pricing-tool.jsx";
@@ -39,18 +36,32 @@ import { rolesOf, getHashToken } from "@/lib/auth.js";
 import { listClients, resolveClient } from "@/lib/clientConfig.js";
 import { applyTheme } from "@/lib/theme.js";
 
-const ALL_ROLES = ["admin", "client", "pr", "influencer", "creator"];
 // Pilot passcode gate vs. per-user Identity (VITE_AUTH_MODE=passcode). See PasscodeGate / AUTH_AND_ROLES.md.
 const Gate = import.meta.env.VITE_AUTH_MODE === "passcode" ? PasscodeGate : RequireAuth;
+// 2026-07-02 reorg (Rick): "Tools" is now the CONTENT ENGINE — Content Studio / Content Library /
+// Brand Systems / Brand Kits / Brand Voice / Media Hub all live under it as app cards, so their
+// old top-level tabs are gone. Media hub keeps a direct tab ONLY for external collaborators
+// (pr/influencer/creator), whose whole portal is the hub. Route keys stay stable ("tools").
 const NAV = [
   { key: "dashboard", label: "Dashboard", icon: LayoutDashboard, allowed: ["admin", "client"] },
   { key: "campaigns", label: "Campaigns", icon: Megaphone, allowed: ["admin", "client"] },
   { key: "catalog", label: "Catalog", icon: Package, allowed: ["admin", "client"] },
   { key: "orders", label: "Orders", icon: ShoppingCart, allowed: ["admin", "client"] },
   { key: "crm", label: "CRM", icon: Contact, allowed: ["admin", "client"] },
-  { key: "media", label: "Media hub", icon: Images, allowed: ALL_ROLES },
-  { key: "tools", label: "Tools", icon: LayoutGrid, allowed: ["admin", "client"] },
+  { key: "media", label: "Media hub", icon: Images, allowed: ["pr", "influencer", "creator"] },
+  { key: "tools", label: "Content Engine", icon: Layers, allowed: ["admin", "client"] },
 ];
+// Pages reachable WITHOUT a nav tab: buyer share links + Opportunity-Engine compose (as before),
+// plus the Content Engine's apps (their tabs moved into the engine page's cards).
+const NON_NAV_PAGES = ["proposal", "compose", "media", "proposals", "presentations", "brand"];
+const NON_NAV_LABELS = {
+  proposal: "Proposal",
+  compose: "Compose",
+  media: "Media Hub",
+  proposals: "Content Studio",
+  presentations: "Content Library",
+  brand: "Brand Kits",
+};
 
 export default function App({ initialResolved }) {
   const [resolved, setResolved] = useState(initialResolved);
@@ -86,21 +97,13 @@ export default function App({ initialResolved }) {
   const featuredNav = featuredTools.map((t) => ({
     key: `tool:${t.key}`, label: t.label, icon: toolIcon(t.icon), allowed: ["admin", "client"],
   }));
-  // Presentations tab appears only for tenants with a configured deck (config-driven nav).
-  const presentationsNav = resolved.presentations?.length
-    ? [{ key: "presentations", label: "Content Library", icon: MonitorPlay, allowed: ["admin", "client"] }]
-    : [];
-  // Proposals builder is a Manage feature (F4, ADMIN_DASHBOARDS_SPEC §5) — both tiers:
-  // house admins pitch prospects, client admins pitch their buyers.
-  const proposalsNav = [{ key: "proposals", label: "Content Studio", icon: FileText, allowed: ["admin", "client-admin"] }];
-  // Brand management is a house-admin (CST) surface — the brand-kit orchestration the agency owns.
-  const brandNav = resolved.isHouse ? [{ key: "brand", label: "Brand kits", icon: Palette, allowed: ["admin"] }] : [];
-  const baseNav = [NAV[0], ...featuredNav, ...presentationsNav, ...proposalsNav, ...brandNav, ...NAV.slice(1)];
+  // Content Studio / Content Library / Brand kits tabs are GONE from the top level — they live
+  // as cards inside the Content Engine page now (2026-07-02 reorg). Routes stay reachable via
+  // NON_NAV_PAGES so engine cards, deep links (?page=presentations for buyers) and the
+  // Opportunity-Engine compose jump all keep working.
+  const baseNav = [NAV[0], ...featuredNav, ...NAV.slice(1)];
   const nav = baseNav.filter((n) => n.allowed.some((r) => userRoles.includes(r)));
-  // "proposal" (the rendered share link, ?page=proposal#p=…) is reachable by ANY portal role —
-  // it's what a buyer opens. "compose" is the non-nav Proposal Builder target the Opportunity
-  // Engine seeds and jumps into (MARKET_INTELLIGENCE_SPEC §4). Both bypass the nav-membership check.
-  const bypassNav = page === "proposal" || page === "compose";
+  const bypassNav = NON_NAV_PAGES.includes(page);
   const effectivePage = bypassNav ? page : nav.some((n) => n.key === page) ? page : nav[0]?.key;
   const activeFeatured = featuredTools.find((t) => `tool:${t.key}` === effectivePage);
 
@@ -150,7 +153,7 @@ export default function App({ initialResolved }) {
       activeKey={effectivePage}
       onNavigate={setPage}
       topbarRight={<div className="flex items-center gap-4">{tenantSwitcher}{userMenu}</div>}
-      breadcrumb={<Breadcrumb items={[{ label: resolved.brand.name, href: "#" }, { label: nav.find((n) => n.key === effectivePage)?.label }]} />}
+      breadcrumb={<Breadcrumb items={[{ label: resolved.brand.name, href: "#" }, { label: nav.find((n) => n.key === effectivePage)?.label || NON_NAV_LABELS[effectivePage] }]} />}
     >
       {activeFeatured ? (
         activeFeatured.route === "pricing"
@@ -161,7 +164,7 @@ export default function App({ initialResolved }) {
       ) : effectivePage === "campaigns" ? (
         <CampaignsPage resolved={resolved} />
       ) : effectivePage === "tools" ? (
-        <ToolsPage resolved={resolved} onNavigate={setPage} />
+        <ContentEnginePage resolved={resolved} onNavigate={setPage} />
       ) : effectivePage === "dashboard" ? (
         <HomeHub resolved={resolved} onNavigate={setPage} />
       ) : effectivePage === "orders" ? (
@@ -177,7 +180,10 @@ export default function App({ initialResolved }) {
       ) : effectivePage === "proposal" ? (
         <ProposalView resolved={resolved} />
       ) : effectivePage === "brand" ? (
-        <BrandManagement />
+        // Brand kits is house-admin only; now that the route bypasses nav-membership, gate it here.
+        <RoleGate roles={["admin"]}>
+          <BrandManagement />
+        </RoleGate>
       ) : (
         <CatalogPage resolved={resolved} />
       )}

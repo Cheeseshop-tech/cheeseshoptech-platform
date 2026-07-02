@@ -1,3 +1,6 @@
 # Unlisted dispatch surfaces — proxy to the platform site (URL stays on cheeseshoptech.com)
 /series/*  https://cheeseshoptech-platform.netlify.app/series/:splat  200
 /tools/*   https://cheeseshoptech-platform.netlify.app/tools/:splat   200
+# Quiet staff door from the coming-soon page — sends to the platform house gate (302, not proxy:
+# the SPA's /assets/* paths wouldn't resolve through this site).
+/login     https://cheeseshoptech-platform.netlify.app/?app=1         302

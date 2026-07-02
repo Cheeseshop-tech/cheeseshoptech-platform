@@ -7,6 +7,7 @@ import { getHubStats } from "@/lib/hub-stats.js";
 import { usePricingData } from "@/lib/use-pricing-data.js";
 import { hasCrm } from "@/lib/crm.js";
 import { CommandCenter } from "@/components/home/command-center.jsx";
+import { PriorityCard } from "@/components/home/priority-card.jsx";
 import { AgencyConsole } from "@/components/home/agency-console.jsx";
 import { RoleGate } from "@/components/auth/require-auth.jsx";
 
@@ -92,10 +93,15 @@ export function HomeHub({ resolved, onNavigate }) {
         </div>
       )}
 
-      {/* Tool launch cards. */}
+      {/* Priority window — what must be handled before anything else today (urgent emails,
+          deadline tasks). The dashboard's job is to start the day fast (Rick, 2026-07-02). */}
+      <PriorityCard resolved={resolved} />
+
+      {/* Tool launch cards — the operating lead: Pricing & Inventory · CRM · Trade Portal ·
+          Campaigns first (config order). Content-making apps live under the Content Engine tab. */}
       {tools.length > 0 && (
         <>
-          <h2 className="cs-display mb-4 mt-10 text-2xl text-brand-primary">Tools</h2>
+          <h2 className="cs-display mb-4 mt-10 text-2xl text-brand-primary">Operations</h2>
           <div className="grid gap-4 sm:grid-cols-2">
             {tools.map((tool) => {
               const Icon = toolIcon(tool.icon);
