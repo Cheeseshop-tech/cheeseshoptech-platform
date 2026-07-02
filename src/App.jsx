@@ -194,12 +194,12 @@ export default function App({ initialResolved }) {
         <ProposalView resolved={resolved} />
       ) : effectivePage === "brand" ? (
         // Brand kits is house-admin only; now that the route bypasses nav-membership, gate it here.
-        <RoleGate roles={["admin"]}>
+        <RoleGate roles={["admin"]} fallback={<AccessNotice need="a CheeseShop TECH house admin" />}>
           <BrandManagement />
         </RoleGate>
       ) : effectivePage === "brand-systems" ? (
         // The BSE, integrated + behind the gate (was the ungated public /tools/ path).
-        <RoleGate roles={["admin", "client-admin"]}>
+        <RoleGate roles={["admin", "client-admin"]} fallback={<AccessNotice need="an admin" />}>
           <BrandSystemsPage />
         </RoleGate>
       ) : (
@@ -207,6 +207,18 @@ export default function App({ initialResolved }) {
       )}
     </AppShell>
     </Gate>
+  );
+}
+
+// Friendly wall for role-gated pages — never render a silently blank content area.
+function AccessNotice({ need }) {
+  return (
+    <div className="flex min-h-[40vh] items-center justify-center text-center">
+      <div>
+        <p className="cs-display text-xl text-brand-primary">This page needs {need} sign-in.</p>
+        <p className="mt-2 text-sm text-fg-muted">You're signed in with a code that doesn't include this page — re-enter with the right passcode.</p>
+      </div>
+    </div>
   );
 }
 

@@ -25,6 +25,7 @@ git add \
   "src/assets/brand-systems-engine.html" \
   "src/components/brand/brand-systems-page.jsx" \
   "src/components/marketing/coming-soon.jsx" \
+  "netlify.toml" \
   "docs/CONTENT_ENGINE_WIRING_SPEC.md" \
   "docs/DOMAIN_CONSOLIDATION_RUNBOOK.md" \
   "docs/PLATFORM_SIDES_SPEC.md" \

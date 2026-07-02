@@ -16,6 +16,13 @@
   directory = "netlify/functions"
   node_bundler = "esbuild"
 
+# LEGACY: the Brand Systems Engine's old public path (retired 2026-07-02 — the engine is now
+# integrated in-app behind the gate). Bookmarks/muscle memory land at the gated portal page.
+[[redirects]]
+  from = "/tools/brand-systems-engine/*"
+  to = "/?app=1&page=brand-systems"
+  status = 302
+
 # SPA routing — all paths resolve to the React shell so client-side routing works.
 # (Netlify serves /.netlify/functions/* before this catch-all.)
 [[redirects]]
