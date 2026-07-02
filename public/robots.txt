@@ -1,0 +1,4 @@
+# CheeseShop TECH — unlisted areas are link-only dispatch surfaces
+User-agent: *
+Disallow: /series/
+Disallow: /tools/
