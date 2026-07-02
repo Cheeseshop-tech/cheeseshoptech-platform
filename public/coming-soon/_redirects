@@ -1,0 +1,3 @@
+# Unlisted dispatch surfaces — proxy to the platform site (URL stays on cheeseshoptech.com)
+/series/*  https://cheeseshoptech-platform.netlify.app/series/:splat  200
+/tools/*   https://cheeseshoptech-platform.netlify.app/tools/:splat   200
