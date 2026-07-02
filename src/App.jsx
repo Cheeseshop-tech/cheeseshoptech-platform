@@ -1,7 +1,6 @@
 import { useState } from "react";
 import {
   LayoutDashboard,
-  Package,
   ShoppingCart,
   Images,
   LogOut,
@@ -45,15 +44,19 @@ const Gate = import.meta.env.VITE_AUTH_MODE === "passcode" ? PasscodeGate : Requ
 const NAV = [
   { key: "dashboard", label: "Dashboard", icon: LayoutDashboard, allowed: ["admin", "client"] },
   { key: "campaigns", label: "Campaigns", icon: Megaphone, allowed: ["admin", "client"] },
-  { key: "catalog", label: "Catalog", icon: Package, allowed: ["admin", "client"] },
   { key: "orders", label: "Orders", icon: ShoppingCart, allowed: ["admin", "client"] },
   { key: "crm", label: "CRM", icon: Contact, allowed: ["admin", "client"] },
   { key: "media", label: "Media hub", icon: Images, allowed: ["pr", "influencer", "creator"] },
   { key: "tools", label: "Content Engine", icon: Layers, allowed: ["admin", "client"] },
 ];
+// Sidebar order (Rick, 2026-07-02): Dashboard · Pricing & Inventory · CRM · Campaigns · Orders ·
+// Content Engine · Storefront. Featured-tool tabs (tool:<key>) slot in by config key. Keys not
+// listed here sort after the listed ones, in assembly order.
+const NAV_ORDER = ["dashboard", "tool:price-list", "crm", "campaigns", "orders", "tools", "tool:shopify", "media"];
 // Pages reachable WITHOUT a nav tab: buyer share links + Opportunity-Engine compose (as before),
-// plus the Content Engine's apps (their tabs moved into the engine page's cards).
-const NON_NAV_PAGES = ["proposal", "compose", "media", "proposals", "presentations", "brand"];
+// plus the Content Engine's apps (their tabs moved into the engine page's cards) and the buyer
+// Image Catalog (launched from its dashboard card, off the sidebar per the 2026-07-02 order).
+const NON_NAV_PAGES = ["proposal", "compose", "media", "proposals", "presentations", "brand", "catalog"];
 const NON_NAV_LABELS = {
   proposal: "Proposal",
   compose: "Compose",
@@ -61,6 +64,7 @@ const NON_NAV_LABELS = {
   proposals: "Content Studio",
   presentations: "Content Library",
   brand: "Brand Kits",
+  catalog: "Image Catalog",
 };
 
 export default function App({ initialResolved }) {
@@ -102,7 +106,10 @@ export default function App({ initialResolved }) {
   // NON_NAV_PAGES so engine cards, deep links (?page=presentations for buyers) and the
   // Opportunity-Engine compose jump all keep working.
   const baseNav = [NAV[0], ...featuredNav, ...NAV.slice(1)];
-  const nav = baseNav.filter((n) => n.allowed.some((r) => userRoles.includes(r)));
+  const orderOf = (key) => { const i = NAV_ORDER.indexOf(key); return i === -1 ? NAV_ORDER.length : i; };
+  const nav = baseNav
+    .filter((n) => n.allowed.some((r) => userRoles.includes(r)))
+    .sort((a, b) => orderOf(a.key) - orderOf(b.key));
   const bypassNav = NON_NAV_PAGES.includes(page);
   const effectivePage = bypassNav ? page : nav.some((n) => n.key === page) ? page : nav[0]?.key;
   const activeFeatured = featuredTools.find((t) => `tool:${t.key}` === effectivePage);
