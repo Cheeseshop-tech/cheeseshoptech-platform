@@ -83,6 +83,25 @@ retires. Also on record: **onboarding tools live on the CST side** (correction f
 **Rick's actions to go live:** double-click `COMMIT CONTENT ENGINE UI.command` → run the DNS
 runbook → verify apex Sign in → (still open) sending-address decision.
 
+## 2026-07-02 (cont. 3) — DOMAIN CONSOLIDATION EXECUTED — one address, three doors, LIVE
+
+**Done (Rick + Claude, verified live from the sandbox).** The DOMAIN_CONSOLIDATION_RUNBOOK was
+executed and extended with a staff door:
+- **cheeseshoptech.com** → the platform site (coming-soon + quiet Sign in). PRIMARY domain.
+- **www** → 301 to apex. **admin.cheeseshoptech.com** → NEW hidden house door (reserved
+  STAFF_HOSTS subdomain, straight to the gate; Cloudflare CNAME DNS-only). 
+- **montitrentini.cheeseshoptech.com** → client door, unchanged. Pattern going forward: every
+  client gets `<brand>.cheeseshoptech.com` (professional norm; clients never see the house).
+- Legacy `/tools/brand-systems-engine/` 302s to the gated in-app page ✓; `/series/queso-couture/`
+  public ✓. Let's Encrypt reissued for all four names.
+- Netlify project renamed **cheeseshoptech-platform** (was display-named
+  "montitrentini.cheeseshoptech.com" — that name kept luring the domain to the wrong site).
+- Gotchas hit + solved: domains were attached to the old Drop site (had to remove alias → www →
+  primary, in that order); "Add a domain" was clicked once on the wrong project (byte-compare
+  caught it); apex/www invisible-cert phase until Renew certificate after adding both.
+- **Old Drop site ("cheeseshoptech.com" project) is now unused** — delete it to prevent the
+  domain wandering back.
+
 ## 2026-07-02 (cont. 2) — BSE INTEGRATED into the app under Content Engine (and thereby GATED)
 
 **Decision (Rick).** "Integrate [the BSE] into the main site under Content Engine" — the CST.com
