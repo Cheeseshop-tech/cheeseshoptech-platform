@@ -8,8 +8,7 @@ import { rolesOf } from "@/lib/auth.js";
 // rooms, identical for every tenant; per-client launch tiles live on the Dashboard instead).
 // Mental model, left to right: Brand Systems feeds kits/voice → Media Hub holds ingredients →
 // Content Studio composes → Content Library holds the finished pieces.
-const BSE_URL = "https://cheeseshoptech.com/tools/brand-systems-engine/";
-
+// (BSE is INTEGRATED as of 2026-07-02 — internal route "brand-systems", behind the gate.)
 const APPS = [
   {
     key: "content-studio",
@@ -35,8 +34,8 @@ const APPS = [
     key: "brand-systems",
     label: "Brand Systems",
     icon: Layers,
-    type: "external",
-    url: BSE_URL,
+    type: "internal",
+    route: "brand-systems",
     roles: ["admin", "client-admin"],
     description: "The source-of-truth engine — Brand Guide · Brand Voice · Brand Design. Portable brand-kit JSON out; every renderer downstream paints from it.",
     tag: "Source of truth",
@@ -55,8 +54,8 @@ const APPS = [
     key: "brand-voice",
     label: "Brand Voice",
     icon: Quote,
-    type: "external",
-    url: BSE_URL,
+    type: "internal",
+    route: "brand-systems",
     roles: ["admin", "client-admin"],
     description: "Voice rules, ready phrases, story angles — the language the Studio writes with. Lives as the Voice discipline inside Brand Systems.",
     tag: "Opens Brand Systems",

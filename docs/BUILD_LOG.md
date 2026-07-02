@@ -54,6 +54,54 @@ CONTENT ENGINE**, and the **Dashboard = start-the-day operations view**.
 **Unblocks / next:** Stage 0 `lib/studio-director.js` + Auto-compose button · BSE kit-import on
 Brand Kits page · attention-list function once the sending address exists.
 
+## 2026-07-02 (cont.) — ONE ADDRESS + sidebar order + branched-page back buttons + sides spec
+
+**Decision (Rick).** Consolidate cheeseshoptech.com + montitrentini.cheeseshoptech.com under ONE
+point of reference — the platform site serves everything; the Netlify Drop coming-soon site
+retires. Also on record: **onboarding tools live on the CST side** (correction from "client side").
+
+**Shipped (build clean).**
+- **Apex = ComingSoon + Sign in, served by the platform.** `App.jsx` apex render swapped
+  LandingPage → `ComingSoon` (kept for launch, one-line swap-back comment). `coming-soon.jsx`
+  gains a quiet footer **Sign in** → `?app=1` → gate. `docs/DOMAIN_CONSOLIDATION_RUNBOOK.md` =
+  Rick's ~10-min DNS/Netlify steps (alias on platform site, apex record in Cloudflare, verify,
+  retire Drop site). After the flip: coming-soon edits deploy via git (no re-drops), /tools/* +
+  /series/* serve natively (proxies obsolete).
+- **Sidebar order (Rick):** Dashboard · Pricing & Inventory · CRM · Campaigns · Orders · Content
+  Engine · Storefront (`NAV_ORDER` sort; featured tabs slot by config key). Catalog off the
+  sidebar — reachable via its dashboard card (`catalog` added to `NON_NAV_PAGES`).
+- **Back buttons on branched pages** (house rule: every page branched off the site gets one):
+  BSE + Queso Couture — quiet `< Back` text line under the eyebrow, right side; history-back when
+  referred, else cheeseshoptech.com. ⚠️ Edited in `public/` — copy upstream to the
+  `Projects/Monti trentini Ecommerce strategy/` sources or the next re-copy overwrites.
+- **`docs/PLATFORM_SIDES_SPEC.md`** — the dividing line: **CST side = factory** (template
+  client-build apps + the 5-step onboarding flow: kit import → item-code importer → bulk
+  image/tag → branded blank templates → config clone) vs **client side = product** (functional
+  apps + proprietary data/brand system). Includes the 10-row wiring board ("all apps live and
+  communicating") with priority order; SEAMS panel is its live twin.
+
+**Rick's actions to go live:** double-click `COMMIT CONTENT ENGINE UI.command` → run the DNS
+runbook → verify apex Sign in → (still open) sending-address decision.
+
+## 2026-07-02 (cont. 2) — BSE INTEGRATED into the app under Content Engine (and thereby GATED)
+
+**Decision (Rick).** "Integrate [the BSE] into the main site under Content Engine" — the CST.com
+portal, not a public path.
+
+**Action.** The engine's single-file HTML moved INTO the app: `src/assets/brand-systems-engine.html`
+(back-button block stripped — portal chrome does nav), lazy-loaded via `?raw` dynamic import
+(separate 220 KB chunk, only fetched when opened) and rendered in an `iframe srcDoc` by the new
+`src/components/brand/brand-systems-page.jsx`. Internal route **`brand-systems`** (NON_NAV_PAGES),
+**RoleGated admin/client-admin**. Content Engine cards "Brand Systems" + "Brand Voice" now route
+internally (were external links). `srcDoc` inherits the app origin, so the engine's localStorage
+kits share the portal's store. **The ungated public copy is REMOVED** — commit script does
+`git rm -r public/tools/brand-systems-engine` (sandbox can't delete on the mount) — which **closes
+the "gate the engine" open item** from 2026-07-01. Old public URL will 404 by design; the QC
+showcase room stays public (portfolio/lead magnet). Build clean.
+
+**Iterate note.** BSE source of truth remains `Projects/Monti trentini Ecommerce strategy/` —
+re-copy now targets `src/assets/brand-systems-engine.html` (strip the back block), not `public/`.
+
 ## 2026-07-01 (cont. 3) — Brand Systems Engine LIVE + Queso Couture series + brand-domain proxy
 
 **Shipped (all verified live on cheeseshoptech.com).**

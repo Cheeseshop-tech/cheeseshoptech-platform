@@ -1,7 +1,14 @@
 // Public apex landing page. Served at cheeseshoptech.com / www (the "house" view, no tenant
-// subdomain) so deploying the app never replaces the public marketing page. Client portals live
-// at <client>.cheeseshoptech.com. Staff can reach the app at the apex with ?app=1.
+// subdomain) — ONE address for everything (2026-07-02 consolidation): the public face, sign-in,
+// and the unlisted /tools/* + /series/* rooms all ride this one site. Client portals live at
+// <client>.cheeseshoptech.com. Sign in = the staff door (?app=1 → passcode gate).
 export function ComingSoon() {
+  function signIn() {
+    const url = new URL(window.location.href);
+    url.searchParams.set("app", "1");
+    window.location.assign(url);
+  }
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-bg px-6 text-center">
       <div className="max-w-xl">
@@ -27,8 +34,14 @@ export function ComingSoon() {
         </p>
       </div>
 
-      <footer className="absolute bottom-6 text-xs text-fg-muted">
-        CheeseShop TECH · Posada &amp; Co.
+      <footer className="absolute bottom-6 flex items-center gap-5 text-xs text-fg-muted">
+        <span>CheeseShop TECH · Posada &amp; Co.</span>
+        <button
+          onClick={signIn}
+          className="cs-eyebrow border-b border-transparent uppercase tracking-widest text-fg-muted transition-colors hover:border-brand-primary hover:text-brand-primary"
+        >
+          Sign in
+        </button>
       </footer>
     </div>
   );

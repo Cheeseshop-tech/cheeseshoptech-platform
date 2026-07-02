@@ -6,6 +6,23 @@ coming-soon proxy files) + the 2026-07-02 Content Engine reorg **on disk, uncomm
 **`COMMIT CONTENT ENGINE UI.command`** (today's reorg + docs).
 **Read first:** `CLAUDE_CODE_BRIEF.md` → this → `docs/BUILD_LOG.md` (top) → `docs/CONTENT_ENGINE_WIRING_SPEC.md`.
 
+## 🔧 ON DISK (2026-07-02, cont. 2) — BSE integrated under Content Engine + GATED (uncommitted)
+The Brand Systems Engine now lives INSIDE the portal: internal route `brand-systems` (Content
+Engine cards Brand Systems + Brand Voice), iframe-srcDoc from `src/assets/brand-systems-engine.html`
+(lazy chunk), RoleGated admin/client-admin. The ungated public `/tools/brand-systems-engine/` is
+removed by the commit script (`git rm -r` — sandbox can't delete) — **"gate the BSE" is CLOSED on
+push.** Re-copy flow changed: Projects source → `src/assets/` (strip back-button), not `public/`.
+
+## 🔧 ON DISK (2026-07-02, cont.) — ONE ADDRESS + sidebar order + sides spec (uncommitted)
+Apex now serves **ComingSoon + Sign in** from the platform site (LandingPage kept for launch) —
+run `docs/DOMAIN_CONSOLIDATION_RUNBOOK.md` (Cloudflare apex → platform, alias, retire Drop site)
+to make cheeseshoptech.com the ONE point of reference. Sidebar order per Rick: Dashboard ·
+Pricing & Inventory · CRM · Campaigns · Orders · Content Engine · Storefront (Catalog via its
+dashboard card). Branched pages (BSE, QC) got quiet `< Back` lines — **copy upstream to the
+Projects sources**. `docs/PLATFORM_SIDES_SPEC.md` = CST side (template build apps + onboarding
+tools — Rick's correction: onboarding is CST-side) vs client side (functional apps + proprietary
+data), plus the 10-row wiring board. All ships via `COMMIT CONTENT ENGINE UI.command`.
+
 ## 🔧 ON DISK (2026-07-02) — Content Engine reorg + dashboard priority window (uncommitted)
 UI reorg per Rick: **"Tools" nav → CONTENT ENGINE** (new `content-engine-page.jsx` — app cards for
 Content Studio · Content Library · Brand Systems · Brand Kits · Brand Voice · Media Hub; old top-level

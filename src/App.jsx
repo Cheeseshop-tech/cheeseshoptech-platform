@@ -18,6 +18,7 @@ import { ContentStudio } from "@/components/proposals/content-studio.jsx";
 import { ProposalBuilder } from "@/components/proposals/proposal-builder.jsx";
 import { ProposalView } from "@/components/proposals/proposal-view.jsx";
 import { BrandManagement } from "@/components/brand/brand-management.jsx";
+import { BrandSystemsPage } from "@/components/brand/brand-systems-page.jsx";
 import { ContentEnginePage } from "@/components/tools/content-engine-page.jsx";
 import { CampaignsPage } from "@/components/campaigns/campaigns-page.jsx";
 import { FeaturedTool } from "@/components/tools/featured-tool.jsx";
@@ -26,7 +27,7 @@ import { toolIcon } from "@/lib/icons.js";
 import { OrdersPage } from "@/components/crm/crm-dashboard.jsx";
 import { CrmPage } from "@/components/crm/crm-page.jsx";
 import { HomeHub } from "@/components/home/home-hub.jsx";
-import { LandingPage } from "@/components/marketing/landing-page.jsx";
+import { ComingSoon } from "@/components/marketing/coming-soon.jsx";
 import { RequireAuth, RoleGate } from "@/components/auth/require-auth.jsx";
 import { PasscodeGate } from "@/components/auth/passcode-gate.jsx";
 import { SetPassword } from "@/components/auth/set-password.jsx";
@@ -56,7 +57,7 @@ const NAV_ORDER = ["dashboard", "tool:price-list", "crm", "campaigns", "orders",
 // Pages reachable WITHOUT a nav tab: buyer share links + Opportunity-Engine compose (as before),
 // plus the Content Engine's apps (their tabs moved into the engine page's cards) and the buyer
 // Image Catalog (launched from its dashboard card, off the sidebar per the 2026-07-02 order).
-const NON_NAV_PAGES = ["proposal", "compose", "media", "proposals", "presentations", "brand", "catalog"];
+const NON_NAV_PAGES = ["proposal", "compose", "media", "proposals", "presentations", "brand", "catalog", "brand-systems"];
 const NON_NAV_LABELS = {
   proposal: "Proposal",
   compose: "Compose",
@@ -65,6 +66,7 @@ const NON_NAV_LABELS = {
   presentations: "Content Library",
   brand: "Brand Kits",
   catalog: "Image Catalog",
+  "brand-systems": "Brand Systems",
 };
 
 export default function App({ initialResolved }) {
@@ -91,7 +93,11 @@ export default function App({ initialResolved }) {
   const STAFF_HOSTS = ["admin", "app", "console"];
   const staffEntry = params.has("app") || STAFF_HOSTS.includes(resolved.subdomain || "");
   if (resolved.isHouse && !staffEntry && !params.has("client")) {
-    return <LandingPage />;
+    // ONE ADDRESS (2026-07-02): the platform site serves the apex itself — public face = the
+    // coming-soon page with a quiet Sign in (?app=1 → gate). The separate Netlify Drop site
+    // retires once DNS points here (docs/DOMAIN_CONSOLIDATION_RUNBOOK.md). The invite-only
+    // LandingPage (marketing/landing-page.jsx) is kept for the real launch — swap back here.
+    return <ComingSoon />;
   }
 
   // Role-based nav: external collaborators (pr/influencer/creator) see only the Media hub.
@@ -190,6 +196,11 @@ export default function App({ initialResolved }) {
         // Brand kits is house-admin only; now that the route bypasses nav-membership, gate it here.
         <RoleGate roles={["admin"]}>
           <BrandManagement />
+        </RoleGate>
+      ) : effectivePage === "brand-systems" ? (
+        // The BSE, integrated + behind the gate (was the ungated public /tools/ path).
+        <RoleGate roles={["admin", "client-admin"]}>
+          <BrandSystemsPage />
         </RoleGate>
       ) : (
         <CatalogPage resolved={resolved} />
