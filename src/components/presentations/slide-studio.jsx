@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { Plus, ArrowLeft, Trash2 } from "lucide-react";
+import { Plus, ArrowLeft, Trash2, Wand2 } from "lucide-react";
 import { Button } from "@/components/ui/button.jsx";
 import { MediaPicker } from "@/components/media/media-picker.jsx";
 import { SlideRenderer } from "./slide-renderer.jsx";
 import { SLIDE_TEMPLATES, getSlideTemplate, firstImageId } from "@/lib/slide-templates.js";
 import { voiceOptions } from "@/lib/brand-tokens.js";
+import { directDraft } from "@/lib/studio-director.js";
+import { useAuth } from "@/lib/auth-context.jsx";
 import { cldUrl } from "@/lib/cloudinary.js";
 
 // Full-window Content Studio composer. A content-type switcher (slide deck live; others coming soon),
@@ -47,13 +49,31 @@ function I(props) {
   return <input {...props} className="h-9 w-full rounded-base border border-border bg-bg px-2 text-sm text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand" />;
 }
 
-export function SlideStudio({ resolved, onClose, onSave }) {
+export function SlideStudio({ resolved, onClose, onSave, opportunity }) {
   const [ctype, setCtype] = useState("slide-deck");
   const [deck, setDeck] = useState([]);   // [{ t, slots }]
   const [idx, setIdx] = useState(0);
   const [title, setTitle] = useState("");
   const [tpl, setTpl] = useState(SLIDE_TEMPLATES[0].id);
+  const [composing, setComposing] = useState(false);
+  const { user } = useAuth();
   const voice = voiceOptions(resolved);
+
+  // Studio Director Stage 0/1 (CONTENT_ENGINE_WIRING_SPEC §3): deterministic auto-fill —
+  // kit voice → text slots, Media Hub → image slots, catalog → product slots, optional
+  // opportunity seed. Human's job collapses to review-and-swap. Stage 2 (AI) plugs in behind
+  // the same call later.
+  async function autoCompose() {
+    setComposing(true);
+    try {
+      const draft = await directDraft({ resolved, user, opportunity });
+      if (draft) {
+        setDeck(draft.deck);
+        setTitle((t) => t || draft.title);
+        setIdx(0);
+      }
+    } finally { setComposing(false); }
+  }
 
   const setSlot = (key, val) => setDeck((d) => d.map((sl, k) => (k === idx ? { ...sl, slots: { ...sl.slots, [key]: val } } : sl)));
   const setOff = (id, hidden) => setDeck((d) => d.map((sl, k) => {
@@ -119,7 +139,20 @@ export function SlideStudio({ resolved, onClose, onSave }) {
         </div>
       ) : deck.length === 0 ? (
         <div>
-          <p className="mb-3 text-sm text-fg-muted">Pick a template for your first slide — each opens painted in {resolved.brand?.name || "the"} brand. Every template carries a required Title.</p>
+          <div className="mb-4 flex flex-wrap items-center gap-3 rounded-base border border-border bg-surface p-4">
+            <Wand2 className="h-5 w-5 flex-none text-brand-primary" />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium text-fg">Let the Director set the table</p>
+              <p className="text-xs text-fg-muted">
+                Auto-compose a full deck from your brand kit, Media Hub photography and catalog —
+                deterministic, no AI. You review and swap; nothing is invented.
+              </p>
+            </div>
+            <Button variant="primary" size="sm" disabled={composing} onClick={autoCompose}>
+              <Wand2 className="h-4 w-4" /> {composing ? "Composing…" : "Auto-compose"}
+            </Button>
+          </div>
+          <p className="mb-3 text-sm text-fg-muted">Or pick a template for your first slide — each opens painted in {resolved.brand?.name || "the"} brand. Every template carries a required Title.</p>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             {SLIDE_TEMPLATES.map((t) => (
               <button key={t.id} onClick={() => addSlide(t.id)} className="overflow-hidden rounded-base border border-border bg-bg text-left transition hover:border-brand-primary hover:shadow">
@@ -140,6 +173,9 @@ export function SlideStudio({ resolved, onClose, onSave }) {
               {SLIDE_TEMPLATES.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
             </select>
             <Button variant="outline" size="sm" onClick={() => addSlide()}><Plus className="h-4 w-4" /> Add slide</Button>
+            <Button variant="outline" size="sm" disabled={composing} onClick={autoCompose} title="Replace the deck with a Director auto-compose (Stage 0 — deterministic)">
+              <Wand2 className="h-4 w-4" /> {composing ? "Composing…" : "Auto-compose"}
+            </Button>
             <span className="flex-1" />
             <Button variant="ghost" size="sm" onClick={clearSlide}>Clear slide</Button>
             <Button variant="ghost" size="sm" onClick={() => removeSlide(idx)}><Trash2 className="h-4 w-4" /> Delete</Button>

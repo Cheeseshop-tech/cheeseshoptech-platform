@@ -19,6 +19,24 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-07-02 — Studio Director Stage 0+1 SHIPPED (deterministic Auto-compose)
+
+**The teed-up highest-leverage build (CONTENT_ENGINE_WIRING_SPEC §3), now real.**
+`src/lib/studio-director.js` — `directDraft({resolved, user, opportunity})`, pure resolution,
+no AI, $0: composes a full deck (cover → statement → story → image beat → product range →
+closing) from the tenant's own systems. Kit voice → text slots (Stage 1 taste rules: statements
+take the shortest line, story slides the long blocks); Media Hub → image slots (slot-tag →
+12-tag-taxonomy crosswalk, approved-first, SKU-linked preferred, never the same image twice);
+catalog → product slots (opportunity SKUs → featured → catalog order); Monti sample contact
+blanked so it can't leak cross-tenant. **SlideStudio** gains an Auto-compose button (empty-state
+hero + toolbar). **ContentStudio** feeds the Director the last Opportunity Compose draft
+(headline/storyKeys/skuCodes) — wire 5 closes: market intelligence → Studio end-to-end.
+Build ✓ — ship via **`COMMIT STUDIO DIRECTOR.command`**. This is the substrate for agent A1
+(ONBOARDING_AND_AGENTS_SDD Part 3); Stage 2 (AI pass) plugs in behind the same call once
+Anthropic billing + spend cap are set (Rick).
+
+---
+
 ## 2026-07-02 — Pricing & Inventory data-intake state (real app, not a mock)
 
 **Decision (Rick).** The template Pricing & Inventory must be **the duplicate encoded app**, not

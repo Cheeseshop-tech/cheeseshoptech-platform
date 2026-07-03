@@ -50,10 +50,16 @@ New round shipped on disk (build ✓, validate ✓) — **ship via `COMMIT ONBOA
   A3 Replenishment · A4 Projection/Production · A5 Campaign Planning. Build order gated on data:
   Stage 0 → A1 first (data ready); A3/A4 blocked on **sales history** (kit file 06) + HubSpot deals.
 
+## ✅ BUILT (2026-07-02, this session's close) — Studio Director Stage 0+1
+`lib/studio-director.js` (deterministic Auto-compose: voice→text, Media Hub→images, catalog→
+products, opportunity seed via ContentStudio) + Auto-compose in SlideStudio. Wire 5 closed.
+Ship via **`COMMIT STUDIO DIRECTOR.command`**. Details: BUILD_LOG top entry.
+
 ## NEXT UP
-1. **Studio Director Stage 0** (`lib/studio-director.js` + Auto-compose in SlideStudio) — the
-   deterministic slot-resolver, spec §3 of CONTENT_ENGINE_WIRING_SPEC. Highest-leverage build,
-   and the substrate for agent A1 (SDD Part 3).
+1. **Agent A1 (Content Agent) on the Director substrate** — Stage 0 is in; next steps per
+   spec §4: voice blocks addressable by stable key · flow renderer port (landing/email — feeds
+   the plaintext→landing-page outreach pattern) · Stage 2 AI pass (needs Rick: Anthropic
+   pay-as-you-go billing + spend cap).
 2. **Sending address DECIDED (2026-07-02): `Sales@montitrentini-usa.com`** — Monti's outreach
    address. Strategy: **plaintext emails + links to rich HTML interactive landing/blog pages**
    (deliverability play: no heavy HTML in the send; the platform hosts the rich piece).

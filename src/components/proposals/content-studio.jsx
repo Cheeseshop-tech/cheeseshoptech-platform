@@ -2,6 +2,7 @@ import { useAuth } from "@/lib/auth-context.jsx";
 import { rolesOf } from "@/lib/auth.js";
 import { useToast } from "@/components/ui/toast.jsx";
 import { loadCatalog, addEntry, DEFAULT_QUOTA } from "@/lib/presentations-store.js";
+import { loadDraft } from "@/lib/proposals.js";
 import { SlideStudio } from "@/components/presentations/slide-studio.jsx";
 
 // Content Studio IS the template engine. Opens directly into SlideStudio (type switcher → template gallery →
@@ -11,9 +12,13 @@ export function ContentStudio({ resolved }) {
   const { user } = useAuth();
   const isHouse = rolesOf(user).includes("admin");
   const { toast } = useToast();
+  // The Director's seed: an Opportunity "Compose" click writes a proposal draft (buyer, headline,
+  // storyKeys, skuCodes). Auto-compose reuses it, so wire 5 (market intelligence) feeds the Studio.
+  const seed = loadDraft(resolved.id);
   return (
     <SlideStudio
       resolved={resolved}
+      opportunity={seed && (seed.headline || (seed.skuCodes || []).length) ? seed : undefined}
       onSave={(entry) => {
         if (loadCatalog(resolved.id).length >= (resolved.contentQuota || DEFAULT_QUOTA)) {
           toast({ title: "Content Library full", description: "Delete or download an item in the Library to add more.", tone: "error" });
