@@ -51,19 +51,23 @@ function I(props) {
 
 // Fit a 16:9 slide inside a pane: width = min(pane width, pane height × 16/9). Keeps the whole
 // preview visible at any window size so the workspace never forces a page scroll.
-function useFitWidth(ref) {
+// `active` re-attaches the observer when the pane actually exists (the editor branch mounts
+// AFTER the template gallery) and re-measures on layout changes (nav collapse, Focus mode).
+function useFitWidth(ref, active = true) {
   const [w, setW] = useState(0);
   useLayoutEffect(() => {
     const el = ref.current;
-    if (!el || typeof ResizeObserver === "undefined") return;
-    const ro = new ResizeObserver(() => {
+    if (!active || !el || typeof ResizeObserver === "undefined") return;
+    const measure = () => {
       const r = el.getBoundingClientRect();
-      setW(Math.max(200, Math.min(r.width, (r.height * 16) / 9)));
-    });
+      if (r.width > 0 && r.height > 0) setW(Math.max(320, Math.min(r.width, (r.height * 16) / 9)));
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [ref]);
-  return w;
+  }, [ref, active]);
+  return active ? w : 0;
 }
 
 export function SlideStudio({ resolved, onClose, onSave, opportunity }) {
@@ -76,11 +80,11 @@ export function SlideStudio({ resolved, onClose, onSave, opportunity }) {
   const { user } = useAuth();
   const voice = voiceOptions(resolved);
   const paneRef = useRef(null);
-  const fitW = useFitWidth(paneRef);
   // Workspace view options (Rick, 2026-07-02): focus mode auto-expands the main slide (hides
   // rail + inspector); player = fullscreen overlay ({ start, show: "slide" | "show" }).
   const [focusMode, setFocusMode] = useState(false);
   const [player, setPlayer] = useState(null);
+  const fitW = useFitWidth(paneRef, ctype === "slide-deck" && deck.length > 0);
 
   // Studio Director Stage 0/1 (CONTENT_ENGINE_WIRING_SPEC §3): deterministic auto-fill —
   // kit voice → text slots, Media Hub → image slots, catalog → product slots, optional
@@ -238,7 +242,7 @@ export function SlideStudio({ resolved, onClose, onSave, opportunity }) {
 
             {/* Fitted preview */}
             <div ref={paneRef} className="order-1 lg:order-none lg:flex lg:h-full lg:items-center lg:justify-center lg:overflow-hidden">
-              <div style={fitW ? { width: fitW } : undefined} className="w-full lg:w-auto">
+              <div style={fitW ? { width: fitW } : undefined} className={fitW ? "w-full lg:w-auto" : "w-full"}>
                 <div className="overflow-hidden rounded-base border border-border shadow-sm">
                   <SlideRenderer slide={cur} resolved={resolved} />
                 </div>

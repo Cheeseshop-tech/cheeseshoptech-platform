@@ -31,6 +31,13 @@ catalog → product slots (opportunity SKUs → featured → catalog order); Mon
 blanked so it can't leak cross-tenant. **SlideStudio** gains an Auto-compose button (empty-state
 hero + toolbar). **ContentStudio** feeds the Director the last Opportunity Compose draft
 (headline/storyKeys/skuCodes) — wire 5 closes: market intelligence → Studio end-to-end.
+**Fit fix (after Rick's live screenshot — `COMMIT STUDIO FIT FIX.command`):** the preview's
+ResizeObserver attached at Studio mount (template gallery — pane didn't exist yet), so the main
+slide collapsed to minimum width in prod. `useFitWidth` now takes an `active` flag, measures on
+attach, re-measures on nav-collapse/Focus changes, ignores 0-size rects. The slide now fills the
+pane; collapsing the left nav grows it further — which was Rick's point: nav collapse buys the
+filmstrip room AND a much bigger main slide.
+
 **Plus workspace view options (same session):** collapsible left nav — lever in the topbar,
 collapses to an icon rail, persisted per browser (`app-shell.jsx`, serves every page not just
 the Studio) · Studio **Focus mode** (auto-expand the slide, panels hide) · **fullscreen current
