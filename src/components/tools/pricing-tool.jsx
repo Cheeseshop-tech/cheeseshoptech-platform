@@ -60,18 +60,109 @@ export function PricingTool({ resolved, onNavigate }) {
         </div>
       </div>
 
-      <Tabs defaultValue="proforma">
-        <TabsList>
-          <TabsTrigger value="proforma">Proforma</TabsTrigger>
-          <TabsTrigger value="shelflife">Shelf Life</TabsTrigger>
-          <TabsTrigger value="movement">Movement</TabsTrigger>
-          <TabsTrigger value="commitments">Commitments</TabsTrigger>
-        </TabsList>
-        <TabsContent value="proforma"><Proforma data={data} brand={resolved.brand} resolved={resolved} onNavigate={onNavigate} /></TabsContent>
-        <TabsContent value="shelflife"><ShelfLife data={data} /></TabsContent>
-        <TabsContent value="movement"><Movement data={data} resolved={resolved} /></TabsContent>
-        <TabsContent value="commitments"><Commitments data={data} /></TabsContent>
-      </Tabs>
+      {(data.catalog?.products?.length || 0) === 0 ? (
+        <DataIntake />
+      ) : (
+        <Tabs defaultValue="proforma">
+          <TabsList>
+            <TabsTrigger value="proforma">Proforma</TabsTrigger>
+            <TabsTrigger value="shelflife">Shelf Life</TabsTrigger>
+            <TabsTrigger value="movement">Movement</TabsTrigger>
+            <TabsTrigger value="commitments">Commitments</TabsTrigger>
+          </TabsList>
+          <TabsContent value="proforma"><Proforma data={data} brand={resolved.brand} resolved={resolved} onNavigate={onNavigate} /></TabsContent>
+          <TabsContent value="shelflife"><ShelfLife data={data} /></TabsContent>
+          <TabsContent value="movement"><Movement data={data} resolved={resolved} /></TabsContent>
+          <TabsContent value="commitments"><Commitments data={data} /></TabsContent>
+        </Tabs>
+      )}
+    </div>
+  );
+}
+
+/* ---------------- Data intake (empty-catalog state) ----------------
+   NOT a mock. This is the same encoded app every client runs — until the tenant's data lands,
+   it shows its data-connection state: the preferred file formats and the delivery process
+   (shared Google Drive file → CST sync → this portal populates; same pipeline as the live
+   tenants' weekly availability sync). Runbook: docs/CLIENT_ONBOARDING_GUIDE.md. */
+const INTAKE_FILES = [
+  { file: "01_Product_Catalog_and_Pricing.xlsx", label: "Product Catalog & Pricing", feeds: "Products, pack specs, list prices, tier rules", cadence: "Once, then on changes" },
+  { file: "02_Inventory_Availability.xlsx", label: "Inventory Availability", feeds: "Live stock, lots, expiry — drives the Shelf Life rule", cadence: "Weekly" },
+  { file: "03_Standing_Orders_Commitments.xlsx", label: "Standing Orders & Commitments", feeds: "Recurring demand — drives Movement planning", cadence: "Once, then on changes" },
+];
+
+function DataIntake() {
+  return (
+    <div className="rounded-base border border-border bg-surface p-6">
+      <div className="flex items-start gap-4">
+        <div
+          className="flex h-11 w-11 flex-none items-center justify-center rounded-lg text-brand-primary"
+          style={{ background: "color-mix(in srgb, var(--cs-color-brand-primary) 12%, transparent)" }}
+        >
+          <Share2 className="h-5 w-5" />
+        </div>
+        <div>
+          <h2 className="font-heading text-xl text-fg">This portal is live — it's waiting on your data</h2>
+          <p className="mt-1 max-w-2xl text-sm text-fg-muted">
+            The full quoting, shelf-life, movement and commitments engine is running behind this
+            page. It populates the moment your files land. Three steps:
+          </p>
+        </div>
+      </div>
+
+      <ol className="mt-6 grid gap-4 lg:grid-cols-3">
+        <li className="rounded-lg border border-border bg-bg p-5">
+          <span className="cs-eyebrow text-brand-primary">Step 1 · Download</span>
+          <p className="mt-2 text-sm text-fg-muted">
+            One template per job, in the format the portal ingests directly. Keep headers as they
+            are — one row per item, no merged cells. <b>Item number is the master key</b> across
+            every file.
+          </p>
+          <div className="mt-3 space-y-2">
+            {INTAKE_FILES.map((k) => (
+              <a key={k.file} href={`/onboarding-kit/${k.file}`} download
+                className="group flex items-center gap-2.5 rounded-md border border-border p-2.5 transition-colors hover:border-brand-primary">
+                <Download className="h-4 w-4 flex-none text-brand-primary" />
+                <span className="min-w-0">
+                  <span className="block text-sm font-medium text-fg">{k.label}</span>
+                  <span className="block text-xs text-fg-muted">{k.feeds}</span>
+                  <span className="cs-eyebrow text-fg-muted">{k.cadence}</span>
+                </span>
+              </a>
+            ))}
+          </div>
+        </li>
+        <li className="rounded-lg border border-border bg-bg p-5">
+          <span className="cs-eyebrow text-brand-primary">Step 2 · Fill</span>
+          <p className="mt-2 text-sm text-fg-muted">
+            Work in Excel or Google Sheets — either is fine. The gray italic example row in each
+            sheet shows what good looks like (delete it before sharing). Prices are <b>your</b>{" "}
+            numbers: the engine quotes exactly what you set, it never invents pricing.
+          </p>
+          <p className="mt-3 text-sm text-fg-muted">
+            Partial beats perfect — share the catalog as soon as it's ready; inventory and
+            commitments can follow.
+          </p>
+        </li>
+        <li className="rounded-lg border border-border bg-bg p-5">
+          <span className="cs-eyebrow text-brand-primary">Step 3 · Share via Google Drive</span>
+          <p className="mt-2 text-sm text-fg-muted">
+            Put the files in a Google Drive folder and share it (view access) with{" "}
+            <b>hello@cheeseshoptech.com</b>. That shared file <i>is</i> the pipeline: we sync it
+            into the portal — inventory refreshes weekly from the same shared sheet, no
+            re-uploads, no rebuilds.
+          </p>
+          <p className="mt-3 text-sm text-fg-muted">
+            Keep working in that same file forever — updates flow through on every sync.
+          </p>
+        </li>
+      </ol>
+
+      <p className="mt-5 border-t border-border pt-4 text-xs text-fg-muted">
+        Same delivery process as every live tenant on the platform. Direct in-app upload is on the
+        roadmap; the shared-Drive pipeline is the current standard until a client's workflow needs
+        something different.
+      </p>
     </div>
   );
 }
