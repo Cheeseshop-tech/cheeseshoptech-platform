@@ -19,6 +19,39 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-07-02 — Pricing & Inventory data-intake state (real app, not a mock)
+
+**Decision (Rick).** The template Pricing & Inventory must be **the duplicate encoded app**, not
+a mock/dead shell — and its empty state must carry the data-upload path: preferred file formats +
+the same delivery process as live tenants = **a shared Google Drive file** (until a future client
+needs different). In-app upload stays roadmap.
+
+**Shipped (build ✓ — `COMMIT PRICING INTAKE.command`).** `PricingTool` now renders a `DataIntake`
+panel when `catalog.products` is empty: Step 1 download templates 01/02/03 from
+`/onboarding-kit/` (with what each feeds + cadence) · Step 2 fill (Excel or Google Sheets,
+example-row guidance, "engine never invents pricing") · Step 3 share a Drive folder view-access
+to hello@cheeseshoptech.com — the shared file IS the pipeline, weekly inventory sync, no
+re-uploads. Applies to ANY tenant with an empty catalog (demo today, every new client tomorrow).
+
+---
+
+## 2026-07-02 — Onboarding Hub on the house Command Center (late night)
+
+**Decision (Rick, after seeing the deployed round).** cheeseshoptech.com (house) = **the hub for
+new-client onboarding**: the template apps visible ON the Command Center, not only behind
+`?client=demo`.
+
+**Shipped (build ✓ — commit via `COMMIT ONBOARDING HUB.command`).** New
+`src/components/home/onboarding-hub.jsx` on the house dashboard: template app cards from
+`_template.json` (each opens the demo tenant at that app, new tab), "Open the template portal"
+launcher, and intake-kit download tiles (kit copied to `public/onboarding-kit/` — blank templates,
+safe public; page sits behind the house gate). Visible to admin + client-admin house sessions;
+Agency Console stays admin-only. Sending addresses locked same night: **Sales@montitrentini-usa.com**
+(Monti outreach, HubSpot Starter, plaintext + hosted-page pattern) + **hello@cheeseshoptech.com**
+(all things CST) — both live Google Workspace mailboxes.
+
+---
+
 ## 2026-07-02 — Template tenant + onboarding kit + agents SDD (new round)
 
 **Decision (Rick).** New development round: (1) the Monti app set copied into the platform as a

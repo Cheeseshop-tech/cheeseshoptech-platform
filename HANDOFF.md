@@ -22,6 +22,21 @@ picks them up) · **Surface:** Cowork
   URL removed + 302s to the gate. **Re-copy flow: Projects source → `src/assets/` (strip back
   button), NOT public/.** QC series room stays public (portfolio).
 
+## ✅ BUILT (2026-07-02 latest) — Pricing & Inventory data-intake state
+Rick's rule: template apps = **the duplicate encoded app, never a mock**. `PricingTool` with an
+empty catalog now shows its data-connection state: template downloads (01/02/03 from
+`/onboarding-kit/`) → fill (Excel/Sheets) → **share a Google Drive folder with
+hello@cheeseshoptech.com** (the shared file IS the pipeline — same weekly-sync process as live
+tenants; in-app upload = roadmap). Ship via **`COMMIT PRICING INTAKE.command`** (run the HUB
+commit first if not yet pushed).
+
+## ✅ BUILT (2026-07-02 late night) — Onboarding Hub on the house Command Center
+cheeseshoptech.com = **the new-client onboarding hub** (Rick's call after seeing the round live).
+`onboarding-hub.jsx` on the house dashboard: template app cards (from `_template.json`, each
+opens `?client=demo` at that app) + "Open the template portal" + intake-kit download tiles
+(`public/onboarding-kit/`). Admin + client-admin sessions see it; Agency Console stays admin-only.
+Build ✓ — **ship via `COMMIT ONBOARDING HUB.command`**.
+
 ## ✅ BUILT (2026-07-02 night) — Template tenant + onboarding kit + agents SDD
 New round shipped on disk (build ✓, validate ✓) — **ship via `COMMIT ONBOARDING TEMPLATE.command`**:
 - **`_template.json` = THE CLONE** (full Monti app set, content-free) + **`src/data/_template/`**
