@@ -8,6 +8,7 @@ git add \
   "src/lib/studio-director.js" \
   "src/components/presentations/slide-studio.jsx" \
   "src/components/proposals/content-studio.jsx" \
+  "src/components/layout/app-shell.jsx" \
   "docs/BUILD_LOG.md" \
   "HANDOFF.md" \
   "COMMIT STUDIO DIRECTOR.command"
@@ -31,7 +32,12 @@ git commit -m "feat(studio): Studio Director Stage 0+1 — deterministic Auto-co
 - one-viewport workspace (Rick): vertical filmstrip rail + height-fitted preview
   (ResizeObserver, 16:9 fit) + internally-scrolling inspector, deck title inline in
   the toolbar, per-slide template switcher — zero page scroll while editing; less
-  scrolling = faster design + continuity"
+  scrolling = faster design + continuity
+- workspace view options (Rick): collapsible left nav (lever in the topbar, icon
+  rail when closed, persisted per browser — app-shell.jsx); Studio Focus mode
+  (auto-expand the slide, hide rail + inspector); fullscreen current slide (Expand);
+  fullscreen slide show (Play, keyboard + click advance, position hands back to the
+  editor on close)"
 
 echo
 echo "Pushing (triggers Netlify deploy)…"

@@ -1,5 +1,5 @@
-import { useLayoutEffect, useRef, useState } from "react";
-import { Plus, ArrowLeft, Trash2, Wand2 } from "lucide-react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { Plus, ArrowLeft, Trash2, Wand2, Maximize2, Minimize2, Expand, Play, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button.jsx";
 import { MediaPicker } from "@/components/media/media-picker.jsx";
 import { SlideRenderer } from "./slide-renderer.jsx";
@@ -77,6 +77,10 @@ export function SlideStudio({ resolved, onClose, onSave, opportunity }) {
   const voice = voiceOptions(resolved);
   const paneRef = useRef(null);
   const fitW = useFitWidth(paneRef);
+  // Workspace view options (Rick, 2026-07-02): focus mode auto-expands the main slide (hides
+  // rail + inspector); player = fullscreen overlay ({ start, show: "slide" | "show" }).
+  const [focusMode, setFocusMode] = useState(false);
+  const [player, setPlayer] = useState(null);
 
   // Studio Director Stage 0/1 (CONTENT_ENGINE_WIRING_SPEC §3): deterministic auto-fill —
   // kit voice → text slots, Media Hub → image slots, catalog → product slots, optional
@@ -194,14 +198,31 @@ export function SlideStudio({ resolved, onClose, onSave, opportunity }) {
             <span className="mx-1 hidden h-5 w-px bg-border sm:block" />
             <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={deck[0]?.slots?.slide_title || "Deck title (for the Library)"}
               className="h-9 min-w-40 flex-1 rounded-base border border-border bg-bg px-2 text-sm text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand" />
+            <span className="mx-1 hidden h-5 w-px bg-border sm:block" />
+            <Button variant={focusMode ? "primary" : "outline"} size="sm" onClick={() => setFocusMode((f) => !f)} title={focusMode ? "Exit focus — show filmstrip + inspector" : "Focus — auto-expand the slide, hide panels"}>
+              {focusMode ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />} Focus
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setPlayer({ start: idx, show: "slide" })} title="View this slide fullscreen">
+              <Expand className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setPlayer({ start: 0, show: "show" })} title="Play the deck fullscreen (slide show)">
+              <Play className="h-4 w-4" />
+            </Button>
             <Button variant="ghost" size="sm" onClick={clearSlide}>Clear slide</Button>
             <Button variant="ghost" size="sm" onClick={() => removeSlide(idx)}><Trash2 className="h-4 w-4" /> Delete</Button>
           </div>
 
+          {player && (
+            <DeckPlayer deck={deck} resolved={resolved} start={player.start} slideshow={player.show === "show"}
+              onClose={(at) => { setPlayer(null); if (typeof at === "number") setIdx(at); }} />
+          )}
+
           {/* One-viewport workspace (Rick, 2026-07-02): filmstrip rail · fitted preview · inspector.
-              Fixed height on desktop, each pane scrolls internally — zero page scroll while editing. */}
-          <div className="grid gap-3 lg:h-[calc(100vh-330px)] lg:min-h-[420px] lg:grid-cols-[9.5rem_minmax(0,1fr)_minmax(280px,24rem)]">
+              Fixed height on desktop, each pane scrolls internally — zero page scroll while editing.
+              Focus mode: the slide auto-expands to the full workspace; panels hide. */}
+          <div className={"grid gap-3 lg:h-[calc(100vh-330px)] lg:min-h-[420px] " + (focusMode ? "lg:grid-cols-[minmax(0,1fr)]" : "lg:grid-cols-[9.5rem_minmax(0,1fr)_minmax(280px,24rem)]")}>
             {/* Filmstrip rail */}
+            {!focusMode && (
             <div className="order-2 flex gap-2 overflow-x-auto pb-1 lg:order-none lg:flex-col lg:overflow-y-auto lg:overflow-x-hidden lg:pb-0 lg:pr-1">
               {deck.map((sl, i) => (
                 <button key={i} onClick={() => setIdx(i)} className={"relative w-36 flex-none overflow-hidden rounded-base border-2 lg:w-full " + (i === idx ? "border-brand-primary" : "border-border opacity-80 hover:opacity-100")}>
@@ -213,6 +234,7 @@ export function SlideStudio({ resolved, onClose, onSave, opportunity }) {
                 <span className="text-center"><Plus className="mx-auto h-4 w-4" /> Add</span>
               </button>
             </div>
+            )}
 
             {/* Fitted preview */}
             <div ref={paneRef} className="order-1 lg:order-none lg:flex lg:h-full lg:items-center lg:justify-center lg:overflow-hidden">
@@ -229,6 +251,7 @@ export function SlideStudio({ resolved, onClose, onSave, opportunity }) {
             </div>
 
             {/* Inspector — scrolls internally */}
+            {!focusMode && (
             <div className="order-3 rounded-base border border-border bg-bg p-3 lg:order-none lg:overflow-y-auto">
               <h3 className="mb-2 font-heading text-lg text-brand-primary">{curTpl.label}</h3>
               <div className="space-y-2">
@@ -268,9 +291,53 @@ export function SlideStudio({ resolved, onClose, onSave, opportunity }) {
                 ))}
               </div>
             </div>
+            )}
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+/* ---------------- Fullscreen player ----------------
+   One overlay serves both view options: "Expand" opens the CURRENT slide fullscreen;
+   "Play" runs the whole deck as a slide show from slide 1. Keyboard: ←/→/Space advance,
+   Esc closes. Click advances in slideshow mode. Closing hands the position back to the
+   editor so review flows straight into editing (continuity — less context switching). */
+function DeckPlayer({ deck, resolved, start = 0, slideshow = false, onClose }) {
+  const [at, setAt] = useState(Math.max(0, Math.min(start, deck.length - 1)));
+
+  useEffect(() => {
+    function onKey(e) {
+      if (e.key === "Escape") { e.preventDefault(); onClose(at); }
+      else if (e.key === "ArrowRight" || e.key === " " || e.key === "PageDown") { e.preventDefault(); setAt((i) => Math.min(i + 1, deck.length - 1)); }
+      else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); setAt((i) => Math.max(i - 1, 0)); }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [deck.length, at, onClose]);
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black"
+      onClick={slideshow ? () => (at < deck.length - 1 ? setAt(at + 1) : onClose(at)) : undefined}>
+      <div style={{ width: "min(100vw, calc(100vh * 16 / 9))" }}>
+        <SlideRenderer slide={deck[at]} resolved={resolved} present />
+      </div>
+
+      <button type="button" onClick={(e) => { e.stopPropagation(); onClose(at); }} title="Close (Esc)"
+        className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white transition-colors hover:bg-white/25">
+        <X className="h-5 w-5" />
+      </button>
+
+      <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-3 rounded-full bg-white/10 px-4 py-1.5 text-sm text-white">
+        <button type="button" disabled={at === 0} onClick={(e) => { e.stopPropagation(); setAt(at - 1); }} className="disabled:opacity-30" title="Previous (←)">
+          <ChevronLeft className="h-5 w-5" />
+        </button>
+        <span className="tabular-nums">{at + 1} / {deck.length}</span>
+        <button type="button" disabled={at >= deck.length - 1} onClick={(e) => { e.stopPropagation(); setAt(at + 1); }} className="disabled:opacity-30" title="Next (→)">
+          <ChevronRight className="h-5 w-5" />
+        </button>
+      </div>
     </div>
   );
 }
