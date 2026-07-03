@@ -1,10 +1,30 @@
 # HANDOFF — CheeseShop TECH platform
 
-**Updated:** 2026-07-02 (evening) · **HEAD:** `phase-2-6-build` @ `e9ff4d4`, **in sync with origin**
-(only the final BUILD_LOG/HANDOFF entries pending — next run of `COMMIT CONTENT ENGINE UI.command`
-picks them up) · **Surface:** Cowork
+**Updated:** 2026-07-03 (small hours) · **Branch:** `phase-2-6-build` — everything below through
+the Studio fit fix is PUSHED + LIVE-VERIFIED; the session-close docs (pricing proposal, BUILD_LOG,
+this file) ship via **`COMMIT SESSION CLOSE.command`** · **Surface:** Cowork
 **Read first:** `CLAUDE_CODE_BRIEF.md` → this → `docs/BUILD_LOG.md` (top) →
-`docs/CONTENT_ENGINE_WIRING_SPEC.md` + `docs/PLATFORM_SIDES_SPEC.md`.
+`docs/ONBOARDING_AND_AGENTS_SDD.md` + `docs/CONTENT_ENGINE_WIRING_SPEC.md`.
+
+## ✅ THE 2026-07-02 MEGA-SESSION — all live on prod
+One session shipped: **template tenant** (`demo`, content-free clone, ?client=demo) · **onboarding
+kit** (7 files, downloadable, Onboarding Hub on the house Command Center) · **Pricing & Inventory
+data-intake state** (real app, Google-Drive delivery) · **Studio Director Stage 0+1** (deterministic
+Auto-compose) · **one-viewport Studio workspace** (filmstrip rail, fitted preview, collapsible nav,
+Focus, fullscreen, slideshow) · **both sending addresses decided + live** (sales@montitrentini-usa.com
+via HubSpot Starter; hello@cheeseshoptech.com for all things CST — both Google Workspace) ·
+**pricing proposal v1.1** (`docs/PRICING_PROPOSAL_v1.1.md`: $2.5K/$5K/$9.5K onboarding · $650/$1,500/
+$3,000 monthly · N=18 buyout — PROPOSED, flinch-test before locking).
+
+## TOMORROW'S QUEUE (2026-07-03)
+1. **Agent A1 (Content Agent)** on the Director substrate — spec §4 order: stable voice-block
+   keys → flow renderer port (landing/email — feeds the plaintext→landing-page outreach pattern).
+2. **Rick's side:** connect sales@ inbox in HubSpot · Anthropic Console + ~$25 spend cap (unlocks
+   Stage 2 AI pass — ONE API account serves all tenants, never a plan per client) · campaign
+   materials sweep to the new sending address before Asiago launch.
+3. **Monti sales history** (kit file 06 for Monti itself) — unblocks A3/A4 forecasting.
+4. Optional quick wins: footer build-stamp (kills the stale-cache confusion) · BSE→Brand Kit
+   import button (wiring board row 6).
 
 ## ✅ LIVE (2026-07-02) — one address, three doors, Content Engine portal — ALL VERIFIED
 - **cheeseshoptech.com** = the platform site (Drop site DELETED). Apex = coming-soon + quiet

@@ -19,6 +19,29 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-07-02 — Session close: pricing proposal v1.1 + economics decisions (late night)
+
+**Pricing proposed (`docs/PRICING_PROPOSAL_v1.1.md` — separate numbers doc; structure stays in
+PRICING_AND_ENGAGEMENT_MODEL.md).** Stand-Up Month onboarding $2,500 / $5,000 (Monti-scale) /
+$9,500+; monthly tiers Portal $650 · Orchestration $1,500 (target) · Growth Partner $3,000;
+buyout N=18 proposed; founding-client lever = half the onboarding fee credited across months
+2–4, never discount the monthly. Sales motion: demo tenant showroom → "with YOUR products"
+anchor → assembled-alternative comparison → close on the Stand-Up Month. **Status: PROPOSED —
+flinch-test on the first 2–3 prospects before locking.**
+
+**Agent economics decided (same conversation):** Rick's $100/mo Max plan (+$109 extra usage) =
+the Cowork/build meter — covers all session work, canNOT fund in-app agent calls. Embedded
+Stage-2 agents need a separate Anthropic Console (API) account, pay-as-you-go: ~$5–15/mo per
+tenant, ~2–4¢ per compose (Sonnet), spend cap ~$25/mo covers multiple tenants. **One Max plan
+total (Rick's workbench) + ONE API account for all client tenants — never a $100 plan per
+client.** Prices verified 2026-07-02: Haiku 4.5 $1/$5 · Sonnet $3/$15 · Opus $5/$25 per M tokens.
+
+**Fit-fix verified live** via in-browser inspection (fresh tab: slide fills the pane at 1177px).
+Recurring lesson recorded: **hard-refresh (Cmd+Shift+R) before judging any deploy** — stale
+bundle cache produced three false alarms tonight. Offered (not built): footer build-stamp.
+
+---
+
 ## 2026-07-02 — Studio Director Stage 0+1 SHIPPED (deterministic Auto-compose)
 
 **The teed-up highest-leverage build (CONTENT_ENGINE_WIRING_SPEC §3), now real.**
