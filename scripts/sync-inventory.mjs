@@ -203,6 +203,21 @@ const withStock = Object.values(skus).filter((s) => s.lots.some((l) => l.status 
 
 // ---- validation gate (for unattended --promote runs) ----------------------
 // Returns [] when safe to ship, or a list of human-readable failures.
+// Cross-checks parsed items against source/item-reference.json (static code ->
+// description truth list). A materially different description on a KNOWN code
+// means the sheet's columns shifted or the parse mis-aligned:
+//   >=5 description mismatches  -> hard fail (structural shift)
+//   1-4 mismatches              -> warn, still promote (legit renames happen)
+//   unknown codes               -> warn only (new items; add them to the reference)
+const REF_PATH = path.join(SRC_DIR, "item-reference.json");
+const normDesc = (s) => String(s || "").toUpperCase().replace(/[^A-Z0-9]+/g, " ").trim();
+// "materially different": no significant word overlap after normalization
+function descMatches(a, b) {
+  const wa = new Set(normDesc(a).split(" ")), wb = new Set(normDesc(b).split(" "));
+  let hit = 0;
+  for (const w of wa) if (wb.has(w)) hit++;
+  return hit >= Math.min(2, wa.size, wb.size); // share >=2 words (or all, if shorter)
+}
 function validate(doc) {
   const errs = [];
   const n = Object.keys(doc.skus).length;
@@ -214,6 +229,29 @@ function validate(doc) {
       if (l.status === "on_hand" && !l.expDate) errs.push(`on-hand lot ${code}/${l.lotNum} missing expDate`);
       if (l.cases == null) errs.push(`lot ${code}/${l.lotNum} has no case count`);
     }
+  }
+  // reference cross-check
+  if (fs.existsSync(REF_PATH)) {
+    let ref = null;
+    try { ref = JSON.parse(fs.readFileSync(REF_PATH, "utf8")).items; } catch { /* unreadable -> skip */ }
+    if (ref) {
+      const mismatches = [], unknown = [];
+      for (const [code, s] of Object.entries(doc.skus)) {
+        if (!(code in ref)) { unknown.push(code); continue; }
+        if (!descMatches(s.name, ref[code])) mismatches.push(`${code}: sheet "${s.name}" vs reference "${ref[code]}"`);
+      }
+      const missing = Object.keys(ref).filter((c) => !(c in doc.skus));
+      if (mismatches.length >= 5) {
+        errs.push(`${mismatches.length} item descriptions do not match item-reference.json — columns likely shifted`);
+        for (const m of mismatches.slice(0, 4)) errs.push(`  ${m}`);
+      } else if (mismatches.length) {
+        for (const m of mismatches) log(`⚠ description drift (promoting anyway): ${m} — update item-reference.json if legit rename`);
+      }
+      if (missing.length >= 20) errs.push(`${missing.length} known codes vanished from the sheet (e.g. ${missing.slice(0, 5).join(", ")}) — parse likely broken`);
+      if (unknown.length) log(`⚠ ${unknown.length} new code(s) not in item-reference.json: ${unknown.join(", ")} — add if legit new items`);
+    }
+  } else {
+    log("⚠ no source/item-reference.json — description cross-check skipped");
   }
   return errs.slice(0, 8);
 }
