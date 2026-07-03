@@ -9,6 +9,7 @@ import { hasCrm } from "@/lib/crm.js";
 import { CommandCenter } from "@/components/home/command-center.jsx";
 import { PriorityCard } from "@/components/home/priority-card.jsx";
 import { AgencyConsole } from "@/components/home/agency-console.jsx";
+import { OnboardingHub } from "@/components/home/onboarding-hub.jsx";
 import { RoleGate } from "@/components/auth/require-auth.jsx";
 
 // The landing "hub" — the standard client intro page (ported from the Monti Operations Portal,
@@ -143,12 +144,21 @@ export function HomeHub({ resolved, onNavigate }) {
           the agency house has no CRM, so its hub stays clean). */}
       {hasCrm(resolved) && <CommandCenter resolved={resolved} onNavigate={onNavigate} />}
 
-      {/* Agency console — house view, CST admins only (ADMIN_DASHBOARDS_SPEC §3):
-          tenant management · integration health · data pipelines. */}
+      {/* Onboarding Hub + Agency console — house view, CST admins only (ADMIN_DASHBOARDS_SPEC §3).
+          cheeseshoptech.com = the hub for new-client onboarding: template app cards (open the
+          content-free demo tenant) + the intake-kit downloads, then tenant management ·
+          integration health · data pipelines. */}
       {resolved.isHouse && (
-        <RoleGate roles={["admin"]}>
-          <AgencyConsole onNavigate={onNavigate} />
-        </RoleGate>
+        <>
+          {/* Onboarding hub is visible to anyone past the house gate (admin OR client-admin
+              sessions — Rick sometimes lands as client-admin); the console stays admin-only. */}
+          <RoleGate roles={["admin", "client-admin"]}>
+            <OnboardingHub />
+          </RoleGate>
+          <RoleGate roles={["admin"]}>
+            <AgencyConsole onNavigate={onNavigate} />
+          </RoleGate>
+        </>
       )}
 
       {home.footer && (
