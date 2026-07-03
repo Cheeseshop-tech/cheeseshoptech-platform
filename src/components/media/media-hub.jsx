@@ -12,13 +12,16 @@ import { useToast } from "@/components/ui/toast.jsx";
 import { useAuth } from "@/lib/auth-context.jsx";
 import { cldUrl, uploadAsset, UPLOAD_PRESET } from "@/lib/cloudinary.js";
 import { listAssets, updateAsset, deleteAsset, APPROVAL, USAGE, usageLabel, canUpload, canManageMedia, canDeleteMedia } from "@/lib/media.js";
+import { loadItems, emptyDoc, canManageItems, emptyItem, upsertItem, saveItems, getItem } from "@/lib/items.js";
+import { ItemsPanel } from "@/components/media/items-panel.jsx";
 
 export function MediaHub({ resolved }) {
   const { user } = useAuth();
   const { toast } = useToast();
   // Tabs MIRROR the usage tags (Asset Library model): every tab is a saved view filtered by tag,
-  // not a storage folder. Special tabs: "recent" (your latest uploads) and "all" (everything).
-  const TABS = [{ id: "recent", label: "Recent" }, { id: "all", label: "All" }, ...USAGE.map((u) => ({ id: u.id, label: u.label }))];
+  // not a storage folder. Special tabs: "items" (the item records — source of truth for product
+  // identity, description cards, pricing), "recent" (your latest uploads), and "all" (everything).
+  const TABS = [{ id: "items", label: "Items" }, { id: "recent", label: "Recent" }, { id: "all", label: "All" }, ...USAGE.map((u) => ({ id: u.id, label: u.label }))];
   const [tab, setTab] = useState("all");
   const [assets, setAssets] = useState(null);
   const [active, setActive] = useState(null);
@@ -37,6 +40,9 @@ export function MediaHub({ resolved }) {
   // browser on load). Reset when the tab changes.
   const PAGE = 30;
   const [shown, setShown] = useState(PAGE);
+  // Items document (source of truth for item records + description cards). Hoisted here so the
+  // rail can count items and future surfaces (asset dialog, catalog) can share it.
+  const [itemsDoc, setItemsDoc] = useState(null);
 
   // Fetch the whole asset set ONCE; tabs filter it client-side by usage tag (instant switching).
   useEffect(() => {
@@ -50,6 +56,16 @@ export function MediaHub({ resolved }) {
 
   useEffect(() => { setShown(PAGE); }, [tab]);
 
+  // Load the items document once per tenant. Failure degrades to an empty doc (UI still works).
+  useEffect(() => {
+    let alive = true;
+    setItemsDoc(null);
+    loadItems(resolved.cloudinaryFolder)
+      .then((d) => { if (alive) setItemsDoc(d); })
+      .catch(() => { if (alive) setItemsDoc(emptyDoc()); });
+    return () => { alive = false; };
+  }, [resolved.cloudinaryFolder]);
+
   // The pool = persisted recent uploads merged over the fetched set, de-duped by publicId.
   const merged = assets ? [...recent, ...assets].filter((a, i, arr) => arr.findIndex((x) => x.publicId === a.publicId) === i) : null;
   // What the grid shows for the active tab.
@@ -60,6 +76,7 @@ export function MediaHub({ resolved }) {
   // Per-view count for the left rail. null while the set is still loading (except Recent, which
   // is local). Recent counts persisted uploads; usage views count the merged pool by tag.
   const countFor = (id) => {
+    if (id === "items") return itemsDoc ? Object.keys(itemsDoc.items || {}).length : null;
     if (id === "recent") return recent.length;
     if (!merged) return null;
     if (id === "all") return merged.length;
@@ -146,7 +163,7 @@ export function MediaHub({ resolved }) {
               const count = countFor(t.id);
               return (
                 <li key={t.id}>
-                  {i === 2 && <div className="my-1.5 border-t border-border" />}
+                  {(i === 1 || i === 3) && <div className="my-1.5 border-t border-border" />}
                   <button
                     onClick={() => setTab(t.id)}
                     aria-current={on ? "true" : undefined}
@@ -161,8 +178,17 @@ export function MediaHub({ resolved }) {
           </ul>
         </nav>
 
-        {/* Grid */}
-        <div className="min-w-0 flex-1">
+        {/* Items view — item records with description cards (the truth for product copy/pricing) */}
+        {tab === "items" ? (
+          <ItemsPanel
+            resolved={resolved}
+            assets={merged}
+            doc={itemsDoc}
+            setDoc={setItemsDoc}
+            canManage={canManageItems(user)}
+          />
+        ) : (
+        <div className="min-w-0 flex-1">{/* Grid */}
           {display === null ? (
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
               {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="aspect-[4/5] w-full" />)}
@@ -192,6 +218,7 @@ export function MediaHub({ resolved }) {
             </>
           )}
         </div>
+        )}
       </div>
 
       <UploadDetailsDialog files={pending} uploading={uploading} onCancel={() => setPending(null)} onConfirm={doUpload} />
@@ -200,6 +227,25 @@ export function MediaHub({ resolved }) {
         asset={active}
         onClose={() => setActive(null)}
         canManage={canManageMedia(user)}
+        itemsDoc={itemsDoc}
+        canManageItem={canManageItems(user)}
+        onSaveItem={async (sku, fields) => {
+          // Write-through to the ITEM RECORD (single truth, shared by the Items tab and every
+          // photo of this SKU). Optimistic update, rolled back on failure.
+          const base = itemsDoc || emptyDoc();
+          const existing = base.items?.[sku] || emptyItem(sku);
+          const next = upsertItem(base, { ...existing, ...fields });
+          const prev = itemsDoc;
+          setItemsDoc(next);
+          try {
+            await saveItems(resolved.cloudinaryFolder, next);
+            return true;
+          } catch (err) {
+            setItemsDoc(prev);
+            toast({ title: "Item save failed", description: String(err?.message || err), tone: "error" });
+            return false;
+          }
+        }}
         onCopy={(url) => { navigator.clipboard?.writeText(url); toast({ title: "Link copied", tone: "success" }); }}
         onSave={async (fields) => {
           const id = active.publicId;
@@ -275,12 +321,9 @@ function AssetTile({ asset, onOpen }) {
             {asset.sku ? <span className="font-mono text-xs text-fg-muted">{asset.sku}</span> : <span />}
             {showBadge && <Badge variant={ap.tone}>{ap.label}</Badge>}
           </div>
-          {asset.usage?.length > 0 && (
-            <div className="mt-1.5 flex flex-wrap gap-1">
-              {asset.usage.slice(0, 3).map((id) => <Badge key={id} variant="muted">{usageLabel(id)}</Badge>)}
-              {asset.usage.length > 3 && <span className="text-xs text-fg-muted">+{asset.usage.length - 3}</span>}
-            </div>
-          )}
+          {/* Usage tags intentionally NOT shown on tiles (Rick, 2026-07-03) — they cluttered the
+              grid. They're still visible/editable in the asset dialog, and the left-rail views
+              already group by usage. */}
         </div>
       </Card>
     </button>
@@ -360,14 +403,16 @@ function UploadDetailsDialog({ files, uploading, onCancel, onConfirm }) {
 }
 
 // Asset detail + EDIT. View mode shows the asset; managers can flip to Edit to rename, re-tag
-// usage, link a SKU, add alt text, and set approval — all persisted via media-update (the asset is
-// the Media Hub's to own; product copy is NOT here, it lives with the SKU).
-function AssetDialog({ asset, onClose, canManage, canDelete, onCopy, onSave, onDelete }) {
+// usage, link a SKU, add alt text, and set approval — persisted via media-update. When a SKU is
+// linked, the ITEM RECORD fields (weight, pack size, short/long description) are edited right
+// here too — but they write through to the shared items doc (one truth, same as the Items tab).
+function AssetDialog({ asset, onClose, canManage, canDelete, onCopy, onSave, onDelete, itemsDoc, canManageItem, onSaveItem }) {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState(null);
+  const [itemForm, setItemForm] = useState(null); // weight/packSize/short/long — item-record slice
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  useEffect(() => { setEditing(false); setForm(null); }, [asset?.publicId]);
+  useEffect(() => { setEditing(false); setForm(null); setItemForm(null); }, [asset?.publicId]);
   const remove = async () => {
     if (!window.confirm(`Permanently delete "${asset.title}"?\n\nThis removes it from Cloudinary and cannot be undone.`)) return;
     setDeleting(true);
@@ -378,6 +423,9 @@ function AssetDialog({ asset, onClose, canManage, canDelete, onCopy, onSave, onD
   const heroUrl = cldUrl(asset.publicId, "hero");
   const deliveryUrl = cldUrl(asset.publicId, "original");
 
+  // Item record linked to this asset (by SKU) — display in view mode, edit via itemForm.
+  const linkedItem = getItem(itemsDoc, editing ? (form?.sku || "").trim() : asset?.sku);
+
   const startEdit = () => {
     setForm({
       displayName: asset.title || "",
@@ -386,14 +434,29 @@ function AssetDialog({ asset, onClose, canManage, canDelete, onCopy, onSave, onD
       alt: asset.alt || "",
       approvalState: asset.approvalState || "draft",
     });
+    const it = getItem(itemsDoc, asset.sku) || emptyItem(asset.sku || "");
+    setItemForm({
+      weight: it.weight || "",
+      packSize: it.packSize || "",
+      shortDescription: it.shortDescription || "",
+      longDescription: it.longDescription || "",
+    });
     setEditing(true);
   };
   const toggleUsage = (id) => setForm((f) => ({ ...f, usage: f.usage.includes(id) ? f.usage.filter((x) => x !== id) : [...f.usage, id] }));
+  const setItemField = (k, v) => setItemForm((f) => ({ ...f, [k]: v }));
   const save = async () => {
     setSaving(true);
     const ok = await onSave({ ...form, displayName: form.displayName.trim() || asset.title });
+    // Item fields write through to the shared item record — only when a SKU is linked and the
+    // user may manage items. A failed item save keeps the dialog open so nothing is lost.
+    let itemOk = true;
+    const sku = (form.sku || "").trim();
+    if (ok && sku && canManageItem && itemForm) {
+      itemOk = await onSaveItem(sku, itemForm);
+    }
     setSaving(false);
-    if (ok) setEditing(false);
+    if (ok && itemOk) setEditing(false);
   };
 
   return (
@@ -423,6 +486,17 @@ function AssetDialog({ asset, onClose, canManage, canDelete, onCopy, onSave, onD
               </div>
             )}
             {asset.alt && <p className="mt-2 text-sm text-fg-muted">{asset.alt}</p>}
+            {linkedItem && (
+              <div className="mt-3 rounded-base border border-border p-3">
+                <p className="text-xs font-medium text-fg-muted">
+                  Item <span className="font-mono">{linkedItem.sku}</span>
+                  {(linkedItem.weight || linkedItem.packSize) && (
+                    <span> · {[linkedItem.weight, linkedItem.packSize].filter(Boolean).join(" · ")}</span>
+                  )}
+                </p>
+                {linkedItem.shortDescription && <p className="mt-1.5 text-sm text-fg">{linkedItem.shortDescription}</p>}
+              </div>
+            )}
             {canManage ? (
               <div className="mt-4 flex items-center justify-between gap-3 border-t border-border pt-4">
                 <Button size="sm" variant="outline" onClick={startEdit}><Pencil className="h-4 w-4" /> Edit asset</Button>
@@ -478,6 +552,41 @@ function AssetDialog({ asset, onClose, canManage, canDelete, onCopy, onSave, onD
               <input value={form.alt} onChange={(e) => setForm((f) => ({ ...f, alt: e.target.value }))}
                 className="h-9 w-full rounded-base border border-border bg-bg px-2 text-sm text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand" />
             </Field>
+
+            {/* Item record fields — shown when a SKU is linked. These write through to the SHARED
+                item record (items.json), the same truth the Items tab edits. NO pricing here. */}
+            {canManageItem && itemForm && (form.sku || "").trim() ? (
+              <div className="rounded-base border border-border p-3">
+                <p className="mb-2 text-sm font-medium text-fg">
+                  Item record — <span className="font-mono text-xs">{form.sku.trim()}</span>{" "}
+                  <span className="text-xs font-normal text-fg-muted">shared across all photos of this item</span>
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="Weight">
+                    <input value={itemForm.weight} onChange={(e) => setItemField("weight", e.target.value)} placeholder="e.g. 16-18 lbs"
+                      className="h-9 w-full rounded-base border border-border bg-bg px-2 text-sm text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand" />
+                  </Field>
+                  <Field label="Pack size">
+                    <input value={itemForm.packSize} onChange={(e) => setItemField("packSize", e.target.value)} placeholder="e.g. 1 wheel/case"
+                      className="h-9 w-full rounded-base border border-border bg-bg px-2 text-sm text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand" />
+                  </Field>
+                </div>
+                <div className="mt-3">
+                  <Field label="Short description — social, email, catalog blurb">
+                    <textarea rows={2} value={itemForm.shortDescription} onChange={(e) => setItemField("shortDescription", e.target.value)}
+                      className="w-full rounded-base border border-border bg-bg px-2 py-1.5 text-sm text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand" />
+                  </Field>
+                </div>
+                <div className="mt-3">
+                  <Field label="Long description — slides, blog, sell sheets">
+                    <textarea rows={4} value={itemForm.longDescription} onChange={(e) => setItemField("longDescription", e.target.value)}
+                      className="w-full rounded-base border border-border bg-bg px-2 py-1.5 text-sm text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand" />
+                  </Field>
+                </div>
+              </div>
+            ) : canManageItem && itemForm ? (
+              <p className="text-xs text-fg-muted">Link a SKU above to edit the item's weight, pack size, and descriptions here.</p>
+            ) : null}
             <DialogFooter>
               <Button variant="ghost" onClick={() => setEditing(false)} disabled={saving}>Cancel</Button>
               <Button variant="primary" onClick={save} disabled={saving}>{saving ? "Saving…" : "Save changes"}</Button>
