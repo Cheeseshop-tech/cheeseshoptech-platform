@@ -83,6 +83,16 @@ retires. Also on record: **onboarding tools live on the CST side** (correction f
 **Rick's actions to go live:** double-click `COMMIT CONTENT ENGINE UI.command` → run the DNS
 runbook → verify apex Sign in → (still open) sending-address decision.
 
+## 2026-07-02 (cont. 4) — SESSION CLOSE — everything live + pushed
+
+**Final state, all verified:** apex/www/admin/montitrentini all serve `cheeseshoptech-platform`
+with valid SSL · old Drop project DELETED (netlify.app 404s — domain can't wander back) · repo
+`phase-2-6-build` in sync with origin (Content Engine reorg + BSE integration + coming-soon Sign
+in all deployed). The day's shape: **UI reorg (Content Engine + operations dashboard + Priority
+window) → BSE integrated + gated → one-address domain consolidation with three doors.**
+Open items carried: sending-address decision (blocks 3 wires) · copy BSE/QC edits upstream to
+Projects sources · Studio Director Stage 0 = next build. Memory updated (`cst-domains-and-doors`).
+
 ## 2026-07-02 (cont. 3) — DOMAIN CONSOLIDATION EXECUTED — one address, three doors, LIVE
 
 **Done (Rick + Claude, verified live from the sandbox).** The DOMAIN_CONSOLIDATION_RUNBOOK was

@@ -1,29 +1,38 @@
 # HANDOFF — CheeseShop TECH platform
 
-**Updated:** 2026-07-02 · **HEAD (local):** `phase-2-6-build` @ `6b58f1f` (ahead of origin by 1:
-coming-soon proxy files) + the 2026-07-02 Content Engine reorg **on disk, uncommitted** · **Surface:** Cowork
-**To sync:** double-click **`COMMIT BRAND SYSTEMS ENGINE.command`** (if `6b58f1f` still unpushed), then
-**`COMMIT CONTENT ENGINE UI.command`** (today's reorg + docs).
-**Read first:** `CLAUDE_CODE_BRIEF.md` → this → `docs/BUILD_LOG.md` (top) → `docs/CONTENT_ENGINE_WIRING_SPEC.md`.
+**Updated:** 2026-07-02 (evening) · **HEAD:** `phase-2-6-build` @ `e9ff4d4`, **in sync with origin**
+(only the final BUILD_LOG/HANDOFF entries pending — next run of `COMMIT CONTENT ENGINE UI.command`
+picks them up) · **Surface:** Cowork
+**Read first:** `CLAUDE_CODE_BRIEF.md` → this → `docs/BUILD_LOG.md` (top) →
+`docs/CONTENT_ENGINE_WIRING_SPEC.md` + `docs/PLATFORM_SIDES_SPEC.md`.
 
-## 🔧 ON DISK (2026-07-02, cont. 2) — BSE integrated under Content Engine + GATED (uncommitted)
-The Brand Systems Engine now lives INSIDE the portal: internal route `brand-systems` (Content
-Engine cards Brand Systems + Brand Voice), iframe-srcDoc from `src/assets/brand-systems-engine.html`
-(lazy chunk), RoleGated admin/client-admin. The ungated public `/tools/brand-systems-engine/` is
-removed by the commit script (`git rm -r` — sandbox can't delete) — **"gate the BSE" is CLOSED on
-push.** Re-copy flow changed: Projects source → `src/assets/` (strip back-button), not `public/`.
+## ✅ LIVE (2026-07-02) — one address, three doors, Content Engine portal — ALL VERIFIED
+- **cheeseshoptech.com** = the platform site (Drop site DELETED). Apex = coming-soon + quiet
+  footer **Sign in** (?app=1 → gate). **admin.cheeseshoptech.com** = hidden house door.
+  **montitrentini.cheeseshoptech.com** = client door (pattern: every client gets a subdomain).
+  Cloudflare records DNS-only → cheeseshoptech-platform.netlify.app; Netlify project renamed
+  **cheeseshoptech-platform**; apex = primary domain; SSL covers all four names.
+- **UI reorg:** Tools nav → **CONTENT ENGINE** (app cards: Content Studio · Content Library ·
+  Brand Systems · Brand Kits · Brand Voice · Media Hub). Sidebar: Dashboard · Pricing & Inventory ·
+  CRM · Campaigns · Orders · Content Engine · Storefront. Dashboard = **Priority window**
+  ("Priority — response needed", mock seam `VITE_ATTENTION_BACKEND`) + Operations lead cards +
+  At-a-glance (Opportunities → Active campaigns → Market news).
+- **BSE integrated + GATED:** in-app route `brand-systems` (iframe-srcDoc from
+  `src/assets/brand-systems-engine.html`, lazy chunk, RoleGated admin/client-admin). Old public
+  URL removed + 302s to the gate. **Re-copy flow: Projects source → `src/assets/` (strip back
+  button), NOT public/.** QC series room stays public (portfolio).
 
-## 🔧 ON DISK (2026-07-02, cont.) — ONE ADDRESS + sidebar order + sides spec (uncommitted)
-Apex now serves **ComingSoon + Sign in** from the platform site (LandingPage kept for launch) —
-run `docs/DOMAIN_CONSOLIDATION_RUNBOOK.md` (Cloudflare apex → platform, alias, retire Drop site)
-to make cheeseshoptech.com the ONE point of reference. Sidebar order per Rick: Dashboard ·
-Pricing & Inventory · CRM · Campaigns · Orders · Content Engine · Storefront (Catalog via its
-dashboard card). Branched pages (BSE, QC) got quiet `< Back` lines — **copy upstream to the
-Projects sources**. `docs/PLATFORM_SIDES_SPEC.md` = CST side (template build apps + onboarding
-tools — Rick's correction: onboarding is CST-side) vs client side (functional apps + proprietary
-data), plus the 10-row wiring board. All ships via `COMMIT CONTENT ENGINE UI.command`.
+## NEXT UP
+1. **Studio Director Stage 0** (`lib/studio-director.js` + Auto-compose in SlideStudio) — the
+   deterministic slot-resolver, spec §3 of CONTENT_ENGINE_WIRING_SPEC. Highest-leverage build.
+2. **Sending-address decision (Rick)** — unblocks HubSpot email auth, QC mailto→Make swap, and
+   the live Priority-window mailbox feed (`attention-list` function).
+3. **BSE→Brand Kit import button** (Brand Kits page) — wiring board row 6.
+4. **Copy BSE/QC back-button edits upstream** to `Projects/Monti trentini Ecommerce strategy/`.
+5. Onboarding flow per PLATFORM_SIDES_SPEC §2 (items importer → bulk tag → checklist) when
+   client #2 conversations start.
 
-## 🔧 ON DISK (2026-07-02) — Content Engine reorg + dashboard priority window (uncommitted)
+## 🔧 SHIPPED EARLIER TODAY (2026-07-02) — Content Engine reorg + dashboard priority window
 UI reorg per Rick: **"Tools" nav → CONTENT ENGINE** (new `content-engine-page.jsx` — app cards for
 Content Studio · Content Library · Brand Systems · Brand Kits · Brand Voice · Media Hub; old top-level
 tabs removed, routes reachable via `NON_NAV_PAGES`). **Dashboard leads with operations** (Pricing &
