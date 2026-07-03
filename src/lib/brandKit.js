@@ -7,9 +7,12 @@
 // getBrandKit() later, same shape. New clients clone _brand-kit-template.json (the worksheet).
 
 import mtBrandKit from "@/data/montitrentini/brand-kit.json";
+import tplBrandKit from "@/data/_template/brand-kit.json";
 
 const BUNDLES = {
   montitrentini: mtBrandKit,
+  // Content-free clone kit (placeholder hexes blanked so config colors win until the kit is real).
+  demo: tplBrandKit,
 };
 
 /** The brand kit for a tenant, or null if none defined yet. */

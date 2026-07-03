@@ -1,23 +1,22 @@
 {
   "$schema": "./client.schema.json",
-  "_readme": "THE CLONE. Full app set, content-free. New client = copy this file to <id>.json, set id/subdomain/brand/crm, copy src/data/_template -> src/data/<id>, register <id> in the seam libs (pricing.js, images.js, brandKit.js, attention.js, signals.js, market-news.js), then npm run validate:clients. See docs/ONBOARDING_AND_AGENTS_SDD.md.",
-  "id": "",
-  "subdomain": "",
+  "id": "demo",
+  "subdomain": "demo",
   "brand": {
-    "name": "",
+    "name": "Demo Client",
     "logo": "",
     "colors": { "primary": "#1F2937", "accent": "#6B7280" },
     "fonts": { "heading": "Fraunces", "body": "Inter" },
     "radius": "md"
   },
-  "cloudinaryFolder": "clients/<id>",
+  "cloudinaryFolder": "clients/demo",
   "crm": "none",
   "modules": ["catalog", "orders", "crm", "campaigns"],
   "home": {
-    "eyebrow": "Client eyebrow — heritage line or founding note",
+    "eyebrow": "CheeseShop TECH · template tenant",
     "title": "Operations Portal",
-    "tagline": "One source of truth — catalog, inventory, pricing and commitments — feeding every tool.",
-    "footer": "Client sign-off line."
+    "tagline": "One source of truth — catalog, inventory, pricing and commitments — feeding every tool. This is the content-free clone every new client starts from.",
+    "footer": "Empty by design — onboarding fills it."
   },
   "presentations": [],
   "tools": [
@@ -80,9 +79,6 @@
       "type": "external",
       "url": "",
       "status": "coming-soon",
-      "featured": true,
-      "embed": true,
-      "admin": true,
       "tag": "DTC"
     }
   ]

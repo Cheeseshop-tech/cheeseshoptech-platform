@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "1.2",
+  "clientId": "_template",
+  "_readme": "The clone data set. Copy src/data/_template -> src/data/<id>, set clientId/tenant fields, fill via the onboarding kit (onboarding-kit/). Every field placeholder here maps to a column in the kit templates.",
+  "brand": {
+    "name": "",
+    "tagline": "",
+    "accent": "#6B7280",
+    "logo": ""
+  },
+  "currency": "USD",
+  "images": {
+    "provider": "cloudinary",
+    "cloud": "sofcvmwa",
+    "folder": "clients/_template"
+  },
+  "pricing": {
+    "costBasis": "FOB",
+    "defaultTier": "distributor",
+    "_note": "Placeholder structure \u2014 the price list is the CLIENT'S numbers; the engine never invents pricing strategy. Set real tier %s, volume breaks, and freight rules per client during onboarding.",
+    "tiers": [
+      {
+        "id": "distributor",
+        "label": "Wholesale / Distributor (price list)",
+        "adjustPct": 0,
+        "public": false
+      },
+      {
+        "id": "direct-retail",
+        "label": "Direct to Retail",
+        "adjustPct": 0,
+        "public": true
+      },
+      {
+        "id": "direct-consumer",
+        "label": "Direct to Consumer",
+        "adjustPct": 0,
+        "public": true
+      }
+    ],
+    "volumeBreaks": [],
+    "freight": {
+      "thresholdLb": 0,
+      "_note": "Freight/handling = separate line items on the proforma, never folded into $/lb.",
+      "delivered": {
+        "truckingPerLb": 0,
+        "truckingMinLocal": 0,
+        "processingFlat": 0,
+        "processingBelowThresholdOnly": true
+      }
+    },
+    "fees": [
+      {
+        "id": "trucking",
+        "label": "Trucking",
+        "scope": "order",
+        "default": 0,
+        "perLb": false
+      },
+      {
+        "id": "processing",
+        "label": "Processing fee",
+        "scope": "order",
+        "default": 0,
+        "perLb": false
+      }
+    ]
+  }
+}

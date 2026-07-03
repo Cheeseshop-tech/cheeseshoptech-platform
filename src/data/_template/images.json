@@ -1,0 +1,9 @@
+{
+  "schemaVersion": "1.0",
+  "tenant": "_template",
+  "cloud": "sofcvmwa",
+  "folder": "clients/_template",
+  "generatedAt": "",
+  "generatedFrom": "scripts/sync-images.mjs",
+  "images": []
+}

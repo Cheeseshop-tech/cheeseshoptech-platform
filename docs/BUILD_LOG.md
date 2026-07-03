@@ -19,6 +19,37 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-07-02 — Template tenant + onboarding kit + agents SDD (new round)
+
+**Decision (Rick).** New development round: (1) the Monti app set copied into the platform as a
+content-free **template tenant**; (2) a **client onboarding intake kit** (templates + instructions
+per client department); (3) the **agent roster** scoped — content engine, pricing/inventory,
+replenishment, sales projection/production, campaign planning. Spec: `docs/ONBOARDING_AND_AGENTS_SDD.md`.
+
+**Shipped (build clean, `validate:clients` ✓ — commit via `COMMIT ONBOARDING TEMPLATE.command`).**
+- **`config/clients/_template.json` upgraded** bare stub → THE CLONE: full Monti-shaped config
+  (all modules, six tools, home block) with placeholder copy. Still skipped by registry/validator.
+- **`src/data/_template/`** — empty-but-schema-valid data set for all nine seam files; the target
+  shapes the onboarding kit maps into. Brand-kit placeholder hexes blanked so config colors win.
+- **`demo` tenant LIVE** (`config/clients/demo.json` + `demo:` registered in pricing/images/
+  brandKit/attention/signals/market-news seams → `_template` data). `?client=demo` renders every
+  app's empty state — QA reference + prospect showroom. CRM/campaigns fall through to empty mocks.
+- **`onboarding-kit/`** (client-facing): 00 README (owners/cadence/ground rules) · 01 Product
+  Catalog & Pricing.xlsx (Products + Pricing Rules sheets) · 02 Inventory Availability.xlsx
+  (SKU Summary + Lot Detail, weekly) · 03 Standing Orders & Commitments.xlsx · 04 Brand Asset
+  Checklist.md (design team) · 05 Marketing Content Worksheet.docx (voice/story blocks/calendar) ·
+  06 Sales History.xlsx (**the forecasting foundation** — new intake, feeds agents A3/A4).
+- **`docs/CLIENT_ONBOARDING_GUIDE.md`** (internal runbook): Step 0 stand-up-a-tenant (~15 min,
+  config only) → kit → per-file ingestion map → verification. Known gaps listed (import-catalog
+  script, generic inventory parser, House Console checklist UI).
+
+**Agent roster scoped (SDD Part 3).** Build order: Studio Director Stage 0 → A1 Content Agent
+(data ready today) → A2 Pricing Agent → sales-history intake → A3 Replenishment → goals.json +
+HubSpot deals → A4 Projection/Production + A5 Campaign Planning. Key finding: **sales history is
+the gap** for everything forecast-shaped — hence kit file 06.
+
+---
+
 ## 2026-07-02 — Content Engine reorg + dashboard priority window + coming-soon login + Director spec
 
 **Decision (Rick).** The portal UI reorganizes around the two-engine model: **"Tools" nav →

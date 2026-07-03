@@ -7,9 +7,11 @@
 // Item shape: { id, category: "trade"|"consumer", headline, summary, url, source, date, tags[] }
 
 import mtNews from "@/data/montitrentini/market-news.json";
+import tplNews from "@/data/_template/market-news.json";
 
 const BUNDLES = {
   montitrentini: mtNews,
+  demo: tplNews,
 };
 
 const USE_MOCK = (import.meta.env.VITE_MARKETNEWS_BACKEND || "mock") === "mock";

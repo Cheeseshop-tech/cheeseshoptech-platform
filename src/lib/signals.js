@@ -5,9 +5,11 @@
 // Ahrefs, ZoomInfo) behind VITE_SIGNALS_BACKEND — same additive pattern as CRM/Campaigns/Media.
 
 import mtSignals from "@/data/montitrentini/signals.json";
+import tplSignals from "@/data/_template/signals.json";
 
 const BUNDLES = {
   montitrentini: mtSignals,
+  demo: tplSignals,
 };
 
 const USE_MOCK = (import.meta.env.VITE_SIGNALS_BACKEND || "mock") === "mock";

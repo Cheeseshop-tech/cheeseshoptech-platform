@@ -6,9 +6,15 @@ import mtConfig from "@/data/montitrentini/client.config.json";
 import mtCatalog from "@/data/montitrentini/catalog.json";
 import mtInventory from "@/data/montitrentini/inventory.json";
 import mtCommitments from "@/data/montitrentini/commitments.json";
+import tplConfig from "@/data/_template/client.config.json";
+import tplCatalog from "@/data/_template/catalog.json";
+import tplInventory from "@/data/_template/inventory.json";
+import tplCommitments from "@/data/_template/commitments.json";
 
 const BUNDLES = {
   montitrentini: { config: mtConfig, catalog: mtCatalog, inventory: mtInventory, commitments: mtCommitments },
+  // The content-free clone (config/clients/demo.json) — renders every app's empty state.
+  demo: { config: tplConfig, catalog: tplCatalog, inventory: tplInventory, commitments: tplCommitments },
 };
 
 // Backend switch. "mock" (default) = use the bundled JSON only. "function" = also pull LIVE

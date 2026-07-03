@@ -22,15 +22,39 @@ picks them up) · **Surface:** Cowork
   URL removed + 302s to the gate. **Re-copy flow: Projects source → `src/assets/` (strip back
   button), NOT public/.** QC series room stays public (portfolio).
 
+## ✅ BUILT (2026-07-02 night) — Template tenant + onboarding kit + agents SDD
+New round shipped on disk (build ✓, validate ✓) — **ship via `COMMIT ONBOARDING TEMPLATE.command`**:
+- **`_template.json` = THE CLONE** (full Monti app set, content-free) + **`src/data/_template/`**
+  (empty-but-valid data, the onboarding target shapes) + **`demo` tenant live** (`?client=demo`
+  = every app's empty state; QA reference + prospect showroom; new-client stand-up ≈ 15 min).
+- **`onboarding-kit/`** — client-facing intake: 00 README · 01 Catalog & Pricing.xlsx ·
+  02 Inventory.xlsx (weekly) · 03 Commitments.xlsx · 04 Brand Asset Checklist ·
+  05 Marketing Worksheet.docx · 06 Sales History.xlsx (forecasting foundation).
+  Internal runbook: `docs/CLIENT_ONBOARDING_GUIDE.md`.
+- **Agent roster scoped** in `docs/ONBOARDING_AND_AGENTS_SDD.md` Part 3: A1 Content · A2 Pricing ·
+  A3 Replenishment · A4 Projection/Production · A5 Campaign Planning. Build order gated on data:
+  Stage 0 → A1 first (data ready); A3/A4 blocked on **sales history** (kit file 06) + HubSpot deals.
+
 ## NEXT UP
 1. **Studio Director Stage 0** (`lib/studio-director.js` + Auto-compose in SlideStudio) — the
-   deterministic slot-resolver, spec §3 of CONTENT_ENGINE_WIRING_SPEC. Highest-leverage build.
-2. **Sending-address decision (Rick)** — unblocks HubSpot email auth, QC mailto→Make swap, and
-   the live Priority-window mailbox feed (`attention-list` function).
-3. **BSE→Brand Kit import button** (Brand Kits page) — wiring board row 6.
-4. **Copy BSE/QC back-button edits upstream** to `Projects/Monti trentini Ecommerce strategy/`.
-5. Onboarding flow per PLATFORM_SIDES_SPEC §2 (items importer → bulk tag → checklist) when
-   client #2 conversations start.
+   deterministic slot-resolver, spec §3 of CONTENT_ENGINE_WIRING_SPEC. Highest-leverage build,
+   and the substrate for agent A1 (SDD Part 3).
+2. **Sending address DECIDED (2026-07-02): `Sales@montitrentini-usa.com`** — Monti's outreach
+   address. Strategy: **plaintext emails + links to rich HTML interactive landing/blog pages**
+   (deliverability play: no heavy HTML in the send; the platform hosts the rich piece).
+   Rick's wiring checklist: (a) create the mailbox + confirm montitrentini-usa.com DNS access;
+   (b) SPF + DKIM + DMARC records — required before HubSpot will send clean; (c) connect the
+   address in HubSpot (Settings → Marketing → Email); (d) point the Priority-window
+   `attention-list` function at this mailbox. NOTE: this is a CLIENT address — the QC mailto
+   swap and `onboarding-kit/00_README` contact need a **CST house address** (still open —
+   e.g. hello@cheeseshoptech.com).
+   NEW BUILD ITEM this unlocks: **campaign landing-page pattern** — plaintext send → hosted
+   interactive page (Content Engine output type; lives per-tenant on the platform).
+3. **`scripts/import-catalog.mjs`** — kit file 01 → catalog.json + client.config pricing
+   (closes the Claude-assisted gap in CLIENT_ONBOARDING_GUIDE Step 2).
+4. **BSE→Brand Kit import button** (Brand Kits page) — wiring board row 6.
+5. **Copy BSE/QC back-button edits upstream** to `Projects/Monti trentini Ecommerce strategy/`.
+6. Kit file 06 for **Monti itself** — pull Monti's sales history to unblock A3/A4 forecasting.
 
 ## 🔧 SHIPPED EARLIER TODAY (2026-07-02) — Content Engine reorg + dashboard priority window
 UI reorg per Rick: **"Tools" nav → CONTENT ENGINE** (new `content-engine-page.jsx` — app cards for

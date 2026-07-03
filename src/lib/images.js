@@ -9,10 +9,12 @@
 //   approvalState, width, height, bytes, modified }] }
 
 import mtImages from "@/data/montitrentini/images.json";
+import tplImages from "@/data/_template/images.json";
 import { cldImage } from "./cloudinary.js";
 
 const BUNDLES = {
   montitrentini: mtImages,
+  demo: tplImages,
 };
 
 const USE_MOCK = (import.meta.env.VITE_IMAGES_BACKEND || "mock") === "mock";

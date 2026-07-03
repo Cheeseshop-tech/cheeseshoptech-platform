@@ -5,9 +5,11 @@
 // sales mailbox (flagged/unreplied threads) + task list. Same additive pattern as CRM/Signals/News.
 
 import mtAttention from "@/data/montitrentini/attention.json";
+import tplAttention from "@/data/_template/attention.json";
 
 const BUNDLES = {
   montitrentini: mtAttention,
+  demo: tplAttention,
 };
 
 const USE_MOCK = (import.meta.env.VITE_ATTENTION_BACKEND || "mock") === "mock";
