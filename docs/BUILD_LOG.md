@@ -31,6 +31,10 @@ catalog → product slots (opportunity SKUs → featured → catalog order); Mon
 blanked so it can't leak cross-tenant. **SlideStudio** gains an Auto-compose button (empty-state
 hero + toolbar). **ContentStudio** feeds the Director the last Opportunity Compose draft
 (headline/storyKeys/skuCodes) — wire 5 closes: market intelligence → Studio end-to-end.
+**Plus the one-viewport workspace (Rick's UX rule: less scrolling = faster design + continuity):**
+vertical filmstrip rail (left, scrolls) · height-fitted 16:9 preview (ResizeObserver) · inspector
+scrolls internally (right) · deck title inline in the toolbar · per-slide template switcher.
+Zero page scroll while editing on desktop; mobile falls back to stacked flow.
 Build ✓ — ship via **`COMMIT STUDIO DIRECTOR.command`**. This is the substrate for agent A1
 (ONBOARDING_AND_AGENTS_SDD Part 3); Stage 2 (AI pass) plugs in behind the same call once
 Anthropic billing + spend cap are set (Rick).

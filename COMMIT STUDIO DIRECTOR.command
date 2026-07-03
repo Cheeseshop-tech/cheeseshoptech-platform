@@ -27,7 +27,11 @@ git commit -m "feat(studio): Studio Director Stage 0+1 — deterministic Auto-co
   skuCodes) as the Director's seed — wire 5 (market intelligence) now feeds the
   Studio end-to-end
 - spec: CONTENT_ENGINE_WIRING_SPEC §3 Stage 0+1; Stage 2 (AI pass) plugs in behind
-  the same call once billing prereqs are set"
+  the same call once billing prereqs are set
+- one-viewport workspace (Rick): vertical filmstrip rail + height-fitted preview
+  (ResizeObserver, 16:9 fit) + internally-scrolling inspector, deck title inline in
+  the toolbar, per-slide template switcher — zero page scroll while editing; less
+  scrolling = faster design + continuity"
 
 echo
 echo "Pushing (triggers Netlify deploy)…"

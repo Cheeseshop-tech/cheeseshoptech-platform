@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { Plus, ArrowLeft, Trash2, Wand2 } from "lucide-react";
 import { Button } from "@/components/ui/button.jsx";
 import { MediaPicker } from "@/components/media/media-picker.jsx";
@@ -49,6 +49,23 @@ function I(props) {
   return <input {...props} className="h-9 w-full rounded-base border border-border bg-bg px-2 text-sm text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand" />;
 }
 
+// Fit a 16:9 slide inside a pane: width = min(pane width, pane height × 16/9). Keeps the whole
+// preview visible at any window size so the workspace never forces a page scroll.
+function useFitWidth(ref) {
+  const [w, setW] = useState(0);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(() => {
+      const r = el.getBoundingClientRect();
+      setW(Math.max(200, Math.min(r.width, (r.height * 16) / 9)));
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [ref]);
+  return w;
+}
+
 export function SlideStudio({ resolved, onClose, onSave, opportunity }) {
   const [ctype, setCtype] = useState("slide-deck");
   const [deck, setDeck] = useState([]);   // [{ t, slots }]
@@ -58,6 +75,8 @@ export function SlideStudio({ resolved, onClose, onSave, opportunity }) {
   const [composing, setComposing] = useState(false);
   const { user } = useAuth();
   const voice = voiceOptions(resolved);
+  const paneRef = useRef(null);
+  const fitW = useFitWidth(paneRef);
 
   // Studio Director Stage 0/1 (CONTENT_ENGINE_WIRING_SPEC §3): deterministic auto-fill —
   // kit voice → text slots, Media Hub → image slots, catalog → product slots, optional
@@ -121,7 +140,7 @@ export function SlideStudio({ resolved, onClose, onSave, opportunity }) {
         <Button variant="primary" size="sm" disabled={!valid} onClick={save}>Save to Library</Button>
       </div>
 
-      <div className="mb-5 flex flex-wrap gap-2 border-b border-border pb-3">
+      <div className="mb-3 flex flex-wrap gap-2 border-b border-border pb-2">
         {CONTENT_TYPES.map((t) => (
           <button key={t.id} onClick={() => setCtype(t.id)}
             className={"rounded-full border px-4 py-1.5 text-sm transition " + (t.id === ctype ? "border-brand-primary bg-brand-primary text-brand-on-primary" : "border-border bg-bg text-fg hover:bg-fg/5")}>
@@ -165,27 +184,52 @@ export function SlideStudio({ resolved, onClose, onSave, opportunity }) {
       ) : (
         <div>
           <div className="mb-3 flex flex-wrap items-center gap-2">
-            <Button variant="outline" size="sm" disabled={idx === 0} onClick={() => setIdx(idx - 1)}>◀ Prev</Button>
-            <span className="text-sm text-fg-muted">Slide {idx + 1} / {deck.length}</span>
-            <Button variant="outline" size="sm" disabled={idx >= deck.length - 1} onClick={() => setIdx(idx + 1)}>Next ▶</Button>
-            <span className="mx-1 h-5 w-px bg-border" />
-            <select value={tpl} onChange={(e) => setTpl(e.target.value)} className="h-9 rounded-base border border-border bg-bg px-2 text-sm text-fg">
+            <select value={cur.t} onChange={(e) => { const t = e.target.value; setTpl(t); setDeck((d) => d.map((sl, k) => (k === idx ? { t, slots: { ...sl.slots } } : sl))); }} title="Switch this slide's template (slots carry over where ids match)" className="h-9 rounded-base border border-border bg-bg px-2 text-sm text-fg">
               {SLIDE_TEMPLATES.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
             </select>
             <Button variant="outline" size="sm" onClick={() => addSlide()}><Plus className="h-4 w-4" /> Add slide</Button>
             <Button variant="outline" size="sm" disabled={composing} onClick={autoCompose} title="Replace the deck with a Director auto-compose (Stage 0 — deterministic)">
               <Wand2 className="h-4 w-4" /> {composing ? "Composing…" : "Auto-compose"}
             </Button>
-            <span className="flex-1" />
+            <span className="mx-1 hidden h-5 w-px bg-border sm:block" />
+            <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={deck[0]?.slots?.slide_title || "Deck title (for the Library)"}
+              className="h-9 min-w-40 flex-1 rounded-base border border-border bg-bg px-2 text-sm text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand" />
             <Button variant="ghost" size="sm" onClick={clearSlide}>Clear slide</Button>
             <Button variant="ghost" size="sm" onClick={() => removeSlide(idx)}><Trash2 className="h-4 w-4" /> Delete</Button>
           </div>
 
-          <div className="grid gap-4 lg:grid-cols-[1.5fr_1fr]">
-            <div className="overflow-hidden rounded-base border border-border shadow-sm">
-              <SlideRenderer slide={cur} resolved={resolved} />
+          {/* One-viewport workspace (Rick, 2026-07-02): filmstrip rail · fitted preview · inspector.
+              Fixed height on desktop, each pane scrolls internally — zero page scroll while editing. */}
+          <div className="grid gap-3 lg:h-[calc(100vh-330px)] lg:min-h-[420px] lg:grid-cols-[9.5rem_minmax(0,1fr)_minmax(280px,24rem)]">
+            {/* Filmstrip rail */}
+            <div className="order-2 flex gap-2 overflow-x-auto pb-1 lg:order-none lg:flex-col lg:overflow-y-auto lg:overflow-x-hidden lg:pb-0 lg:pr-1">
+              {deck.map((sl, i) => (
+                <button key={i} onClick={() => setIdx(i)} className={"relative w-36 flex-none overflow-hidden rounded-base border-2 lg:w-full " + (i === idx ? "border-brand-primary" : "border-border opacity-80 hover:opacity-100")}>
+                  <span className="absolute left-1 top-1 z-10 rounded bg-black/55 px-1.5 text-[10px] text-white">{i + 1}</span>
+                  <SlideRenderer slide={sl} resolved={resolved} present />
+                </button>
+              ))}
+              <button onClick={() => addSlide()} className="grid aspect-video w-36 flex-none place-items-center rounded-base border-2 border-dashed border-border text-sm text-fg-muted hover:bg-fg/5 lg:w-full">
+                <span className="text-center"><Plus className="mx-auto h-4 w-4" /> Add</span>
+              </button>
             </div>
-            <div className="rounded-base border border-border bg-bg p-3">
+
+            {/* Fitted preview */}
+            <div ref={paneRef} className="order-1 lg:order-none lg:flex lg:h-full lg:items-center lg:justify-center lg:overflow-hidden">
+              <div style={fitW ? { width: fitW } : undefined} className="w-full lg:w-auto">
+                <div className="overflow-hidden rounded-base border border-border shadow-sm">
+                  <SlideRenderer slide={cur} resolved={resolved} />
+                </div>
+                <div className="mt-1.5 flex items-center justify-center gap-2 text-xs text-fg-muted">
+                  <button type="button" disabled={idx === 0} onClick={() => setIdx(idx - 1)} className="rounded border border-border px-2 py-0.5 disabled:opacity-40 hover:bg-fg/5">◀</button>
+                  <span>Slide {idx + 1} / {deck.length} · {curTpl.label}</span>
+                  <button type="button" disabled={idx >= deck.length - 1} onClick={() => setIdx(idx + 1)} className="rounded border border-border px-2 py-0.5 disabled:opacity-40 hover:bg-fg/5">▶</button>
+                </div>
+              </div>
+            </div>
+
+            {/* Inspector — scrolls internally */}
+            <div className="order-3 rounded-base border border-border bg-bg p-3 lg:order-none lg:overflow-y-auto">
               <h3 className="mb-2 font-heading text-lg text-brand-primary">{curTpl.label}</h3>
               <div className="space-y-2">
                 {curTpl.slots.filter((s) => s.role === "var" || s.role === "brand" || s.toggle).map((slot) => (
@@ -224,22 +268,6 @@ export function SlideStudio({ resolved, onClose, onSave, opportunity }) {
                 ))}
               </div>
             </div>
-          </div>
-
-          <div className="mt-4 flex gap-2 overflow-x-auto pb-2">
-            {deck.map((sl, i) => (
-              <button key={i} onClick={() => setIdx(i)} className={"relative w-40 flex-none overflow-hidden rounded-base border-2 " + (i === idx ? "border-brand-primary" : "border-border opacity-80 hover:opacity-100")}>
-                <span className="absolute left-1 top-1 z-10 rounded bg-black/55 px-1.5 text-[10px] text-white">{i + 1}</span>
-                <SlideRenderer slide={sl} resolved={resolved} present />
-              </button>
-            ))}
-            <button onClick={() => addSlide()} className="grid aspect-video w-40 flex-none place-items-center rounded-base border-2 border-dashed border-border text-sm text-fg-muted hover:bg-fg/5">
-              <span className="text-center"><Plus className="mx-auto h-4 w-4" /> Add slide</span>
-            </button>
-          </div>
-
-          <div className="mt-4 max-w-md">
-            <L label="Deck title (for the Library)"><I value={title} onChange={(e) => setTitle(e.target.value)} placeholder={deck[0]?.slots?.slide_title || "e.g. Monti Trentini — Asiago Story"} /></L>
           </div>
         </div>
       )}
