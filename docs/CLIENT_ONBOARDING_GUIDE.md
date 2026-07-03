@@ -48,5 +48,5 @@ on short-dated lots (02) · proposal builder renders on-brand with real imagery 
 - Generic inventory parser — `sync-inventory.mjs` is Monti-column-mapped; generalize when
   client #2's format lands.
 - House Console checklist UI (build order #4) — makes this doc self-serve.
-- Contact address in `00_README_Client_Team.md` is Rick's personal email pending the
-  **sending-address decision** — swap to the business address once it exists.
+- House contact = **hello@cheeseshoptech.com** (decided 2026-07-02; used in
+  `00_README_Client_Team.md`). Mailbox/forwarding must exist before sending the kit to a client.

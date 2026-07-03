@@ -25,4 +25,4 @@ Your operations portal is already built and waiting at `<yourbrand>.cheeseshopte
 
 Catalog + pricing become your live quoting tool. Inventory becomes real-time availability with automatic expiry flags. Brand assets become your Brand Kit — the palette every proposal and campaign asset is generated from. The marketing worksheet becomes your brand voice inside the content engine. Sales history powers forecasting, replenishment planning, and production targets.
 
-Questions while filling anything in: **rick.posada@outlook.com**.
+Questions while filling anything in: **hello@cheeseshoptech.com**.

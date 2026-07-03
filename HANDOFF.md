@@ -42,12 +42,19 @@ New round shipped on disk (build ✓, validate ✓) — **ship via `COMMIT ONBOA
 2. **Sending address DECIDED (2026-07-02): `Sales@montitrentini-usa.com`** — Monti's outreach
    address. Strategy: **plaintext emails + links to rich HTML interactive landing/blog pages**
    (deliverability play: no heavy HTML in the send; the platform hosts the rich piece).
-   Rick's wiring checklist: (a) create the mailbox + confirm montitrentini-usa.com DNS access;
-   (b) SPF + DKIM + DMARC records — required before HubSpot will send clean; (c) connect the
-   address in HubSpot (Settings → Marketing → Email); (d) point the Priority-window
-   `attention-list` function at this mailbox. NOTE: this is a CLIENT address — the QC mailto
-   swap and `onboarding-kit/00_README` contact need a **CST house address** (still open —
-   e.g. hello@cheeseshoptech.com).
+   Mailbox EXISTS — Google Workspace (Gmail business), like hello@. Remaining wiring:
+   (a) connect the inbox in HubSpot — **route = HubSpot Starter**: 1:1 sends + templates from
+   the connected inbox (Sales Starter has NO automated sequences — manual/semi-manual is fine
+   for the ~150-shop stage-1 run); (b) verify DKIM/DMARC on montitrentini-usa.com pass for
+   HubSpot-routed sends (Google's own records cover Gmail sends only); (c) point the
+   Priority-window `attention-list` function at this mailbox (Gmail API or HubSpot inbox —
+   pick when building); (d) update signatures/materials to the new address (OpenPhone number
+   still pending separately).
+   **CST house address also DECIDED (2026-07-02): `hello@cheeseshoptech.com` for all things
+   CheeseShop TECH** — now in the onboarding-kit README; use it for the QC mailto→Make swap and
+   the landing-page "Request an invitation" CTA. Mailbox EXISTS — Google Workspace (Gmail
+   business), already set up. Ready to use client-facing today; verify DKIM/DMARC on
+   cheeseshoptech.com only when it starts SENDING through HubSpot/Make.
    NEW BUILD ITEM this unlocks: **campaign landing-page pattern** — plaintext send → hosted
    interactive page (Content Engine output type; lives per-tenant on the platform).
 3. **`scripts/import-catalog.mjs`** — kit file 01 → catalog.json + client.config pricing
