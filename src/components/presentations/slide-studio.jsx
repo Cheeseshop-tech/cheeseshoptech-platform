@@ -60,7 +60,8 @@ function useFitWidth(ref, active = true) {
     if (!active || !el || typeof ResizeObserver === "undefined") return;
     const measure = () => {
       const r = el.getBoundingClientRect();
-      if (r.width > 0 && r.height > 0) setW(Math.max(320, Math.min(r.width, (r.height * 16) / 9)));
+      // −44px clears the mini pager under the slide so nothing clips inside the pane.
+      if (r.width > 0 && r.height > 0) setW(Math.max(320, Math.min(r.width, ((r.height - 44) * 16) / 9)));
     };
     measure();
     const ro = new ResizeObserver(measure);
