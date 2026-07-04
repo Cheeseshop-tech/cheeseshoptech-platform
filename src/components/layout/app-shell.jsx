@@ -83,6 +83,10 @@ function Sidebar({ brand, isHouse, nav, activeKey, onNavigate, collapsed }) {
       {!collapsed && (
         <div className="cs-eyebrow border-t border-border p-4 text-fg-muted">
           Powered by CheeseShop TECH
+          {/* Build stamp (baked by Vite define) — glance-check that you're on the latest deploy. */}
+          <span className="mt-1 block text-[10px] normal-case tracking-normal opacity-70" title="Build time (UTC)">
+            build {typeof __BUILD_STAMP__ !== "undefined" ? __BUILD_STAMP__ : "dev"}
+          </span>
         </div>
       )}
     </aside>

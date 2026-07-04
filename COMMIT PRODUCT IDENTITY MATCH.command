@@ -10,6 +10,11 @@ git add \
   "src/components/media/items-panel.jsx" \
   "src/components/media/media-hub.jsx" \
   "src/components/catalog/buyer-catalog.jsx" \
+  "src/components/layout/app-shell.jsx" \
+  "vite.config.js" \
+  "config/clients/montitrentini.json" \
+  "config/clients/demo.json" \
+  "config/clients/_template.json" \
   "scripts/build-items-seed.mjs" \
   "scripts/match-photos-to-items.mjs" \
   "src/data/montitrentini/items-seed.json" \
@@ -37,7 +42,11 @@ git commit -m "feat(catalog): product name = item-truth identity + bulk photo ma
   name/item #/descriptions; stats = Items / With photos / Photos; new
   Download PNG + Share (native sheet, link always copied) alongside Copy
   share link; freehand edit panel removed — identity edits live in
-  Media Hub -> Items"
+  Media Hub -> Items
+- dashboard card title casing: 'Product catalog' (matches the Media hub card)
+- footer BUILD STAMP: vite bakes the build time into the sidebar footer
+  ('build 2026-07-04 22:16 UTC') — one glance answers 'am I on the latest
+  deploy?'; kills the stale-cache false alarms"
 
 echo
 echo "Pushing (triggers Netlify deploy)…"

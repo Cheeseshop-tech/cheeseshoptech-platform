@@ -48,10 +48,18 @@ the link.
   export/import UI is GONE — identity/copy edits live in Media Hub → Items; the legacy local
   edits overlay still applies read-only so hand-fixed codes keep linking.
 
+**Also this session:** card title casing "Product catalog" (Rick — matches the Media hub card)
+· **footer build-stamp shipped** (vite `define` bakes build time into the sidebar footer;
+answers "am I on the latest deploy?" at a glance — the 7/2 quick-win, built after today's
+stale-cache repeat) · **one-build question settled with proof:** montitrentini.cheeseshoptech.com
+and cheeseshoptech-platform.netlify.app returned the SAME deploy (identical ETag) — one site,
+many doors; the "Image Catalog" sighting was browser cache (live bundle greps 10× Product
+Catalog, 0× Image Catalog).
+
 **Open:** 4 photos carry codes in NO truth source (05123, 05205, 20220, 01315) — hidden from
 the catalog until fixed in Media Hub or added to the item list · 11 photos match multi-SKU
 products (pack ambiguous — assign SKU in Media Hub) · ~49 uncoded photos stay Media-Hub-only
-by design.
+by design · images.json manifest refresh pending Rick's Media Hub pass finishing.
 
 ---
 

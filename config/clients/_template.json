@@ -64,7 +64,7 @@
     },
     {
       "key": "buyer-catalog",
-      "label": "Product Catalog",
+      "label": "Product catalog",
       "description": "Buyer-facing product image library — search, preview, download, share.",
       "icon": "images",
       "type": "internal",
