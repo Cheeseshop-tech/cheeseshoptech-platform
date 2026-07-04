@@ -38,10 +38,15 @@ the link.
   media-update (which replaces tags/context wholesale) so nothing gets wiped. `--write` run:
   **12 links written** (8 token + 3 name + 20742→20724 Alpeggio fix), 11 pushed to Cloudinary
   context (durable across re-syncs), images.json now **47 coded / 103**.
-- **Product Catalog rule enforced:** page renders only images whose code resolves to an item
-  record; identity/spec/description all from items.json; search indexes item name +
-  description; stats = distinct products; lightbox adds **Download PNG** (fl_attachment,f_png)
-  + **Share** (native sheet; link copied either way).
+- **Product Catalog = ITEM-DRIVEN MIRROR (Rick, final model same session):** the page mirrors
+  the price-list item numbers / item data — one row per item record (112), photos + short/long
+  descriptions attach FROM Cloudinary by item number. Items without photos still render ("No
+  photo yet" tile — the gap is visible, not hidden). Multi-photo items get a thumbnail strip in
+  the lightbox. Search = name/item #/descriptions/certification; stats = Items · With photos ·
+  Photos; lightbox adds **Download PNG** (fl_attachment,f_png) + **Share** (native sheet; link
+  copied either way) alongside Copy share link. The old freehand edit panel + edits
+  export/import UI is GONE — identity/copy edits live in Media Hub → Items; the legacy local
+  edits overlay still applies read-only so hand-fixed codes keep linking.
 
 **Open:** 4 photos carry codes in NO truth source (05123, 05205, 20220, 01315) — hidden from
 the catalog until fixed in Media Hub or added to the item list · 11 photos match multi-SKU

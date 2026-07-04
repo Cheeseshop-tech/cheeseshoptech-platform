@@ -30,11 +30,14 @@ git commit -m "feat(catalog): product name = item-truth identity + bulk photo ma
   round-trips media-update so tags/context never get wiped; --write pushed
   11 sku links to Cloudinary context + fixed 20742->20724 (Alpeggio);
   images.json now 47 coded photos (was 36)
-- Product Catalog RULE: only product photos WITH item numbers render (code
-  must resolve to an item record — stale codes hidden); names, spec lines,
-  descriptions all from items.json; search indexes item name + description;
-  stats show distinct products; new Download PNG + Share (native sheet,
-  link always copied) alongside Copy share link"
+- Product Catalog = ITEM-DRIVEN MIRROR of the price-list item numbers:
+  one row per item record (112), photos + short/long descriptions attach
+  from Cloudinary by item number; items without photos render a 'No photo
+  yet' tile; multi-photo items get a lightbox thumb strip; search covers
+  name/item #/descriptions; stats = Items / With photos / Photos; new
+  Download PNG + Share (native sheet, link always copied) alongside Copy
+  share link; freehand edit panel removed — identity edits live in
+  Media Hub -> Items"
 
 echo
 echo "Pushing (triggers Netlify deploy)…"
@@ -42,7 +45,7 @@ git push
 status=$?
 echo
 if [ $status -eq 0 ]; then
-  echo "✅ Pushed. Verify on prod: Product Catalog shows only coded products, 'Alpeggio Cheese' (not Asiago di Alpeggio), spec lines on tiles, Download PNG + Share in the lightbox."
+  echo "✅ Pushed. Verify on prod: Product Catalog lists ALL 112 items (price-list mirror), 'Alpeggio Cheese' (not Asiago di Alpeggio), 'No photo yet' tiles on unlinked items, Download PNG + Share in the lightbox."
 else
   echo "⚠️  Push failed (status $status). Try 'FIX GIT LOCK AND PUSH.command'."
 fi
