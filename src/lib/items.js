@@ -9,6 +9,7 @@
 // and read by items-get. Mock mode (dev) persists to localStorage behind the same seam.
 
 import { rolesOf } from "./auth.js";
+import { seedFor } from "./items-seeds.js";
 
 // Same management tier as asset editing: admin + client manage items.
 export function canManageItems(user) {
@@ -107,6 +108,25 @@ function migrateDoc(doc) {
   return { version: 2, updatedAt: doc?.updatedAt || null, items };
 }
 
+/**
+ * Fill blanks from the tenant's catalog-generated seed so EVERY product carries specs +
+ * descriptions out of the box. Field-level: a saved (non-empty) value always beats the seed;
+ * items missing from the doc are created wholesale from the seed.
+ */
+function withSeed(doc, tenantFolder) {
+  const seed = seedFor(tenantFolder);
+  if (!seed?.items) return doc;
+  const items = { ...doc.items };
+  Object.entries(seed.items).forEach(([sku, s]) => {
+    const cur = items[sku];
+    if (!cur) { items[sku] = { ...emptyItem(sku), ...s }; return; }
+    const merged = { ...cur };
+    Object.entries(s).forEach(([k, v]) => { if (v && !merged[k]) merged[k] = v; });
+    items[sku] = merged;
+  });
+  return { ...doc, items };
+}
+
 // ---- Load / save ------------------------------------------------------------------------------
 
 const USE_MOCK = (import.meta.env.VITE_MEDIA_BACKEND || "mock") === "mock";
@@ -115,13 +135,13 @@ const LS_KEY = (tenantFolder) => `cs-items-${tenantFolder}`;
 /** Load the tenant's item document. Never throws for "not created yet" — returns emptyDoc(). */
 export async function loadItems(tenantFolder) {
   if (USE_MOCK) {
-    try { return migrateDoc(JSON.parse(localStorage.getItem(LS_KEY(tenantFolder)) || "{}")); }
-    catch { return emptyDoc(); }
+    try { return withSeed(migrateDoc(JSON.parse(localStorage.getItem(LS_KEY(tenantFolder)) || "{}")), tenantFolder); }
+    catch { return withSeed(emptyDoc(), tenantFolder); }
   }
   const res = await fetch(`/.netlify/functions/items-get?folder=${encodeURIComponent(tenantFolder)}`);
-  if (res.status === 404) return emptyDoc();
+  if (res.status === 404) return withSeed(emptyDoc(), tenantFolder);
   if (!res.ok) throw new Error(`Items load failed (${res.status})`);
-  return migrateDoc(await res.json());
+  return withSeed(migrateDoc(await res.json()), tenantFolder);
 }
 
 /** Save the WHOLE document (single-writer model — fine for a solo/small team tenant). */
