@@ -125,6 +125,8 @@ export function ItemsPanel({ resolved, assets, doc, setDoc, canManage }) {
                     <p className="mt-0.5 flex flex-wrap items-center gap-x-3 text-xs text-fg-muted">
                       {it.packSize && <span>{it.packSize}</span>}
                       {it.weight && <span>{it.weight}</span>}
+                      {it.milkType && <span>{it.milkType}</span>}
+                      {it.minAge && <span>{it.minAge}</span>}
                       {it.upc && <span className="font-mono">UPC {it.upc}</span>}
                     </p>
                     {it.shortDescription && <p className="mt-1 truncate text-sm text-fg-muted">{it.shortDescription}</p>}
@@ -221,6 +223,14 @@ function ItemDialog({ item, isNew, canManage, skuTaken, onClose, onSave, onDelet
             <Field label="UPC">
               <input value={form.upc} disabled={!canManage} onChange={(e) => set("upc", e.target.value)}
                 placeholder="8 001234 567890" className={inputCls + " font-mono"} />
+            </Field>
+            <Field label="Milk type">
+              <input value={form.milkType} disabled={!canManage} onChange={(e) => set("milkType", e.target.value)}
+                placeholder="Cow milk" className={inputCls} />
+            </Field>
+            <Field label="Minimum age">
+              <input value={form.minAge} disabled={!canManage} onChange={(e) => set("minAge", e.target.value)}
+                placeholder="min. 10 months" className={inputCls} />
             </Field>
           </div>
 

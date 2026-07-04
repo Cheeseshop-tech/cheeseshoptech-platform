@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { Upload, Copy, Image as ImageIcon, Lock, Pencil, Trash2 } from "lucide-react";
+import { Upload, Copy, Image as ImageIcon, Lock, Pencil, Trash2, Download, Share2, ChevronDown, ChevronUp } from "lucide-react";
 import { Card } from "@/components/ui/card.jsx";
 import { Button } from "@/components/ui/button.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
@@ -10,9 +10,9 @@ import {
 } from "@/components/ui/dialog.jsx";
 import { useToast } from "@/components/ui/toast.jsx";
 import { useAuth } from "@/lib/auth-context.jsx";
-import { cldUrl, uploadAsset, UPLOAD_PRESET } from "@/lib/cloudinary.js";
+import { cldUrl, uploadAsset, UPLOAD_PRESET, CLOUD_NAME } from "@/lib/cloudinary.js";
 import { listAssets, updateAsset, deleteAsset, APPROVAL, USAGE, usageLabel, canUpload, canManageMedia, canDeleteMedia } from "@/lib/media.js";
-import { loadItems, emptyDoc, canManageItems, emptyItem, upsertItem, saveItems, getItem } from "@/lib/items.js";
+import { loadItems, emptyDoc, canManageItems, emptyItem, upsertItem, saveItems, getItem, specLine } from "@/lib/items.js";
 import { ItemsPanel } from "@/components/media/items-panel.jsx";
 
 export function MediaHub({ resolved }) {
@@ -205,7 +205,7 @@ export function MediaHub({ resolved }) {
             <>
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
                 {display.slice(0, shown).map((a) => (
-                  <AssetTile key={a.publicId} asset={a} onOpen={() => setActive(a)} />
+                  <AssetTile key={a.publicId} asset={a} item={getItem(itemsDoc, a.sku)} onOpen={() => setActive(a)} />
                 ))}
               </div>
               {shown < display.length && (
@@ -246,7 +246,7 @@ export function MediaHub({ resolved }) {
             return false;
           }
         }}
-        onCopy={(url) => { navigator.clipboard?.writeText(url); toast({ title: "Link copied", tone: "success" }); }}
+        onCopy={(text, label = "Link copied") => { navigator.clipboard?.writeText(text); toast({ title: label, tone: "success" }); }}
         onSave={async (fields) => {
           const id = active.publicId;
           try {
@@ -301,7 +301,7 @@ function Field({ label, children }) {
   );
 }
 
-function AssetTile({ asset, onOpen }) {
+function AssetTile({ asset, item, onOpen }) {
   const ap = APPROVAL[asset.approvalState];
   // Approved-for-press is the norm for finished packshots — don't badge it (keeps the grid clean).
   // Only flag exceptions worth attention: drafts and influencer-only assets.
@@ -322,8 +322,10 @@ function AssetTile({ asset, onOpen }) {
             {showBadge && <Badge variant={ap.tone}>{ap.label}</Badge>}
           </div>
           {/* Usage tags intentionally NOT shown on tiles (Rick, 2026-07-03) — they cluttered the
-              grid. They're still visible/editable in the asset dialog, and the left-rail views
-              already group by usage. */}
+              grid. Instead the ITEM SPEC LINE rides on the tile: weight · pack · milk · age. */}
+          {specLine(item) && (
+            <p className="mt-1 truncate text-[11px] leading-4 text-fg-muted">{specLine(item)}</p>
+          )}
         </div>
       </Card>
     </button>
@@ -409,10 +411,11 @@ function UploadDetailsDialog({ files, uploading, onCancel, onConfirm }) {
 function AssetDialog({ asset, onClose, canManage, canDelete, onCopy, onSave, onDelete, itemsDoc, canManageItem, onSaveItem }) {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState(null);
-  const [itemForm, setItemForm] = useState(null); // weight/packSize/short/long — item-record slice
+  const [itemForm, setItemForm] = useState(null); // weight/packSize/milk/age/short/long — item-record slice
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  useEffect(() => { setEditing(false); setForm(null); setItemForm(null); }, [asset?.publicId]);
+  const [showLong, setShowLong] = useState(false); // long-description reveal in view mode
+  useEffect(() => { setEditing(false); setForm(null); setItemForm(null); setShowLong(false); }, [asset?.publicId]);
   const remove = async () => {
     if (!window.confirm(`Permanently delete "${asset.title}"?\n\nThis removes it from Cloudinary and cannot be undone.`)) return;
     setDeleting(true);
@@ -438,6 +441,8 @@ function AssetDialog({ asset, onClose, canManage, canDelete, onCopy, onSave, onD
     setItemForm({
       weight: it.weight || "",
       packSize: it.packSize || "",
+      milkType: it.milkType || "",
+      minAge: it.minAge || "",
       shortDescription: it.shortDescription || "",
       longDescription: it.longDescription || "",
     });
@@ -465,7 +470,11 @@ function AssetDialog({ asset, onClose, canManage, canDelete, onCopy, onSave, onD
         <DialogHeader>
           <DialogTitle>{asset.title}</DialogTitle>
           <DialogDescription>
-            {asset.sku ? <span className="font-mono">{asset.sku}</span> : "Brand / lifestyle asset"} · {asset.folder}
+            <span className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-0.5 pr-6">
+              <span>{asset.sku ? <span className="font-mono">{asset.sku}</span> : "Brand / lifestyle asset"} · {asset.folder}</span>
+              {/* Spec line rides with the name + item number (weight · pack · milk · age) */}
+              {specLine(linkedItem) && <span className="text-fg">{specLine(linkedItem)}</span>}
+            </span>
           </DialogDescription>
         </DialogHeader>
 
@@ -473,11 +482,32 @@ function AssetDialog({ asset, onClose, canManage, canDelete, onCopy, onSave, onD
 
         {!editing ? (
           <>
-            <div className="mt-4 flex items-center justify-between gap-3">
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
               <Badge variant={APPROVAL[asset.approvalState].tone}>{APPROVAL[asset.approvalState].label}</Badge>
-              <Button size="sm" variant="outline" onClick={() => onCopy(deliveryUrl)}>
-                <Copy className="h-4 w-4" /> Copy delivery URL
-              </Button>
+              <div className="flex flex-wrap items-center gap-2">
+                <Button size="sm" variant="outline" onClick={() => {
+                  // fl_attachment forces a download; f_png guarantees PNG regardless of f_auto.
+                  const name = (asset.title || asset.publicId).replace(/[^a-zA-Z0-9_-]+/g, "-");
+                  const a = document.createElement("a");
+                  a.href = `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/fl_attachment:${name},f_png/${asset.publicId}.png`;
+                  a.click();
+                }}>
+                  <Download className="h-4 w-4" /> PNG
+                </Button>
+                <Button size="sm" variant="outline" onClick={async () => {
+                  // Native share sheet where available (mobile/Safari); clipboard fallback elsewhere.
+                  if (navigator.share) {
+                    try { await navigator.share({ title: asset.title, url: deliveryUrl }); } catch { /* user cancelled */ }
+                  } else {
+                    onCopy(deliveryUrl);
+                  }
+                }}>
+                  <Share2 className="h-4 w-4" /> Share
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => onCopy(deliveryUrl)}>
+                  <Copy className="h-4 w-4" /> Copy delivery URL
+                </Button>
+              </div>
             </div>
             {asset.usage?.length > 0 && (
               <div className="mt-3 flex flex-wrap items-center gap-1.5">
@@ -490,11 +520,30 @@ function AssetDialog({ asset, onClose, canManage, canDelete, onCopy, onSave, onD
               <div className="mt-3 rounded-base border border-border p-3">
                 <p className="text-xs font-medium text-fg-muted">
                   Item <span className="font-mono">{linkedItem.sku}</span>
-                  {(linkedItem.weight || linkedItem.packSize) && (
-                    <span> · {[linkedItem.weight, linkedItem.packSize].filter(Boolean).join(" · ")}</span>
-                  )}
+                  {specLine(linkedItem) && <span> · {specLine(linkedItem)}</span>}
                 </p>
                 {linkedItem.shortDescription && <p className="mt-1.5 text-sm text-fg">{linkedItem.shortDescription}</p>}
+                {linkedItem.longDescription && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setShowLong((v) => !v)}
+                      className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-fg-muted transition-colors hover:text-fg"
+                    >
+                      {showLong ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                      {showLong ? "Hide long description" : "View long description"}
+                    </button>
+                    {showLong && (
+                      <div className="mt-1.5 flex items-start justify-between gap-2">
+                        <p className="whitespace-pre-wrap text-sm text-fg">{linkedItem.longDescription}</p>
+                        <Button size="sm" variant="ghost" title="Copy long description"
+                          onClick={() => onCopy(linkedItem.longDescription, "Long description copied")}>
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
             )}
             {canManage ? (
@@ -568,6 +617,14 @@ function AssetDialog({ asset, onClose, canManage, canDelete, onCopy, onSave, onD
                   </Field>
                   <Field label="Pack size">
                     <input value={itemForm.packSize} onChange={(e) => setItemField("packSize", e.target.value)} placeholder="e.g. 1 wheel/case"
+                      className="h-9 w-full rounded-base border border-border bg-bg px-2 text-sm text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand" />
+                  </Field>
+                  <Field label="Milk type">
+                    <input value={itemForm.milkType} onChange={(e) => setItemField("milkType", e.target.value)} placeholder="e.g. Cow milk"
+                      className="h-9 w-full rounded-base border border-border bg-bg px-2 text-sm text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand" />
+                  </Field>
+                  <Field label="Minimum age">
+                    <input value={itemForm.minAge} onChange={(e) => setItemField("minAge", e.target.value)} placeholder="e.g. min. 10 months"
                       className="h-9 w-full rounded-base border border-border bg-bg px-2 text-sm text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand" />
                   </Field>
                 </div>

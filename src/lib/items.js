@@ -32,6 +32,8 @@ export function emptyItem(sku = "") {
     packSize: "",          // e.g. "12 × 200 g"
     weight: "",            // e.g. "200 g" / "~5.5 lb wheel (catch weight)"
     upc: "",               // e.g. "8 001234 567890"
+    milkType: "",          // e.g. "Cow milk"
+    minAge: "",            // e.g. "min. 10 months"
     shortDescription: "",  // one-liner — social posts, email subject areas, catalog blurbs
     longDescription: "",   // full story — slides, blog posts, sell sheets
     certification: "",     // e.g. "DOP", "PDO · EU Organic"
@@ -56,6 +58,15 @@ export function listItems(doc) {
  * only one is filled. `length` = "short" (social, email) | "long" (slides, blog, sell sheets).
  * @example descriptionFor(doc, "MT-ASIA-200", "short")
  */
+/**
+ * Compact spec line for an item — "13 lbs · 1/wheel per case · Cow milk · min. 10 months".
+ * Used in dialog headers and grid tiles; empty string when nothing is filled.
+ */
+export function specLine(item) {
+  if (!item) return "";
+  return [item.weight, item.packSize, item.milkType, item.minAge].filter(Boolean).join(" · ");
+}
+
 export function descriptionFor(doc, sku, length = "short") {
   const it = getItem(doc, sku);
   if (!it) return "";
