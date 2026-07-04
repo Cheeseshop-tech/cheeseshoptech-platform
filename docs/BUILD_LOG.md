@@ -48,7 +48,11 @@ the link.
   export/import UI is GONE — identity/copy edits live in Media Hub → Items; the legacy local
   edits overlay still applies read-only so hand-fixed codes keep linking.
 
-**Also this session:** card title casing "Product catalog" (Rick — matches the Media hub card)
+**Also this session:** **Product catalog gets a sidebar tab** (Rick) — buyer-catalog is now a
+featured tool in all three configs; sidebar order: Dashboard · Pricing & Inventory · CRM ·
+Campaigns · Orders · **Product catalog** · Content Engine · Storefront; tab renders CatalogPage
+natively, dashboard card + deep links unchanged · card title casing "Product catalog" (matches
+the Media hub card)
 · **footer build-stamp shipped** (vite `define` bakes build time into the sidebar footer;
 answers "am I on the latest deploy?" at a glance — the 7/2 quick-win, built after today's
 stale-cache repeat) · **one-build question settled with proof:** montitrentini.cheeseshoptech.com

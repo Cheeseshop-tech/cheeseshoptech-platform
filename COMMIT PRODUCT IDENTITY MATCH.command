@@ -6,6 +6,7 @@ cd "$(dirname "$0")" || exit 1
 [ -f .git/index.lock ] && rm -f .git/index.lock && echo "Cleared stale .git/index.lock"
 
 git add \
+  "src/App.jsx" \
   "src/lib/items.js" \
   "src/components/media/items-panel.jsx" \
   "src/components/media/media-hub.jsx" \
@@ -46,7 +47,11 @@ git commit -m "feat(catalog): product name = item-truth identity + bulk photo ma
 - dashboard card title casing: 'Product catalog' (matches the Media hub card)
 - footer BUILD STAMP: vite bakes the build time into the sidebar footer
   ('build 2026-07-04 22:16 UTC') — one glance answers 'am I on the latest
-  deploy?'; kills the stale-cache false alarms"
+  deploy?'; kills the stale-cache false alarms
+- Product catalog gets its own SIDEBAR TAB (featured tool, slotted after
+  Orders): buyer-catalog featured:true in all three configs + native
+  CatalogPage render for the tool:buyer-catalog route; dashboard card +
+  ?page=catalog deep links still work"
 
 echo
 echo "Pushing (triggers Netlify deploy)…"

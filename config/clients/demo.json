@@ -5,13 +5,24 @@
   "brand": {
     "name": "Demo Client",
     "logo": "",
-    "colors": { "primary": "#1F2937", "accent": "#6B7280" },
-    "fonts": { "heading": "Fraunces", "body": "Inter" },
+    "colors": {
+      "primary": "#1F2937",
+      "accent": "#6B7280"
+    },
+    "fonts": {
+      "heading": "Fraunces",
+      "body": "Inter"
+    },
     "radius": "md"
   },
   "cloudinaryFolder": "clients/demo",
   "crm": "none",
-  "modules": ["catalog", "orders", "crm", "campaigns"],
+  "modules": [
+    "catalog",
+    "orders",
+    "crm",
+    "campaigns"
+  ],
   "home": {
     "eyebrow": "CheeseShop TECH · template tenant",
     "title": "Operations Portal",
@@ -69,7 +80,8 @@
       "type": "internal",
       "route": "catalog",
       "status": "live",
-      "tag": "Catalog"
+      "tag": "Catalog",
+      "featured": true
     },
     {
       "key": "storefront",

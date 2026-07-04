@@ -4,13 +4,24 @@
   "brand": {
     "name": "Monti Trentini",
     "logo": "",
-    "colors": { "primary": "#064E22", "accent": "#009640" },
-    "fonts": { "heading": "Fraunces", "body": "Inter" },
+    "colors": {
+      "primary": "#064E22",
+      "accent": "#009640"
+    },
+    "fonts": {
+      "heading": "Fraunces",
+      "body": "Inter"
+    },
     "radius": "md"
   },
   "cloudinaryFolder": "monti-trentini",
   "crm": "hubspot",
-  "modules": ["catalog", "orders", "crm", "campaigns"],
+  "modules": [
+    "catalog",
+    "orders",
+    "crm",
+    "campaigns"
+  ],
   "home": {
     "eyebrow": "Casa Finco, casari dal 1925",
     "title": "Operations Portal",
@@ -87,7 +98,8 @@
       "type": "internal",
       "route": "catalog",
       "status": "live",
-      "tag": "Catalog"
+      "tag": "Catalog",
+      "featured": true
     },
     {
       "key": "shopify",

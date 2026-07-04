@@ -6,13 +6,24 @@
   "brand": {
     "name": "",
     "logo": "",
-    "colors": { "primary": "#1F2937", "accent": "#6B7280" },
-    "fonts": { "heading": "Fraunces", "body": "Inter" },
+    "colors": {
+      "primary": "#1F2937",
+      "accent": "#6B7280"
+    },
+    "fonts": {
+      "heading": "Fraunces",
+      "body": "Inter"
+    },
     "radius": "md"
   },
   "cloudinaryFolder": "clients/<id>",
   "crm": "none",
-  "modules": ["catalog", "orders", "crm", "campaigns"],
+  "modules": [
+    "catalog",
+    "orders",
+    "crm",
+    "campaigns"
+  ],
   "home": {
     "eyebrow": "Client eyebrow — heritage line or founding note",
     "title": "Operations Portal",
@@ -70,7 +81,8 @@
       "type": "internal",
       "route": "catalog",
       "status": "live",
-      "tag": "Catalog"
+      "tag": "Catalog",
+      "featured": true
     },
     {
       "key": "storefront",

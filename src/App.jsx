@@ -53,10 +53,12 @@ const NAV = [
 // Sidebar order (Rick, 2026-07-02): Dashboard · Pricing & Inventory · CRM · Campaigns · Orders ·
 // Content Engine · Storefront. Featured-tool tabs (tool:<key>) slot in by config key. Keys not
 // listed here sort after the listed ones, in assembly order.
-const NAV_ORDER = ["dashboard", "tool:price-list", "crm", "campaigns", "orders", "tools", "tool:shopify", "media"];
+// Product catalog back ON the sidebar as a featured-tool tab (Rick, 2026-07-04) — it's the
+// item-driven price-list mirror now, a first-class daily surface.
+const NAV_ORDER = ["dashboard", "tool:price-list", "crm", "campaigns", "orders", "tool:buyer-catalog", "tools", "tool:shopify", "media"];
 // Pages reachable WITHOUT a nav tab: buyer share links + Opportunity-Engine compose (as before),
-// plus the Content Engine's apps (their tabs moved into the engine page's cards) and the buyer
-// Product Catalog (launched from its dashboard card, off the sidebar per the 2026-07-02 order).
+// plus the Content Engine's apps (their tabs moved into the engine page's cards). `catalog`
+// stays listed so dashboard cards + ?page=catalog deep links keep working alongside the tab.
 const NON_NAV_PAGES = ["proposal", "compose", "media", "proposals", "presentations", "brand", "catalog", "brand-systems"];
 const NON_NAV_LABELS = {
   proposal: "Proposal",
@@ -171,7 +173,9 @@ export default function App({ initialResolved }) {
       {activeFeatured ? (
         activeFeatured.route === "pricing"
           ? <PricingTool resolved={resolved} onNavigate={setPage} />
-          : <FeaturedTool tool={activeFeatured} resolved={resolved} />
+          : activeFeatured.route === "catalog"
+            ? <CatalogPage resolved={resolved} />
+            : <FeaturedTool tool={activeFeatured} resolved={resolved} />
       ) : effectivePage === "media" ? (
         <MediaHub resolved={resolved} />
       ) : effectivePage === "campaigns" ? (
