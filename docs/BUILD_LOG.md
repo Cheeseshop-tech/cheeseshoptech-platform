@@ -19,6 +19,37 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-07-04 (cont.) — Product NAME in item truth + bulk photo→item matching + catalog rule
+
+**Decisions (Rick).** (1) Media Hub holds the IDENTITY — stale image titles like "Asiago di
+Alpeggio" (not a real product name; the product is **Alpeggio Cheese**) must never display.
+(2) **The Product Catalog shows ONLY product photos WITH item codes** — uncoded/brand/lifestyle
+imagery stays in the Media Hub. (3) Catalog lightbox gets **Download PNG + Share** along with
+the link.
+
+**Shipped (build ✓, validate ✓ — `COMMIT PRODUCT IDENTITY MATCH.command`):**
+- **Item record gains `name`** (identity field, first in the record): items.js + Items dialog +
+  asset-editor item box + view box. Every consumer surface displays `item.name`, never a title.
+- **Seed = catalog ∪ item-reference:** `build-items-seed.mjs` merges
+  `source/item-reference.json` (the availability-sheet truth list) — 71 full records + 41
+  identity-only = **112 items**; trailing weights lifted into the weight field.
+- **`scripts/match-photos-to-items.mjs` (new)** — the bulk SKU→photo pass: exact item-number
+  tokens in filenames, single-SKU product-name matches, bad-code fixes. Round-trips
+  media-update (which replaces tags/context wholesale) so nothing gets wiped. `--write` run:
+  **12 links written** (8 token + 3 name + 20742→20724 Alpeggio fix), 11 pushed to Cloudinary
+  context (durable across re-syncs), images.json now **47 coded / 103**.
+- **Product Catalog rule enforced:** page renders only images whose code resolves to an item
+  record; identity/spec/description all from items.json; search indexes item name +
+  description; stats = distinct products; lightbox adds **Download PNG** (fl_attachment,f_png)
+  + **Share** (native sheet; link copied either way).
+
+**Open:** 4 photos carry codes in NO truth source (05123, 05205, 20220, 01315) — hidden from
+the catalog until fixed in Media Hub or added to the item list · 11 photos match multi-SKU
+products (pack ambiguous — assign SKU in Media Hub) · ~49 uncoded photos stay Media-Hub-only
+by design.
+
+---
+
 ## 2026-07-04 — Image Catalog → PRODUCT CATALOG, wired to item truth
 
 **Decision (Rick).** The buyer-facing catalog is renamed **Product Catalog** and its item

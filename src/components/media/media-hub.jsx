@@ -446,6 +446,7 @@ function AssetDialog({ asset, onClose, canManage, canDelete, onCopy, onSave, onD
     });
     const it = getItem(itemsDoc, asset.sku) || emptyItem(asset.sku || "");
     setItemForm({
+      name: it.name || "",
       weight: it.weight || "",
       packSize: it.packSize || "",
       milkType: it.milkType || "",
@@ -528,6 +529,7 @@ function AssetDialog({ asset, onClose, canManage, canDelete, onCopy, onSave, onD
             )}
             {isProductView && linkedItem && (
               <div className="mt-3 rounded-base border border-border p-3">
+                {linkedItem.name && <p className="text-sm font-medium text-fg">{linkedItem.name}</p>}
                 <p className="text-xs font-medium text-fg-muted">
                   Item <span className="font-mono">{linkedItem.sku}</span>
                   {specLine(linkedItem) && <span> · {specLine(linkedItem)}</span>}
@@ -621,6 +623,12 @@ function AssetDialog({ asset, onClose, canManage, canDelete, onCopy, onSave, onD
                   Item record — <span className="font-mono text-xs">{form.sku.trim()}</span>{" "}
                   <span className="text-xs font-normal text-fg-muted">shared across all photos of this item</span>
                 </p>
+                <div className="mb-3">
+                  <Field label="Product name — the identity every surface displays">
+                    <input value={itemForm.name || ""} onChange={(e) => setItemField("name", e.target.value)} placeholder="e.g. Asiago Stagionato DOP"
+                      className="h-9 w-full rounded-base border border-border bg-bg px-2 text-sm text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand" />
+                  </Field>
+                </div>
                 <div className="grid grid-cols-2 gap-3">
                   <Field label="Weight">
                     <input value={itemForm.weight} onChange={(e) => setItemField("weight", e.target.value)} placeholder="e.g. 16-18 lbs"

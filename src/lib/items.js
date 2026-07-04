@@ -30,6 +30,7 @@ export function emptyDoc() {
 export function emptyItem(sku = "") {
   return {
     sku,                   // item number
+    name: "",              // product name — THE identity (catalog display name comes from here)
     packSize: "",          // e.g. "12 × 200 g"
     weight: "",            // e.g. "200 g" / "~5.5 lb wheel (catch weight)"
     upc: "",               // e.g. "8 001234 567890"

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Search, LayoutGrid, List, ExternalLink, Download, Link as LinkIcon, ImageOff, Pencil, Upload } from "lucide-react";
+import { Search, LayoutGrid, List, ExternalLink, Download, Link as LinkIcon, ImageOff, Pencil, Upload, Share2 } from "lucide-react";
 import { Card } from "@/components/ui/card.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
 import { Stat } from "@/components/ui/stat.jsx";
@@ -59,7 +59,7 @@ function BuyerCatalog({ data, brandName, tenantId, itemsFolder }) {
   // Catalog editing is a Manage feature (F3): CST admin + client-admin only.
   const canManage = userRoles.includes("admin") || userRoles.includes("client-admin");
   const [edits, setEdits] = useState(() => loadEdits(tenantId));
-  // Item truth (Media Hub → Cloudinary items.json): item numbers, specs, descriptions.
+  // Item truth (Media Hub → Cloudinary items.json): names, item numbers, specs, descriptions.
   const [itemsDoc, setItemsDoc] = useState(null);
   useEffect(() => {
     let on = true;
@@ -68,6 +68,8 @@ function BuyerCatalog({ data, brandName, tenantId, itemsFolder }) {
     return () => { on = false; };
   }, [itemsFolder]);
   const itemFor = (im) => (im?.code && itemsDoc ? getItem(itemsDoc, im.code) : null);
+  // Identity comes from the item record (Media Hub truth) — never a stale image title.
+  const nameFor = (im) => itemFor(im)?.name || im.title;
   const images = useMemo(() => applyEdits(data.images, edits), [data.images, edits]);
   const importRef = useRef(null);
   const [query, setQuery] = useState("");
@@ -75,23 +77,33 @@ function BuyerCatalog({ data, brandName, tenantId, itemsFolder }) {
   const [view, setView] = useState("grid");
   const [active, setActive] = useState(null); // image id in the lightbox
 
+  // PRODUCT CATALOG RULE (Rick, 2026-07-04): only assets that are PRODUCTS WITH ITEM CODES
+  // belong here. Uncoded/brand/lifestyle imagery stays in the Media Hub. Once the item-truth
+  // doc is loaded, the code must also resolve to a real item record (kills stale/bad codes).
+  const productImages = useMemo(
+    () => images.filter((im) => im.code && (!itemsDoc || getItem(itemsDoc, im.code))),
+    [images, itemsDoc],
+  );
+
   const categories = useMemo(() => {
     const counts = {};
-    images.forEach((im) => { counts[im.category] = (counts[im.category] || 0) + 1; });
+    productImages.forEach((im) => { counts[im.category] = (counts[im.category] || 0) + 1; });
     return ["All", ...Object.keys(counts).sort((a, b) => counts[b] - counts[a])].map((c) => ({
       name: c,
-      count: c === "All" ? images.length : counts[c],
+      count: c === "All" ? productImages.length : counts[c],
     }));
-  }, [images]);
+  }, [productImages]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return images.filter((im) => {
+    return productImages.filter((im) => {
       if (category !== "All" && im.category !== category) return false;
       if (!q) return true;
-      return [im.title, im.code, im.orig, im.category].some((f) => (f || "").toLowerCase().includes(q));
+      const it = itemFor(im);
+      return [it?.name, it?.shortDescription, im.title, im.code, im.orig, im.category]
+        .some((f) => (f || "").toLowerCase().includes(q));
     });
-  }, [images, query, category]);
+  }, [productImages, query, category, itemsDoc]);
 
   // Page the grid so the browser mounts ~30 images, not 100+ at once (the all-at-once
   // mount was flooding the network and stalling first paint). Reset to page 1 whenever the
@@ -101,7 +113,8 @@ function BuyerCatalog({ data, brandName, tenantId, itemsFolder }) {
   useEffect(() => { setShown(PAGE); }, [query, category, view]);
   const visible = filtered.slice(0, shown);
 
-  const totalBytes = useMemo(() => images.reduce((s, im) => s + (im.size || 0), 0), [images]);
+  const totalBytes = useMemo(() => productImages.reduce((s, im) => s + (im.size || 0), 0), [productImages]);
+  const productCount = useMemo(() => new Set(productImages.map((im) => im.code)).size, [productImages]);
 
   function copyShareLink(im) {
     navigator.clipboard?.writeText(cldView(cloud, im)).then(
@@ -165,8 +178,8 @@ function BuyerCatalog({ data, brandName, tenantId, itemsFolder }) {
       </div>
 
       <div className="mb-6 grid gap-4 sm:grid-cols-3">
-        <Stat label="Images" value={String(images.length)} />
-        <Stat label="Categories" value={String(categories.length - 1)} />
+        <Stat label="Products" value={String(productCount)} />
+        <Stat label="Images" value={String(productImages.length)} />
         <Stat label="Library size" value={fmtTotalSize(totalBytes)} />
       </div>
 
@@ -203,7 +216,12 @@ function BuyerCatalog({ data, brandName, tenantId, itemsFolder }) {
       </p>
 
       {filtered.length === 0 ? (
-        <EmptyState icon={Search} title="No matches" description="Try a different search term or clear the filter." />
+        productImages.length === 0 ? (
+          <EmptyState icon={ImageOff} title="No products linked yet"
+            description="The Product Catalog shows only photos linked to an item number. Link photos to items in Media Hub → asset editor." />
+        ) : (
+          <EmptyState icon={Search} title="No matches" description="Try a different search term or clear the filter." />
+        )
       ) : view === "grid" ? (
         <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
           {visible.map((im) => (
@@ -215,7 +233,7 @@ function BuyerCatalog({ data, brandName, tenantId, itemsFolder }) {
               <div className="aspect-square w-full overflow-hidden bg-white">
                 <img
                   src={cldThumb(cloud, im)}
-                  alt={im.title}
+                  alt={nameFor(im)}
                   loading="lazy"
                   width="360"
                   height="360"
@@ -224,7 +242,7 @@ function BuyerCatalog({ data, brandName, tenantId, itemsFolder }) {
               </div>
               <div className="p-3">
                 <div className="flex items-center justify-between gap-2">
-                  <h3 className="truncate text-sm font-medium text-fg">{im.title}</h3>
+                  <h3 className="truncate text-sm font-medium text-fg">{nameFor(im)}</h3>
                   {im.code && <Badge variant="muted" className="shrink-0 font-mono text-[10px]">{im.code}</Badge>}
                 </div>
                 <p className="mt-0.5 text-xs text-fg-muted">
@@ -247,8 +265,8 @@ function BuyerCatalog({ data, brandName, tenantId, itemsFolder }) {
             >
               <img src={cldThumb(cloud, im)} alt="" loading="lazy" width="48" height="48" className="h-12 w-12 shrink-0 rounded-base bg-white object-contain" />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-fg">{im.title}</p>
-                <p className="text-xs text-fg-muted">{im.category} · {im.ext?.toUpperCase()} · {fmtSize(im.size || 0)}</p>
+                <p className="truncate text-sm font-medium text-fg">{nameFor(im)}</p>
+                <p className="text-xs text-fg-muted">{specLine(itemFor(im)) || im.category} · {im.ext?.toUpperCase()} · {fmtSize(im.size || 0)}</p>
               </div>
               {im.code && <Badge variant="muted" className="font-mono text-[10px]">{im.code}</Badge>}
             </button>
@@ -277,7 +295,7 @@ function BuyerCatalog({ data, brandName, tenantId, itemsFolder }) {
               </div>
               <div className="max-h-[78vh] overflow-y-auto p-6">
                 <Badge variant="muted">{activeIm.category}</Badge>
-                <h2 className="mt-2 font-heading text-2xl text-fg">{activeIm.title}</h2>
+                <h2 className="mt-2 font-heading text-2xl text-fg">{nameFor(activeIm)}</h2>
                 {specLine(itemFor(activeIm)) && (
                   <p className="mt-1 text-sm text-fg-muted">{specLine(itemFor(activeIm))}</p>
                 )}
@@ -353,6 +371,26 @@ function BuyerCatalog({ data, brandName, tenantId, itemsFolder }) {
                   </Button>
                   <Button variant="secondary" onClick={() => window.open(cldDownload(cloud, activeIm), "_blank", "noopener,noreferrer")}>
                     <Download className="h-4 w-4" /> Download original
+                  </Button>
+                  <Button variant="secondary" onClick={() => {
+                    // Same recipe as the Media Hub: fl_attachment forces download, f_png guarantees PNG.
+                    const name = nameFor(activeIm).replace(/[^a-zA-Z0-9_-]+/g, "-");
+                    const a = document.createElement("a");
+                    a.href = `https://res.cloudinary.com/${cloud}/image/upload/fl_attachment:${name},f_png/${activeIm.cl_id}.png`;
+                    a.click();
+                  }}>
+                    <Download className="h-4 w-4" /> Download PNG
+                  </Button>
+                  <Button variant="ghost" onClick={async () => {
+                    // Native share sheet where available; link copy is the fallback AND the
+                    // link always rides along for paste-anywhere hand-off.
+                    const url = cldView(cloud, activeIm);
+                    if (navigator.share) {
+                      try { await navigator.share({ title: nameFor(activeIm), url }); } catch { /* cancelled */ }
+                    }
+                    copyShareLink(activeIm);
+                  }}>
+                    <Share2 className="h-4 w-4" /> Share
                   </Button>
                   <Button variant="ghost" onClick={() => copyShareLink(activeIm)}>
                     <LinkIcon className="h-4 w-4" /> Copy share link

@@ -49,7 +49,7 @@ export function ItemsPanel({ resolved, assets, doc, setDoc, canManage }) {
     const q = query.trim().toLowerCase();
     if (!q) return items;
     return items.filter((it) =>
-      [it.sku, it.upc, it.shortDescription, it.certification].some((s) => (s || "").toLowerCase().includes(q)));
+      [it.sku, it.name, it.upc, it.shortDescription, it.certification].some((s) => (s || "").toLowerCase().includes(q)));
   }, [items, query]);
 
   // First linked image per item number (assets carry a `sku` field set in the asset editor).
@@ -117,6 +117,7 @@ export function ItemsPanel({ resolved, assets, doc, setDoc, canManage }) {
                   )}
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
+                      {it.name && <span className="text-sm font-medium text-fg">{it.name}</span>}
                       <span className="font-mono text-sm font-medium text-fg">{it.sku}</span>
                       {it.certification && (
                         <Badge variant="info"><BadgeCheck className="mr-1 h-3 w-3" />{it.certification}</Badge>
@@ -206,6 +207,12 @@ function ItemDialog({ item, isNew, canManage, skuTaken, onClose, onSave, onDelet
         </DialogHeader>
 
         <div className="space-y-3">
+          {/* Product name = THE identity — everything downstream (Product Catalog, slides,
+              emails) displays this, never an image title. */}
+          <Field label="Product name">
+            <input value={form.name || ""} disabled={!canManage} onChange={(e) => set("name", e.target.value)}
+              placeholder="e.g. Asiago Stagionato DOP" className={inputCls} />
+          </Field>
           {/* Price & inventory sheet order: item # → pack size → weight → UPC */}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <Field label="Item number">

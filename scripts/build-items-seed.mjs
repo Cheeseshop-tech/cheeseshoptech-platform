@@ -50,6 +50,7 @@ for (const product of catalog.products || []) {
     if (!sku.code) continue;
     items[sku.code] = {
       sku: sku.code,
+      name: product.name || "",
       packSize: packSizeFrom(sku),
       weight: weightFrom(sku),
       upc: "",
@@ -63,6 +64,29 @@ for (const product of catalog.products || []) {
   }
 }
 
-const out = { version: 2, generatedAt: new Date().toISOString(), source: "catalog.json", items };
+// ---- item-reference.json (the availability-sheet truth list, 112 items) --------------------
+// Codes NOT in catalog.json still get an identity record: name (title-cased, trailing weight
+// moved into the weight field). Media Hub holds the identity for EVERYTHING photographed.
+let refCount = 0;
+try {
+  const ref = JSON.parse(readFileSync(join(root, "src/data/montitrentini/source/item-reference.json"), "utf8"));
+  const refMap = ref.items || ref; // the truth list nests the code→name map under .items
+  for (const [code, rawName] of Object.entries(refMap)) {
+    if (items[code]) continue; // catalog wins — richer record
+    const m = String(rawName).match(/^(.*?)\s+([\d.,]+(?:\s*-\s*[\d.,]+)?\s*(?:LBS?|OZ|KG|G))\s*$/i);
+    const name = titleCase((m ? m[1] : String(rawName)).trim());
+    const weight = m ? m[2].toLowerCase().replace(/\s+/g, " ") : "";
+    items[code] = { sku: code, name, packSize: "", weight, upc: "", milkType: "", minAge: "",
+      shortDescription: "", longDescription: "", certification: "" };
+    refCount++;
+  }
+} catch { /* reference list optional */ }
+
+function titleCase(s) {
+  return s.toLowerCase().replace(/\b([a-z])/g, (c) => c.toUpperCase())
+    .replace(/\b(Dop|Pdo|Igp|Pgi|Bio|Usa|Atm|Sv|Pf|Pdm|Ew|Ww)\b/g, (w) => w.toUpperCase());
+}
+
+const out = { version: 2, generatedAt: new Date().toISOString(), source: "catalog.json + item-reference.json", items };
 writeFileSync(join(root, "src/data/montitrentini/items-seed.json"), JSON.stringify(out, null, 2) + "\n");
-console.log(`items-seed.json: ${count} SKUs seeded from ${catalog.products?.length || 0} products`);
+console.log(`items-seed.json: ${count} SKUs from catalog (${catalog.products?.length || 0} products) + ${refCount} identity-only from item-reference`);
