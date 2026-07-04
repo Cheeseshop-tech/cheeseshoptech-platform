@@ -23,6 +23,7 @@ export const USAGE = [
   { id: "story-block", label: "Story block" },
   { id: "lifestyle", label: "Lifestyle" },
   { id: "food-styling", label: "Food styling" },
+  { id: "production", label: "Production / Cheese making" },
   { id: "social", label: "Social" },
   { id: "press", label: "Press / PR" },
   { id: "event", label: "Event" },
@@ -112,18 +113,19 @@ export async function listAssets({ folder, tenantFolder, user }) {
  * via the media-update function (secret stays server-side); mock mode is a no-op success so the UI
  * still works in dev. Returns the patch of fields to merge into local state.
  */
-export async function updateAsset({ publicId, displayName, usage, sku, alt, approvalState }) {
+export async function updateAsset({ publicId, displayName, usage, sku, alt, description, approvalState }) {
   const patch = {};
   if (displayName != null) patch.title = displayName;
   if (Array.isArray(usage)) patch.usage = usage;
   if (sku != null) patch.sku = sku;
   if (alt != null) patch.alt = alt;
+  if (description != null) patch.description = description;
   if (approvalState) patch.approvalState = approvalState;
   if (USE_MOCK) return patch; // dev: update local state only
   const res = await fetch("/.netlify/functions/media-update", {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ publicId, displayName, usage, sku, alt, approvalState }),
+    body: JSON.stringify({ publicId, displayName, usage, sku, alt, description, approvalState }),
   });
   if (!res.ok) {
     const msg = await res.text().catch(() => "");

@@ -8,7 +8,7 @@
 
 const APPROVAL_TAGS = ["approved-for-influencers", "approved-for-press", "draft"];
 const USAGE_IDS = [
-  "product-catalog", "hero", "story-block", "lifestyle", "food-styling",
+  "product-catalog", "hero", "story-block", "lifestyle", "food-styling", "production",
   "social", "press", "event", "brand-asset", "email-campaign", "print", "web-marketing",
 ];
 
@@ -37,6 +37,7 @@ export const handler = async (event) => {
   if (body.displayName != null) ctx.push(`caption=${clean(body.displayName)}`);
   if (body.sku != null) ctx.push(`sku=${clean(body.sku)}`);
   if (body.alt != null) ctx.push(`alt=${clean(body.alt)}`);
+  if (body.description != null) ctx.push(`description=${clean(body.description)}`);
 
   const auth = Buffer.from(`${key}:${secret}`).toString("base64");
   const form = new URLSearchParams();

@@ -11,7 +11,7 @@ import {
 import { useToast } from "@/components/ui/toast.jsx";
 import { useAuth } from "@/lib/auth-context.jsx";
 import { cldUrl, uploadAsset, UPLOAD_PRESET, CLOUD_NAME } from "@/lib/cloudinary.js";
-import { listAssets, updateAsset, deleteAsset, APPROVAL, USAGE, usageLabel, canUpload, canManageMedia, canDeleteMedia } from "@/lib/media.js";
+import { listAssets, updateAsset, deleteAsset, APPROVAL, USAGE, usageLabel, canUpload, canManageMedia, canDeleteMedia, PRODUCT_USAGE_ID } from "@/lib/media.js";
 import { loadItems, emptyDoc, canManageItems, emptyItem, upsertItem, saveItems, getItem, specLine } from "@/lib/items.js";
 import { ItemsPanel } from "@/components/media/items-panel.jsx";
 
@@ -429,12 +429,19 @@ function AssetDialog({ asset, onClose, canManage, canDelete, onCopy, onSave, onD
   // Item record linked to this asset (by SKU) — display in view mode, edit via itemForm.
   const linkedItem = getItem(itemsDoc, editing ? (form?.sku || "").trim() : asset?.sku);
 
+  // TAG-DRIVEN FIELDS (Rick, 2026-07-04): the "Product Catalog" usage decides which attribute
+  // fields an asset gets. Product photos: SKU + full item record. Everything else (a cow, a
+  // pasture, a press shot): one Description field — no milk type / pack size noise.
+  const isProductEdit = !!form?.usage?.includes(PRODUCT_USAGE_ID);
+  const isProductView = (asset?.usage || []).includes(PRODUCT_USAGE_ID);
+
   const startEdit = () => {
     setForm({
       displayName: asset.title || "",
       usage: asset.usage || [],
       sku: asset.sku || "",
       alt: asset.alt || "",
+      description: asset.description || "",
       approvalState: asset.approvalState || "draft",
     });
     const it = getItem(itemsDoc, asset.sku) || emptyItem(asset.sku || "");
@@ -457,7 +464,7 @@ function AssetDialog({ asset, onClose, canManage, canDelete, onCopy, onSave, onD
     // user may manage items. A failed item save keeps the dialog open so nothing is lost.
     let itemOk = true;
     const sku = (form.sku || "").trim();
-    if (ok && sku && canManageItem && itemForm) {
+    if (ok && sku && canManageItem && itemForm && isProductEdit) {
       itemOk = await onSaveItem(sku, itemForm);
     }
     setSaving(false);
@@ -516,7 +523,10 @@ function AssetDialog({ asset, onClose, canManage, canDelete, onCopy, onSave, onD
               </div>
             )}
             {asset.alt && <p className="mt-2 text-sm text-fg-muted">{asset.alt}</p>}
-            {linkedItem && (
+            {!isProductView && asset.description && (
+              <p className="mt-2 text-sm text-fg">{asset.description}</p>
+            )}
+            {isProductView && linkedItem && (
               <div className="mt-3 rounded-base border border-border p-3">
                 <p className="text-xs font-medium text-fg-muted">
                   Item <span className="font-mono">{linkedItem.sku}</span>
@@ -585,6 +595,7 @@ function AssetDialog({ asset, onClose, canManage, canDelete, onCopy, onSave, onD
                 })}
               </div>
             </div>
+            {isProductEdit ? (<>
             <div className="grid grid-cols-2 gap-3">
               <Field label="Linked SKU (for product photos)">
                 <input value={form.sku} onChange={(e) => setForm((f) => ({ ...f, sku: e.target.value }))} placeholder="e.g. MT-ASIA-200"
@@ -644,6 +655,24 @@ function AssetDialog({ asset, onClose, canManage, canDelete, onCopy, onSave, onD
             ) : canManageItem && itemForm ? (
               <p className="text-xs text-fg-muted">Link a SKU above to edit the item's weight, pack size, and descriptions here.</p>
             ) : null}
+            </>) : (<>
+            {/* Non-product photo (no Product Catalog tag): the tags carry the organizational
+                info, so one description is all the attribute editing it needs. */}
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Approval">
+                <select value={form.approvalState} onChange={(e) => setForm((f) => ({ ...f, approvalState: e.target.value }))}
+                  className="h-9 w-full rounded-base border border-border bg-bg px-2 text-sm text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
+                  {Object.entries(APPROVAL).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+                </select>
+              </Field>
+            </div>
+            <Field label="Description — what this photo shows">
+              <textarea rows={3} value={form.description}
+                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                placeholder="e.g. Cows grazing at alpine pasture above Grigno, summer."
+                className="w-full rounded-base border border-border bg-bg px-2 py-1.5 text-sm text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand" />
+            </Field>
+            </>)}
             <DialogFooter>
               <Button variant="ghost" onClick={() => setEditing(false)} disabled={saving}>Cancel</Button>
               <Button variant="primary" onClick={save} disabled={saving}>{saving ? "Saving…" : "Save changes"}</Button>
