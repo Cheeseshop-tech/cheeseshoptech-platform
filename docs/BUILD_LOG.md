@@ -19,6 +19,67 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-07-04 — Image Catalog → PRODUCT CATALOG, wired to item truth
+
+**Decision (Rick).** The buyer-facing catalog is renamed **Product Catalog** and its item
+numbers + descriptions now come from the Media Hub item-truth doc in Cloudinary — not freehand.
+
+**Verified first:** `monti-trentini/copy/items.json` live on Cloudinary already carries
+**71/71 items with item numbers + short descriptions** (a Media Hub save persisted the seed
+merge) — no publish step needed. Long descriptions still blank (existing open item).
+
+**Shipped (build ✓, validate:clients ✓ — `COMMIT PRODUCT CATALOG.command`):**
+- Rename in `App.jsx` (page title), `buyer-catalog.jsx` (headers), and all three client
+  configs (montitrentini · demo · _template).
+- `buyer-catalog.jsx` loads the items doc (`loadItems(resolved.cloudinaryFolder)`): grid tiles
+  show the **spec line** (weight · pack · milk · age) when a record exists; lightbox shows spec
+  line + `descriptionFor(…, 'long')` (freehand only when no record) + certification row;
+  "Item code" → **"Item number"**; Edit-details hides the freehand Description field for
+  SKU-linked images and points to Media Hub → Items (never freehand item copy).
+
+**Open:** catalog search doesn't index item descriptions yet · unmatched images (no `code`)
+still fall back to category/freehand — the bulk SKU→photo matching pass remains the fix.
+
+---
+
+## 2026-07-04 — Media Hub = item truth: records, seed, tag-driven fields (2026-07-03→04 session)
+
+**Decision (revised same-session): Media Hub owns the item IDENTITY + COPY record — item number,
+pack size, weight, UPC, milk type, minimum age, short description, long description,
+certification. Pricing strictly NOT here** (stays in the Custom Price List Creator — one mind,
+one body). Media Hub = organizational portal + distribution hub for all images and item copy.
+
+**Shipped (4 commits via buttons):**
+- **Item records** (`src/lib/items.js` + `items-panel.jsx` + Items tab first in the rail): one raw
+  JSON per tenant at `{tenant}/copy/items.json` in Cloudinary — `items-save` fn (signed upload,
+  overwrite+invalidate), `items-get` fn (version-aware, cache-proof). Consumer API:
+  `descriptionFor(doc, sku, 'short'|'long')` for slides/blogs/emails/social.
+  → `COMMIT MEDIA HUB ITEMS.command` (PUSHED — verified live on prod 7/3)
+- **Spec line + share** — `specLine()` (weight · pack · milk · age) rides in the asset-dialog
+  header, grid tiles, Items list; long-description toggle; **Download PNG** (fl_attachment,f_png)
+  + **Share** (native sheet / clipboard). → `COMMIT ITEM SPECS AND SHARE.command`
+- **All-products seed** — `scripts/build-items-seed.mjs`: catalog.json → items-seed.json
+  (**71 SKUs / 34 products**; weight from packing, pack from pieces/case, milk+age+blurb from
+  marketing block, DOP/PDO/IGP detection). `loadItems()` fills blanks only — Media Hub edits
+  always win. Re-run on catalog change. → `COMMIT ITEMS SEED ALL PRODUCTS.command`
+- **Tag-driven fields + production tag** — the `product-catalog` usage decides the edit form:
+  product photos = SKU + item record; non-product (cow/pasture/press) = ONE description field
+  (Cloudinary context `description=`). New usage tag **production** (Production / Cheese making)
+  in lib + both function whitelists. Asset tiles: usage badges removed (clutter), spec line
+  instead. → `COMMIT TAG DRIVEN FIELDS.command`
+
+**Env verified:** `VITE_MEDIA_BACKEND=cloudinary` already set in Netlify — live mode active, no
+new secrets (functions reuse the Cloudinary trio). **Standing rule adopted: every code change
+ends with a double-clickable COMMIT button.**
+
+**Open:** long descriptions blank for all 71 SKUs (draft from catalog facts or queue tasting
+notes to Stefano) · bulk SKU→photo matching by public_id · wire Studio/Content Engine to
+`descriptionFor()` · optional: Price List Creator reads identity specs from items.json ·
+note: items-save/items-get functions are unauthenticated like media-update — fine for now,
+harden with the platform auth pass.
+
+---
+
 ## 2026-07-02 — Session close: pricing proposal v1.1 + economics decisions (late night)
 
 **Pricing proposed (`docs/PRICING_PROPOSAL_v1.1.md` — separate numbers doc; structure stays in

@@ -1,10 +1,34 @@
 # HANDOFF — CheeseShop TECH platform
 
-**Updated:** 2026-07-03 (small hours) · **Branch:** `phase-2-6-build` — everything below through
-the Studio fit fix is PUSHED + LIVE-VERIFIED; the session-close docs (pricing proposal, BUILD_LOG,
-this file) ship via **`COMMIT SESSION CLOSE.command`** · **Surface:** Cowork
+**Updated:** 2026-07-04 · **Branch:** `phase-2-6-build` · **Surface:** Cowork
+**Push state (verified 2026-07-04 via git):** all four Media Hub items commits are ON ORIGIN
+(`ec45b81` → `630153c` → `29c12c9` → `0d75e46`), branch in sync — do NOT re-run those buttons.
+Still uncommitted on disk: `HANDOFF.md` · `docs/BUILD_LOG.md` ·
+`monti_asiago_campaign/Asiago_Cold_Email_Sequence.md` · `pdf_out/Asiago_Sell_Sheet.pdf`
+→ ship via `COMMIT SESSION CLOSE MEDIA HUB.command` (campaign materials must land before Monday).
 **Read first:** `CLAUDE_CODE_BRIEF.md` → this → `docs/BUILD_LOG.md` (top) →
 `docs/ONBOARDING_AND_AGENTS_SDD.md` + `docs/CONTENT_ENGINE_WIRING_SPEC.md`.
+
+## ✅ MEDIA HUB = ITEM TRUTH (2026-07-03→04 session)
+**Decision:** Media Hub owns the item IDENTITY + COPY record — item #, pack size, weight, UPC,
+milk type, min age, short + long description, certification. **Pricing strictly NOT here**
+(Custom Price List Creator keeps it — one mind). Full detail: `docs/MEDIA_HUB_ITEMS.md` +
+BUILD_LOG 2026-07-04 entry.
+- Items tab (first in Media Hub rail) + item fields on any SKU-linked photo (write-through, one
+  record). Storage: Cloudinary raw `{tenant}/copy/items.json` via items-save/items-get fns.
+  `VITE_MEDIA_BACKEND=cloudinary` confirmed — LIVE. All four slices pushed (verified on origin
+  7/4); first slice verified on prod 7/3 (Alpeggio 20724 shows Item box in the asset dialog).
+- **Seed = all 71 SKUs / 34 products** from catalog.json (`scripts/build-items-seed.mjs`);
+  fills blanks only, Media Hub edits win.
+- **Tag-driven fields:** `product-catalog` tag → SKU + item record; non-product photos (cow,
+  pasture, production) → ONE description field. New usage tag: **production** (Production /
+  Cheese making). Tiles show spec line (weight · pack · milk · age) instead of usage badges.
+  Dialog: long-desc toggle, Download PNG, Share.
+- **Consumers pull copy via `descriptionFor(doc, sku, 'short'|'long')`** — wire Studio/Content
+  Engine next; never freehand item copy.
+- **Standing rule (memory'd): every code change ends with a COMMIT button.**
+- Open: 71 long descriptions blank (draft from catalog facts / queue Stefano) · bulk SKU→photo
+  match by public_id · Price List Creator may read identity specs from items.json (pricing never).
 
 ## ✅ THE 2026-07-02 MEGA-SESSION — all live on prod
 One session shipped: **template tenant** (`demo`, content-free clone, ?client=demo) · **onboarding
@@ -15,6 +39,33 @@ Focus, fullscreen, slideshow) · **both sending addresses decided + live** (sale
 via HubSpot Starter; hello@cheeseshoptech.com for all things CST — both Google Workspace) ·
 **pricing proposal v1.1** (`docs/PRICING_PROPOSAL_v1.1.md`: $2.5K/$5K/$9.5K onboarding · $650/$1,500/
 $3,000 monthly · N=18 buyout — PROPOSED, flinch-test before locking).
+
+## DECISIONS (2026-07-03, Rick)
+**First campaign (Asiago) = outreach/introduction only — NO pricing goes out in the send.**
+Pricing follows in later touches / on request. Launch is NOT gated on Stefano's wholesale
+pricing or freight numbers.
+**Sending — VERIFIED REALITY: the HubSpot-connected inbox is `sales@montitrentini-usa.com`**
+(G Suite, Enabled — the only one; hello@cheeseshoptech.com = CST house address, not connected).
+All campaign sends go from sales@. Auth: montitrentini-usa.com SPF ✓ DKIM ✓ (its own Google
+Workspace — Monti's, separate from Rick's) · DMARC missing (DNS at Network Solutions; add
+`v=DMARC1; p=none` later, not blocking). Signature + template + materials all say Sales@ + cell
+(347) 356-5617 + "Sent with CheeseShop TECH — Richard Posada's sales assistant". Positioning:
+**CheeseShop TECH = Richard Posada's sales assistant.** Operating mode: **grease the wheels —
+proof of function first**, fine-tune for impact/closed sales after.
+**Email auth DONE (2026-07-03):** SPF + DMARC + HubSpot DKIM were already live; Google DKIM
+record existed in Cloudflare but was never activated — clicked Start authentication in Google
+Admin (status: "Authenticating email with DKIM", verified via public DNS). Materials swept to
+hello@ same day. **All Touch 1 launch gates cleared** except a final test-send. Audience truth:
+`monti_asiago_campaign/TOUCH1_AUDIENCE_2026-07-03.md` (list 17 = whole DB, never send; real
+batch = 31 send-ready cheese-shop contacts, enriched +7 via web research + HubSpot write-back).
+
+## 🚀 ASIAGO TOUCH 1 — LAUNCHES MONDAY 2026-07-06
+All infrastructure LIVE as of 7/3: active list id 19 "Asiago Touch 1 — Cheese shops" (31
+contacts) · template id 283799276 · sell-sheet PDF in HubSpot Documents (tracked) · sends from
+sales@montitrentini-usa.com · SPF/DKIM verified · materials + signature swept. Scheduled task
+`asiago-touch1-launch-day` fires Mon 8:00 AM with the launch checklist. Remaining before first
+real send: Rick's test-send to himself. Full runbook:
+`monti_asiago_campaign/TOUCH1_AUDIENCE_2026-07-03.md`.
 
 ## TOMORROW'S QUEUE (2026-07-03)
 1. **Agent A1 (Content Agent)** on the Director substrate — spec §4 order: stable voice-block
