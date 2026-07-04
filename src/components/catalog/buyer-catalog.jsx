@@ -13,21 +13,24 @@ import {
   getBuyerCatalog, cldThumb, cldBig, cldView, cldDownload, fmtSize, fmtTotalSize,
 } from "@/lib/catalog.js";
 import { loadEdits, setEdit, applyEdits, exportEdits, parseEditsFile, saveEdits } from "@/lib/catalog-edits.js";
+import { loadItems, getItem, specLine, descriptionFor } from "@/lib/items.js";
 import { useAuth } from "@/lib/auth-context.jsx";
 import { rolesOf } from "@/lib/auth.js";
 
-// Buyer-facing product image catalog — the platform port of the standalone
-// monti-trentini-catalog app (Phase B of DEVELOPMENT_PLAN.md). Generic: any tenant with a
-// buyer-catalog bundle (see lib/catalog.js) gets this page, themed by its own tokens.
+// Buyer-facing PRODUCT CATALOG (renamed from "Image Catalog" 2026-07-04) — the platform port of
+// the standalone monti-trentini-catalog app (Phase B of DEVELOPMENT_PLAN.md). Generic: any tenant
+// with a buyer-catalog bundle (see lib/catalog.js) gets this page, themed by its own tokens.
 // Asset *management* (upload, tag, sync) stays in the Media hub; this page is for browsing,
 // search, and hand-off (view / download / share) — what a rep or buyer actually needs.
+// Item numbers + descriptions come from the Media Hub item-truth doc in Cloudinary
+// (`{tenant}/copy/items.json` via loadItems) — never freehand item copy here.
 export function CatalogPage({ resolved }) {
   const data = getBuyerCatalog(resolved);
 
   if (!data || !data.images?.length) {
     return (
       <div>
-        <h1 className="mb-1 font-heading text-3xl text-fg">Catalog</h1>
+        <h1 className="mb-1 font-heading text-3xl text-fg">Product Catalog</h1>
         <p className="mb-6 text-fg-muted">Product image library for {resolved.brand.name}.</p>
         <EmptyState
           icon={ImageOff}
@@ -38,10 +41,17 @@ export function CatalogPage({ resolved }) {
     );
   }
 
-  return <BuyerCatalog data={data} brandName={resolved.brand.name} tenantId={resolved.id} />;
+  return (
+    <BuyerCatalog
+      data={data}
+      brandName={resolved.brand.name}
+      tenantId={resolved.id}
+      itemsFolder={resolved.cloudinaryFolder}
+    />
+  );
 }
 
-function BuyerCatalog({ data, brandName, tenantId }) {
+function BuyerCatalog({ data, brandName, tenantId, itemsFolder }) {
   const { cloud } = data;
   const { toast } = useToast();
   const { user } = useAuth();
@@ -49,6 +59,15 @@ function BuyerCatalog({ data, brandName, tenantId }) {
   // Catalog editing is a Manage feature (F3): CST admin + client-admin only.
   const canManage = userRoles.includes("admin") || userRoles.includes("client-admin");
   const [edits, setEdits] = useState(() => loadEdits(tenantId));
+  // Item truth (Media Hub → Cloudinary items.json): item numbers, specs, descriptions.
+  const [itemsDoc, setItemsDoc] = useState(null);
+  useEffect(() => {
+    let on = true;
+    if (!itemsFolder) return undefined;
+    loadItems(itemsFolder).then((doc) => { if (on) setItemsDoc(doc); }).catch(() => {});
+    return () => { on = false; };
+  }, [itemsFolder]);
+  const itemFor = (im) => (im?.code && itemsDoc ? getItem(itemsDoc, im.code) : null);
   const images = useMemo(() => applyEdits(data.images, edits), [data.images, edits]);
   const importRef = useRef(null);
   const [query, setQuery] = useState("");
@@ -119,7 +138,7 @@ function BuyerCatalog({ data, brandName, tenantId }) {
     <div>
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-heading text-3xl text-fg">Image Catalog</h1>
+          <h1 className="font-heading text-3xl text-fg">Product Catalog</h1>
           <p className="mt-1 text-fg-muted">{brandName} product library — search, preview, download, share.</p>
         </div>
         <div className="flex items-center gap-2">
@@ -208,7 +227,9 @@ function BuyerCatalog({ data, brandName, tenantId }) {
                   <h3 className="truncate text-sm font-medium text-fg">{im.title}</h3>
                   {im.code && <Badge variant="muted" className="shrink-0 font-mono text-[10px]">{im.code}</Badge>}
                 </div>
-                <p className="mt-0.5 text-xs text-fg-muted">{im.category}</p>
+                <p className="mt-0.5 text-xs text-fg-muted">
+                  {specLine(itemFor(im)) || im.category}
+                </p>
               </div>
             </Card>
           ))}
@@ -257,14 +278,25 @@ function BuyerCatalog({ data, brandName, tenantId }) {
               <div className="max-h-[78vh] overflow-y-auto p-6">
                 <Badge variant="muted">{activeIm.category}</Badge>
                 <h2 className="mt-2 font-heading text-2xl text-fg">{activeIm.title}</h2>
+                {specLine(itemFor(activeIm)) && (
+                  <p className="mt-1 text-sm text-fg-muted">{specLine(itemFor(activeIm))}</p>
+                )}
                 <p className="mt-1 break-all text-xs text-fg-muted">{activeIm.orig}</p>
-                {activeIm.description && <p className="mt-2 text-sm text-fg-muted">{activeIm.description}</p>}
+                {/* Item-truth description first (Media Hub items.json); freehand only when no record. */}
+                {(descriptionFor(itemsDoc, activeIm.code, "long") || activeIm.description) && (
+                  <p className="mt-2 text-sm text-fg-muted">
+                    {descriptionFor(itemsDoc, activeIm.code, "long") || activeIm.description}
+                  </p>
+                )}
                 <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
                   <div><dt className="text-xs uppercase text-fg-muted">Format</dt><dd className="text-fg">{activeIm.ext?.toUpperCase()}</dd></div>
                   <div><dt className="text-xs uppercase text-fg-muted">Size</dt><dd className="text-fg">{fmtSize(activeIm.size || 0)}</dd></div>
                   <div><dt className="text-xs uppercase text-fg-muted">Modified</dt><dd className="text-fg">{activeIm.modified}</dd></div>
                   {activeIm.code && (
-                    <div><dt className="text-xs uppercase text-fg-muted">Item code</dt><dd className="font-mono text-fg">{activeIm.code}</dd></div>
+                    <div><dt className="text-xs uppercase text-fg-muted">Item number</dt><dd className="font-mono text-fg">{activeIm.code}</dd></div>
+                  )}
+                  {itemFor(activeIm)?.certification && (
+                    <div><dt className="text-xs uppercase text-fg-muted">Certification</dt><dd className="text-fg">{itemFor(activeIm).certification}</dd></div>
                   )}
                   {activeIm.cl_w && (
                     <div><dt className="text-xs uppercase text-fg-muted">Dimensions</dt><dd className="text-fg">{activeIm.cl_w} × {activeIm.cl_h}</dd></div>
@@ -278,7 +310,7 @@ function BuyerCatalog({ data, brandName, tenantId }) {
                     </p>
                     <div className="space-y-3">
                       <div className="grid gap-1.5">
-                        <Label htmlFor="edit-code">Item code</Label>
+                        <Label htmlFor="edit-code">Item number</Label>
                         <Input
                           id="edit-code"
                           defaultValue={activeIm.code || ""}
@@ -294,16 +326,23 @@ function BuyerCatalog({ data, brandName, tenantId }) {
                           onBlur={(e) => onEdit(activeIm.id, "title", e.target.value)}
                         />
                       </div>
-                      <div className="grid gap-1.5">
-                        <Label htmlFor="edit-desc">Description</Label>
-                        <Textarea
-                          id="edit-desc"
-                          rows={3}
-                          defaultValue={activeIm.description || ""}
-                          placeholder="Short description (syncs with the master price list workflow via Export)"
-                          onBlur={(e) => onEdit(activeIm.id, "description", e.target.value)}
-                        />
-                      </div>
+                      {itemFor(activeIm) ? (
+                        <p className="text-xs text-fg-muted">
+                          Description comes from the item record for <span className="font-mono">{activeIm.code}</span> —
+                          edit it in Media Hub → Items (never freehand item copy here).
+                        </p>
+                      ) : (
+                        <div className="grid gap-1.5">
+                          <Label htmlFor="edit-desc">Description</Label>
+                          <Textarea
+                            id="edit-desc"
+                            rows={3}
+                            defaultValue={activeIm.description || ""}
+                            placeholder="Short description (syncs with the master price list workflow via Export)"
+                            onBlur={(e) => onEdit(activeIm.id, "description", e.target.value)}
+                          />
+                        </div>
+                      )}
                       <p className="text-xs text-fg-muted">Saves automatically. Use Export edits to back up or hand off to the price-list workflow.</p>
                     </div>
                   </div>

@@ -56,7 +56,7 @@ const NAV = [
 const NAV_ORDER = ["dashboard", "tool:price-list", "crm", "campaigns", "orders", "tools", "tool:shopify", "media"];
 // Pages reachable WITHOUT a nav tab: buyer share links + Opportunity-Engine compose (as before),
 // plus the Content Engine's apps (their tabs moved into the engine page's cards) and the buyer
-// Image Catalog (launched from its dashboard card, off the sidebar per the 2026-07-02 order).
+// Product Catalog (launched from its dashboard card, off the sidebar per the 2026-07-02 order).
 const NON_NAV_PAGES = ["proposal", "compose", "media", "proposals", "presentations", "brand", "catalog", "brand-systems"];
 const NON_NAV_LABELS = {
   proposal: "Proposal",
@@ -65,7 +65,7 @@ const NON_NAV_LABELS = {
   proposals: "Content Studio",
   presentations: "Content Library",
   brand: "Brand Kits",
-  catalog: "Image Catalog",
+  catalog: "Product Catalog",
   "brand-systems": "Brand Systems",
 };
 
