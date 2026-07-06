@@ -66,6 +66,12 @@ export const handler = async (event) => {
         format: r.format,
         width: r.width,
         height: r.height,
+        // Added so this ONE live endpoint can also feed the canonical images.json manifest
+        // (scripts/sync-images.mjs --live) without needing the Cloudinary Admin API secret
+        // locally — version for cache-busting, bytes/modified for display only.
+        version: r.version,
+        bytes: r.bytes,
+        modified: (r.created_at || "").slice(0, 10),
       };
     });
 

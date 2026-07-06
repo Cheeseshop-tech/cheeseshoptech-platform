@@ -19,6 +19,54 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-07-06 (cont.) — Image manifest un-froze: 103→242 images, live-syncable without secrets
+
+**Root cause found.** Product Catalog reads item identity/copy LIVE (`items.js` fetches
+`items-get` at runtime — Media Hub edits show up immediately). But it reads **photos** from a
+STATIC bundle, `src/data/montitrentini/images.json`, built once by `sync-images.mjs` and frozen
+until someone with the Cloudinary Admin API secret manually re-runs it and redeploys. That
+manifest hadn't been regenerated since early sessions — it had 103 images while Cloudinary
+actually holds 242 (139 real uploads, invisible to the Catalog/Proposals/Pricing this whole
+time, though fully visible+editable in the Media Hub, which lists live). This explains the
+whole afternoon's confusion about edits "not showing up."
+
+**Shipped (build ✓ — `COMMIT IMAGE NETWORK.command`):**
+- `netlify/functions/media-list.js` now also returns `version`/`bytes`/`modified` (were already
+  on the Cloudinary resource, just not mapped through).
+- `scripts/sync-images.mjs` gets a `--live` mode: when Admin API secrets aren't set, it rebuilds
+  the manifest from the already-deployed `media-list` function instead (no secret needed
+  anywhere but Netlify). Auto-selects live mode if secrets are absent. Full Admin-API mode is
+  unchanged and still preferred when secrets ARE available (nothing lost there).
+- Regenerated `images.json`: **103 → 242 images**, using live mode. Ran the matcher
+  (`match-photos-to-items.mjs`) after, which caught one more confident match (Alpeggio Cheese,
+  20724) and confirmed the previously-ambiguous Vezzena/Lagorai/Provolone/Piave assignments
+  Rick made by hand this session are durable in Cloudinary context.
+- **Regression caught before shipping:** the refresh initially DROPPED 27 of 47 previously-coded
+  images — turned out those codes only ever existed in the old local bundle, never written to
+  Cloudinary context (pre-dating the Media Hub item-linking feature). Cross-checked all 27
+  against `items-seed.json`: 23 were valid and got written back via `media-update` (durable
+  now); 4 were the already-known bad orphan codes (05123/05205/20220/01315) correctly staying
+  unlinked. Also wrote the 5 already-resolved-but-unwritten links from this session (Lagorai
+  ×2, Provolone, Piave ×2).
+- **Final state: 50/242 images coded, 43/113 items have ≥1 photo.**
+
+**Open (real, not fixable from data alone):** item **20229** (Caciotta alle Erbe 3kg) has no
+photo anywhere in the live 242 — genuinely missing, not a matching problem · 194 images have no
+code, most correctly so (brand/lifestyle/raw/production shots) but the original 49-item "no
+match" backlog is inside that count and still needs eyes · long descriptions still blank on
+most items.
+
+**Wiring review — findings + recommendations** (full review shared with Rick in chat; not
+duplicating here to keep this entry short): the images/items asymmetry above is the headline
+finding. Also flagged: `media-update`/`media-list` have no caller auth (anyone with the URL can
+rewrite Cloudinary metadata) · `VITE_IMAGES_BACKEND` "live" adapter is an unimplemented stub
+(`return null`) sitting next to the working `VITE_MEDIA_BACKEND` flag — confusing pair, worth
+either implementing or removing · no scheduled/automatic manifest refresh exists — recommend
+either a Netlify build-plugin prebuild step calling `sync-images.mjs --live`, or a scheduled
+task, so this can't go stale silently again.
+
+---
+
 ## 2026-07-06 — Media Hub asset-grid search (Product Catalog already had one)
 
 **Finding.** The Product Catalog (`buyer-catalog.jsx`) and Media Hub's Items tab
