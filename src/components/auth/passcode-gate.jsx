@@ -3,16 +3,22 @@ import { Lock } from "lucide-react";
 import { useAuth } from "@/lib/auth-context.jsx";
 import { Button } from "@/components/ui/button.jsx";
 import { Input } from "@/components/ui/input.jsx";
+import { RequestAccessForm } from "@/components/auth/request-access.jsx";
 
 // Pilot passcode gate (VITE_AUTH_MODE=passcode). A single shared passcode unlocks the portal —
 // checked server-side by netlify/functions/gate.js against PORTAL_PASSCODE. On success the auth
 // context grants a synthetic "client" session. Replaces RequireAuth for the single-client pilot
 // until per-user auth (Clerk) lands. See docs/AUTH_AND_ROLES.md.
+//
+// "Don't have a passcode?" (Rick, 2026-07-06) toggles to RequestAccessForm — for brokers/sales
+// reps who land here with nothing to enter. Not a self-serve grant; just routes a request to
+// admin@cheeseshoptech.com for manual review.
 export function PasscodeGate({ resolved, children }) {
   const { user, unlock } = useAuth();
   const [code, setCode] = useState("");
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [mode, setMode] = useState("passcode"); // "passcode" | "request"
 
   if (user) return children;
 
@@ -97,6 +103,9 @@ export function PasscodeGate({ resolved, children }) {
           </div>
 
           {/* form body */}
+          {mode === "request" ? (
+            <RequestAccessForm resolved={resolved} onBack={() => setMode("passcode")} />
+          ) : (
           <form onSubmit={submit} className="space-y-4 p-6">
             <div>
               <h1 className="cs-display text-xl text-fg">{resolved.isHouse ? "Staff & partners" : "Welcome"}</h1>
@@ -120,7 +129,17 @@ export function PasscodeGate({ resolved, children }) {
             <Button type="submit" variant="primary" className="w-full" disabled={busy || !code}>
               {busy ? "Checking…" : "Enter portal"}
             </Button>
+            {!resolved.isHouse && (
+              <button
+                type="button"
+                onClick={() => setMode("request")}
+                className="w-full text-center text-sm text-fg-muted underline-offset-2 hover:text-fg hover:underline"
+              >
+                Don't have a passcode? Request access
+              </button>
+            )}
           </form>
+          )}
         </div>
         <p className="cs-eyebrow mt-4 text-center text-fg-muted">Powered by CheeseShop TECH</p>
       </div>

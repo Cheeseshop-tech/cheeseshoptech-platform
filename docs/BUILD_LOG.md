@@ -19,6 +19,38 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-07-06 (cont. 3) — "Request access" form on the portal gate (Netlify Forms, no backend)
+
+**Context.** Testing the write-guard change, Rick realized there's no live broker/sales-rep
+("client" tier) passcode actually in use — a real gap once he starts handing out
+narrower-than-admin access. Asked for a signup form that lands with admin@cheeseshoptech.com for
+manual approval. Explicitly NOT a self-serve account system (the passcode model has no concept
+of individual users) — a request form only; granting access is still Rick manually handing out
+the right passcode after reviewing.
+
+**Shipped (build ✓ — `COMMIT REQUEST ACCESS.command`):**
+- `index.html` — a hidden static `<form name="access-request" data-netlify="true">` (name,
+  email, company, role, tenant, note, honeypot). Required so Netlify's build-time crawler
+  registers the form schema — a React-rendered form is invisible to it (documented Netlify
+  Forms + SPA pattern).
+- `src/components/auth/request-access.jsx` (new) — the real form UI, submits via `fetch("/", …)`
+  with `form-name=access-request`, the matching SPA-submission recipe.
+- `passcode-gate.jsx` — "Don't have a passcode? Request access" link (client-facing tenant gate
+  only, not the house console) toggles to the request form; success state points back to
+  admin@cheeseshoptech.com.
+
+**Rick action required (Netlify dashboard, not code):** Site settings → Forms → Form
+notifications → Add notification → Email notification → `admin@cheeseshoptech.com`, watching
+form **"access-request."** Without this step submissions land in the Netlify Forms dashboard but
+nothing emails you.
+
+**Open / by design:** granting access is still 100% manual (Rick reads the request, decides,
+sends the appropriate passcode himself) — no auto-provisioning, no revoke-per-person. If/when
+real per-user accounts matter (Clerk, per the existing plan), this request form's job shrinks to
+"tell me you exist" rather than the access mechanism itself.
+
+---
+
 ## 2026-07-06 (cont. 2) — Cloudinary rewrites now require CST/client-admin auth server-side
 
 **Problem (Rick's ask, following the wiring review above).** `media-update`, `media-delete`,

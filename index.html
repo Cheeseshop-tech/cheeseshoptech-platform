@@ -15,6 +15,20 @@
   </head>
   <body>
     <div id="root"></div>
+    <!-- Netlify Forms detection (build-time crawler only — never rendered/interactive). The real
+         form lives in React (src/components/auth/request-access.jsx) and submits here via fetch,
+         the documented pattern for SPA + Netlify Forms. Field names MUST match exactly.
+         Enable email notifications for this form in Netlify: Site settings -> Forms ->
+         Form notifications -> Add notification -> Email notification -> admin@cheeseshoptech.com. -->
+    <form name="access-request" data-netlify="true" netlify-honeypot="bot-field" hidden>
+      <input type="text" name="name" />
+      <input type="email" name="email" />
+      <input type="text" name="company" />
+      <input type="text" name="role" />
+      <input type="text" name="tenant" />
+      <textarea name="note"></textarea>
+      <input type="text" name="bot-field" />
+    </form>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
