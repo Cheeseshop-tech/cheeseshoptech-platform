@@ -40,9 +40,12 @@ the right passcode after reviewing.
   admin@cheeseshoptech.com.
 
 **Rick action required (Netlify dashboard, not code):** Site settings → Forms → Form
-notifications → Add notification → Email notification → `admin@cheeseshoptech.com`, watching
-form **"access-request."** Without this step submissions land in the Netlify Forms dashboard but
-nothing emails you.
+notifications → Add notification → Email notification → **`hello@cheeseshoptech.com`** (the
+address Rick actually reads — avoids standing up a paid admin@ mailbox before signing client
+#1), watching form **"access-request."** The form's own displayed copy still says "sent to
+admin@cheeseshoptech.com" on purpose — Rick's call, addable as a real routed mailbox later
+without touching this code, only the Netlify notification target. Without the notification step
+submissions land in the Netlify Forms dashboard but nothing emails anyone.
 
 **Open / by design:** granting access is still 100% manual (Rick reads the request, decides,
 sends the appropriate passcode himself) — no auto-provisioning, no revoke-per-person. If/when
