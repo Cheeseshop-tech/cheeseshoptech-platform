@@ -7,6 +7,7 @@ import {
   Layers,
   Megaphone,
   Contact,
+  MonitorPlay,
 } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell.jsx";
 import { Button } from "@/components/ui/button.jsx";
@@ -42,20 +43,26 @@ const Gate = import.meta.env.VITE_AUTH_MODE === "passcode" ? PasscodeGate : Requ
 // Brand Systems / Brand Kits / Brand Voice / Media Hub all live under it as app cards, so their
 // old top-level tabs are gone. Media hub keeps a direct tab ONLY for external collaborators
 // (pr/influencer/creator), whose whole portal is the hub. Route keys stay stable ("tools").
+// Sales-rep/broker access (Rick, 2026-07-06 — "client" tier v1): Dashboard, CRM, Price List,
+// Product Catalog, Content Library. Explicitly NOT Campaigns/Orders/the full Content Engine hub
+// (Content Studio, Brand Systems/Kits/Voice, Media Hub) — those stay admin/client-admin only.
+// Content Library gets its OWN nav tab (below) rather than exposing the whole Content Engine
+// hub, which would also surface Media Hub. Widen deliberately later, one line at a time.
 const NAV = [
   { key: "dashboard", label: "Dashboard", icon: LayoutDashboard, allowed: ["admin", "client"] },
-  { key: "campaigns", label: "Campaigns", icon: Megaphone, allowed: ["admin", "client"] },
-  { key: "orders", label: "Orders", icon: ShoppingCart, allowed: ["admin", "client"] },
+  { key: "campaigns", label: "Campaigns", icon: Megaphone, allowed: ["admin"] },
+  { key: "orders", label: "Orders", icon: ShoppingCart, allowed: ["admin"] },
   { key: "crm", label: "CRM", icon: Contact, allowed: ["admin", "client"] },
+  { key: "presentations", label: "Content Library", icon: MonitorPlay, allowed: ["admin", "client"] },
   { key: "media", label: "Media hub", icon: Images, allowed: ["pr", "influencer", "creator"] },
-  { key: "tools", label: "Content Engine", icon: Layers, allowed: ["admin", "client"] },
+  { key: "tools", label: "Content Engine", icon: Layers, allowed: ["admin"] },
 ];
 // Sidebar order (Rick, 2026-07-02): Dashboard · Pricing & Inventory · CRM · Campaigns · Orders ·
 // Content Engine · Storefront. Featured-tool tabs (tool:<key>) slot in by config key. Keys not
 // listed here sort after the listed ones, in assembly order.
 // Product catalog back ON the sidebar as a featured-tool tab (Rick, 2026-07-04) — it's the
 // item-driven price-list mirror now, a first-class daily surface.
-const NAV_ORDER = ["dashboard", "tool:price-list", "crm", "campaigns", "orders", "tool:buyer-catalog", "tools", "tool:shopify", "media"];
+const NAV_ORDER = ["dashboard", "tool:price-list", "crm", "campaigns", "orders", "tool:buyer-catalog", "presentations", "tools", "tool:shopify", "media"];
 // Pages reachable WITHOUT a nav tab: buyer share links + Opportunity-Engine compose (as before),
 // plus the Content Engine's apps (their tabs moved into the engine page's cards). `catalog`
 // stays listed so dashboard cards + ?page=catalog deep links keep working alongside the tab.

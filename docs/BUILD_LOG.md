@@ -19,6 +19,36 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-07-06 (cont. 5) — "client" tier v1 scoped: Dashboard, CRM, Price List, Catalog, Content Library
+
+**Decision (Rick).** First real definition of what the base "client" passcode tier (brokers/
+sales reps) can see: Dashboard, CRM, Price List (Pricing & Inventory), Product Catalog, Content
+Library. Explicitly NOT Campaigns, Orders, or the full Content Engine hub (which also bundles
+Content Studio, Brand Systems/Kits/Voice, Media Hub) — those stay admin-only for now. Deliberate
+starting point, widen one line at a time as real reps actually need more.
+
+**Shipped (build ✓ — `COMMIT CLIENT TIER V1.command`):** `src/App.jsx` —
+- `campaigns` and `orders` NAV entries: `allowed` narrowed from `["admin","client"]` to
+  `["admin"]`.
+- `tools` (Content Engine hub): narrowed to `["admin"]` — giving "client" this tab would also
+  surface its Media Hub card (`content-engine-page.jsx` APPS config already permits
+  `["admin","client",...]` there), which isn't wanted for reps yet.
+- New direct NAV entry: `presentations` → "Content Library" (icon `MonitorPlay`, matches its
+  Content Engine card), `allowed: ["admin","client"]` — reps get Content Library on its own tab
+  instead of the whole hub. Added to `NAV_ORDER` right after the catalog tool tab.
+- Price List + Product Catalog needed NO change — both are `featured: true` in
+  `config/clients/montitrentini.json`, and featured-tool tabs already default to
+  `allowed: ["admin","client"]` (App.jsx `featuredNav` mapping).
+- Zero risk to any live user: confirmed earlier this session that no "client"-tier passcode has
+  ever actually been handed out, so nobody's access changes as a result of this.
+
+**Known pre-existing gap, not introduced here, not fixed:** the `presentations` route has no
+`RoleGate` in the render switch (unlike `brand`/`brand-systems`) — reachable via `?page=
+presentations` regardless of role, same as before this change. Low priority (view-only content,
+no write path) but worth closing if Content Library ever holds anything sensitive.
+
+---
+
 ## 2026-07-06 (cont. 3) — "Request access" form on the portal gate (Netlify Forms, no backend)
 
 **Context.** Testing the write-guard change, Rick realized there's no live broker/sales-rep
