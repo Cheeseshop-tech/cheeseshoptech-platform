@@ -6,8 +6,14 @@
 // Body (JSON): { publicId, resourceType? }   resourceType defaults to "image".
 // This is DESTRUCTIVE and irreversible — the UI gates it to admins and confirms before calling.
 
+import { requireWriteAuth, jsonUnauthorized } from "./_write-guard.js";
+
 export const handler = async (event) => {
   if (event.httpMethod !== "POST") return json(405, { error: "Method not allowed" });
+
+  // Destructive — CST (house) or a client's admin only. See _write-guard.js.
+  const writeAuth = requireWriteAuth(event);
+  if (!writeAuth.ok) return jsonUnauthorized(writeAuth);
 
   const cloud = process.env.CLOUDINARY_CLOUD_NAME;
   const key = process.env.CLOUDINARY_API_KEY;

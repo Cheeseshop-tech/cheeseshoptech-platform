@@ -6,11 +6,16 @@
 // POST { folder: "clients/montitrentini", doc: {version, updatedAt, items} }
 
 import { createHash } from "node:crypto";
+import { requireWriteAuth, jsonUnauthorized } from "./_write-guard.js";
 
 const MAX_BYTES = 900_000; // items.json is text; ~1 MB guard against runaway payloads
 
 export const handler = async (event) => {
   if (event.httpMethod !== "POST") return json(405, { error: "Method not allowed" });
+
+  // CST (house) or a client's admin only — see _write-guard.js.
+  const writeAuth = requireWriteAuth(event);
+  if (!writeAuth.ok) return jsonUnauthorized(writeAuth);
 
   const cloud = process.env.CLOUDINARY_CLOUD_NAME;
   const key = process.env.CLOUDINARY_API_KEY;

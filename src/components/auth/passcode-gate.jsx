@@ -31,7 +31,7 @@ export function PasscodeGate({ resolved, children }) {
           admin: import.meta.env.VITE_HOUSE_PASSCODE || "house",
         };
         const role = Object.keys(dev).find((r) => code && code === dev[r]);
-        if (role) return unlock(role);
+        if (role) return unlock(role, code);
         setError("Incorrect passcode.");
         return;
       }
@@ -42,7 +42,7 @@ export function PasscodeGate({ resolved, children }) {
       });
       if (res.ok) {
         const data = await res.json().catch(() => ({}));
-        return unlock(data.role || "client");
+        return unlock(data.role || "client", code);
       }
       setError("Incorrect passcode.");
     } catch {

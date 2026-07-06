@@ -21,6 +21,11 @@ const DEV_USER = {
 // "admin". On unlock we grant a synthetic session with that role; tenant comes from the URL.
 const PASSCODE_MODE = import.meta.env.VITE_AUTH_MODE === "passcode";
 const UNLOCK_KEY = "cs-portal-unlocked";
+// The raw passcode itself, stashed ONLY so admin/client-admin write calls (media-update,
+// media-delete, items-save) can replay it as the x-portal-passcode header — those Netlify
+// functions now verify it server-side (2026-07-06; see netlify/functions/_write-guard.js).
+// Never sent anywhere except our own function calls; never logged.
+const PASSCODE_VALUE_KEY = "cs-portal-passcode";
 const PASSCODE_ROLES = ["client", "client-admin", "admin"];
 const passcodeUser = (role) => ({
   email: "portal@cheeseshoptech.com",
@@ -56,9 +61,13 @@ export function AuthProvider({ children }) {
 
   // Grant the synthetic session after a correct passcode (PasscodeGate calls this).
   // role comes from the gate function's response; defaults to the base client tier.
-  const unlock = useCallback((role = "client") => {
+  // `code` (the raw passcode the person typed) is stashed too — see PASSCODE_VALUE_KEY.
+  const unlock = useCallback((role = "client", code = "") => {
     const r = PASSCODE_ROLES.includes(role) ? role : "client";
-    try { localStorage.setItem(UNLOCK_KEY, r); } catch { /* quota / private mode */ }
+    try {
+      localStorage.setItem(UNLOCK_KEY, r);
+      if (code) localStorage.setItem(PASSCODE_VALUE_KEY, code);
+    } catch { /* quota / private mode */ }
     setUser(passcodeUser(r));
   }, []);
 
@@ -80,7 +89,7 @@ export function AuthProvider({ children }) {
 
   const logout = useCallback(async () => {
     if (PASSCODE_MODE) {
-      try { localStorage.removeItem(UNLOCK_KEY); } catch { /* ignore */ }
+      try { localStorage.removeItem(UNLOCK_KEY); localStorage.removeItem(PASSCODE_VALUE_KEY); } catch { /* ignore */ }
       setUser(null);
       return;
     }
@@ -99,4 +108,17 @@ export function useAuth() {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth must be used within <AuthProvider>");
   return ctx;
+}
+
+/**
+ * The passcode to replay as the `x-portal-passcode` header on admin/client-admin write calls
+ * (media-update, media-delete, items-save — see netlify/functions/_write-guard.js). "" outside
+ * passcode mode or before unlock; those calls will then correctly 401.
+ */
+export function writeAuthHeader() {
+  if (!PASSCODE_MODE) return {};
+  try {
+    const code = localStorage.getItem(PASSCODE_VALUE_KEY);
+    return code ? { "x-portal-passcode": code } : {};
+  } catch { return {}; }
 }

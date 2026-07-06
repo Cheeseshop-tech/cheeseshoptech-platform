@@ -6,6 +6,8 @@
 // Tags written  = approvalState (if valid) + usage ids  (REPLACES the asset's tags)
 // Context written = caption / sku / alt  (REPLACES the asset's context)
 
+import { requireWriteAuth, jsonUnauthorized } from "./_write-guard.js";
+
 const APPROVAL_TAGS = ["approved-for-influencers", "approved-for-press", "draft"];
 const USAGE_IDS = [
   "product-catalog", "hero", "story-block", "lifestyle", "food-styling", "production",
@@ -14,6 +16,10 @@ const USAGE_IDS = [
 
 export const handler = async (event) => {
   if (event.httpMethod !== "POST") return json(405, { error: "Method not allowed" });
+
+  // CST (house) or a client's admin only — see _write-guard.js.
+  const writeAuth = requireWriteAuth(event);
+  if (!writeAuth.ok) return jsonUnauthorized(writeAuth);
 
   const cloud = process.env.CLOUDINARY_CLOUD_NAME;
   const key = process.env.CLOUDINARY_API_KEY;

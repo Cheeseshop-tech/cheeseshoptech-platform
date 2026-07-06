@@ -10,11 +10,14 @@
 
 import { rolesOf } from "./auth.js";
 import { seedFor } from "./items-seeds.js";
+import { writeAuthHeader } from "./auth-context.jsx";
 
-// Same management tier as asset editing: admin + client manage items.
+// Same management tier as asset editing (2026-07-06: tightened to admin/client-admin — see
+// media.js canManageMedia and netlify/functions/_write-guard.js, which enforces this server-side
+// on items-save too).
 export function canManageItems(user) {
   const roles = rolesOf(user);
-  return roles.includes("admin") || roles.includes("client");
+  return roles.includes("admin") || roles.includes("client-admin");
 }
 
 /** Empty per-tenant document. `items` is keyed by item number (SKU) for O(1) lookups. */
@@ -154,7 +157,7 @@ export async function saveItems(tenantFolder, doc) {
   }
   const res = await fetch("/.netlify/functions/items-save", {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": "application/json", ...writeAuthHeader() },
     body: JSON.stringify({ folder: tenantFolder, doc: out }),
   });
   if (!res.ok) {

@@ -19,6 +19,48 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-07-06 (cont. 2) — Cloudinary rewrites now require CST/client-admin auth server-side
+
+**Problem (Rick's ask, following the wiring review above).** `media-update`, `media-delete`,
+and `items-save` called the Cloudinary Admin API safely server-side (secret never in the
+browser) but had **no check on the caller** — the client-side role gates only hid buttons in
+the UI. Hitting the function URL directly (as this session's own scripts did, repeatedly, to
+fix data) rewrote or deleted assets with zero authentication. Decision: only CST (house
+passcode) and a client's admin (client-admin passcode) may write; the base "client" portal
+viewer and unauthenticated requests are blocked. Direct-to-Cloudinary access was never possible
+anyway (secret server-side only) — this closes the gap that our OWN endpoints didn't check who
+was asking.
+
+**Shipped (build ✓ — `COMMIT WRITE GUARD.command`):**
+- `netlify/functions/_write-guard.js` (new, not its own endpoint — leading underscore) — shared
+  `requireWriteAuth(event)`, same shared-passcode model as `gate.js`: replays the passcode the
+  user unlocked with, sent as `x-portal-passcode` (mirrors the existing `x-publish-secret`
+  pattern in `inventory-publish.js`). Accepts house or (tenant/generic) admin passcode only —
+  deliberately does NOT accept the base client passcode.
+- `media-update.js` / `media-delete.js` / `items-save.js` — each now calls the guard first, 401s
+  if missing/wrong.
+- `auth-context.jsx` — `unlock(role, code)` now also stashes the raw passcode
+  (`cs-portal-passcode`, cleared on logout); new `writeAuthHeader()` export replays it.
+  `passcode-gate.jsx` passes the code through on unlock.
+- `media.js` / `items.js` — `updateAsset`/`deleteAsset`/`saveItems` attach `writeAuthHeader()`.
+  `canManageMedia`/`canManageItems` tightened from admin-or-client to **admin-or-client-admin**
+  (client-side gate now matches what the server will actually allow — no more showing an Edit
+  button a base-tier viewer can't actually use). `canDeleteMedia` was already this tight.
+
+**Known gap, not fixed (dead code path today).** This only works in passcode auth mode
+(`VITE_AUTH_MODE=passcode`), which is the live mode per HANDOFF. Identity mode
+(`VITE_AUTH_MODE=identity`) has no equivalent check — `writeAuthHeader()` returns nothing, so
+writes would 401 across the board if identity mode were ever turned back on. Needs a real
+Identity-JWT check added to `_write-guard.js` before that switch happens (Clerk is the actual
+plan per AUTH_AND_ROLES, so this may never matter).
+
+**Test before trusting it:** after this deploys, confirm you can still edit/link/delete assets
+in Media Hub logged in with your normal (admin or client-admin) passcode — should work exactly
+as before. If you ever log in with the base client passcode, Edit/Delete buttons will now be
+hidden (by design).
+
+---
+
 ## 2026-07-06 (cont.) — Image manifest un-froze: 103→242 images, live-syncable without secrets
 
 **Root cause found.** Product Catalog reads item identity/copy LIVE (`items.js` fetches

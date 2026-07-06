@@ -4,6 +4,7 @@
 // See docs/MEDIA_HUB.md.
 
 import { rolesOf } from "./auth.js";
+import { writeAuthHeader } from "./auth-context.jsx";
 
 // Approval states (lightweight, per POSITIONING.md content-studio → media-hub flow).
 export const APPROVAL = {
@@ -52,9 +53,13 @@ export function visibleStatesFor(user) {
   return set;
 }
 
+// Editing/re-tagging/SKU-linking an EXISTING asset writes to Cloudinary (media-update) — CST
+// (admin) or a client's admin only (Rick, 2026-07-06: base "client" portal-viewers can browse
+// but not rewrite). The Netlify function enforces this too (_write-guard.js) — this client-side
+// check just keeps the UI honest with what the server will actually allow.
 export function canManageMedia(user) {
   const roles = rolesOf(user);
-  return roles.includes("admin") || roles.includes("client");
+  return roles.includes("admin") || roles.includes("client-admin");
 }
 
 export function canUpload(user) {
@@ -124,7 +129,7 @@ export async function updateAsset({ publicId, displayName, usage, sku, alt, desc
   if (USE_MOCK) return patch; // dev: update local state only
   const res = await fetch("/.netlify/functions/media-update", {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": "application/json", ...writeAuthHeader() },
     body: JSON.stringify({ publicId, displayName, usage, sku, alt, description, approvalState }),
   });
   if (!res.ok) {
@@ -145,7 +150,7 @@ export async function deleteAsset({ publicId, resourceType = "image" }) {
   if (USE_MOCK) return { ok: true, publicId }; // dev: drop from local state only
   const res = await fetch("/.netlify/functions/media-delete", {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": "application/json", ...writeAuthHeader() },
     body: JSON.stringify({ publicId, resourceType }),
   });
   if (!res.ok) {
