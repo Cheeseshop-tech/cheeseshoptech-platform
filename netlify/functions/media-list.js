@@ -23,25 +23,56 @@ export const handler = async (event) => {
 
   const folderPrefix = (event.queryStringParameters?.folder || "").replace(/[^a-zA-Z0-9/_-]/g, "");
   if (!folderPrefix) return json(400, { error: "Missing folder" });
+  // Legacy folders (2026-07-06): some tenants have assets predating the tenant folder — Monti's
+  // 71 SKU packshots live at `monti/<itemcode>` with no context/tags, so the Media Hub never
+  // showed them. Config-driven (cloudinaryLegacyFolders in config/clients/<tenant>.json),
+  // comma-joined by src/lib/media.js. Legacy assets get their SKU DERIVED from the filename
+  // (monti/01021 → sku 01021) so they auto-link to item records. We deliberately do NOT
+  // move/rename the assets: campaign materials + the pricing tool's codeImageUrl fallback
+  // reference the `monti/<code>` delivery URLs. One-folder migration = its own session.
+  const legacyFolders = (event.queryStringParameters?.legacy || "")
+    .split(",")
+    .map((f) => f.replace(/[^a-zA-Z0-9/_-]/g, ""))
+    .filter(Boolean);
 
   const auth = Buffer.from(`${key}:${secret}`).toString("base64");
-  const base =
-    `https://api.cloudinary.com/v1_1/${cloud}/resources/image` +
-    `?type=upload&prefix=${encodeURIComponent(folderPrefix)}&max_results=100&tags=true&context=true`;
-
-  try {
-    // Page through next_cursor (cap at ~500 assets / 5 pages) so we don't truncate a folder.
+  // Page through next_cursor (cap at ~500 assets / 5 pages per prefix) so we don't truncate.
+  async function listPrefix(prefix) {
+    const base =
+      `https://api.cloudinary.com/v1_1/${cloud}/resources/image` +
+      `?type=upload&prefix=${encodeURIComponent(prefix)}&max_results=100&tags=true&context=true`;
     let resources = [];
     let cursor = null;
     for (let page = 0; page < 5; page++) {
       const res = await fetch(cursor ? `${base}&next_cursor=${encodeURIComponent(cursor)}` : base, {
         headers: { Authorization: `Basic ${auth}` },
       });
-      if (!res.ok) return json(res.status, { error: `Cloudinary ${res.status}` });
+      if (!res.ok) throw new Error(`Cloudinary ${res.status}`);
       const data = await res.json();
       resources = resources.concat(data.resources || []);
       cursor = data.next_cursor;
       if (!cursor) break;
+    }
+    return resources;
+  }
+
+  try {
+    const resources = await listPrefix(folderPrefix);
+    const seen = new Set(resources.map((r) => r.public_id));
+    for (const legacy of legacyFolders) {
+      const extra = await listPrefix(legacy);
+      for (const r of extra) {
+        // Admin-API `prefix` is a STRING match (`monti` also matches `monti-trentini/…`) —
+        // keep only assets exactly inside the legacy folder, and never duplicate.
+        if (!r.public_id.startsWith(`${legacy}/`) || seen.has(r.public_id)) continue;
+        seen.add(r.public_id);
+        // Filename = item code for legacy packshots → derive sku unless context already set one.
+        const name = r.public_id.slice(legacy.length + 1);
+        if (!r.context?.custom?.sku && /^[A-Za-z0-9-]+$/.test(name)) {
+          r.context = { ...r.context, custom: { ...r.context?.custom, sku: name } };
+        }
+        resources.push(r);
+      }
     }
 
     const assets = resources.map((r) => {

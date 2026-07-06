@@ -95,16 +95,22 @@ const USE_MOCK = (import.meta.env.VITE_MEDIA_BACKEND || "mock") === "mock";
 
 /**
  * List assets for a tenant folder, filtered to what the user's roles may see.
+ * `legacyFolders` (config cloudinaryLegacyFolders): extra Cloudinary folders predating the
+ * tenant folder — e.g. Monti's 71 `monti/<itemcode>` packshots — surfaced with SKU derived
+ * from the filename server-side (see media-list.js).
  * @returns {Promise<Array>} assets
  */
-export async function listAssets({ folder, tenantFolder, user }) {
+export async function listAssets({ folder, tenantFolder, legacyFolders, user }) {
   let assets;
   if (USE_MOCK) {
     assets = MOCK[tenantFolder] || [];
   } else {
     // Real adapter (deferred to launch): call a Netlify function that proxies the
     // Cloudinary Admin API for `${tenantFolder}/...` and maps approvalState from tags.
-    const res = await fetch(`/.netlify/functions/media-list?folder=${encodeURIComponent(tenantFolder)}`);
+    const legacy = (legacyFolders || []).length
+      ? `&legacy=${encodeURIComponent(legacyFolders.join(","))}`
+      : "";
+    const res = await fetch(`/.netlify/functions/media-list?folder=${encodeURIComponent(tenantFolder)}${legacy}`);
     assets = res.ok ? await res.json() : [];
   }
   const allowed = visibleStatesFor(user);

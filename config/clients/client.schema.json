@@ -72,6 +72,11 @@
       "type": "string",
       "description": "Defaults to clients/<id>."
     },
+    "cloudinaryLegacyFolders": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Extra Cloudinary folders predating cloudinaryFolder (e.g. Monti's monti/<itemcode> packshots). Media Hub lists them too; SKU is derived from the filename server-side. Assets are NOT moved — delivery URLs stay valid."
+    },
     "crm": {
       "type": "string",
       "enum": ["hubspot", "none"],

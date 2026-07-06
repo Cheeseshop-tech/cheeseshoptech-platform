@@ -18,6 +18,16 @@ shipped and just left on disk).
 **Read first:** `CLAUDE_CODE_BRIEF.md` → this → `docs/BUILD_LOG.md` (top) →
 `docs/ONBOARDING_AND_AGENTS_SDD.md` + `docs/CONTENT_ENGINE_WIRING_SPEC.md`.
 
+## ✅ MEDIA HUB SHOWS THE 71 LEGACY `monti/` PACKSHOTS (2026-07-06, cont. 8)
+Rick: product images in Cloudinary weren't in Media Hub. Cause: 71 per-SKU packshots live at
+legacy `monti/<itemcode>` (no context/tags); media-list only queried `monti-trentini/`. Fix:
+config-driven `cloudinaryLegacyFolders` (`["monti"]` for Monti) → media-list fetches legacy
+prefixes too (exact-folder filtered — `prefix` is a string match), **derives sku from filename**
+so packshots auto-link to item records. Assets deliberately NOT moved (campaign materials +
+codeImageUrl fallback use `monti/<code>` URLs); one-folder migration = later, own session.
+Ship via **`COMMIT LEGACY PACKSHOTS.command`**. Next in this workstream: bulk-tag the 71
+`product-catalog` · draft the 71 blank long descriptions · wire descriptionFor() into Studio.
+
 ## ✅ REAL MOBILE NAV DRAWER + presentations RoleGate (2026-07-06, cont. 7 — Fable 5 session)
 The stopgap back button is GONE — `app-shell.jsx` now has a hamburger (`md:hidden`) opening a
 `MobileNavDrawer`: same role-filtered `nav` as the sidebar, brand header, taller touch targets,
@@ -113,12 +123,14 @@ hello@ same day. **All Touch 1 launch gates cleared** except a final test-send. 
 `monti_asiago_campaign/TOUCH1_AUDIENCE_2026-07-03.md` (list 17 = whole DB, never send; real
 batch = 31 send-ready cheese-shop contacts, enriched +7 via web research + HubSpot write-back).
 
-## 🚀 ASIAGO TOUCH 1 — **SENT** (batch 1 of 3 went out Mon 2026-07-06, confirmed by Rick)
-**Status:** first batch (10 named-buyer contacts) sent 7/6. Not yet logged: bounce check result ·
-whether the ~4-day To-do task was ticked per send (builds the Touch 2 queue, due ~Fri 7/10) ·
-any replies/sample requests. Remaining 20 contacts → two batches Tue/Wed 7/7–7/8. Update this
-block + `monti_asiago_campaign/LAUNCH_DAY_2026-07-06.md` after each batch — send status lives
-HERE, not in chat.
+## 🚀 ASIAGO TOUCH 1 — **SENT** (batch 1 of 3, Mon 2026-07-06: 10 of 31 out)
+Sent via Buyer Intro template + tracked sell-sheet link + 4-day To-do per send (Touch 2 queue
+builds ~Fri 7/10). Mid-send data fix: Citarella contact swapped Heather Celentano (FORMER) →
+**Kristen Bausa** (email typo fixed after a bounce, resent — only bounce of the day). Remaining
+20 → two batches Tue 7/7 / Wed 7/8. Full record: `monti_asiago_campaign/LAUNCH_DAY_2026-07-06.md`.
+**Process lesson (this is why the handoff said "launches 8 AM" hours after launch):** the send
+was run in a separate chat that updated Claude's memory but not the files. Send/batch status gets
+written to LAUNCH_DAY + this block **in the same session it happens** — files are state.
 *(Original pre-launch state below, kept for reference.)*
 **Test send PASSED 7/4** (Rick → Mary, delivered + rendered clean) — nothing remains before
 launch. Infrastructure: active list id 19 "Asiago Touch 1 — Cheese shops" (31 contacts) ·

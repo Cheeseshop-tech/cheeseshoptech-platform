@@ -19,6 +19,40 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-07-06 (cont. 8) — Media Hub now surfaces the 71 legacy `monti/` packshots
+
+**Problem (Rick).** Product images exist in Cloudinary that never show in the Media Hub.
+Diagnosed against the live media-list endpoint: cloud `sofcvmwa` holds 242 assets under
+`monti-trentini/` (what Media Hub lists) **plus 71 under legacy `monti/<itemcode>`** (the
+per-SKU packshots — filename IS the item code, zero context/tags). media-list only queried the
+tenant folder, so the packshots were invisible. These are the same assets the pricing tool's
+`codeImageUrl` legacy fallback and campaign materials reference by delivery URL — so **moving/
+renaming them was ruled out** (breaks live URLs); a one-folder migration is its own deliberate
+session.
+
+**Shipped (vite build ✓ · validate:clients ✓ · node --check on the function ✓ —
+`COMMIT LEGACY PACKSHOTS.command`):**
+- `netlify/functions/media-list.js` — optional `legacy=` param (comma list): fetches each legacy
+  prefix too, filters to EXACT folder (Admin-API `prefix` is a string match — `monti` also
+  matches `monti-trentini/…`), dedupes, and **derives `sku` from the filename** (`monti/01021` →
+  sku `01021`, only when context has none) so packshots auto-link to item records.
+- `src/lib/media.js` — `listAssets` takes `legacyFolders`, appends `&legacy=`.
+- Callers pass `resolved.cloudinaryLegacyFolders`: `media-hub.jsx`, `media-picker.jsx`,
+  `studio-director.js`.
+- `client.schema.json` — new optional `cloudinaryLegacyFolders: string[]` ·
+  `clientConfig.js` resolves it (default `[]`) · `montitrentini.json` sets `["monti"]`.
+
+**Behavior notes:** legacy packshots land in the "products" folder bucket, untagged →
+approved-for-press default (visible to all roles), no usage tags — so they appear in All/
+Products but NOT in usage tabs or the Product Catalog gate (`product-catalog` tag) until
+tagged (bulk-tag in-app). Editing them via the asset dialog works as-is (media-update is
+public_id-based).
+
+**Open:** tag the 71 packshots `product-catalog` (bulk) · long descriptions still blank ·
+one-folder migration later.
+
+---
+
 ## 2026-07-06 (cont. 7) — Real mobile nav drawer + presentations RoleGate
 
 **Context.** Continuation of the (cont. 6) session below. The stopgap back-to-Dashboard button

@@ -102,7 +102,7 @@ export async function directDraft({ resolved, user, opportunity } = {}) {
   const catalog = pricing?.catalog;
   let assets = [];
   try {
-    assets = await listAssets({ tenantFolder: resolved.cloudinaryFolder, user });
+    assets = await listAssets({ tenantFolder: resolved.cloudinaryFolder, legacyFolders: resolved.cloudinaryLegacyFolders, user });
   } catch { assets = []; }
   assets = assets.filter((a) => (a.format ? !["mp4", "mov"].includes(a.format) : true));
 

@@ -52,7 +52,7 @@ export function MediaHub({ resolved }) {
   useEffect(() => {
     let alive = true;
     setAssets(null);
-    listAssets({ folder: null, tenantFolder: resolved.cloudinaryFolder, user }).then((a) => {
+    listAssets({ folder: null, tenantFolder: resolved.cloudinaryFolder, legacyFolders: resolved.cloudinaryLegacyFolders, user }).then((a) => {
       if (alive) setAssets(a);
     });
     return () => { alive = false; };

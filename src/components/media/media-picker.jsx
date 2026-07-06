@@ -25,7 +25,7 @@ export function MediaPicker({ resolved, value, onChange, defaultTag = "", label 
     if (!open || assets.length || loading) return;
     let alive = true;
     setLoading(true); setErr("");
-    listAssets({ tenantFolder: resolved.cloudinaryFolder, user })
+    listAssets({ tenantFolder: resolved.cloudinaryFolder, legacyFolders: resolved.cloudinaryLegacyFolders, user })
       .then((a) => { if (alive) setAssets(a || []); })
       .catch((e) => { if (alive) setErr(String(e?.message || e)); })
       .finally(() => { if (alive) setLoading(false); });

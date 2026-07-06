@@ -77,6 +77,7 @@ export function resolveClient(explicitSubdomain) {
     presentations: client?.presentations ?? [],
     home: client?.home ?? HOUSE.home ?? null,
     cloudinaryFolder: client?.cloudinaryFolder || `clients/${id}`,
+    cloudinaryLegacyFolders: client?.cloudinaryLegacyFolders ?? [],
     onPrimary: resolveOnColor(brand.colors.primary),
     onAccent: resolveOnColor(brand.colors.accent),
   };
