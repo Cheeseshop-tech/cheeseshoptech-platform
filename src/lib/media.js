@@ -139,11 +139,18 @@ export async function updateAsset({ publicId, displayName, usage, sku, alt, desc
     body: JSON.stringify({ publicId, displayName, usage, sku, alt, description, approvalState }),
   });
   if (!res.ok) {
+    if (res.status === 401) throw new Error(RELOGIN_MSG);
     const msg = await res.text().catch(() => "");
     throw new Error(`Update failed (${res.status}) ${msg}`);
   }
   return patch;
 }
+
+// 401 from a write endpoint almost always means the browser unlocked BEFORE the 2026-07-06
+// write-guard update, so there's no passcode stashed to replay — tell the user the actual fix
+// instead of a bare status code.
+export const RELOGIN_MSG =
+  "Not authorized to save — sign out and re-enter your passcode (a security update now requires it), then retry.";
 
 /**
  * Permanently delete one asset from Cloudinary (admin clearance). Live backend calls the
@@ -160,6 +167,7 @@ export async function deleteAsset({ publicId, resourceType = "image" }) {
     body: JSON.stringify({ publicId, resourceType }),
   });
   if (!res.ok) {
+    if (res.status === 401) throw new Error(RELOGIN_MSG);
     const msg = await res.text().catch(() => "");
     throw new Error(`Delete failed (${res.status}) ${msg}`);
   }

@@ -18,6 +18,13 @@ shipped and just left on disk).
 **Read first:** `CLAUDE_CODE_BRIEF.md` → this → `docs/BUILD_LOG.md` (top) →
 `docs/ONBOARDING_AND_AGENTS_SDD.md` + `docs/CONTENT_ENGINE_WIRING_SPEC.md`.
 
+## ✅ "EDITS NOT STICKING" = STALE UNLOCK vs WRITE-GUARD (2026-07-06, cont. 9)
+Browsers unlocked BEFORE the same-day write-guard have no stashed passcode to replay → all saves
+401 → dialog stays in edit mode ("stuck"). **Fix for any affected browser: sign out → re-enter
+passcode.** Shipped: 401s now say exactly that (RELOGIN_MSG in media.js/items.js) + media-list
+cache `no-store` (60s cache made saved edits look reverted on quick reload). Ship via
+**`COMMIT SAVE AUTH UX.command`**. If 401s keep biting testers, consider auto-forcing the gate.
+
 ## ✅ MEDIA HUB SHOWS THE 71 LEGACY `monti/` PACKSHOTS (2026-07-06, cont. 8)
 Rick: product images in Cloudinary weren't in Media Hub. Cause: 71 per-SKU packshots live at
 legacy `monti/<itemcode>` (no context/tags); media-list only queried `monti-trentini/`. Fix:

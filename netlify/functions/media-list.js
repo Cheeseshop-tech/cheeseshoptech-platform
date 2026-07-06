@@ -115,7 +115,10 @@ export const handler = async (event) => {
 function json(statusCode, body) {
   return {
     statusCode,
-    headers: { "content-type": "application/json", "cache-control": "private, max-age=60" },
+    // no-store (was max-age=60, 2026-07-06): the 60s browser cache meant an edit + reload
+    // within a minute served the PRE-edit list — saved changes looked like they didn't stick.
+    // The hub fetches once per mount, so caching bought almost nothing.
+    headers: { "content-type": "application/json", "cache-control": "no-store" },
     body: JSON.stringify(body),
   };
 }

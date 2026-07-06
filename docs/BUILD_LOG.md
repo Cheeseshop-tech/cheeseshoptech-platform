@@ -19,6 +19,33 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-07-06 (cont. 9) — "Edits not sticking" diagnosed: stale unlock vs the new write-guard
+
+**Rick's report:** photo-data edits in the Media Hub don't stick, and "no close button after
+save." Root cause chain: the same-day write-guard (cont. 2) requires the unlocked passcode
+replayed as `x-portal-passcode` — but the passcode is stashed **only at unlock time**. A browser
+unlocked BEFORE the guard shipped has nothing to replay → every media/items save 401s. The
+failed save keeps the dialog in edit mode (by design, so nothing is lost) — which reads as
+"stuck / no close." A second contributor: media-list's `max-age=60` browser cache meant even a
+SUCCESSFUL edit + reload within a minute served the pre-edit list — also reads as "didn't stick."
+**Operator fix (works immediately, no deploy): sign out → re-enter the passcode.**
+
+**Shipped (build ✓, function node --check ✓ — `COMMIT SAVE AUTH UX.command`):**
+- `src/lib/media.js` — new exported `RELOGIN_MSG`; `updateAsset`/`deleteAsset` map a 401 to it
+  ("sign out and re-enter your passcode…") instead of a bare status code.
+- `src/lib/items.js` — `saveItems` same 401 mapping (imports RELOGIN_MSG from media.js).
+- `netlify/functions/media-list.js` — `cache-control: no-store` (was `private, max-age=60`);
+  the hub fetches once per mount, the cache bought nothing and cost trust.
+
+**Not changed (checked, working as designed):** the asset dialog's view mode has a footer
+Close + the X; edit mode has Cancel. The "trapped" feeling was the failed-save loop, not a
+missing control. If it recurs after re-login, revisit.
+
+**Every already-unlocked browser (Rick's desktop, phone, any tester) hits this once** — the fix
+is always sign out / sign in. Consider auto-forcing re-gate on 401 later if it keeps biting.
+
+---
+
 ## 2026-07-06 (cont. 8) — Media Hub now surfaces the 71 legacy `monti/` packshots
 
 **Problem (Rick).** Product images exist in Cloudinary that never show in the Media Hub.

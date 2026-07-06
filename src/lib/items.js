@@ -11,6 +11,7 @@
 import { rolesOf } from "./auth.js";
 import { seedFor } from "./items-seeds.js";
 import { writeAuthHeader } from "./auth-context.jsx";
+import { RELOGIN_MSG } from "./media.js";
 
 // Same management tier as asset editing (2026-07-06: tightened to admin/client-admin — see
 // media.js canManageMedia and netlify/functions/_write-guard.js, which enforces this server-side
@@ -161,6 +162,7 @@ export async function saveItems(tenantFolder, doc) {
     body: JSON.stringify({ folder: tenantFolder, doc: out }),
   });
   if (!res.ok) {
+    if (res.status === 401) throw new Error(RELOGIN_MSG);
     const msg = await res.text().catch(() => "");
     throw new Error(`Items save failed (${res.status}) ${msg}`);
   }
