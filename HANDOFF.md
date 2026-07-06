@@ -113,7 +113,13 @@ hello@ same day. **All Touch 1 launch gates cleared** except a final test-send. 
 `monti_asiago_campaign/TOUCH1_AUDIENCE_2026-07-03.md` (list 17 = whole DB, never send; real
 batch = 31 send-ready cheese-shop contacts, enriched +7 via web research + HubSpot write-back).
 
-## 🚀 ASIAGO TOUCH 1 — ALL GATES CLEARED, LAUNCHES MONDAY 2026-07-06 8:00 AM
+## 🚀 ASIAGO TOUCH 1 — **SENT** (batch 1 of 3 went out Mon 2026-07-06, confirmed by Rick)
+**Status:** first batch (10 named-buyer contacts) sent 7/6. Not yet logged: bounce check result ·
+whether the ~4-day To-do task was ticked per send (builds the Touch 2 queue, due ~Fri 7/10) ·
+any replies/sample requests. Remaining 20 contacts → two batches Tue/Wed 7/7–7/8. Update this
+block + `monti_asiago_campaign/LAUNCH_DAY_2026-07-06.md` after each batch — send status lives
+HERE, not in chat.
+*(Original pre-launch state below, kept for reference.)*
 **Test send PASSED 7/4** (Rick → Mary, delivered + rendered clean) — nothing remains before
 launch. Infrastructure: active list id 19 "Asiago Touch 1 — Cheese shops" (31 contacts) ·
 template id 283799276 · sell-sheet PDF in HubSpot Documents (tracked) · sends from
