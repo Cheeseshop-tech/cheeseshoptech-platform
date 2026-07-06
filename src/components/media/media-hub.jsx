@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useMemo } from "react";
-import { Upload, Copy, Image as ImageIcon, Lock, Pencil, Trash2, Download, Share2, ChevronDown, ChevronUp, Search } from "lucide-react";
+import { Upload, Copy, Image as ImageIcon, Pencil, Trash2, Download, Share2, ChevronDown, ChevronUp, Search } from "lucide-react";
 import { Card } from "@/components/ui/card.jsx";
 import { Button } from "@/components/ui/button.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input.jsx";
 import { Skeleton } from "@/components/ui/skeleton.jsx";
 import { EmptyState } from "@/components/ui/empty-state.jsx";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog.jsx";
 import { useToast } from "@/components/ui/toast.jsx";
 import { useAuth } from "@/lib/auth-context.jsx";
@@ -586,7 +586,9 @@ function AssetDialog({ asset, onClose, canManage, canDelete, onCopy, onSave, onD
                 )}
               </div>
             )}
-            {canManage ? (
+            {/* Viewer tiers (sales rep / broker / external) get a CLEAN dialog — no edit
+                affordances, no lock notice, no footer Close (the X handles it). Rick, 2026-07-06. */}
+            {canManage && (
               <div className="mt-4 flex items-center justify-between gap-3 border-t border-border pt-4">
                 <Button size="sm" variant="outline" onClick={startEdit}><Pencil className="h-4 w-4" /> Edit asset</Button>
                 {canDelete && (
@@ -596,14 +598,7 @@ function AssetDialog({ asset, onClose, canManage, canDelete, onCopy, onSave, onD
                   </Button>
                 )}
               </div>
-            ) : (
-              <p className="mt-4 flex items-center gap-1.5 border-t border-border pt-4 text-xs text-fg-muted">
-                <Lock className="h-3.5 w-3.5" /> Asset details are managed by the brand team.
-              </p>
             )}
-            <DialogFooter>
-              <DialogClose asChild><Button variant="ghost">Close</Button></DialogClose>
-            </DialogFooter>
           </>
         ) : (
           <div className="mt-4 space-y-3 border-t border-border pt-4">

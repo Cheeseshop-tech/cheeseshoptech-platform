@@ -19,6 +19,21 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-07-06 (cont. 10) — Viewer-tier asset dialog goes clean (no edit chrome, no footer Close)
+
+**Decision (Rick).** For the salesman/broker-facing Media Hub, the asset dialog needs NO edit
+affordances and NO footer Close button — the X is enough. Managers were already the only ones
+with an Edit button (canManageMedia = admin/client-admin since cont. 2); what viewers still saw
+was the "Asset details are managed by the brand team" lock notice + a redundant footer Close.
+
+**Shipped (build ✓ — `COMMIT VIEWER DIALOG CLEAN.command`):** `media-hub.jsx` AssetDialog view
+mode — lock notice REMOVED (viewers get image · badges · PNG/Share/Copy · item info, nothing
+else) · footer Close REMOVED for everyone (X + Escape + backdrop close the dialog) · unused
+`Lock`/`DialogClose` imports dropped. Admin edit/delete row unchanged. Upload dialog and edit
+mode footers (Cancel/Save) unchanged.
+
+---
+
 ## 2026-07-06 (cont. 9) — "Edits not sticking" diagnosed: stale unlock vs the new write-guard
 
 **Rick's report:** photo-data edits in the Media Hub don't stick, and "no close button after

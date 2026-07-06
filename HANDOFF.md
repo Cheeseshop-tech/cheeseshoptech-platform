@@ -18,6 +18,11 @@ shipped and just left on disk).
 **Read first:** `CLAUDE_CODE_BRIEF.md` → this → `docs/BUILD_LOG.md` (top) →
 `docs/ONBOARDING_AND_AGENTS_SDD.md` + `docs/CONTENT_ENGINE_WIRING_SPEC.md`.
 
+## ✅ VIEWER-TIER ASSET DIALOG CLEANED (2026-07-06, cont. 10)
+Rick: rep/broker-facing Media Hub dialog = no edit chrome, no footer Close (X is enough).
+Removed the viewer lock notice + footer Close; admin Edit/Delete unchanged. Ship via
+**`COMMIT VIEWER DIALOG CLEAN.command`**.
+
 ## ✅ "EDITS NOT STICKING" = STALE UNLOCK vs WRITE-GUARD (2026-07-06, cont. 9)
 Browsers unlocked BEFORE the same-day write-guard have no stashed passcode to replay → all saves
 401 → dialog stays in edit mode ("stuck"). **Fix for any affected browser: sign out → re-enter
