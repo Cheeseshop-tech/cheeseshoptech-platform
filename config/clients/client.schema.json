@@ -150,7 +150,12 @@
           "tag": { "type": "string", "description": "Optional status eyebrow shown on the home-hub tool card (e.g. 'Quoting · priority #1')." },
           "featured": { "type": "boolean", "description": "Promote to its own top-level nav tab with a full page.", "default": false },
           "embed": { "type": "boolean", "description": "If featured + external, embed the tool in an iframe (only for framing-friendly sites).", "default": false },
-          "admin": { "type": "boolean", "description": "If true, the featured page adds a Live/Admin toggle with a store back-office (admin/client only).", "default": false }
+          "admin": { "type": "boolean", "description": "If true, the featured page adds a Live/Admin toggle with a store back-office (admin/client only).", "default": false },
+          "allowed": {
+            "type": "array",
+            "description": "Roles that may see this tool's launch card (home hub) and, if featured, its nav tab. Omit for the default (admin + client, i.e. open to every signed-in portal user). 2026-07-06.",
+            "items": { "type": "string", "enum": ["admin", "client-admin", "client", "pr", "influencer", "creator"] }
+          }
         }
       },
       "default": []

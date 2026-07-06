@@ -1,13 +1,67 @@
 # HANDOFF — CheeseShop TECH platform
 
-**Updated:** 2026-07-04 · **Branch:** `phase-2-6-build` · **Surface:** Cowork
-**Push state (verified 2026-07-04 via git):** all four Media Hub items commits are ON ORIGIN
-(`ec45b81` → `630153c` → `29c12c9` → `0d75e46`), branch in sync — do NOT re-run those buttons.
-Still uncommitted on disk: `HANDOFF.md` · `docs/BUILD_LOG.md` ·
-`monti_asiago_campaign/Asiago_Cold_Email_Sequence.md` · `pdf_out/Asiago_Sell_Sheet.pdf`
-→ ship via `COMMIT SESSION CLOSE MEDIA HUB.command` (campaign materials must land before Monday).
+**Updated:** 2026-07-06 · **Branch:** `phase-2-6-build` · **Surface:** Cowork
+**Handing off to: Claude Fable 5** (next surface/model for this project).
+**Push state (verified 2026-07-06 via `git fetch` + `rev-list`):** origin/phase-2-6-build is
+0 ahead / 0 behind local through `fa95627` (client tier v1) — everything through today's earlier
+work is confirmed on origin. **Still uncommitted on disk right now:** this file, `docs/BUILD_LOG.md`,
+`config/clients/client.schema.json`, `config/clients/montitrentini.json`, `src/App.jsx`,
+`src/components/home/home-hub.jsx`, `src/components/layout/app-shell.jsx`
+→ ship via `COMMIT SALES REP MOBILE FIX.command` (repo root, double-click). Also sitting
+uncommitted/untracked and NOT part of that button (separate workstreams, don't bundle them in):
+`monti_asiago_campaign/*` (Asiago launch materials), `brand/`, `design/asiago-wheel/*` (Blender +
+Higgsfield handoff docs/renders), `HUBSPOT_CLEANUP_PLAN_2026-07-01.md` + its .docx,
+`src/data/montitrentini/inventory.NEW.json` + `source/availability_2026-07-04.csv*`,
+`src/archive/`, and a handful of older unused `COMMIT *.command` files (BRAND SYSTEMS ENGINE,
+MARKET NEWS, MEDIA HUB SEARCH — check each against origin before running; some may already be
+shipped and just left on disk).
 **Read first:** `CLAUDE_CODE_BRIEF.md` → this → `docs/BUILD_LOG.md` (top) →
 `docs/ONBOARDING_AND_AGENTS_SDD.md` + `docs/CONTENT_ENGINE_WIRING_SPEC.md`.
+
+## ✅ REAL MOBILE NAV DRAWER + presentations RoleGate (2026-07-06, cont. 7 — Fable 5 session)
+The stopgap back button is GONE — `app-shell.jsx` now has a hamburger (`md:hidden`) opening a
+`MobileNavDrawer`: same role-filtered `nav` as the sidebar, brand header, taller touch targets,
+Escape/backdrop/X close. Also closed handoff open item (3): `presentations` route now wrapped in
+`RoleGate roles={["admin","client"]}` (direct-URL gap). Build ✓ (sandbox outDir — mounted
+`dist/` can't be emptied from sandbox) · validate:clients ✓.
+**⚠️ COMMIT SALES REP MOBILE FIX.command was never run and is now SUPERSEDED — ship everything
+via `COMMIT MOBILE NAV DRAWER.command`** (one commit covering cont. 6 + cont. 7; deletes the old
+button after a successful push). Remaining open: personalized Presentation Library (placeholder) ·
+uncommitted other-workstream pile (unchanged, see push-state note above).
+
+## ✅ SALES-REP TIER v1 GOES MOBILE-SANE + a real role-gate gap closed (2026-07-06 session)
+**Context: Rick tested the new sales-rep passcode tier on his iPhone** (tier itself was scoped
+and pilot-tested as `sales@montitrentini-usa.com` earlier the same day — see BUILD_LOG "client
+tier v1"). Two findings, both fixed:
+- **Dashboard tool-launch cards had ZERO role filtering** (`home-hub.jsx`) — a completely
+  separate surface from the top-nav `allowed` arrays; fixing the nav alone did NOT stop
+  Storefront/Campaigns from showing as Dashboard cards to every role. Fixed: cards now filter by
+  each tool's `allowed` (config/clients/<tenant>.json), same convention as nav. Also closed a
+  related leak in `App.jsx`'s `featuredNav` (was hardcoding admin+client for every *featured*
+  tool regardless of its own `allowed` — this is what let Storefront leak onto the sales-rep top
+  nav too).
+- **No mobile navigation at all below the `md` breakpoint** — the sidebar is `hidden ... md:flex`,
+  so on phone, once off Dashboard, there was no way back. Added a stopgap `md:hidden` back-to-
+  Dashboard button, upper-left of the header (`app-shell.jsx`). **This is NOT a real mobile nav
+  fix** — there is still no way to jump between pages on phone except back-to-Dashboard-then-
+  tap-a-card. A proper mobile drawer/menu is the real fix, not started.
+- Content decision: Trade Portal tool renamed → **Presentation Library** (relabeled pointer at
+  the same Content Library page for now). Real plan, NOT built: personalized per-buyer decks
+  built by the rep/sales-support, with **individual email-based login** per rep/presentation —
+  Rick's words: "for now" placeholder, organize the real access model later.
+- Schema: `client.schema.json` tools items gained an optional `allowed: [...]` array (roles that
+  may see a tool's card/tab); `additionalProperties:false` meant this had to be added explicitly
+  or `validate:clients` fails.
+- Verified: `npx vite build` clean, `npm run validate:clients` clean (both configs).
+- Ship via `COMMIT SALES REP MOBILE FIX.command`. Full detail: BUILD_LOG 2026-07-06 (cont. 6).
+
+**Open for next session:** (1) real mobile nav drawer — reps are testing on phone, this will
+come up again; (2) the actual personalized/email-gated Presentation Library feature — currently
+just a relabeled placeholder; (3) `presentations` route has no `RoleGate` wrapper (minor,
+pre-existing, noted not fixed — low risk since NAV already gates who can click into it, but
+direct-URL access isn't blocked); (4) the batch of unrelated uncommitted files listed in the push
+state note above — triage and ship or discard, don't let them silently ride along in an unrelated
+commit.
 
 ## ✅ MEDIA HUB = ITEM TRUTH (2026-07-03→04 session)
 **Decision:** Media Hub owns the item IDENTITY + COPY record — item #, pack size, weight, UPC,
@@ -59,12 +113,13 @@ hello@ same day. **All Touch 1 launch gates cleared** except a final test-send. 
 `monti_asiago_campaign/TOUCH1_AUDIENCE_2026-07-03.md` (list 17 = whole DB, never send; real
 batch = 31 send-ready cheese-shop contacts, enriched +7 via web research + HubSpot write-back).
 
-## 🚀 ASIAGO TOUCH 1 — LAUNCHES MONDAY 2026-07-06
-All infrastructure LIVE as of 7/3: active list id 19 "Asiago Touch 1 — Cheese shops" (31
-contacts) · template id 283799276 · sell-sheet PDF in HubSpot Documents (tracked) · sends from
-sales@montitrentini-usa.com · SPF/DKIM verified · materials + signature swept. Scheduled task
-`asiago-touch1-launch-day` fires Mon 8:00 AM with the launch checklist. Remaining before first
-real send: Rick's test-send to himself. Full runbook:
+## 🚀 ASIAGO TOUCH 1 — ALL GATES CLEARED, LAUNCHES MONDAY 2026-07-06 8:00 AM
+**Test send PASSED 7/4** (Rick → Mary, delivered + rendered clean) — nothing remains before
+launch. Infrastructure: active list id 19 "Asiago Touch 1 — Cheese shops" (31 contacts) ·
+template id 283799276 · sell-sheet PDF in HubSpot Documents (tracked) · sends from
+sales@montitrentini-usa.com · SPF/DKIM verified. Scheduled task `asiago-touch1-launch-day`
+fires Mon 8:00 AM with the checklist. For real sends use the tracked Documents LINK, not a
+PDF attachment (deliverability + view analytics). Full runbook:
 `monti_asiago_campaign/TOUCH1_AUDIENCE_2026-07-03.md`.
 
 ## TOMORROW'S QUEUE (2026-07-03)
@@ -298,8 +353,21 @@ The platform = the Monti **month-long stand-up** (connect tools → strategy →
 - **Auth at scale:** swap passcode → **Clerk** when client #2 signs (closes the shared-passcode limits: one code, client-side unlock flag, `?app=1` house reachable).
 - A separate `CheeseShopTECH_Brand_Foundation.md` (referenced, not in this repo) still describes the old cool-studio/green house — update it to terracotta + Cellar Olive if it exists.
 
-## First message for the next surface
-> Read `CLAUDE_CODE_BRIEF.md` + this `HANDOFF.md` + `docs/BUILD_LOG.md` (top). Confirm: platform = CheeseShop TECH, clients = tenants; `phase-2-6-build` is the source of truth; differentiation = tokens + content only. **The build is feature-complete and the Monti pilot portal is LIVE behind a passcode gate.** Remaining work = Phase 7 launch wiring, which is mostly Rick feeding content/secrets into already-built seams (Shopify token, HubSpot once it has deals, photos → Cloudinary, the subdomain, SSL). Don't wire integrations that have no data/content behind them yet. Propose the plan before executing.
+## First message for the next surface (Claude Fable 5)
+> Read `CLAUDE_CODE_BRIEF.md` + this `HANDOFF.md` (top two sections) + `docs/BUILD_LOG.md` (top).
+> Confirm: platform = CheeseShop TECH, clients = tenants; `phase-2-6-build` is the source of
+> truth; differentiation = tokens + content only. **The build is feature-complete, the Monti
+> pilot portal is LIVE behind a passcode gate, and the sales-rep/broker tier now exists** (three
+> roles: admin/house, client-admin, client/sales-rep — see the 2026-07-06 section above). Before
+> doing anything else: (1) confirm whether Rick has double-clicked
+> `COMMIT SALES REP MOBILE FIX.command` yet — if not, that's still uncommitted local work; (2)
+> triage the pile of unrelated uncommitted files noted in the push-state block (Asiago campaign
+> materials, asiago-wheel render assets, HubSpot cleanup docs) — these are from other workstreams
+> and probably want their own commits, not a blanket `git add -A`. Never `git add -A` in this
+> repo (past incident — see BUILD_LOG "Build gotcha"). Follow the standing house rule: every code
+> change ends with its own `COMMIT <FEATURE>.command` (self-heal `.git/index.lock`, targeted
+> `git add`, descriptive message, push, status echo) — never leave Rick to hand-run git. Propose
+> the plan before executing.
 
 ## How to run / verify (dev)
 `export PATH="/tmp/node-v22.18.0-darwin-arm64/bin:$PATH"` (bootstrap Node — see BEST_PRACTICES §4) → `npm install` once → `npm run dev` → preview `?client=montitrentini`. For the passcode gate locally: `VITE_AUTH_MODE=passcode VITE_PORTAL_PASSCODE=monti npm run dev` (DEV checks the passcode client-side; no functions server needed). `npm run build` + `npm run validate:clients` before any push. Verify a deploy by grepping the staging JS bundle for a string unique to the latest commit (Netlify's hash ≠ local).

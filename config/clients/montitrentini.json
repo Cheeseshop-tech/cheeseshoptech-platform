@@ -71,14 +71,14 @@
       "tag": "CRM · live"
     },
     {
-      "key": "trade-portal",
-      "label": "Trade Portal",
-      "description": "The Monti Trentini buyer presentation — brand story, range, and trade program.",
+      "key": "presentation-library",
+      "label": "Presentation Library",
+      "description": "Personalized presentations built by the rep or sales support for a specific buyer. For now this opens the shared Content Library; individual, email-gated access for each rep/presentation is planned next.",
       "icon": "presentation",
       "type": "internal",
       "route": "presentations",
       "status": "live",
-      "tag": "Sales deck"
+      "tag": "Sales decks"
     },
     {
       "key": "campaigns",
@@ -88,7 +88,8 @@
       "type": "internal",
       "route": "campaigns",
       "status": "live",
-      "tag": "Active campaigns"
+      "tag": "Active campaigns",
+      "allowed": ["admin"]
     },
     {
       "key": "buyer-catalog",
@@ -112,7 +113,8 @@
       "featured": true,
       "embed": true,
       "admin": true,
-      "tag": "DTC · live"
+      "tag": "DTC · live",
+      "allowed": ["admin"]
     }
   ]
 }

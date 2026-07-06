@@ -19,6 +19,73 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-07-06 (cont. 7) — Real mobile nav drawer + presentations RoleGate
+
+**Context.** Continuation of the (cont. 6) session below. The stopgap back-to-Dashboard button
+shipped there was never intended as the fix; reps are testing on phones, so the real mobile nav
+went in same-day. Also closed open item (3) from the handoff: the `presentations` route had no
+`RoleGate` in the render switch — reachable via `?page=presentations` regardless of role.
+
+**Shipped (vite build ✓ to a sandbox outDir — the mounted `dist/` can't be emptied from the
+sandbox, same permission class as the git-lock trap; `npm run validate:clients` ✓):**
+- `src/components/layout/app-shell.jsx` — stopgap back button REPLACED by a hamburger
+  (`md:hidden`, always visible) → new `MobileNavDrawer`: backdrop + left panel, brand header
+  (+ Agency Console eyebrow for house), the SAME role-filtered `nav` array the sidebar gets
+  (so rep scoping carries over automatically), taller touch targets (py-3), Escape + backdrop +
+  X to close, closes on navigate. No new deps, conditional render (no animation lib).
+- `src/App.jsx` — `presentations` render wrapped in
+  `RoleGate roles={["admin","client"]}` matching its nav `allowed`, with the standard
+  `AccessNotice` fallback. Buyer deep links (`?page=presentations` behind the tenant passcode)
+  still work — the base client role passes the gate.
+
+**Commit hygiene note.** `COMMIT SALES REP MOBILE FIX.command` (cont. 6) was never run, and this
+work edits the same files — the two changesets are one working-tree state now. Superseded by
+**`COMMIT MOBILE NAV DRAWER.command`**, whose message covers BOTH (cards role-gate fix +
+featuredNav leak + drawer + RoleGate); it deletes the old button after a successful push.
+
+**Open (unchanged):** personalized/email-gated Presentation Library (placeholder only) · the
+uncommitted other-workstream file pile (Asiago materials, asiago-wheel renders, HubSpot cleanup
+docs, inventory.NEW.json, src/archive) still needs triage into its own commits.
+
+---
+
+## 2026-07-06 (cont. 6) — Dashboard tool cards weren't role-gated at all; mobile has no nav
+
+**Found testing the sales-rep tier on an iPhone (Rick).** The Dashboard's tool launch cards
+(`home-hub.jsx`, driven by `resolved.tools` in each client config) had **no role filtering
+whatsoever** — every tool showed to every signed-in user regardless of role. This is a separate
+surface from the top-nav `NAV`/`featuredNav` we scoped earlier today; fixing the nav didn't fix
+this. Also found: the sidebar (`app-shell.jsx`) is `hidden ... md:flex` — **below the md
+breakpoint there is no navigation UI at all**, just a blank header. On phone, once you leave the
+Dashboard there was no way back.
+
+**Decisions (Rick).** Sales-rep dashboard cards: drop Storefront and Campaigns · replace Trade
+Portal with **Presentation Library** — for now a relabeled pointer at the same Content Library
+page, but the real plan is personalized per-buyer presentations built by the rep or sales
+support, eventually gated by individual email-based login (not built yet — noted as the next
+step, not shipped today). Mobile: stopgap back button only, not a full mobile nav rebuild.
+
+**Shipped (build ✓, `npm run validate:clients` ✓ — `COMMIT SALES REP MOBILE FIX.command`):**
+- `config/clients/client.schema.json` — new optional `allowed` array per tool entry (roles that
+  may see its home-hub card / nav tab; omit = open to admin+client as before).
+- `config/clients/montitrentini.json` — Campaigns and Storefront tools now `"allowed": ["admin"]`
+  · `trade-portal` tool renamed to `presentation-library` / "Presentation Library" with updated
+  copy describing the personalized/email-gated plan.
+- `src/components/home/home-hub.jsx` — tool cards now actually filter by `allowed` (previously
+  didn't filter at all).
+- `src/App.jsx` — `featuredNav` now reads a tool's own `allowed` instead of hardcoding
+  `["admin","client"]` for every featured tool (this is what let Storefront leak onto the
+  sales-rep top nav too, not just the dashboard).
+- `src/components/layout/app-shell.jsx` — mobile-only (`md:hidden`) back button, upper-left of
+  the header, jumps to Dashboard; hidden once already there.
+
+**Open — bigger fix, not done today:** there's still no mobile navigation drawer/menu — the back
+button is a stopgap, not a fix for "can't get from A to B on phone" in general. Worth a real pass
+if reps end up primarily on mobile. Presentation Library is a relabeled placeholder, not the
+personalized/individual-access feature yet.
+
+---
+
 ## 2026-07-06 (cont. 5) — "client" tier v1 scoped: Dashboard, CRM, Price List, Catalog, Content Library
 
 **Decision (Rick).** First real definition of what the base "client" passcode tier (brokers/

@@ -113,8 +113,10 @@ export default function App({ initialResolved }) {
   const userRoles = rolesOf(user);
   // Featured tools get their own top-level tab, placed right after Dashboard.
   const featuredTools = (resolved.tools || []).filter((t) => t.featured);
+  // A tool's own `allowed` (config/clients/<tenant>.json) wins when set (e.g. Storefront/
+  // Campaigns restricted to admin, 2026-07-06); default stays open to admin+client as before.
   const featuredNav = featuredTools.map((t) => ({
-    key: `tool:${t.key}`, label: t.label, icon: toolIcon(t.icon), allowed: ["admin", "client"],
+    key: `tool:${t.key}`, label: t.label, icon: toolIcon(t.icon), allowed: t.allowed || ["admin", "client"],
   }));
   // Content Studio / Content Library / Brand kits tabs are GONE from the top level — they live
   // as cards inside the Content Engine page now (2026-07-02 reorg). Routes stay reachable via
@@ -196,7 +198,11 @@ export default function App({ initialResolved }) {
       ) : effectivePage === "crm" ? (
         <CrmPage resolved={resolved} />
       ) : effectivePage === "presentations" ? (
-        <PresentationsPage resolved={resolved} />
+        // Content Library: gate matches its nav `allowed` (admin+client) — closes the
+        // pre-existing direct-URL gap (?page=presentations rendered with no role check).
+        <RoleGate roles={["admin", "client"]} fallback={<AccessNotice need={`a ${resolved.brand.name} portal`} />}>
+          <PresentationsPage resolved={resolved} />
+        </RoleGate>
       ) : effectivePage === "proposals" ? (
         <ContentStudio resolved={resolved} />
       ) : effectivePage === "compose" ? (

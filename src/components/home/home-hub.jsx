@@ -11,6 +11,8 @@ import { PriorityCard } from "@/components/home/priority-card.jsx";
 import { AgencyConsole } from "@/components/home/agency-console.jsx";
 import { OnboardingHub } from "@/components/home/onboarding-hub.jsx";
 import { RoleGate } from "@/components/auth/require-auth.jsx";
+import { useAuth } from "@/lib/auth-context.jsx";
+import { rolesOf } from "@/lib/auth.js";
 
 // The landing "hub" — the standard client intro page (ported from the Monti Operations Portal,
 // now shared + token-themed so every tenant gets it in their brand and the house gets a
@@ -21,7 +23,13 @@ export function HomeHub({ resolved, onNavigate }) {
   const brand = resolved.brand;
   const { data: liveData } = usePricingData(resolved);
   const stats = useMemo(() => getHubStats(resolved, liveData), [resolved, liveData]);
-  const tools = resolved.tools || [];
+  // These launch cards previously ignored role entirely — every tool in config showed to every
+  // signed-in user. A tool's own `allowed` (config/clients/<tenant>.json) now gates it here too,
+  // matching the top-nav's featured-tool behavior (App.jsx). No `allowed` = open to everyone,
+  // same as before (2026-07-06, closing the gap found testing the sales-rep tier on mobile).
+  const { user } = useAuth();
+  const userRoles = rolesOf(user);
+  const tools = (resolved.tools || []).filter((t) => !t.allowed || t.allowed.some((r) => userRoles.includes(r)));
 
   function openTool(tool) {
     if (tool.status === "coming-soon") return;
