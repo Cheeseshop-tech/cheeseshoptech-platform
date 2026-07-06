@@ -19,6 +19,35 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-07-06 — Media Hub asset-grid search (Product Catalog already had one)
+
+**Finding.** The Product Catalog (`buyer-catalog.jsx`) and Media Hub's Items tab
+(`items-panel.jsx`) already had search — name/item #/description/certification/UPC — built
+2026-07-04. The gap was the Media Hub's main asset grid (All · Recent · usage tabs), which only
+had the left-rail tag filters, no free-text search.
+
+**Shipped (build ✓ — `COMMIT MEDIA HUB SEARCH.command`):** `media-hub.jsx` — search box (title /
+SKU / alt text / description) above the grid on every tab except Items (which keeps its own);
+filters client-side, resets pagination, distinct empty-state copy for "no matches" vs. "nothing
+tagged yet."
+
+**Also resolved this session (photo→item matching, via `match-photos-to-items.mjs` dry-run +
+live Cloudinary lookup + item-reference cross-check, no Media Hub hand-editing needed):**
+Asiago Stagionato + Asiago Fresco already fixed live · Vezzena whole/quarter assigned (04181 /
+04046 — note the "300g-atm-usa-**04108**" filename token is stale, not a real code) · **Piave
+turned out to be two distinct products, not a pack-size split** — Mezzano = 40107, Vecchio
+(label confirms "stagionato oltre 180 giorni" = >6mo) = 40109, not 40158 · Lagorai whole/quarter
+resolved · Sharp Provolone resolved to 01032 "HALF CYLINDER" by label + shape (the other 3
+candidate SKUs are Piccante, Mild, and a roped variant — none matched the photo). Writes not
+yet pushed — pending Rick's go-ahead (session paused to build the search bar instead).
+
+**Open:** apply the resolved SKU writes above via `match-photos-to-items.mjs --write` (or by
+hand in Media Hub) · then `npm run media:refresh` needs `CLOUDINARY_API_KEY`/`_SECRET` (Netlify
+only, not in this sandbox) · 71 long descriptions still blank · dedupe check on the two
+identical Vezzena hero-shot files (`1noi0y` / `1d-tf4`).
+
+---
+
 ## 2026-07-04 (cont.) — Product NAME in item truth + bulk photo→item matching + catalog rule
 
 **Decisions (Rick).** (1) Media Hub holds the IDENTITY — stale image titles like "Asiago di

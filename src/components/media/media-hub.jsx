@@ -1,8 +1,9 @@
-import { useEffect, useState, useRef } from "react";
-import { Upload, Copy, Image as ImageIcon, Lock, Pencil, Trash2, Download, Share2, ChevronDown, ChevronUp } from "lucide-react";
+import { useEffect, useState, useRef, useMemo } from "react";
+import { Upload, Copy, Image as ImageIcon, Lock, Pencil, Trash2, Download, Share2, ChevronDown, ChevronUp, Search } from "lucide-react";
 import { Card } from "@/components/ui/card.jsx";
 import { Button } from "@/components/ui/button.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
+import { Input } from "@/components/ui/input.jsx";
 import { Skeleton } from "@/components/ui/skeleton.jsx";
 import { EmptyState } from "@/components/ui/empty-state.jsx";
 import {
@@ -40,6 +41,9 @@ export function MediaHub({ resolved }) {
   // browser on load). Reset when the tab changes.
   const PAGE = 30;
   const [shown, setShown] = useState(PAGE);
+  // Free-text search over the active tab's grid (title / SKU / alt / description). The Items tab
+  // has its own search (ItemsPanel) — this is for the asset grid (All/Recent/usage tabs).
+  const [query, setQuery] = useState("");
   // Items document (source of truth for item records + description cards). Hoisted here so the
   // rail can count items and future surfaces (asset dialog, catalog) can share it.
   const [itemsDoc, setItemsDoc] = useState(null);
@@ -54,7 +58,7 @@ export function MediaHub({ resolved }) {
     return () => { alive = false; };
   }, [resolved.cloudinaryFolder, user]);
 
-  useEffect(() => { setShown(PAGE); }, [tab]);
+  useEffect(() => { setShown(PAGE); }, [tab, query]);
 
   // Load the items document once per tenant. Failure degrades to an empty doc (UI still works).
   useEffect(() => {
@@ -72,6 +76,15 @@ export function MediaHub({ resolved }) {
   const display = tab === "recent" ? recent
     : tab === "all" ? merged
     : merged ? merged.filter((a) => (a.usage || []).includes(tab)) : null;
+
+  // Query narrows whatever the current tab shows — title / SKU / alt text / description.
+  const q = query.trim().toLowerCase();
+  const filteredDisplay = useMemo(() => {
+    if (!display) return display;
+    if (!q) return display;
+    return display.filter((a) =>
+      [a.title, a.sku, a.alt, a.description].some((f) => (f || "").toLowerCase().includes(q)));
+  }, [display, q]);
 
   // Per-view count for the left rail. null while the set is still loading (except Recent, which
   // is local). Recent counts persisted uploads; usage views count the merged pool by tag.
@@ -189,29 +202,44 @@ export function MediaHub({ resolved }) {
           />
         ) : (
         <div className="min-w-0 flex-1">{/* Grid */}
-          {display === null ? (
+          <div className="mb-4 relative max-w-sm">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-fg-muted" />
+            <Input
+              className="pl-9"
+              placeholder="Search by name, item number, alt text…"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              aria-label="Search assets"
+            />
+          </div>
+          {filteredDisplay === null ? (
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
               {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="aspect-[4/5] w-full" />)}
             </div>
-          ) : display.length === 0 ? (
+          ) : filteredDisplay.length === 0 ? (
             <EmptyState
-              icon={ImageIcon}
-              title={tab === "recent" ? "No recent uploads yet" : tab === "all" ? "Nothing here yet" : `Nothing tagged “${TABS.find((t) => t.id === tab)?.label}” yet`}
-              description={tab === "recent"
+              icon={q ? Search : ImageIcon}
+              title={q ? "No matches" : tab === "recent" ? "No recent uploads yet" : tab === "all" ? "Nothing here yet" : `Nothing tagged “${TABS.find((t) => t.id === tab)?.label}” yet`}
+              description={q
+                ? "Try a different search term or clear it to see everything in this view."
+                : tab === "recent"
                 ? "Images you upload (with their name and usage tags) show up here, newest first — so you can find what you just tagged."
                 : "Upload an image and check this usage in the Asset details step to file it here. One image can carry several usages."}
             />
           ) : (
             <>
+              <p className="mb-3 text-sm text-fg-muted">
+                {q && display ? `${filteredDisplay.length} of ${display.length} shown` : `${filteredDisplay.length} shown`}
+              </p>
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-                {display.slice(0, shown).map((a) => (
+                {filteredDisplay.slice(0, shown).map((a) => (
                   <AssetTile key={a.publicId} asset={a} item={getItem(itemsDoc, a.sku)} onOpen={() => setActive(a)} />
                 ))}
               </div>
-              {shown < display.length && (
+              {shown < filteredDisplay.length && (
                 <div className="mt-6 flex justify-center">
                   <Button variant="outline" onClick={() => setShown((n) => n + PAGE)}>
-                    Load more ({display.length - shown} left)
+                    Load more ({filteredDisplay.length - shown} left)
                   </Button>
                 </div>
               )}
