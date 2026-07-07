@@ -1,9 +1,9 @@
 {
   "schemaVersion": "1.2",
   "clientId": "monti-trentini",
-  "lastUpdated": "2026-07-03",
-  "source": "availability_2026-07-03.csv",
-  "generatedAt": "2026-07-03T17:36:01.830Z",
+  "lastUpdated": "2026-07-06",
+  "source": "availability_2026-07-07.csv",
+  "generatedAt": "2026-07-07T12:41:46.058Z",
   "generatedBy": "scripts/sync-inventory.mjs",
   "skus": {
     "20141": {
@@ -130,66 +130,6 @@
       "comment": "TJ preorder",
       "commentEn": "",
       "lots": [
-        {
-          "lotNum": "1290731",
-          "status": "on_hand",
-          "receiptDate": "2026-04-24",
-          "eta": null,
-          "cases": 60,
-          "reserved": 60,
-          "netAvailLb": 1680,
-          "expDate": "2027-03-22",
-          "expMonth": null,
-          "comment": "TJ 7/13"
-        },
-        {
-          "lotNum": "1290748",
-          "status": "on_hand",
-          "receiptDate": "2026-04-24",
-          "eta": null,
-          "cases": 60,
-          "reserved": 60,
-          "netAvailLb": 1680,
-          "expDate": "2027-03-22",
-          "expMonth": null,
-          "comment": "TJ 7/13"
-        },
-        {
-          "lotNum": "1296195",
-          "status": "on_hand",
-          "receiptDate": "2026-05-15",
-          "eta": null,
-          "cases": 60,
-          "reserved": 60,
-          "netAvailLb": 1680,
-          "expDate": "2027-04-04",
-          "expMonth": null,
-          "comment": "TJ 7/15"
-        },
-        {
-          "lotNum": "1296204",
-          "status": "on_hand",
-          "receiptDate": "2026-05-15",
-          "eta": null,
-          "cases": 60,
-          "reserved": 60,
-          "netAvailLb": 1680,
-          "expDate": "2027-04-15",
-          "expMonth": null,
-          "comment": "TJ 7/15"
-        },
-        {
-          "lotNum": "1296209",
-          "status": "on_hand",
-          "receiptDate": "2026-05-15",
-          "eta": null,
-          "cases": 60,
-          "reserved": 60,
-          "netAvailLb": 1680,
-          "expDate": "2027-04-15",
-          "expMonth": null,
-          "comment": "TJ 7/15"
-        },
         {
           "lotNum": "1296212",
           "status": "on_hand",
@@ -625,7 +565,7 @@
     "20438": {
       "code": "20438",
       "name": "PROVOLONE CYLINDER CHEESE",
-      "casesAvail": 216,
+      "casesAvail": 0,
       "casesInTransit": 216,
       "comment": "1 pallet available for Stock, Veroni preorder",
       "commentEn": "",
@@ -660,11 +600,11 @@
           "receiptDate": null,
           "eta": "2026-07-23",
           "cases": 72,
-          "reserved": 0,
+          "reserved": 72,
           "netAvailLb": 1074.33,
           "expDate": null,
           "expMonth": "2027-02",
-          "comment": ""
+          "comment": "Veroni 13-26C"
         },
         {
           "lotNum": "190626174",
@@ -672,11 +612,11 @@
           "receiptDate": null,
           "eta": "2026-07-23",
           "cases": 72,
-          "reserved": 0,
+          "reserved": 72,
           "netAvailLb": 1078.35,
           "expDate": null,
           "expMonth": "2027-02",
-          "comment": ""
+          "comment": "Veroni 13-26C"
         },
         {
           "lotNum": "190626174",
@@ -684,11 +624,11 @@
           "receiptDate": null,
           "eta": "2026-07-23",
           "cases": 72,
-          "reserved": 0,
+          "reserved": 72,
           "netAvailLb": 1074.16,
           "expDate": null,
           "expMonth": "2027-02",
-          "comment": ""
+          "comment": "Veroni 16-26C , 20 Dekalb?"
         }
       ]
     },
@@ -753,7 +693,7 @@
     "20480": {
       "code": "20480",
       "name": "CACIOTTA MNT HERBS 7 OZ EW",
-      "casesAvail": 167,
+      "casesAvail": 23,
       "casesInTransit": 0,
       "comment": "",
       "commentEn": "",
@@ -769,18 +709,6 @@
           "expDate": "2026-09-08",
           "expMonth": null,
           "comment": ""
-        },
-        {
-          "lotNum": "1280644",
-          "status": "on_hand",
-          "receiptDate": "2026-03-16",
-          "eta": null,
-          "cases": 144,
-          "reserved": 0,
-          "netAvailLb": 760.32,
-          "expDate": "2026-09-27",
-          "expMonth": null,
-          "comment": "HEB?"
         }
       ]
     },
@@ -1447,7 +1375,7 @@
     "40175": {
       "code": "40175",
       "name": "PECORINO TOSCANO PDO WW AGED",
-      "casesAvail": 11,
+      "casesAvail": 9,
       "casesInTransit": 0,
       "comment": "Selected",
       "commentEn": "",
@@ -1457,12 +1385,12 @@
           "status": "on_hand",
           "receiptDate": "2026-04-03",
           "eta": null,
-          "cases": 17,
-          "reserved": 6,
+          "cases": 9,
+          "reserved": 0,
           "netAvailLb": 136.45,
           "expDate": "2027-03-04",
           "expMonth": null,
-          "comment": "6x Cheese Importers 85302, Selected"
+          "comment": "Selected"
         }
       ]
     },
@@ -1488,12 +1416,12 @@
           "status": "on_hand",
           "receiptDate": "2026-04-24",
           "eta": null,
-          "cases": 11,
-          "reserved": 4,
+          "cases": 7,
+          "reserved": 0,
           "netAvailLb": 168.59,
           "expDate": "2026-11-22",
           "expMonth": null,
-          "comment": "4x Cheese Importers 85302, Cowbell 0.5$/lbs promotion next order"
+          "comment": "Cowbell 0.5$/lbs promotion next order"
         },
         {
           "lotNum": "1308182",
@@ -1575,7 +1503,7 @@
     "01186": {
       "code": "01186",
       "name": "SMOKED PROVOLONE CYLINDER",
-      "casesAvail": 72,
+      "casesAvail": 0,
       "casesInTransit": 0,
       "comment": "we try to have 1 pallet available in stock. Veroni-Creminelli preorder",
       "commentEn": "",
@@ -1586,11 +1514,11 @@
           "receiptDate": "2026-07-03",
           "eta": null,
           "cases": 72,
-          "reserved": 0,
+          "reserved": 72,
           "netAvailLb": 1054.47,
           "expDate": "2027-02-03",
           "expMonth": null,
-          "comment": "20x Dekalb?"
+          "comment": "Veroni 16-26C, 20 Dekalb?"
         }
       ]
     },
@@ -1647,12 +1575,12 @@
           "status": "on_hand",
           "receiptDate": "2026-06-18",
           "eta": null,
-          "cases": 24,
-          "reserved": 2,
+          "cases": 22,
+          "reserved": 0,
           "netAvailLb": 652.84,
           "expDate": "2027-05-07",
           "expMonth": null,
-          "comment": "Cheese Importers 85302"
+          "comment": ""
         }
       ]
     },
@@ -2147,12 +2075,12 @@
           "status": "on_hand",
           "receiptDate": "2026-05-15",
           "eta": null,
-          "cases": 8,
-          "reserved": 2,
+          "cases": 6,
+          "reserved": 0,
           "netAvailLb": 654.874,
           "expDate": "2027-04-15",
           "expMonth": null,
-          "comment": "Cheese Importers 85302"
+          "comment": ""
         },
         {
           "lotNum": "1304221",
@@ -2193,7 +2121,7 @@
           "status": "on_hand",
           "receiptDate": "2026-06-18",
           "eta": null,
-          "cases": 44,
+          "cases": 36,
           "reserved": 0,
           "netAvailLb": 916.82,
           "expDate": "2027-01-07",
@@ -2201,28 +2129,16 @@
           "comment": ""
         },
         {
-          "lotNum": "1308157",
-          "status": "on_hand",
-          "receiptDate": "2026-07-03",
-          "eta": null,
-          "cases": 104,
-          "reserved": 104,
-          "netAvailLb": 2218.98,
-          "expDate": "2027-01-30",
-          "expMonth": null,
-          "comment": "Gordon 4514500966"
-        },
-        {
           "lotNum": "1308158",
           "status": "on_hand",
           "receiptDate": "2026-07-03",
           "eta": null,
           "cases": 104,
-          "reserved": 8,
+          "reserved": 0,
           "netAvailLb": 2241.17,
           "expDate": "2027-01-30",
           "expMonth": null,
-          "comment": "Cheese Importers 85302"
+          "comment": ""
         },
         {
           "lotNum": "1308159",
@@ -2450,12 +2366,12 @@
           "status": "on_hand",
           "receiptDate": "2026-04-24",
           "eta": null,
-          "cases": 48,
-          "reserved": 10,
+          "cases": 38,
+          "reserved": 0,
           "netAvailLb": 1107.112,
           "expDate": "2027-03-27",
           "expMonth": null,
-          "comment": "Cheese Importers 85302"
+          "comment": ""
         },
         {
           "lotNum": "1304215",
