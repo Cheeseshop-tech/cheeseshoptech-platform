@@ -1,9 +1,9 @@
 {
   "schemaVersion": "1.2",
   "clientId": "monti-trentini",
-  "lastUpdated": "2026-07-06",
-  "source": "availability_2026-07-07.csv",
-  "generatedAt": "2026-07-07T12:41:46.058Z",
+  "lastUpdated": "2026-07-08",
+  "source": "availability_2026-07-09.csv",
+  "generatedAt": "2026-07-09T12:18:43.646Z",
   "generatedBy": "scripts/sync-inventory.mjs",
   "skus": {
     "20141": {
@@ -91,7 +91,7 @@
     "20162": {
       "code": "20162",
       "name": "CACIOTTA BLACK TRUFFLE 1.2 LBS",
-      "casesAvail": 67,
+      "casesAvail": 63,
       "casesInTransit": 0,
       "comment": "15x Greg monthly plan, we monitor",
       "commentEn": "",
@@ -101,7 +101,7 @@
           "status": "on_hand",
           "receiptDate": "2026-04-10",
           "eta": null,
-          "cases": 7,
+          "cases": 3,
           "reserved": 0,
           "netAvailLb": 57.421,
           "expDate": "2026-11-28",
@@ -469,7 +469,7 @@
     "20229": {
       "code": "20229",
       "name": "CACIOTTA HERBS 1.2 LBS",
-      "casesAvail": 30,
+      "casesAvail": 27,
       "casesInTransit": 0,
       "comment": "10-15x monthly plan Cowbell",
       "commentEn": "",
@@ -479,12 +479,12 @@
           "status": "on_hand",
           "receiptDate": "2026-07-03",
           "eta": null,
-          "cases": 30,
+          "cases": 27,
           "reserved": 0,
           "netAvailLb": 256.57,
           "expDate": "2027-02-03",
           "expMonth": null,
-          "comment": "CowBell monthly plan?"
+          "comment": "CB Monthly plan"
         }
       ]
     },
@@ -821,24 +821,12 @@
       "commentEn": "",
       "lots": [
         {
-          "lotNum": "1290735",
-          "status": "on_hand",
-          "receiptDate": "2026-04-24",
-          "eta": null,
-          "cases": 30,
-          "reserved": 30,
-          "netAvailLb": 147.368,
-          "expDate": "2026-11-22",
-          "expMonth": null,
-          "comment": "Baldor"
-        },
-        {
           "lotNum": "1296197",
           "status": "on_hand",
           "receiptDate": "2026-05-15",
           "eta": null,
-          "cases": 120,
-          "reserved": 120,
+          "cases": 110,
+          "reserved": 110,
           "netAvailLb": 570.37,
           "expDate": "2026-12-16",
           "expMonth": null,
@@ -858,7 +846,7 @@
     "20569": {
       "code": "20569",
       "name": "BIANCO D'ITALIA 1/4 WHEEL",
-      "casesAvail": 184,
+      "casesAvail": 84,
       "casesInTransit": 0,
       "comment": "Cowbell",
       "commentEn": "",
@@ -872,18 +860,6 @@
           "reserved": 0,
           "netAvailLb": 1609.32,
           "expDate": "2027-03-09",
-          "expMonth": null,
-          "comment": "Cowbell monthly plan? July"
-        },
-        {
-          "lotNum": "1290733",
-          "status": "on_hand",
-          "receiptDate": "2026-04-24",
-          "eta": null,
-          "cases": 100,
-          "reserved": 0,
-          "netAvailLb": 1929.8,
-          "expDate": "2027-03-20",
           "expMonth": null,
           "comment": "Cowbell monthly plan? July"
         }
@@ -1083,7 +1059,7 @@
     "40020": {
       "code": "40020",
       "name": "MONTASIO CHEESE WHOLE WHEEL",
-      "casesAvail": 60,
+      "casesAvail": 15,
       "casesInTransit": 0,
       "comment": "do we have <25?",
       "commentEn": "",
@@ -1093,7 +1069,7 @@
           "status": "on_hand",
           "receiptDate": "2026-06-18",
           "eta": null,
-          "cases": 60,
+          "cases": 15,
           "reserved": 0,
           "netAvailLb": 778.95,
           "expDate": "2027-05-09",
@@ -1148,7 +1124,7 @@
     "40104": {
       "code": "40104",
       "name": "PECORINO ROMANO PDO 1/4 WHEEL",
-      "casesAvail": 71,
+      "casesAvail": 46,
       "casesInTransit": 0,
       "comment": "keep 1-2 pallet in stock",
       "commentEn": "",
@@ -1158,7 +1134,7 @@
           "status": "on_hand",
           "receiptDate": "2026-01-16",
           "eta": null,
-          "cases": 35,
+          "cases": 10,
           "reserved": 0,
           "netAvailLb": 2083.18,
           "expDate": "2026-10-09",
@@ -1226,7 +1202,7 @@
     "40109": {
       "code": "40109",
       "name": "PIAVE VECCHIO PDO > 6 MONTHS",
-      "casesAvail": 23,
+      "casesAvail": 18,
       "casesInTransit": 0,
       "comment": "",
       "commentEn": "",
@@ -1236,7 +1212,7 @@
           "status": "on_hand",
           "receiptDate": "2025-12-05",
           "eta": null,
-          "cases": 23,
+          "cases": 18,
           "reserved": 0,
           "netAvailLb": 309.856,
           "expDate": "2026-11-08",
@@ -1248,7 +1224,7 @@
     "40130": {
       "code": "40130",
       "name": "MONTASIO CHEESE PDO 1/4 WHEEL",
-      "casesAvail": 30,
+      "casesAvail": 24,
       "casesInTransit": 0,
       "comment": "main Customer Ace Endico",
       "commentEn": "",
@@ -1258,12 +1234,12 @@
           "status": "on_hand",
           "receiptDate": "2026-07-03",
           "eta": null,
-          "cases": 30,
+          "cases": 24,
           "reserved": 0,
           "netAvailLb": 410.99,
           "expDate": "2027-02-04",
           "expMonth": null,
-          "comment": "Ace Endico?"
+          "comment": "Ace Endico"
         }
       ]
     },
@@ -1587,7 +1563,7 @@
     "02073": {
       "code": "02073",
       "name": "ASIAGO FRESCO PDO 1/4 WHEEL NT",
-      "casesAvail": 706,
+      "casesAvail": 628,
       "casesInTransit": 120,
       "comment": "Cowbell monthly plan 50x, average purchase TONY 10x, ACE Endico sometimes, Baldor 108x",
       "commentEn": "",
@@ -1597,7 +1573,7 @@
           "status": "on_hand",
           "receiptDate": "2026-05-15",
           "eta": null,
-          "cases": 106,
+          "cases": 28,
           "reserved": 0,
           "netAvailLb": 759.95,
           "expDate": "2026-12-16",
@@ -1740,29 +1716,17 @@
     "03014": {
       "code": "03014",
       "name": "ASIAGO VECCHIO PDO 1/4 WHEEL",
-      "casesAvail": 54,
+      "casesAvail": 44,
       "casesInTransit": 24,
       "comment": "Selected, <24?",
       "commentEn": "",
       "lots": [
         {
-          "lotNum": "1290753",
-          "status": "on_hand",
-          "receiptDate": "2026-04-24",
-          "eta": null,
-          "cases": 6,
-          "reserved": 0,
-          "netAvailLb": 28.15,
-          "expDate": "2026-11-22",
-          "expMonth": null,
-          "comment": ""
-        },
-        {
           "lotNum": "1304212",
           "status": "on_hand",
           "receiptDate": "2026-06-18",
           "eta": null,
-          "cases": 24,
+          "cases": 20,
           "reserved": 0,
           "netAvailLb": 119.85,
           "expDate": "2027-01-09",
@@ -1881,29 +1845,17 @@
     "04046": {
       "code": "04046",
       "name": "VEZZENA AGED 1/4 WHEEL",
-      "casesAvail": 31,
+      "casesAvail": 19,
       "casesInTransit": 0,
       "comment": "Selected - Tama - ACE ENDICO",
       "commentEn": "",
       "lots": [
         {
-          "lotNum": "1287530",
-          "status": "on_hand",
-          "receiptDate": "2026-04-10",
-          "eta": null,
-          "cases": 7,
-          "reserved": 0,
-          "netAvailLb": 35.526,
-          "expDate": "2026-11-28",
-          "expMonth": null,
-          "comment": ""
-        },
-        {
           "lotNum": "1296206",
           "status": "on_hand",
           "receiptDate": "2026-05-15",
           "eta": null,
-          "cases": 24,
+          "cases": 19,
           "reserved": 0,
           "netAvailLb": 119.91,
           "expDate": "2026-12-16",
@@ -2065,29 +2017,17 @@
     "05001": {
       "code": "05001",
       "name": "GRANA PADANO PDO WHOLE WHEEL",
-      "casesAvail": 66,
+      "casesAvail": 51,
       "casesInTransit": 30,
       "comment": "slow mover but keep some in stock",
       "commentEn": "",
       "lots": [
         {
-          "lotNum": "1296214",
-          "status": "on_hand",
-          "receiptDate": "2026-05-15",
-          "eta": null,
-          "cases": 6,
-          "reserved": 0,
-          "netAvailLb": 654.874,
-          "expDate": "2027-04-15",
-          "expMonth": null,
-          "comment": ""
-        },
-        {
           "lotNum": "1304221",
           "status": "on_hand",
           "receiptDate": "2026-06-18",
           "eta": null,
-          "cases": 30,
+          "cases": 21,
           "reserved": 0,
           "netAvailLb": 2458.88,
           "expDate": "2027-05-07",
@@ -2111,29 +2051,17 @@
     "05007": {
       "code": "05007",
       "name": "GRANA PADANO PDO 1/8 WHEEL",
-      "casesAvail": 1612,
+      "casesAvail": 1552,
       "casesInTransit": 640,
       "comment": "",
       "commentEn": "",
       "lots": [
         {
-          "lotNum": "1304235",
-          "status": "on_hand",
-          "receiptDate": "2026-06-18",
-          "eta": null,
-          "cases": 36,
-          "reserved": 0,
-          "netAvailLb": 916.82,
-          "expDate": "2027-01-07",
-          "expMonth": null,
-          "comment": ""
-        },
-        {
           "lotNum": "1308158",
           "status": "on_hand",
           "receiptDate": "2026-07-03",
           "eta": null,
-          "cases": 104,
+          "cases": 80,
           "reserved": 0,
           "netAvailLb": 2241.17,
           "expDate": "2027-01-30",
@@ -2411,29 +2339,17 @@
     "05034": {
       "code": "05034",
       "name": "PARMIGIANO REGGIANO PDO WHOLE WHEEL 18mo",
-      "casesAvail": 40,
+      "casesAvail": 25,
       "casesInTransit": 0,
       "comment": "",
       "commentEn": "",
       "lots": [
         {
-          "lotNum": "1166621",
-          "status": "on_hand",
-          "receiptDate": "2025-01-23",
-          "eta": null,
-          "cases": 10,
-          "reserved": 0,
-          "netAvailLb": 905.136,
-          "expDate": "2025-12-05",
-          "expMonth": null,
-          "comment": ""
-        },
-        {
           "lotNum": "1285651",
           "status": "on_hand",
           "receiptDate": "2026-04-03",
           "eta": null,
-          "cases": 30,
+          "cases": 25,
           "reserved": 0,
           "netAvailLb": 2720.83,
           "expDate": "2027-03-06",
@@ -2481,29 +2397,17 @@
     "05411": {
       "code": "05411",
       "name": "GRANA PADANO PDO RISERVA WHOLE WHEEL",
-      "casesAvail": 73,
+      "casesAvail": 58,
       "casesInTransit": 0,
       "comment": "Greg 12x monthly plan and ACE, we monitor, next",
       "commentEn": "",
       "lots": [
         {
-          "lotNum": "1296215",
-          "status": "on_hand",
-          "receiptDate": "2026-05-15",
-          "eta": null,
-          "cases": 13,
-          "reserved": 0,
-          "netAvailLb": 1070.446,
-          "expDate": "2027-04-15",
-          "expMonth": null,
-          "comment": "CowBell monthly plan"
-        },
-        {
           "lotNum": "1304211",
           "status": "on_hand",
           "receiptDate": "2026-06-18",
           "eta": null,
-          "cases": 30,
+          "cases": 28,
           "reserved": 0,
           "netAvailLb": 2471.04,
           "expDate": "2027-05-07",

@@ -63,6 +63,29 @@
           "availability": "in_stock"
         },
         {
+          "code": "02091",
+          "packing": "7 oz Exact Weight Wedges, ATM",
+          "image": "02091",
+          "unit": "lb",
+          "cost": {
+            "fob": null
+          },
+          "priceOnRequest": true,
+          "list": {
+            "retail": null,
+            "wholesale": null
+          },
+          "pack": {
+            "piecesPerCase": 12,
+            "netLb": 5.25,
+            "grossLb": 6.0,
+            "palletTiHi": "20 x 5",
+            "casesPerPallet": 144,
+            "shelfDays": 150
+          },
+          "availability": "unavailable"
+        },
+        {
           "code": "02302",
           "packing": "SQUARE SHAPE FOR SLICING",
           "image": "02302",
@@ -101,6 +124,28 @@
       },
       "skus": [
         {
+          "code": "03010",
+          "packing": "1/4 Wheel, vacuum packed",
+          "image": "03010",
+          "unit": "lb",
+          "cost": {
+            "fob": 7.42
+          },
+          "list": {
+            "retail": null,
+            "wholesale": null
+          },
+          "pack": {
+            "piecesPerCase": 1,
+            "netLb": 4.4,
+            "grossLb": 5.0,
+            "palletTiHi": "24 x 8",
+            "casesPerPallet": 192,
+            "shelfDays": 240
+          },
+          "availability": "in_stock"
+        },
+        {
           "code": "03023",
           "packing": "Whole Wheel, 17-19 lbs",
           "image": "03023",
@@ -123,26 +168,27 @@
           "availability": "in_stock"
         },
         {
-          "code": "03010",
-          "packing": "1/4 Wheel, vacuum packed",
-          "image": "03010",
+          "code": "03044",
+          "packing": "7 oz Exact Weight Wedges, ATM",
+          "image": "03044",
           "unit": "lb",
           "cost": {
-            "fob": 7.42
+            "fob": null
           },
+          "priceOnRequest": true,
           "list": {
             "retail": null,
             "wholesale": null
           },
           "pack": {
-            "piecesPerCase": 1,
-            "netLb": 4.4,
-            "grossLb": 5.0,
-            "palletTiHi": "24 x 8",
-            "casesPerPallet": 192,
-            "shelfDays": 240
+            "piecesPerCase": 12,
+            "netLb": 5.25,
+            "grossLb": 6.0,
+            "palletTiHi": "20 x 5",
+            "casesPerPallet": 144,
+            "shelfDays": 150
           },
-          "availability": "in_stock"
+          "availability": "unavailable"
         }
       ]
     },
@@ -203,6 +249,29 @@
             "shelfDays": 240
           },
           "availability": "in_stock"
+        },
+        {
+          "code": "03047",
+          "packing": "7 oz Exact Weight Wedges, ATM",
+          "image": "03047",
+          "unit": "lb",
+          "cost": {
+            "fob": null
+          },
+          "priceOnRequest": true,
+          "list": {
+            "retail": null,
+            "wholesale": null
+          },
+          "pack": {
+            "piecesPerCase": 12,
+            "netLb": 5.25,
+            "grossLb": 6.0,
+            "palletTiHi": "20 x 5",
+            "casesPerPallet": 144,
+            "shelfDays": 150
+          },
+          "availability": "unavailable"
         }
       ]
     },
@@ -319,6 +388,29 @@
           "availability": "in_stock"
         },
         {
+          "code": "40086",
+          "packing": "7 oz Exact Weight Wedges, vacuum packed",
+          "image": "40086",
+          "unit": "lb",
+          "cost": {
+            "fob": null
+          },
+          "priceOnRequest": true,
+          "list": {
+            "retail": null,
+            "wholesale": null
+          },
+          "pack": {
+            "piecesPerCase": 12,
+            "netLb": 5.25,
+            "grossLb": 6.0,
+            "palletTiHi": "20 x 5",
+            "casesPerPallet": 144,
+            "shelfDays": 150
+          },
+          "availability": "unavailable"
+        },
+        {
           "code": "40130",
           "packing": "1/4 Wheel, vacuum packed",
           "image": "40130",
@@ -357,28 +449,6 @@
       },
       "skus": [
         {
-          "code": "04181",
-          "packing": "Whole Wheel, 16-18 lbs",
-          "image": "04181",
-          "unit": "lb",
-          "cost": {
-            "fob": 8.1
-          },
-          "list": {
-            "retail": null,
-            "wholesale": null
-          },
-          "pack": {
-            "piecesPerCase": 1,
-            "netLb": 17.0,
-            "grossLb": 19.0,
-            "palletTiHi": "6 x 10",
-            "casesPerPallet": 60,
-            "shelfDays": 360
-          },
-          "availability": "in_stock"
-        },
-        {
           "code": "04046",
           "packing": "1/4 Wheel, vacuum packed",
           "image": "04046",
@@ -397,6 +467,28 @@
             "palletTiHi": "24 x 8",
             "casesPerPallet": 192,
             "shelfDays": 240
+          },
+          "availability": "in_stock"
+        },
+        {
+          "code": "04181",
+          "packing": "Whole Wheel, 16-18 lbs",
+          "image": "04181",
+          "unit": "lb",
+          "cost": {
+            "fob": 8.1
+          },
+          "list": {
+            "retail": null,
+            "wholesale": null
+          },
+          "pack": {
+            "piecesPerCase": 1,
+            "netLb": 17.0,
+            "grossLb": 19.0,
+            "palletTiHi": "6 x 10",
+            "casesPerPallet": 60,
+            "shelfDays": 360
           },
           "availability": "in_stock"
         }
@@ -455,6 +547,28 @@
       },
       "skus": [
         {
+          "code": "04145",
+          "packing": "1/4 Wheel, vacuum packed",
+          "image": "04145",
+          "unit": "lb",
+          "cost": {
+            "fob": 6.73
+          },
+          "list": {
+            "retail": null,
+            "wholesale": null
+          },
+          "pack": {
+            "piecesPerCase": 1,
+            "netLb": 7.0,
+            "grossLb": 8.0,
+            "palletTiHi": "24 x 8",
+            "casesPerPallet": 192,
+            "shelfDays": 210
+          },
+          "availability": "in_stock"
+        },
+        {
           "code": "04154",
           "packing": "Whole Wheel, 28-30 lbs",
           "image": "04154",
@@ -477,26 +591,27 @@
           "availability": "in_stock"
         },
         {
-          "code": "04145",
-          "packing": "1/4 Wheel, vacuum packed",
-          "image": "04145",
+          "code": "04165",
+          "packing": "7 oz Exact Weight Wedges, ATM",
+          "image": "04165",
           "unit": "lb",
           "cost": {
-            "fob": 6.73
+            "fob": null
           },
+          "priceOnRequest": true,
           "list": {
             "retail": null,
             "wholesale": null
           },
           "pack": {
-            "piecesPerCase": 1,
-            "netLb": 7.0,
-            "grossLb": 8.0,
-            "palletTiHi": "24 x 8",
-            "casesPerPallet": 192,
-            "shelfDays": 210
+            "piecesPerCase": 12,
+            "netLb": 5.25,
+            "grossLb": 6.0,
+            "palletTiHi": "20 x 5",
+            "casesPerPallet": 144,
+            "shelfDays": 150
           },
-          "availability": "in_stock"
+          "availability": "unavailable"
         }
       ]
     },
@@ -641,6 +756,28 @@
           "availability": "in_stock"
         },
         {
+          "code": "20150",
+          "packing": "TRUFFLE  (with black truffle)  6 lb",
+          "image": "20150",
+          "unit": "lb",
+          "cost": {
+            "fob": 7.67
+          },
+          "list": {
+            "retail": null,
+            "wholesale": null
+          },
+          "pack": {
+            "piecesPerCase": 1,
+            "netLb": 6.0,
+            "grossLb": 6.5,
+            "palletTiHi": "24 x 10",
+            "casesPerPallet": 240,
+            "shelfDays": 240
+          },
+          "availability": "in_stock"
+        },
+        {
           "code": "20228",
           "packing": "HERBS (with aromatic herbs) - 6 lb",
           "image": "20228",
@@ -663,24 +800,94 @@
           "availability": "in_stock"
         },
         {
-          "code": "20150",
-          "packing": "TRUFFLE  (with black truffle)  6 lb",
-          "image": "20150",
+          "code": "20423",
+          "packing": "7 oz Exact Weight Wedges, vacuum packed",
+          "image": "20423",
           "unit": "lb",
           "cost": {
-            "fob": 7.67
+            "fob": null
           },
+          "priceOnRequest": true,
           "list": {
             "retail": null,
             "wholesale": null
           },
           "pack": {
-            "piecesPerCase": 1,
-            "netLb": 6.0,
-            "grossLb": 6.5,
-            "palletTiHi": "24 x 10",
-            "casesPerPallet": 240,
-            "shelfDays": 240
+            "piecesPerCase": 12,
+            "netLb": 5.25,
+            "grossLb": 6.0,
+            "palletTiHi": "20 x 5",
+            "casesPerPallet": 144,
+            "shelfDays": 150
+          },
+          "availability": "in_stock"
+        },
+        {
+          "code": "20424",
+          "packing": "7 oz Exact Weight Wedges, vacuum packed",
+          "image": "20424",
+          "unit": "lb",
+          "cost": {
+            "fob": null
+          },
+          "priceOnRequest": true,
+          "list": {
+            "retail": null,
+            "wholesale": null
+          },
+          "pack": {
+            "piecesPerCase": 12,
+            "netLb": 5.25,
+            "grossLb": 6.0,
+            "palletTiHi": "20 x 5",
+            "casesPerPallet": 144,
+            "shelfDays": 150
+          },
+          "availability": "in_stock"
+        },
+        {
+          "code": "20480",
+          "packing": "7 oz Exact Weight Wedges, vacuum packed",
+          "image": "20480",
+          "unit": "lb",
+          "cost": {
+            "fob": null
+          },
+          "priceOnRequest": true,
+          "list": {
+            "retail": null,
+            "wholesale": null
+          },
+          "pack": {
+            "piecesPerCase": 12,
+            "netLb": 5.25,
+            "grossLb": 6.0,
+            "palletTiHi": "20 x 5",
+            "casesPerPallet": 144,
+            "shelfDays": 150
+          },
+          "availability": "in_stock"
+        },
+        {
+          "code": "20481",
+          "packing": "7 oz Exact Weight Wedges, vacuum packed",
+          "image": "20481",
+          "unit": "lb",
+          "cost": {
+            "fob": null
+          },
+          "priceOnRequest": true,
+          "list": {
+            "retail": null,
+            "wholesale": null
+          },
+          "pack": {
+            "piecesPerCase": 12,
+            "netLb": 5.25,
+            "grossLb": 6.0,
+            "palletTiHi": "20 x 5",
+            "casesPerPallet": 144,
+            "shelfDays": 150
           },
           "availability": "in_stock"
         }
@@ -745,12 +952,12 @@
           "availability": "in_stock"
         },
         {
-          "code": "20229",
-          "packing": "HERBS (with aromatic herbs)\n- 1,2 lbs",
-          "image": "20229",
+          "code": "20162",
+          "packing": "BLACK TRUFFLE (with black summer truffle) 1,2 lbs\npeppers) 1,2 lb",
+          "image": "20162",
           "unit": "lb",
           "cost": {
-            "fob": 6.25
+            "fob": 7.94
           },
           "list": {
             "retail": null,
@@ -767,12 +974,12 @@
           "availability": "in_stock"
         },
         {
-          "code": "20162",
-          "packing": "BLACK TRUFFLE (with black summer truffle) 1,2 lbs\npeppers) 1,2 lb",
-          "image": "20162",
+          "code": "20229",
+          "packing": "HERBS (with aromatic herbs)\n- 1,2 lbs",
+          "image": "20229",
           "unit": "lb",
           "cost": {
-            "fob": 7.94
+            "fob": 6.25
           },
           "list": {
             "retail": null,
@@ -825,6 +1032,29 @@
             "shelfDays": 240
           },
           "availability": "in_stock"
+        },
+        {
+          "code": "04176",
+          "packing": "7 oz Exact Weight Wedges, vacuum packed",
+          "image": "04176",
+          "unit": "lb",
+          "cost": {
+            "fob": null
+          },
+          "priceOnRequest": true,
+          "list": {
+            "retail": null,
+            "wholesale": null
+          },
+          "pack": {
+            "piecesPerCase": 12,
+            "netLb": 5.25,
+            "grossLb": 6.0,
+            "palletTiHi": "20 x 5",
+            "casesPerPallet": 144,
+            "shelfDays": 150
+          },
+          "availability": "unavailable"
         }
       ]
     },
@@ -919,28 +1149,6 @@
       },
       "skus": [
         {
-          "code": "01269",
-          "packing": "Cylinder with rope, 10 lbs",
-          "image": "01269",
-          "unit": "lb",
-          "cost": {
-            "fob": 6.46
-          },
-          "list": {
-            "retail": null,
-            "wholesale": null
-          },
-          "pack": {
-            "piecesPerCase": 2,
-            "netLb": 20.0,
-            "grossLb": 21.0,
-            "palletTiHi": "5 x 10",
-            "casesPerPallet": 50,
-            "shelfDays": 240
-          },
-          "availability": "in_stock"
-        },
-        {
           "code": "01032",
           "packing": "Half Cylinder,\nvacuum packed, 18 - 20 lbs",
           "image": "01032",
@@ -958,6 +1166,51 @@
             "grossLb": 21.0,
             "palletTiHi": "5 x 10",
             "casesPerPallet": 50,
+            "shelfDays": 240
+          },
+          "availability": "in_stock"
+        },
+        {
+          "code": "01101",
+          "packing": "7 oz Exact Weight Wedges, ATM",
+          "image": "01101",
+          "unit": "lb",
+          "cost": {
+            "fob": null
+          },
+          "priceOnRequest": true,
+          "list": {
+            "retail": null,
+            "wholesale": null
+          },
+          "pack": {
+            "piecesPerCase": 12,
+            "netLb": 5.25,
+            "grossLb": 6.0,
+            "palletTiHi": "25 x 10",
+            "casesPerPallet": 144,
+            "shelfDays": 150
+          },
+          "availability": "unavailable"
+        },
+        {
+          "code": "01126",
+          "packing": "round shape with rope aged minimum 5 months",
+          "image": "01126",
+          "unit": "lb",
+          "cost": {
+            "fob": 7.85
+          },
+          "list": {
+            "retail": null,
+            "wholesale": null
+          },
+          "pack": {
+            "piecesPerCase": 1,
+            "netLb": 40.0,
+            "grossLb": 42.0,
+            "palletTiHi": "6 x 5",
+            "casesPerPallet": 30,
             "shelfDays": 240
           },
           "availability": "in_stock"
@@ -985,23 +1238,23 @@
           "availability": "in_stock"
         },
         {
-          "code": "01126",
-          "packing": "round shape with rope aged minimum 5 months",
-          "image": "01126",
+          "code": "01269",
+          "packing": "Cylinder with rope, 10 lbs",
+          "image": "01269",
           "unit": "lb",
           "cost": {
-            "fob": 7.85
+            "fob": 6.46
           },
           "list": {
             "retail": null,
             "wholesale": null
           },
           "pack": {
-            "piecesPerCase": 1,
-            "netLb": 40.0,
-            "grossLb": 42.0,
-            "palletTiHi": "6 x 5",
-            "casesPerPallet": 30,
+            "piecesPerCase": 2,
+            "netLb": 20.0,
+            "grossLb": 21.0,
+            "palletTiHi": "5 x 10",
+            "casesPerPallet": 50,
             "shelfDays": 240
           },
           "availability": "in_stock"
@@ -1022,6 +1275,29 @@
         "grad": "linear-gradient(145deg, #C8E2C5, #064E22)"
       },
       "skus": [
+        {
+          "code": "01190",
+          "packing": "7 oz Exact Weight Wedges, ATM",
+          "image": "01190",
+          "unit": "lb",
+          "cost": {
+            "fob": null
+          },
+          "priceOnRequest": true,
+          "list": {
+            "retail": null,
+            "wholesale": null
+          },
+          "pack": {
+            "piecesPerCase": 12,
+            "netLb": 5.25,
+            "grossLb": 6.0,
+            "palletTiHi": "25 x 10",
+            "casesPerPallet": 144,
+            "shelfDays": 150
+          },
+          "availability": "unavailable"
+        },
         {
           "code": "20438",
           "packing": "Cylinder, vacuum packed, 7 lbs approx",
@@ -1083,28 +1359,6 @@
           "availability": "in_stock"
         },
         {
-          "code": "01186",
-          "packing": "Cylinder, vacuum packed, 7 lbs approx",
-          "image": "01186",
-          "unit": "lb",
-          "cost": {
-            "fob": 6.21
-          },
-          "list": {
-            "retail": null,
-            "wholesale": null
-          },
-          "pack": {
-            "piecesPerCase": 2,
-            "netLb": 14.0,
-            "grossLb": 15.0,
-            "palletTiHi": "6 x 12",
-            "casesPerPallet": 72,
-            "shelfDays": 240
-          },
-          "availability": "in_stock"
-        },
-        {
           "code": "01155",
           "packing": "Smoked  provolone fiaschetto rope, approx 3 lbs",
           "image": "01155",
@@ -1122,6 +1376,51 @@
             "grossLb": 7.5,
             "palletTiHi": "12 x 8",
             "casesPerPallet": 96,
+            "shelfDays": 240
+          },
+          "availability": "in_stock"
+        },
+        {
+          "code": "01174",
+          "packing": "7 oz Exact Weight Wedges, vacuum packed",
+          "image": "01174",
+          "unit": "lb",
+          "cost": {
+            "fob": null
+          },
+          "priceOnRequest": true,
+          "list": {
+            "retail": null,
+            "wholesale": null
+          },
+          "pack": {
+            "piecesPerCase": 12,
+            "netLb": 5.25,
+            "grossLb": 6.0,
+            "palletTiHi": "20 x 5",
+            "casesPerPallet": 144,
+            "shelfDays": 150
+          },
+          "availability": "unavailable"
+        },
+        {
+          "code": "01186",
+          "packing": "Cylinder, vacuum packed, 7 lbs approx",
+          "image": "01186",
+          "unit": "lb",
+          "cost": {
+            "fob": 6.21
+          },
+          "list": {
+            "retail": null,
+            "wholesale": null
+          },
+          "pack": {
+            "piecesPerCase": 2,
+            "netLb": 14.0,
+            "grossLb": 15.0,
+            "palletTiHi": "6 x 12",
+            "casesPerPallet": 72,
             "shelfDays": 240
           },
           "availability": "in_stock"
@@ -1441,6 +1740,29 @@
             "shelfDays": 240
           },
           "availability": "in_stock"
+        },
+        {
+          "code": "05050",
+          "packing": "7 oz Exact Weight Wedges, vacuum packed",
+          "image": "05050",
+          "unit": "lb",
+          "cost": {
+            "fob": null
+          },
+          "priceOnRequest": true,
+          "list": {
+            "retail": null,
+            "wholesale": null
+          },
+          "pack": {
+            "piecesPerCase": 12,
+            "netLb": 5.25,
+            "grossLb": 6.0,
+            "palletTiHi": "20 x 5",
+            "casesPerPallet": 144,
+            "shelfDays": 150
+          },
+          "availability": "unavailable"
         }
       ]
     },
@@ -1458,28 +1780,6 @@
         "grad": "linear-gradient(145deg, #C8E2C5, #064E22)"
       },
       "skus": [
-        {
-          "code": "05093",
-          "packing": "Whole Wheel, 66-77 lbs",
-          "image": "05093",
-          "unit": "lb",
-          "cost": {
-            "fob": 8.47
-          },
-          "list": {
-            "retail": null,
-            "wholesale": null
-          },
-          "pack": {
-            "piecesPerCase": 1,
-            "netLb": 72.0,
-            "grossLb": 72.0,
-            "palletTiHi": "6 x 5",
-            "casesPerPallet": 30,
-            "shelfDays": 360
-          },
-          "availability": "in_stock"
-        },
         {
           "code": "05018",
           "packing": "1/8 Wheel, vacuum packed minimum\n16 months ageing",
@@ -1503,12 +1803,12 @@
           "availability": "in_stock"
         },
         {
-          "code": "05411",
-          "packing": "RISERVA AGED MIN. 20 MONTHS\nWhole Wheel, 66-77 lbs",
-          "image": "05411",
+          "code": "05093",
+          "packing": "Whole Wheel, 66-77 lbs",
+          "image": "05093",
           "unit": "lb",
           "cost": {
-            "fob": 9.48
+            "fob": 8.47
           },
           "list": {
             "retail": null,
@@ -1545,6 +1845,28 @@
             "shelfDays": 360
           },
           "availability": "in_stock"
+        },
+        {
+          "code": "05411",
+          "packing": "RISERVA AGED MIN. 20 MONTHS\nWhole Wheel, 66-77 lbs",
+          "image": "05411",
+          "unit": "lb",
+          "cost": {
+            "fob": 9.48
+          },
+          "list": {
+            "retail": null,
+            "wholesale": null
+          },
+          "pack": {
+            "piecesPerCase": 1,
+            "netLb": 72.0,
+            "grossLb": 72.0,
+            "palletTiHi": "6 x 5",
+            "casesPerPallet": 30,
+            "shelfDays": 360
+          },
+          "availability": "in_stock"
         }
       ]
     },
@@ -1562,28 +1884,6 @@
         "grad": "linear-gradient(145deg, #70C883, #064E22)"
       },
       "skus": [
-        {
-          "code": "05034",
-          "packing": "Aged minimum 12 months\nWhole Wheel, 66-77 lbs",
-          "image": "05034",
-          "unit": "lb",
-          "cost": {
-            "fob": 11.64
-          },
-          "list": {
-            "retail": null,
-            "wholesale": null
-          },
-          "pack": {
-            "piecesPerCase": 1,
-            "netLb": 72.0,
-            "grossLb": 72.0,
-            "palletTiHi": "6 x 5",
-            "casesPerPallet": 30,
-            "shelfDays": 360
-          },
-          "availability": "in_stock"
-        },
         {
           "code": "05025",
           "packing": "Aged minimum 12 months 1/8 Wheel, vacuum packed",
@@ -1627,6 +1927,51 @@
             "shelfDays": 360
           },
           "availability": "in_stock"
+        },
+        {
+          "code": "05034",
+          "packing": "Aged minimum 12 months\nWhole Wheel, 66-77 lbs",
+          "image": "05034",
+          "unit": "lb",
+          "cost": {
+            "fob": 11.64
+          },
+          "list": {
+            "retail": null,
+            "wholesale": null
+          },
+          "pack": {
+            "piecesPerCase": 1,
+            "netLb": 72.0,
+            "grossLb": 72.0,
+            "palletTiHi": "6 x 5",
+            "casesPerPallet": 30,
+            "shelfDays": 360
+          },
+          "availability": "in_stock"
+        },
+        {
+          "code": "05099",
+          "packing": "7 oz Exact Weight Wedges, vacuum packed",
+          "image": "05099",
+          "unit": "lb",
+          "cost": {
+            "fob": null
+          },
+          "priceOnRequest": true,
+          "list": {
+            "retail": null,
+            "wholesale": null
+          },
+          "pack": {
+            "piecesPerCase": 12,
+            "netLb": 5.25,
+            "grossLb": 6.0,
+            "palletTiHi": "20 x 5",
+            "casesPerPallet": 144,
+            "shelfDays": 150
+          },
+          "availability": "unavailable"
         }
       ]
     },
@@ -1687,6 +2032,29 @@
             "shelfDays": 360
           },
           "availability": "in_stock"
+        },
+        {
+          "code": "40162",
+          "packing": "7 oz Exact Weight Wedges, vacuum packed",
+          "image": "40162",
+          "unit": "lb",
+          "cost": {
+            "fob": null
+          },
+          "priceOnRequest": true,
+          "list": {
+            "retail": null,
+            "wholesale": null
+          },
+          "pack": {
+            "piecesPerCase": 12,
+            "netLb": 5.25,
+            "grossLb": 6.0,
+            "palletTiHi": "20 x 5",
+            "casesPerPallet": 144,
+            "shelfDays": 150
+          },
+          "availability": "unavailable"
         }
       ]
     },
@@ -1785,6 +2153,29 @@
             "shelfDays": 240
           },
           "availability": "in_stock"
+        },
+        {
+          "code": "40163",
+          "packing": "7 oz Exact Weight Wedges, vacuum packed",
+          "image": "40163",
+          "unit": "lb",
+          "cost": {
+            "fob": null
+          },
+          "priceOnRequest": true,
+          "list": {
+            "retail": null,
+            "wholesale": null
+          },
+          "pack": {
+            "piecesPerCase": 12,
+            "netLb": 5.25,
+            "grossLb": 6.0,
+            "palletTiHi": "20 x 5",
+            "casesPerPallet": 144,
+            "shelfDays": 150
+          },
+          "availability": "unavailable"
         }
       ]
     },
@@ -2110,5 +2501,6 @@
         }
       ]
     }
-  ]
+  ],
+  "_cutAndWrapNote": "7 oz exact-weight wedge SKUs added 2026-07-09 from MT Assortment Cut nWrap FW.pdf. cost.fob is null and priceOnRequest is true: no price exists for this line in any 2026-03 price list. Pricing engine returns null for these (see docs/CUT_AND_WRAP_ITEM_GAP_2026-07-09.md)."
 }

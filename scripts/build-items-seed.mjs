@@ -82,11 +82,40 @@ try {
   }
 } catch { /* reference list optional */ }
 
+// ---- cut-and-wrap-spec.json (food-service 7 oz EW line) ------------------------------------
+// The C&W sheet is the only place UPC, case pack, and packaging type exist for the exact-weight
+// wedges, and its copy is written per-SKU. catalog.json only carries a per-PRODUCT blurb and a
+// per-PRODUCT name — "Asiago Fresco DOP" for both the 30 lb wheel and the 7 oz wedge. So for the
+// codes the C&W sheet names, the SKU-level record WINS over the product-level one. It still never
+// clobbers a filled field with an empty one, and it never touches a code it doesn't list.
+//
+// `packagingType` and `logistics` are deliberately NOT copied: the Media Hub schema is identity +
+// copy only (see src/lib/items.js). They stay staged in the spec file, and drive catalog.json's
+// `packing` / `pack` blocks instead.
+const SEED_FIELDS = ["name", "packSize", "weight", "upc", "milkType", "minAge",
+  "shortDescription", "longDescription", "certification"];
+let cwFilled = 0, cwNew = 0;
+try {
+  const cw = JSON.parse(readFileSync(join(root, "src/data/montitrentini/source/cut-and-wrap-spec.json"), "utf8"));
+  for (const [code, spec] of Object.entries(cw.items || {})) {
+    if (!items[code]) {
+      items[code] = { sku: code, name: "", packSize: "", weight: "", upc: "", milkType: "",
+        minAge: "", shortDescription: "", longDescription: "", certification: "" };
+      cwNew++;
+    }
+    let touched = false;
+    for (const f of SEED_FIELDS) {
+      if (spec[f] && items[code][f] !== spec[f]) { items[code][f] = spec[f]; touched = true; }
+    }
+    if (touched) cwFilled++;
+  }
+} catch { /* C&W spec optional */ }
+
 function titleCase(s) {
   return s.toLowerCase().replace(/\b([a-z])/g, (c) => c.toUpperCase())
     .replace(/\b(Dop|Pdo|Igp|Pgi|Bio|Usa|Atm|Sv|Pf|Pdm|Ew|Ww)\b/g, (w) => w.toUpperCase());
 }
 
-const out = { version: 2, generatedAt: new Date().toISOString(), source: "catalog.json + item-reference.json", items };
+const out = { version: 2, generatedAt: new Date().toISOString(), source: "catalog.json + item-reference.json + cut-and-wrap-spec.json", items };
 writeFileSync(join(root, "src/data/montitrentini/items-seed.json"), JSON.stringify(out, null, 2) + "\n");
-console.log(`items-seed.json: ${count} SKUs from catalog (${catalog.products?.length || 0} products) + ${refCount} identity-only from item-reference`);
+console.log(`items-seed.json: ${count} SKUs from catalog (${catalog.products?.length || 0} products) + ${refCount} identity-only from item-reference + ${cwFilled} enriched / ${cwNew} new from cut-and-wrap-spec`);

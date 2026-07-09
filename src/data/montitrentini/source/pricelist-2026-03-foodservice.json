@@ -1,0 +1,29 @@
+{
+  "source": "2026 03 Price list food service.pdf — Monti Trentini USA",
+  "priceList": "2026-03",
+  "capturedAt": "2026-07-09",
+  "applied": false,
+  "costBasis": "EXW Elizabeth NJ $/lb — verified identical to catalog.json cost.fob on all 13 overlapping codes (05001, 05007, 05012, 05025, 05033, 05034, 40103, 40104, 40140, 02302, 01032, 20438, 01186). The EXW column IS the FOB SEAFRIGO basis the pricing engine consumes.",
+  "note": "Rick asked to leave pricing blank pending a complete update. These 12 codes appear on the food-service price list but are ABSENT from catalog.json — they are captured verbatim here, NOT applied. When the full price update lands, these can be merged into catalog.json as cost.fob with no further transcription.",
+  "deliveredNote": "`delivered` is $/lb delivered, minimum 1500 lbs. Not a pricing-engine input — freight is a separate line item and never enters $/lb.",
+  "conflicts": [
+    "01314 is printed TWICE with two different products and two different prices: 'Bruschetta cheese diced bags 2 lbs' at $7.08 EXW, and 'SHARP PROVOLONE diced bags Atmosphere modified 5 lbs' at $7.34 EXW. One item number, two items. Neither is applied.",
+    "01314 (bruschetta) shows Net Cs Weight = 2 lb for 8 × 2 lb bags. Should be 16 lb. Treated as a sheet typo; netLb left null.",
+    "20437 / 20440 / 20439 / 20441 have pallet Ti x Hi of 6x12 / 7x12 / 8x12 / 9x12 yet all report 72 cases per pallet. Only 6x12 = 72. Looks like a fill-down artifact; Ti x Hi left as printed but unverified."
+  ],
+  "items": {
+    "01401": { "product": "Sharp Provolone", "packing": "Shredded, atmosphere-modified bags, 5 lbs", "piecesPerCase": 6, "netLb": 30, "grossLb": 32, "palletTiHi": "5 x 10", "casesPerPallet": 50, "shelfDays": 90, "exwPerLb": 7.03, "deliveredPerLb": 7.33, "preorder": true },
+    "05123": { "product": "Grana Padano, aged min. 12 months", "packing": "Grated, resealable bag, 1.5 lbs fixed weight", "piecesPerCase": 8, "netLb": 12, "grossLb": 13, "palletTiHi": "8 x 10", "casesPerPallet": 80, "shelfDays": 90, "exwPerLb": 8.37, "deliveredPerLb": 8.67, "preorder": true },
+    "05124": { "product": "Grana Padano, aged min. 12 months", "packing": "Flakes, resealable bag, 1.5 lbs fixed weight", "piecesPerCase": 8, "netLb": 12, "grossLb": 13, "palletTiHi": "8 x 10", "casesPerPallet": 80, "shelfDays": 90, "exwPerLb": 9.42, "deliveredPerLb": 9.72, "preorder": true },
+    "05205": { "product": "Grana Padano, aged min. 12 months", "packing": "Flakes tray, 1 lb approx", "piecesPerCase": 8, "netLb": 8, "grossLb": 9, "palletTiHi": "10 x 8", "casesPerPallet": 80, "shelfDays": 85, "exwPerLb": 9.50, "deliveredPerLb": 9.80, "preorder": true },
+    "05211": { "product": "Grana Padano, aged min. 12 months", "packing": "Flakes bag, 5.5 lbs fixed weight", "piecesPerCase": 6, "netLb": 33, "grossLb": 35, "palletTiHi": "7 x 4", "casesPerPallet": 28, "shelfDays": 90, "exwPerLb": 9.27, "deliveredPerLb": 9.57, "preorder": true },
+    "20437": { "product": "Cacio Provolone, chili pepper", "packing": "Cylinder for slicing, vacuum packed, red chili pepper", "piecesPerCase": 2, "netLb": 9, "grossLb": 11, "palletTiHi": "6 x 12", "casesPerPallet": 72, "shelfDays": 120, "exwPerLb": 5.78, "deliveredPerLb": 6.08, "preorder": true },
+    "20439": { "product": "Cacio Provolone, black peppercorn", "packing": "Cylinder for slicing, vacuum packed, black peppercorn", "piecesPerCase": 2, "netLb": 9, "grossLb": 11, "palletTiHi": "8 x 12", "casesPerPallet": 72, "shelfDays": 120, "exwPerLb": 5.78, "deliveredPerLb": 6.08, "preorder": true },
+    "20440": { "product": "Cacio Provolone, mountain herbs", "packing": "Cylinder for slicing, vacuum packed, mountain herbs", "piecesPerCase": 2, "netLb": 9, "grossLb": 11, "palletTiHi": "7 x 12", "casesPerPallet": 72, "shelfDays": 120, "exwPerLb": 5.78, "deliveredPerLb": 6.08, "preorder": true },
+    "20441": { "product": "Cacio Provolone, black summer truffle", "packing": "Cylinder for slicing, vacuum packed, black summer truffle", "piecesPerCase": 2, "netLb": 9, "grossLb": 11, "palletTiHi": "9 x 12", "casesPerPallet": 72, "shelfDays": 120, "exwPerLb": 7.27, "deliveredPerLb": 7.57, "preorder": true },
+    "20569": { "product": "Bianco Duro d'Italia, aged min. 6-7 months", "packing": "Italian hard cheese 1/4 wheels, vacuum packed", "piecesPerCase": 1, "netLb": 20, "grossLb": 21, "palletTiHi": "8 x 12", "casesPerPallet": 96, "shelfDays": 180, "exwPerLb": 7.10, "deliveredPerLb": 7.40, "preorder": false, "note": "Already present in inventory.json but has never had a price in catalog.json." },
+    "20717": { "product": "Bianco Duro d'Europa, aged min. 12 months", "packing": "European hard cheese 1/4 wheels, vacuum packed", "piecesPerCase": 1, "netLb": 12, "grossLb": 13, "palletTiHi": "10 x 12", "casesPerPallet": 120, "shelfDays": 180, "exwPerLb": 6.73, "deliveredPerLb": 7.03, "preorder": false, "note": "Already present in inventory.json but has never had a price in catalog.json." },
+    "01314__bruschetta": { "product": "Bruschetta Cheese", "packing": "Diced bags, 2 lbs", "piecesPerCase": 8, "netLb": null, "grossLb": 2.5, "palletTiHi": "6 x 12", "casesPerPallet": 72, "shelfDays": 90, "exwPerLb": 7.08, "deliveredPerLb": 7.38, "preorder": true, "note": "CONFLICT — see `conflicts`. Item number 01314 is shared with a Sharp Provolone diced 5 lb at $7.34. Not applied." },
+    "01314__sharp_provolone_diced": { "product": "Sharp Provolone", "packing": "Diced bags, atmosphere modified, 5 lbs", "piecesPerCase": 6, "netLb": 30, "grossLb": 32, "palletTiHi": "5 x 10", "casesPerPallet": 50, "shelfDays": 90, "exwPerLb": 7.34, "deliveredPerLb": 7.64, "preorder": true, "note": "CONFLICT — see `conflicts`. Not applied." }
+  }
+}
