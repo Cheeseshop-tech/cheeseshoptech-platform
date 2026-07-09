@@ -110,10 +110,35 @@ sheet, so it cannot be hand-edited. Four codes are simply not on the 2026-07-09 
 **Bonus found in the food-service price list.** 12 priced SKUs exist there that `catalog.json`
 has never seen: `01314`, `01401`, `05123`, `05124`, `05205`, `05211`, `20437`, `20439`, `20440`,
 `20441`, `20569`, `20717`. Their EXW column was verified to be exactly `cost.fob` (13/13 exact
-match on overlapping codes). Captured but **not applied** in
+match on overlapping codes). Captured in
 `src/data/montitrentini/source/pricelist-2026-03-foodservice.json`.
-`20569` and `20717` are already in inventory and have never had a price.
-`01314` is printed twice, for two different products at two different prices.
+
+## 3d. Food-service price-list SKUs applied (2026-07-09, third pass)
+
+**11 of the 12 added to `catalog.json` WITH their printed EXW prices.** These are Stefano's
+numbers transcribed, not invented — the EXW Elizabeth NJ column is the `cost.fob` basis the
+engine consumes, confirmed by exact match on every code the two sheets share.
+
+```
+catalog: 88 -> 99 SKUs across 37 products (was 34)
+items-seed: 116 -> 125 items
+priced: 82 · unpriced: 17 (still only the C&W wedge line)
+```
+
+- into `sharp-provolone`: `01401` shredded 5 lb — $7.03
+- into `grana-padano`: `05123` grated 1.5 lb $8.37 · `05124` flakes 1.5 lb $9.42 ·
+  `05205` flakes tray 1 lb $9.50 · `05211` flakes 5.5 lb $9.27
+- new product **Cacio Provolone** (`cacio-provolone`, Provolone): `20437` chili $5.78 ·
+  `20440` herbs $5.78 · `20439` peppercorn $5.78 · `20441` truffle $7.27
+- new product **Bianco Duro d'Italia** (`bianco-duro-italia`, Alpine & Specialty): `20569` $7.10
+- new product **Bianco Duro d'Europa** (`bianco-duro-europa`, Alpine & Specialty): `20717` $6.73
+
+`availability` follows the sheet: everything marked "PRE-ORDER NEEDED FOR SHELF-LIFE PURPOSE" is
+`preorder`. `20569` is `in_stock` — **it has 84 cases on hand and, until now, no way to quote it.**
+Verified: it quotes at $7.10/lb and allocates cleanly against lot 1285661.
+
+`01314` **withheld.** It is printed twice, for two different products at two different prices.
+No existing price moved: `05001` still totals $5,378.40 on 10 cases.
 
 ## 4. Scope boundary — the price list stays out
 

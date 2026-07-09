@@ -67,13 +67,14 @@ showing the wrong product.
 
 ## G. Food-service price list — items we've never seen
 
-10. Twelve items on the food-service list aren't in our catalog at all:
+10. Twelve items on the food-service list weren't in our catalog at all:
     `01401` shredded sharp provolone, `05123` grana grated, `05124` / `05205` / `05211` grana
     flakes, `20437` / `20439` / `20440` / `20441` cacio provolone cylinders, `20569` Bianco Duro
     d'Italia, `20717` Bianco Duro d'Europa, `01314` bruschetta cheese.
-    Are all twelve active? (Prices captured, awaiting Rick's full update before they go live.)
+    **Eleven are now live at their printed EXW prices.** Confirm all eleven are still active.
 11. **`01314` is printed twice** — once as "Bruschetta cheese diced bags 2 lbs" at $7.08, once as
     "Sharp Provolone diced bags 5 lbs" at $7.34. Which product owns 01314?
+    **This is the one item held back.** Nothing for 01314 exists in the app.
 12. `01314` bruschetta lists Net Cs Weight = 2 lb for 8 × 2 lb bags. Should that be 16 lb?
 13. `20437` / `20440` / `20439` / `20441` show pallet Ti×Hi of 6x12 / 7x12 / 8x12 / 9x12 but all
     say 72 cases per pallet. Only 6×12 = 72. Which Ti×Hi is right?
