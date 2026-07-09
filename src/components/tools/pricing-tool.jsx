@@ -693,8 +693,19 @@ function Movement({ data, resolved }) {
     return () => { alive = false; };
   }, [resolved?.id]);
   const movement = { records: ledger };
-  const codes = Object.keys(inventory.skus);
-  const rep = FC.report(codes, { commitments, inventory, movement, config }, horizon).filter((r) => r.hasSignal || r.onHand > 0 || r.inTransit > 0);
+  // Every SKU we SELL, not just every SKU we happen to have stock rows for. A product with no
+  // inventory row is a product we can still be asked to fulfil and still need to forecast —
+  // it must not vanish from this table. forecast-core treats a missing inventory row as 0/0.
+  const codes = useMemo(() => {
+    const set = new Set(Object.keys(inventory.skus));
+    catalog.products.forEach((p) => p.skus.forEach((s) => set.add(s.code)));
+    return [...set];
+  }, [catalog, inventory]);
+  const [scope, setScope] = useState("signals"); // "signals" = has demand or stock · "all" = whole catalog
+  const rep = FC.report(codes, { commitments, inventory, movement, config }, horizon);
+  const hasActivity = (r) => r.hasSignal || r.onHand > 0 || r.inTransit > 0;
+  const shownRows = scope === "all" ? rep : rep.filter(hasActivity);
+  const dormant = rep.length - rep.filter(hasActivity).length;
   const reorder = rep.filter((r) => r.reorder).length;
   const containers = rep.filter((r) => r.flagContainer).length;
 
@@ -713,8 +724,15 @@ function Movement({ data, resolved }) {
           </select>
         </label>
       </div>
+      <div className="mb-3 inline-flex rounded-base border border-border bg-bg p-0.5">
+        {[["signals", `Active (${rep.length - dormant})`], ["all", `All products (${rep.length})`]].map(([v, label]) => (
+          <button key={v} onClick={() => setScope(v)}
+            className={"rounded-base px-3 py-1.5 text-sm font-medium " + (scope === v ? "bg-brand-primary text-brand-on-primary" : "text-fg-muted hover:text-fg")}>{label}</button>
+        ))}
+      </div>
       <p className="mb-3 rounded-base border border-border bg-surface px-3 py-2 text-xs text-fg-muted">
         {ledger.length ? `Using ${ledger.length} captured movement record(s) + standing commitments.` : "No sell-through captured yet — projections are commitment-driven. Run-rate & YoY accrue as reps record sales in Proforma."}
+        {dormant > 0 && ` ${dormant} product(s) have no stock and no demand signal — switch to "All products" to see them.`}
       </p>
       <Card>
         <Table>
@@ -730,7 +748,7 @@ function Movement({ data, resolved }) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {rep.slice(0, 60).map((r) => (
+            {shownRows.slice(0, 200).map((r) => (
               <TableRow key={r.code}>
                 <TableCell><span className="font-mono text-xs font-semibold text-brand-primary">{r.code}</span><div className="font-medium text-fg">{names[r.code] || r.code}</div></TableCell>
                 <TableCell className="text-right font-mono">{r.onHand}</TableCell>
@@ -741,13 +759,19 @@ function Movement({ data, resolved }) {
                 <TableCell>
                   {r.flagContainer ? <Badge variant="info">⚓ Pull container · {r.reorderCases} cs</Badge>
                     : r.reorder ? <Badge variant="warning">↻ Reorder {r.reorderCases} cs</Badge>
+                    /* No stock, nothing on the water, no demand — say so. "Covered" would be a lie. */
+                    : !hasActivity(r) ? <Badge variant="muted">No stock · no demand</Badge>
                     : <Badge variant="success">Covered</Badge>}
                 </TableCell>
               </TableRow>
             ))}
+            {shownRows.length === 0 && <TableRow><TableCell colSpan={7}><span className="text-fg-muted">Nothing to show.</span></TableCell></TableRow>}
           </TableBody>
         </Table>
       </Card>
+      {shownRows.length > 200 && (
+        <p className="mt-2 text-xs text-fg-muted">Showing the first 200 of {shownRows.length}.</p>
+      )}
     </div>
   );
 }
