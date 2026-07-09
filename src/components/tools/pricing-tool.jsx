@@ -65,7 +65,7 @@ export function PricingTool({ resolved, onNavigate }) {
       ) : (
         <Tabs defaultValue="proforma">
           <TabsList>
-            <TabsTrigger value="proforma">Proforma</TabsTrigger>
+            <TabsTrigger value="proforma">Pro Forma</TabsTrigger>
             <TabsTrigger value="shelflife">Shelf Life</TabsTrigger>
             <TabsTrigger value="movement">Movement</TabsTrigger>
             <TabsTrigger value="commitments">Commitments</TabsTrigger>
@@ -248,15 +248,15 @@ function Proforma({ data, brand, resolved, onNavigate }) {
     }).join("");
     const fees = effFreight.map((f) => `<tr class="fee"><td colspan="5" class="r">${esc(f.label)}</td><td class="r">${money(f.amount)}</td></tr>`).join("");
     const html = `<!doctype html><html><head><meta charset="utf-8"><title>Proforma — ${esc(customer || b.name || "")}</title><style>
-      *{box-sizing:border-box}body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#141413;margin:0;padding:34px;font-size:13px}
+      *{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#141413;margin:0;padding:34px;font-size:13px}
       .hd{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid ${brandColor};padding-bottom:14px;margin-bottom:18px}
-      .hd h1{font-family:Georgia,serif;color:${brandColor};margin:0;font-size:26px}.hd .sub{color:#777;font-size:12px}
+      .hd h1{font-family:Georgia,serif;color:${brandColor};margin:0;font-size:26px}.hd .sub{color:#333;font-size:12px}
       .pf{font-size:18px;font-weight:700;color:${brandColor};text-align:right}
       .meta{display:flex;gap:34px;flex-wrap:wrap;margin-bottom:16px;font-size:12px}.meta b{display:block;color:${brandColor};font-size:9px;text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px}
-      table{width:100%;border-collapse:collapse;font-size:12px}th{text-align:left;border-bottom:1px solid #ccc;padding:7px 8px;font-size:9px;text-transform:uppercase;color:#777;letter-spacing:.4px}
-      td{padding:6px 8px;border-bottom:1px solid #eee}.r{text-align:right}.lot td{color:#777;font-size:11px;border-bottom:1px solid #f6f6f6;padding-top:0}
+      table{width:100%;border-collapse:collapse;font-size:12px}th{text-align:left;border-bottom:1px solid #ccc;padding:7px 8px;font-size:9px;text-transform:uppercase;color:#333;letter-spacing:.4px}
+      td{padding:6px 8px;border-bottom:1px solid #eee}.r{text-align:right}.lot td{color:#333;font-size:11px;border-bottom:1px solid #f6f6f6;padding-top:0}
       .fee td{color:#0E7C9E}tfoot td{font-weight:700;border-top:2px solid ${brandColor};font-size:14px;padding-top:9px}
-      tfoot tr.grand td{font-size:17px;color:${brandColor}}.ft{margin-top:32px;color:#999;font-size:11px;text-align:center}
+      tfoot tr.grand td{font-size:17px;color:${brandColor}}.ft{margin-top:32px;color:#1f1f1f;font-size:11px;text-align:center}
     </style></head><body>
       <div class="hd"><div><h1>${esc(b.name || "Monti Trentini")}</h1><div class="sub">${esc(b.tagline || "")}</div></div><div><div class="pf">PROFORMA</div><div class="sub">${TODAY}</div></div></div>
       <div class="meta"><div><b>Bill to</b>${esc(customer || "—")}</div><div><b>Basis</b>${basis === "pickup" ? "Pickup (EXW)" : "Delivered"}</div><div><b>Class of trade</b>${esc(tier.label || "")}</div>${customPct ? `<div><b>Custom</b>${customPct > 0 ? "+" : ""}${customPct}%</div>` : ""}</div>

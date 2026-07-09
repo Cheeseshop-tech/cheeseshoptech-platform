@@ -12,10 +12,13 @@
 
   > Rick Posada
   > Monti Trentini — USA
-  > Sales@montitrentini-usa.com
+  > Sales@montitrentini-usa.com · cell (347) 356-5617
   > @montitrentini
+  > *Sent with CheeseShop TECH — Richard Posada's sales assistant*
 
-- **Send from / reply-to:** Sales@montitrentini-usa.com
+- **Send from / reply-to:** Sales@montitrentini-usa.com — the HubSpot-connected inbox
+  (verified 2026-07-03: the ONLY inbox connected in HubSpot; hello@cheeseshoptech.com is the
+  CST house address, not the campaign sender)
 - Attach **`Asiago_Sell_Sheet`** (PDF) to Touch 1.
 
 ### Personalization tokens (HubSpot)

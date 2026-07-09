@@ -7,6 +7,7 @@
 // Context written = caption / sku / alt  (REPLACES the asset's context)
 
 import { requireWriteAuth, jsonUnauthorized } from "./_write-guard.js";
+import { logWrite, tenantFromPath } from "./_write-log.js";
 
 const APPROVAL_TAGS = ["approved-for-influencers", "approved-for-press", "draft"];
 const USAGE_IDS = [
@@ -19,7 +20,10 @@ export const handler = async (event) => {
 
   // CST (house) or a client's admin only — see _write-guard.js.
   const writeAuth = requireWriteAuth(event);
-  if (!writeAuth.ok) return jsonUnauthorized(writeAuth);
+  if (!writeAuth.ok) {
+    await logWrite(event, { fn: "media-update", ok: false, status: writeAuth.status });
+    return jsonUnauthorized(writeAuth);
+  }
 
   const cloud = process.env.CLOUDINARY_CLOUD_NAME;
   const key = process.env.CLOUDINARY_API_KEY;
@@ -60,6 +64,10 @@ export const handler = async (event) => {
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) return json(res.status, { error: `Cloudinary ${res.status}`, detail: data });
+    await logWrite(event, {
+      fn: "media-update", ok: true, status: 200, role: writeAuth.role,
+      action: `update ${publicId}`, tenant: tenantFromPath(publicId),
+    });
     return json(200, { ok: true, publicId, usage, approvalState: approval });
   } catch (err) {
     return json(502, { error: String(err?.message || err) });

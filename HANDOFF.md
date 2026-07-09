@@ -18,6 +18,13 @@ shipped and just left on disk).
 **Read first:** `CLAUDE_CODE_BRIEF.md` → this → `docs/BUILD_LOG.md` (top) →
 `docs/ONBOARDING_AND_AGENTS_SDD.md` + `docs/CONTENT_ENGINE_WIRING_SPEC.md`.
 
+## ✅ LIVE HUBSPOT EMAIL ACTIVITY → CRM DASHBOARD (2026-07-06, cont. 11)
+crm-hubspot.js now feeds the Recent-activity card real sales-email engagements (last 20 sends/
+replies/bounces, contact + company names, relative times) — the Asiago Touch 1 feed. Degrades
+to a hidden card without the **`sales-email-read`** scope (activityNote in the JSON says so).
+**Rick: add that scope to the HubSpot private app** (Settings → Integrations → Private Apps →
+Scopes), then check the dashboard. Ship via **`COMMIT EMAIL ACTIVITY.command`**.
+
 ## ✅ VIEWER-TIER ASSET DIALOG CLEANED (2026-07-06, cont. 10)
 Rick: rep/broker-facing Media Hub dialog = no edit chrome, no footer Close (X is enough).
 Removed the viewer lock notice + footer Close; admin Edit/Delete unchanged. Ship via
@@ -138,8 +145,13 @@ batch = 31 send-ready cheese-shop contacts, enriched +7 via web research + HubSp
 ## 🚀 ASIAGO TOUCH 1 — **SENT** (batch 1 of 3, Mon 2026-07-06: 10 of 31 out)
 Sent via Buyer Intro template + tracked sell-sheet link + 4-day To-do per send (Touch 2 queue
 builds ~Fri 7/10). Mid-send data fix: Citarella contact swapped Heather Celentano (FORMER) →
-**Kristen Bausa** (email typo fixed after a bounce, resent — only bounce of the day). Remaining
-20 → two batches Tue 7/7 / Wed 7/8. Full record: `monti_asiago_campaign/LAUNCH_DAY_2026-07-06.md`.
+**Kristen Bausa** (email typo fixed after a bounce, resent — only bounce of the day). Also
+closed today: **"Luigi's Delicatessen" confirmed out of business** (flagged 7/3 as zero web
+footprint) — company + contact deleted outright in HubSpot, the one non-flag deletion of the
+day. Remaining 20 → two batches Tue 7/7 / Wed 7/8. Full record:
+`monti_asiago_campaign/LAUNCH_DAY_2026-07-06.md`. **This campaign now has its own scoped
+handoff + build log — `monti_asiago_campaign/HANDOFF.md` + `CAMPAIGN_BUILD_LOG.md` — use those
+(not this file) for a new chat focused only on MT email campaigns.**
 **Process lesson (this is why the handoff said "launches 8 AM" hours after launch):** the send
 was run in a separate chat that updated Claude's memory but not the files. Send/batch status gets
 written to LAUNCH_DAY + this block **in the same session it happens** — files are state.

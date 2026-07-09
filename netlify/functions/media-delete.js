@@ -7,13 +7,17 @@
 // This is DESTRUCTIVE and irreversible — the UI gates it to admins and confirms before calling.
 
 import { requireWriteAuth, jsonUnauthorized } from "./_write-guard.js";
+import { logWrite, tenantFromPath } from "./_write-log.js";
 
 export const handler = async (event) => {
   if (event.httpMethod !== "POST") return json(405, { error: "Method not allowed" });
 
   // Destructive — CST (house) or a client's admin only. See _write-guard.js.
   const writeAuth = requireWriteAuth(event);
-  if (!writeAuth.ok) return jsonUnauthorized(writeAuth);
+  if (!writeAuth.ok) {
+    await logWrite(event, { fn: "media-delete", ok: false, status: writeAuth.status });
+    return jsonUnauthorized(writeAuth);
+  }
 
   const cloud = process.env.CLOUDINARY_CLOUD_NAME;
   const key = process.env.CLOUDINARY_API_KEY;
@@ -42,6 +46,10 @@ export const handler = async (event) => {
     if (outcome !== "deleted" && outcome !== "not_found") {
       return json(502, { error: "Delete not confirmed", detail: data });
     }
+    await logWrite(event, {
+      fn: "media-delete", ok: true, status: 200, role: writeAuth.role,
+      action: `delete ${publicId} (${outcome})`, tenant: tenantFromPath(publicId),
+    });
     return json(200, { ok: true, publicId, outcome });
   } catch (err) {
     return json(502, { error: String(err?.message || err) });

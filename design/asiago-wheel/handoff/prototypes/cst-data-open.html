@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CST Opening — Data Open (pie draws on + typed labels)</title>
+<style>
+  :root{
+    --cream:#FAF6F0; --ink:#221C14; --terra:#9A3B1B;
+    --line:#9b8b76; --grid:#e7ddcf;
+  }
+  html,body{margin:0;height:100%;background:#000;}
+  .stage{
+    position:relative;width:100vw;height:56.25vw;max-height:100vh;max-width:177.78vh;
+    margin:auto;background:var(--cream);overflow:hidden;
+    font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  /* faint tech dot-grid */
+  .stage::before{
+    content:"";position:absolute;inset:0;
+    background-image:radial-gradient(var(--grid) 1.2px, transparent 1.2px);
+    background-size:34px 34px;opacity:0;transition:opacity 1s ease;
+  }
+  .stage.go::before{opacity:.55;}
+  svg{position:absolute;inset:0;width:100%;height:100%;}
+  .eyebrow{
+    position:absolute;left:6.2%;top:8%;font-size:1.05vw;letter-spacing:.42em;
+    text-transform:uppercase;color:var(--terra);font-weight:700;opacity:0;
+    transform:translateY(8px);transition:opacity .8s ease,transform .8s ease;
+  }
+  .eyebrow .sub{display:block;letter-spacing:.04em;color:var(--ink);font-weight:500;
+    font-size:1.5vw;margin-top:.5em;text-transform:none;}
+  .stage.go .eyebrow{opacity:1;transform:none;}
+  /* pie wedges: scale in from the centre, staggered */
+  .wedge{transform-box:view-box;transform-origin:var(--cx) var(--cy);
+    transform:scale(.0);opacity:0;}
+  .stage.go .wedge{animation:grow .55s cubic-bezier(.34,1.4,.5,1) forwards;}
+  @keyframes grow{to{transform:scale(1);opacity:1;}}
+  .tick{stroke:var(--line);stroke-width:1.1;opacity:0;}
+  .stage.go .tick{animation:fadein .4s ease forwards;}
+  .lead{stroke:var(--line);stroke-width:1.4;fill:none;
+    stroke-dasharray:var(--len);stroke-dashoffset:var(--len);}
+  .stage.go .lead{animation:draw .45s ease forwards;}
+  .dot{fill:var(--terra);opacity:0;}
+  .stage.go .dot{animation:fadein .3s ease forwards;}
+  @keyframes draw{to{stroke-dashoffset:0;}}
+  @keyframes fadein{to{opacity:1;}}
+  .lbl{position:absolute;color:var(--ink);font-weight:600;font-size:1.45vw;
+    white-space:nowrap;opacity:0;}
+  .lbl .cap{display:block;font-size:.92vw;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--line);font-weight:700;margin-bottom:.15em;}
+  .lbl.r{text-align:left;} .lbl.l{text-align:right;}
+  .caret{border-right:2px solid var(--terra);padding-right:2px;animation:blink .7s steps(1) infinite;}
+  @keyframes blink{50%{border-color:transparent;}}
+  .replay{position:absolute;right:2.5%;bottom:3.5%;font:600 12px Inter,sans-serif;
+    letter-spacing:.12em;text-transform:uppercase;color:var(--line);background:none;
+    border:1px solid var(--grid);border-radius:20px;padding:7px 14px;cursor:pointer;}
+  .replay:hover{color:var(--terra);border-color:var(--terra);}
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+  <div class="eyebrow">CheeseShop&nbsp;TECH<span class="sub">One platform. Every part of the business.</span></div>
+  <svg id="svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid meet"></svg>
+  <button class="replay" onclick="run()">Replay</button>
+</div>
+<script>
+const SVG="http://www.w3.org/2000/svg";
+const cx=720, cy=470, r=210, rTick=222, rLabel=300;   // pie geometry on the 1600x900 board
+// 8 business slices (edit labels freely) — warm brand-aligned palette
+const SLICES=[
+  {term:"Pricing",      app:"Quotes & Inventory", col:"#9A3B1B"},
+  {term:"Content",      app:"Media Hub",          col:"#B45A2C"},
+  {term:"Sales",        app:"CRM",                col:"#C9803A"},
+  {term:"Inventory",    app:"Catalog",            col:"#D9A24E"},
+  {term:"Social Media", app:"Campaigns",          col:"#C2A05C"},
+  {term:"Content Studio",app:"Decks & Posts",     col:"#9C7B45"},
+  {term:"Orders",       app:"Order Flow",         col:"#7A5530"},
+  {term:"Dashboard",    app:"Command Center",     col:"#A8472E"},
+];
+const svg=document.getElementById("svg");
+const stage=document.getElementById("stage");
+const P=a=>[cx+Math.cos(a)*r, cy+Math.sin(a)*r];
+
+function build(){
+  // clear
+  [...svg.children].forEach(n=>n.remove());
+  document.querySelectorAll(".lbl").forEach(n=>n.remove());
+  stage.style.setProperty("--cx",cx+"px"); stage.style.setProperty("--cy",cy+"px");
+  const n=SLICES.length, step=Math.PI*2/n, start=-Math.PI/2; // start at top
+  SLICES.forEach((s,i)=>{
+    const a0=start+i*step, a1=start+(i+1)*step, mid=(a0+a1)/2;
+    const [x0,y0]=P(a0),[x1,y1]=P(a1);
+    const large = (a1-a0)>Math.PI?1:0;
+    const path=document.createElementNS(SVG,"path");
+    path.setAttribute("d",`M${cx},${cy} L${x0.toFixed(1)},${y0.toFixed(1)} A${r},${r} 0 ${large} 1 ${x1.toFixed(1)},${y1.toFixed(1)} Z`);
+    path.setAttribute("fill",s.col);
+    path.setAttribute("stroke","var(--cream)"); path.setAttribute("stroke-width","3");
+    path.setAttribute("class","wedge");
+    path.style.animationDelay=(0.35+i*0.16)+"s";
+    svg.appendChild(path);
+
+    // leader line (tick) from rim outward to the label anchor
+    const lx0=cx+Math.cos(mid)*rTick, ly0=cy+Math.sin(mid)*rTick;
+    const lx1=cx+Math.cos(mid)*rLabel, ly1=cy+Math.sin(mid)*rLabel;
+    const horiz = Math.cos(mid)>=0 ? 64 : -64;          // little horizontal jog toward the label
+    const line=document.createElementNS(SVG,"path");
+    const len=Math.hypot(lx1-lx0,ly1-ly0)+Math.abs(horiz)+8;
+    line.setAttribute("d",`M${lx0.toFixed(1)},${ly0.toFixed(1)} L${lx1.toFixed(1)},${ly1.toFixed(1)} l${horiz},0`);
+    line.setAttribute("class","lead"); line.style.setProperty("--len",len.toFixed(0));
+    line.style.animationDelay=(0.5+i*0.16)+"s";
+    svg.appendChild(line);
+    const dot=document.createElementNS(SVG,"circle");
+    dot.setAttribute("cx",lx0.toFixed(1)); dot.setAttribute("cy",ly0.toFixed(1)); dot.setAttribute("r","3.2");
+    dot.setAttribute("class","dot"); dot.style.animationDelay=(0.5+i*0.16)+"s"; svg.appendChild(dot);
+
+    // HTML label (positioned by % of the board), typewriter term
+    const lbl=document.createElement("div");
+    const right = Math.cos(mid)>=0;
+    lbl.className="lbl "+(right?"r":"l");
+    const px=((lx1+horiz+ (right?10:-10))/1600)*100, py=(ly1/900)*100;
+    lbl.style.left=px+"%"; lbl.style.top=py+"%";
+    lbl.style.transform=`translate(${right?"0":"-100%"}, -50%)`;
+    lbl.innerHTML=`<span class="cap">${String(i+1).padStart(2,"0")}</span><span class="tw" data-t="${s.term}"></span>`;
+    stage.appendChild(lbl);
+    lbl._delay=(0.62+i*0.16);
+  });
+}
+
+function type(el,text,done){
+  el.textContent=""; el.parentElement.style.opacity=1;
+  el.classList.add("caret"); let k=0;
+  const id=setInterval(()=>{ el.textContent=text.slice(0,++k);
+    if(k>=text.length){clearInterval(id); el.classList.remove("caret"); done&&done();}},45);
+}
+
+function run(){
+  stage.classList.remove("go"); build();
+  void stage.offsetWidth;            // reflow so animations restart
+  stage.classList.add("go");
+  document.querySelectorAll(".lbl").forEach(lbl=>{
+    const tw=lbl.querySelector(".tw");
+    setTimeout(()=>type(tw, tw.dataset.t), (lbl._delay+0.25)*1000);
+  });
+}
+run();
+</script>
+</body>
+</html>

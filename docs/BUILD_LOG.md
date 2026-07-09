@@ -19,6 +19,113 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## ⚠️ STANDING RULE — every write endpoint logs itself
+
+**Every new write/mutating Netlify function MUST call `logWrite()` from
+`netlify/functions/_write-log.js`** — once on auth failure, once on a successful write. No
+exceptions for "small" or "internal" endpoints; that's exactly how `_write-guard.js` (2026-07-06)
+almost didn't happen — the gap was in the endpoints nobody thought to double-check.
+
+- Auth (`requireWriteAuth`) answers "was this allowed." Logging (`logWrite`) answers "what
+  actually happened" — both are required, not either/or. An endpoint with a guard and no log can
+  still be probed silently; a log with no guard is a diary of a break-in.
+- Read the log at `netlify/functions/write-log.js` (GET, house-admin passcode only).
+- Full rationale: `docs/TRUST_BY_DESIGN_REVIEW_2026-07-07.md`.
+
+---
+
+## 2026-07-08 (cont. 2) — DECISION: sequencing — second-tenant rehearsal earmarked, not now
+
+**Decision (Rick).** The second-tenant onboarding + passcode rehearsal (stand up a fake client,
+walk `config/_template` → seam-map registration → `PORTAL_ADMIN_PASSCODE_<TENANT>` →
+write-log tenant tagging end to end — proposed same session as the write-action log above) is
+**earmarked, not started.** Target: **~2026-07-22** (two weeks out). Current priority is finishing
+the Asiago Touch 1 email send and the Media Hub metadata fields.
+
+**Why now, why not right now.** The rehearsal is real and worth doing before client #2 (per
+`TRUST_BY_DESIGN_REVIEW_2026-07-07.md`), but it's infrastructure work with no immediate deadline.
+Asiago Touch 1 has a live cadence already running against real buyers (Touch 2 ≈ Fri 7/10) and
+Media Hub has two small, already-scoped open items — both are closer to done and time-sensitive
+in a way the rehearsal isn't.
+
+**What "earmarked" means in practice:** next time this file is opened for planning, or on/after
+2026-07-22, resurface this item. Not on `docs/BACKLOG.md` (that file is scoped to the pricing/
+quoting tool) — this is a platform-level item, logged here instead.
+
+**Status check on the two priorities (grounded in the files, not memory, as of this entry):**
+- **Asiago Touch 1** — only batch 1 of 3 (10/31 contacts) is confirmed sent
+  (`monti_asiago_campaign/LAUNCH_DAY_2026-07-06.md`, `CAMPAIGN_BUILD_LOG.md`). Batches 2 (Tue 7/7)
+  and 3 (Wed 7/8 — today) were planned but **no batch-2/3 send confirmation has been logged yet**
+  in either file. Confirm actual send status before assuming Touch 2 (Fri 7/10) can queue on
+  schedule — the To-do-task cadence only fires off contacts that were actually sent Touch 1.
+- **Media Hub metadata fields** — per `BUILD_LOG.md` (cont. 8, 2026-07-06), open items are: bulk-tag
+  the 71 legacy `monti/` packshots `product-catalog` (currently untagged → invisible to the
+  Product Catalog gate and usage tabs) and fill in their still-blank long descriptions. The
+  one-folder Cloudinary migration is explicitly deferred, not part of this scope.
+
+---
+
+## 2026-07-08 — Write-action log (audit trail for the write-guard endpoints)
+
+**Context.** `TRUST_BY_DESIGN_REVIEW_2026-07-07.md` measured CST against Superhuman's "trust by
+design" framework (system view / controls / governance). Two of three problems scored well
+(system-of-record map, data-ownership rules, documented role model). The one real gap: **no
+visibility** — `_write-guard.js` (2026-07-06) stops an unauthorized write, but nothing records who
+did an *authorized* one, or who tried and failed. At one tenant that's low-stakes; it stops being
+low-stakes the moment a second admin or a second client is in the system.
+
+**Shipped (`node --check` ✓ on all five files, function-only change —
+`COMMIT WRITE ACTION LOG.command`):**
+- `netlify/functions/_write-log.js` (new, helper) — `logWrite(event, entry)` appends
+  `{ts, ip, fn, ok, role, status, action, tenant?}` to a single capped array (last 500 entries) in
+  **Netlify Blobs** (store `write-log`) — same pattern as `inventory.js`/`inventory-publish.js`, no
+  new infra, no new secret. Logging failures are swallowed — it can never block or fail the write
+  it's describing. Also exports `tenantFromPath()`, a best-effort tenant guess from a
+  `clients/<tenant>/...` publicId/folder.
+- `netlify/functions/write-log.js` (new) — GET endpoint to read the log, newest first. Gated to
+  `role === "admin"` (house passcode only) via the existing `requireWriteAuth` — this is CST's
+  cross-tenant trail, not a client-facing feature.
+- `media-update.js` / `media-delete.js` / `items-save.js` — each now calls `logWrite` on auth
+  failure (fn, ok:false, status) and on success (fn, ok:true, role, action, tenant).
+
+**Known gaps (acceptable at one tenant, not later):** no UI for `write-log.js` yet (curl/Postman
+only); single Blobs key means no read/write concurrency protection (fine at this write volume);
+`client-admin` can't read their own tenant's log (house-only for now, by design — revisit if a
+client asks). Passcode auth itself is still the pilot stopgap noted in the trust review — Clerk
+migration should land before client #2, per that doc's recommendation.
+
+---
+
+## 2026-07-06 (cont. 11) — LIVE HubSpot email activity on the CRM dashboard
+
+**Context (Rick's ask, hours after the Asiago Touch 1 launch):** is HubSpot email activity
+current in the Monti CRM dashboard? It wasn't — crm-hubspot.js returned `activity: []` by
+design (Slice 2 wired companies+contacts only). Built now so campaign engagement (sends /
+replies / bounces) shows where Rick and reps actually look.
+
+**Shipped (node --check ✓, function-only change — `COMMIT EMAIL ACTIVITY.command`):**
+`netlify/functions/crm-hubspot.js` —
+- `fetchEmailActivity()`: 3 batched requests — recent 20 sales-email engagements (v3 emails
+  search, sorted by hs_timestamp desc) → email→contact associations (v4 batch read) → contact
+  names+company (v3 batch read). Maps to the existing activity card shape `{who, what, when}`:
+  who = "First Last — Company" (falls back to Inbound/Outbound email), what = "Sent:/Reply:/
+  Bounced: <subject>", when = relative ("2h ago", matching the mock strings the card was
+  styled around).
+- Failure isolation: the whole feed is `.catch`-wrapped — activity problems can never break
+  the companies/contacts payload that feeds the Opportunity Engine.
+- **Scope-aware degradation:** a 403 on the emails search returns `activity: []` +
+  `activityNote: "HubSpot token lacks sales-email-read scope"` — the dashboard card just stays
+  hidden. The Recent-activity card lights up as soon as the scope exists; zero frontend changes
+  (command-center.jsx already guards on activity.length).
+
+**Rick action (HubSpot, not code):** Settings → Integrations → Private Apps → the CST app →
+Scopes → add **`sales-email-read`** (CRM/Sales section) → save. Then verify:
+`curl https://montitrentini.cheeseshoptech.com/.netlify/functions/crm-hubspot` — the JSON
+should show today's Touch 1 sends in `activity`; if instead it has `activityNote`, the scope
+isn't active yet. Note: response is cached `max-age=120`, so the dashboard trails by ≤2 min.
+
+---
+
 ## 2026-07-06 (cont. 10) — Viewer-tier asset dialog goes clean (no edit chrome, no footer Close)
 
 **Decision (Rick).** For the salesman/broker-facing Media Hub, the asset dialog needs NO edit
