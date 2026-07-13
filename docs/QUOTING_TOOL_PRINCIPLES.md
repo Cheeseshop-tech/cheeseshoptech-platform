@@ -87,7 +87,7 @@ reads from those sources and writes back to them, so the whole ecosystem stays c
 
 | Data | Single owner (source of truth) | Status |
 |---|---|---|
-| Cost/FOB, list price, case packs (catch vs exact) | `catalog.json` (HQ / Stefano) | ✅ canonical |
+| Cost/FOB, list price, case packs (catch vs exact) | `catalog.json` (HQ / Sales Management) | ✅ canonical |
 | Pricing rules: tiers, margins, freight, fees, min/max | `client.config.json` → `pricing` | ✅ canonical |
 | Inventory: stock, lots, shelf life, in-transit | Live store (Netlify Blobs, weekly sync) | ✅ live (2026-06-18) |
 | Standing commitments (regular customers) | `commitments.json` | ✅ canonical |
@@ -101,7 +101,7 @@ trusted. Remaining: log issued quotes/approvals into the same store.
 ## 10. Gap log (build backlog, against this doc)
 1. **Shelf-life alerts** — surface remaining shelf life at quote time; flag lots < 4 months as "must move." (high)
 2. **Class-of-trade alignment** — tiers currently distributor(0) / direct-retail(+15) / direct-consumer(+35);
-   reconcile to the importer/retail/food-service margin bands above (pending Stefano sign-off). (high)
+   reconcile to the importer/retail/food-service margin bands above (pending Sales Management sign-off). (high)
 3. **Trucking $300 local minimum** — engine uses $0.30/lb with no floor; add the tri-state min. (quick)
 4. **Catch vs exact weight in UI** — mark catch-weight lines "estimate", exact-weight "firm"; carry the
    proforma → weighed → final-invoice states. (med)

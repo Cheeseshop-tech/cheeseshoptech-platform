@@ -53,12 +53,12 @@ wrong product.
 | 40086 | Montasio PDO | yes | no |
 
 **Net-new items to seed:** 03047, 05050, 05099, 40162
-**Items needing a number from Stefano:** Aged Black Truffle, Smoked Provolone Disc, Vezzena 7 oz EW
+**Items needing a number from Inventory Manager:** Aged Black Truffle, Smoked Provolone Disc, Vezzena 7 oz EW
 **Items missing a packshot:** 13 of 20
 
 ---
 
-## 3. Data errors on the sheet — queue for Stefano
+## 3. Data errors on the sheet — queue for Inventory Manager
 
 1. **Aged Black Truffle carries UPC `857594000158`** — identical to 03047 Asiago Vecchio. One of the two is wrong.
 2. **01174 is used twice** — Smoked Provolone Wedge and Smoked Provolone Disc share the item number *and* UPC `857594000103`. Two different products; needs two numbers.
@@ -67,7 +67,7 @@ wrong product.
 5. **Vezzena row has no item number.**
 6. **No UPC on any Italian Classic item** — 05050, 05099, 40162, 40163, 40086 are all blank.
 
-Per house rule, item identity is not guessed. These stay blocked until Stefano answers.
+Per house rule, item identity is not guessed. These stay blocked until Inventory Manager answers.
 
 ---
 
@@ -104,7 +104,7 @@ untouched — verified `05001` still quotes $7.47/lb and $5,378.40 on 10 cases, 
 
 **Inventory app: 13 of 17 already there.** `inventory.json` is regenerated from the availability
 sheet, so it cannot be hand-edited. Four codes are simply not on the 2026-07-09 sheet:
-`03047`, `05050`, `05099`, `40162`. Stefano has to add them upstream. (Note the sheet carries
+`03047`, `05050`, `05099`, `40162`. Inventory Manager has to add them upstream. (Note the sheet carries
 `03073`, not `03047` — same conflict as §3.)
 
 **Bonus found in the food-service price list.** 12 priced SKUs exist there that `catalog.json`
@@ -115,7 +115,7 @@ match on overlapping codes). Captured in
 
 ## 3d. Food-service price-list SKUs applied (2026-07-09, third pass)
 
-**11 of the 12 added to `catalog.json` WITH their printed EXW prices.** These are Stefano's
+**11 of the 12 added to `catalog.json` WITH their printed EXW prices.** These are Sales Management's
 numbers transcribed, not invented — the EXW Elizabeth NJ column is the `cost.fob` basis the
 engine consumes, confirmed by exact match on every code the two sheets share.
 

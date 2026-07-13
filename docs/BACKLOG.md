@@ -16,7 +16,7 @@ See `docs/CONTINUAL_IMPROVEMENT.md` for the loop. Updated 2026-06-18.
 
 ## Blocked
 - [high/low] **Class-of-trade margin alignment** — reshape tiers to importer +15% / retail distrib +20–30% /
-  food-service +25–35%. BLOCKED on Stefano's real numbers. (On the next Stefano list.)
+  food-service +25–35%. BLOCKED on Sales Management's real numbers. (On the next client data request.)
 
 ## Later
 - [med/high] **Forecasting dashboards** — monthly/yearly projections once the history store has accrued data.

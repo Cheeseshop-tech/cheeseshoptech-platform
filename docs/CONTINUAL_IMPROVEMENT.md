@@ -7,7 +7,7 @@ a steady loop, not a big-bang. This doc defines that loop and where it lives (on
 1. **Capture** — anyone hits friction or has an idea → it goes into `docs/BACKLOG.md` (the single list),
    or is told to Claude in a session and Claude files it there. Nothing lives only in someone's head or a chat.
 2. **Triage (weekly)** — score each item by *impact* (does it move product / protect price / save time)
-   and *effort*; pick the next small batch. Anything blocked on an outside party (e.g., Stefano's margins)
+   and *effort*; pick the next small batch. Anything blocked on an outside party (e.g., the client's margins)
    is parked under **Blocked** with the blocker named.
 3. **Build (small, safe)** — one batch at a time. Safety rules below. Prefer additive, flag-gated changes.
 4. **Verify** — `npm run build` green; logic spot-checked; for data, the validation gate + a real read-back.

@@ -81,7 +81,7 @@ a tool.
 - **Does:** natural-language quote requests → proforma drafts; enforces house rules (shelf-life
   <4 mo flag, $135 processing under 1,500 lb, $0.30/lb trucking floor, class-of-trade margins);
   flags margin erosion before a quote leaves.
-- **Data gap:** real class-of-trade %s still pending Stefano (placeholders in config).
+- **Data gap:** real class-of-trade %s still pending Sales Management (placeholders in config).
 
 ### A3 — Inventory & Replenishment Agent
 - **Substrate:** `forecast-core.js` (movement report) extended with reorder logic.
@@ -97,7 +97,7 @@ a tool.
 - **Reads:** sales history (same gap), pipeline (HubSpot deals — currently empty), campaign
   calendar, sales goals (new small file: `goals.json` per tenant — targets by channel/quarter).
 - **Does:** goal → projected demand curve → production/purchase requirements back to the
-  producer (Stefano-facing: "to hit $X in Q4, order Y wheels by August"); ties campaign lift
+  producer (client-facing: "to hit $X in Q4, order Y wheels by August"); ties campaign lift
   assumptions into the curve.
 - **Deps:** A3 shipped, HubSpot deals wired, `goals.json` defined. **Build last, worth most.**
 

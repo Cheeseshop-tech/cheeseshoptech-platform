@@ -57,5 +57,5 @@ Trade Portal deck embed, shareable gated link, print/PDF. Scope §3.1 + pricing 
   & Q2 (define a "product placement zone").
 - Proposal v2: replace v1's deck+list with themed multi-page, or coexist? · Puppeteer PDF (heavier
   infra) vs browser-print? · white-label vs CST footer? · log pitched products → needs Salesforce.
-- Story blocks: Rick/Stefano approval; Claude can draft 4–6 from the voice + Phase2 content.
+- Story blocks: Rick/client approval; Claude can draft 4–6 from the voice + Phase2 content.
 - Product-data completeness intersects the image gap (44 SKUs on packshot fallback) + availability sheet.

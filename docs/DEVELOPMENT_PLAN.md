@@ -29,7 +29,7 @@ Same rule as the platform core: **differentiation = tokens + content only.** Eac
 | # | Task | Owner | Exit criteria |
 |---|---|---|---|
 | A1 | Add Trade Portal + Catalog as **external tools** in `montitrentini.json` (quick win, links from the portal hub today) | Claude | Tools visible on Monti's hub, build passes |
-| A2 | Hand Monti the portal — send Stefano the URL + passcode | Rick | Stefano has access; first reactions captured |
+| A2 | Hand Monti the portal — send the client the URL + passcode | Rick | client has access; first reactions captured |
 | A3 | Subdomain `montitrentini.cheeseshoptech.com` (DNS) | Rick + Claude guides | Branded URL resolves |
 | A4 | SSL hardening — Cloudflare Full (strict) + registrar auto-renew | Rick | Per `LAUNCH_AND_MAINTENANCE.md` §5 |
 | A5 | Photography → Cloudinary Media hub | Rick / Monti | Real content replacing samples |
@@ -49,7 +49,7 @@ Same rule as the platform core: **differentiation = tokens + content only.** Eac
 | C3 | `presentations` block in client config (schema extended) | Done — config-only deck definition |
 | C4 | Shareable buyer link | Done — `?client=montitrentini&page=presentations` (passcode-gated); becomes `montitrentini.cheeseshoptech.com/?page=presentations` after A3 |
 
-> Note (2026-06-12): Stefano presented to MT ownership — **approved, positive move-forward.** A2 achieved.
+> Note (2026-06-12): The client lead presented to MT ownership — **approved, positive move-forward.** A2 achieved.
 
 ### Phase D — Storefront unification (post-pilot start; biggest)
 | # | Task | Exit criteria |
@@ -59,7 +59,7 @@ Same rule as the platform core: **differentiation = tokens + content only.** Eac
 | D3 | Shopify decision: only when real checkout/payment is required (`STOREFRONT_STRATEGY.md`) | Documented go/no-go |
 
 ### Phase E — Feed + launch (parallel, per the old plan)
-HubSpot pipeline → wire CRM connector (Make, `CRM_CONNECTOR.md`) once deals exist · campaign strategy → campaigns launch (~1 month clock) · class-of-trade %s + freight confirmations from Stefano · pricing/engagement `$___` figures.
+HubSpot pipeline → wire CRM connector (Make, `CRM_CONNECTOR.md`) once deals exist · campaign strategy → campaigns launch (~1 month clock) · class-of-trade %s + freight confirmations from Sales Management + Traffic · pricing/engagement `$___` figures.
 
 ### Phase F — Admin dashboards, roles & proposal engine (spec'd 2026-06-12)
 Full spec: `ADMIN_DASHBOARDS_SPEC.md`. Concept locked: portal = CheeseShop TECH platform hosting client ecom sites + extending infrastructure/data management via gated, tenant-themed UIs; CST manages data, connectivity, and software (3rd-party + proprietary).
@@ -78,7 +78,7 @@ Content engine = HubSpot plugin (campaigns authored/sent in HubSpot; portal show
 Clerk auth at client #2 · onboard client #2 (proves multi-tenancy end-to-end) · production domain cutover.
 
 ## Risks / reminders (Rick)
-- **Stefano dependencies are the long pole:** class-of-trade %s, freight confirmations, photography. Queue all three now — answers arrive asynchronously.
+- **Client-side dependencies are the long pole:** class-of-trade %s (Sales Management), freight confirmations (Traffic), photography (Marketing). Queue all three now — answers arrive asynchronously.
 - **Portal handoff (A2) is still not done** and costs nothing — it was step 1 of the old plan a week ago.
 - The mobile trade portal's 4.4 MB single file will be slow on cell connections — Phase C fixes this; until then, send buyers the web URL.
 - `PRICING_AND_ENGAGEMENT_MODEL.md` still has `$___` blanks — needed before quoting agency work to client #2.

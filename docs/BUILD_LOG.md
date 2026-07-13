@@ -34,6 +34,44 @@ almost didn't happen — the gap was in the endpoints nobody thought to double-c
 
 ---
 
+## 2026-07-09 — Line-card template + sell-sheet set (designed out-of-band, handed off to build)
+
+**Action.** Produced a four-item **product line card** (Monti Trentini: 03023 Asiago Stagionato
+DOP, 02206 Asiago Fresco della Montagna, 20228 Caciotta alle Erbe, 20141 Caciotta Piccante) plus
+four matching single-SKU sales sheets, rendered as PDF + a 1200px email PNG. Rick approved the
+line-card format and asked that it become a Content Studio template and the Product Catalog's UI
+layout. **No app code changed** — spec + blockers written to
+`docs/HANDOFF_2026-07-09_line-card-template.md` for a build session in this repo.
+
+**Why.** The line card is the first layout the sales motion actually asked for that the template
+engine cannot express: it is portrait, and it repeats a product row N times against catalog data.
+Both gaps are engine-level, not cosmetic — worth fixing once rather than hand-building the card.
+
+**What it unblocks / what it exposed** (verified against source at `d240626`, not memory):
+
+- `slide-renderer.jsx:17` hard-codes `aspect-video`. Every manifest is 960×540, so no template
+  has ever exercised another ratio. **Any** non-16:9 template is blocked on this one line.
+- `pick` / `fills` are declared on `product-range/v1`'s image slots and **consumed nowhere in
+  `src/`** — the catalog-position autofill was specced in `TEMPLATE_ENGINE_SPEC.md` §10 and never
+  wired. Wiring it lights up `product-range/v1` and the line card together.
+- `components/catalog/buyer-catalog.jsx` is titled "Product Catalog" but reads `lib/catalog.js`,
+  which its own header calls a view over the **image** manifest. The product record lives in
+  `data/<tenant>/catalog.json` + `lib/items.js`. IA decision needed before any catalog UI work —
+  logged in the handoff, not decided here.
+
+**Design decisions to preserve** (they cost rework to rediscover): certification marks are
+conditional and absent on non-DOP items, never decorative; packshots need a whitespace trim before
+they fill a frame; the cert emblem belongs on the title line, not overlapped on the wheel.
+
+**Facts corrected.** There is no item **02023** — it is a transposition of **03023**. Weights
+re-confirmed: 20228/20141 = 3 kg / 6.6 lb; 02206 = 28–30 lb; 03023 = 17–19 lb.
+
+**Status.** Handoff written. Print renderer (reportlab) stays the print path; the app render is a
+separate font stack and a separate export story — see handoff watch-outs before promising print
+output from the app.
+
+---
+
 ## 2026-07-08 (cont. 2) — DECISION: sequencing — second-tenant rehearsal earmarked, not now
 
 **Decision (Rick).** The second-tenant onboarding + passcode rehearsal (stand up a fake client,
@@ -555,7 +593,7 @@ new secrets (functions reuse the Cloudinary trio). **Standing rule adopted: ever
 ends with a double-clickable COMMIT button.**
 
 **Open:** long descriptions blank for all 71 SKUs (draft from catalog facts or queue tasting
-notes to Stefano) · bulk SKU→photo matching by public_id · wire Studio/Content Engine to
+notes to the client) · bulk SKU→photo matching by public_id · wire Studio/Content Engine to
 `descriptionFor()` · optional: Price List Creator reads identity specs from items.json ·
 note: items-save/items-get functions are unauthenticated like media-update — fine for now,
 harden with the platform auth pass.
@@ -1323,7 +1361,7 @@ then simplified (PPTX cut → no risky backend; review gate OFF by default behin
 Canonical locked: **CheeseShop TECH = platform/agency Rick owns; Monti = client/tenant.** Two-track rule
 (platform build never waits on client approval; goal 10+ clients in 6–12 mo). Positioning brief written
 (platform moat + founder credibility from the real resume + competitive sampling). Landing page v1 built. Monti
-campaign staged, **gated on Stefano's approval + pricing (Thursday 2026-06-18 meeting; reminder set 7:30am)**.
+campaign staged, **gated on Sales Management approval + pricing (Thursday 2026-06-18 meeting; reminder set 7:30am)**.
 
 ## 2026-06-16 — Review gate OFF by default (per-client opt-in)
 
@@ -1905,7 +1943,7 @@ proforma time, never folded into $/lb: **Trucking = $0.30/lb** on all delivered 
 below-threshold); `src/data/montitrentini/client.config.json` freight block; `pricing-tool.jsx`
 (per-row lot/expiry list, `printProforma()` → clean branded proforma window with FIFO lot
 allocation per line, "Print / PDF" button). Verified: freight math (1200lb→$360+$135; 1800lb→$540;
-pickup→none), validate + build clean, rendered. Config-only %s still provisional pending Stefano.
+pickup→none), validate + build clean, rendered. Config-only %s still provisional pending Sales Management.
 
 ## 2026-06-06 — House brand → Forest Green (supersedes Brand Foundation cool-studio rec)
 
@@ -1939,7 +1977,7 @@ real B2B pricing capability, replacing the `price-list` "coming-soon" stub. Bran
   status live; `App.jsx` dispatches featured `route:"pricing"` → `<PricingTool>`.
 
 **Decision.** Class-of-trade reflects the real model: distributor 0% (HQ list) / direct-retail +15%
-/ direct-consumer +35% — provisional, config-tunable, pending Stefano.
+/ direct-consumer +35% — provisional, config-tunable, pending Sales Management.
 
 **Status.** Config validates; all files parse clean; engine logic verified. **Full `npm run build`
 NOT run** (this dev machine's node_modules is Linux-only / no native Mac node) — build + render

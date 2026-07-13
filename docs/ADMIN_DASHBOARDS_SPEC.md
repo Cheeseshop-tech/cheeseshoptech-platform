@@ -62,7 +62,7 @@ deploy status (Netlify API).
 
 ## 4. Client admin dashboard
 
-The client admin is the customer-side operator (e.g. Stefano's team). Their dashboard =
+The client admin is the customer-side operator (e.g. the client's team). Their dashboard =
 today's Operations Portal hub plus a **Manage** layer:
 
 - **Content manager:** media upload + organize (Media hub, exists), approve collaborator
@@ -133,7 +133,7 @@ photography lands — moving masters later is the expensive part.
 ## 8. Open questions
 
 - **(Rick)** R2 vs B2 — R2 wins if we ever serve straight from the archive (no egress fees, same Cloudflare account as DNS/SSL); B2 is slightly cheaper at rest. Recommend **R2** for one-vendor simplicity.
-- **(Rick/Stefano)** Who at Monti gets the client-admin passcode at pilot?
+- **(Rick/client)** Who at Monti gets the client-admin passcode at pilot?
 - **(Claude, build-time)** Proposal share links: reuse passcode gate or per-proposal keys? Leaning per-proposal keys (one URL per buyer, revocable).
 - **(Rick)** HubSpot free-tier limits on marketing email — confirm the content engine's send volume fits, or budget for Marketing Hub Starter.
 

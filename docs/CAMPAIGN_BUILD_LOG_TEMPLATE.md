@@ -77,7 +77,7 @@ is included at the bottom as a worked example.
 **Setup:** Client = Monti Trentini (tenant #1). Channel = national Cheese Shops & Boutique Grocers.
 List = HubSpot "National Cheese Shop Campaign" (active list id 17, ~150–161 cos). Stage-1 = open
 dialogue with the decision-maker. Pricing = by inquiry. Send-from = Sales@montitrentini-usa.com.
-Owners: Sales = Rick; Social = Eleonora (loop Maria Vittoria); Producer/freight = Stefano.
+Owners: Sales = Rick; Social = Eleonora (loop Maria Vittoria); Producer/freight = client (Traffic).
 
 **Story:** *Product of the Mountains* — authentic Italian Alpine Asiago, milk within 90 km of Grigno,
 made/aged/packed in-house at 800 m, Casa Finco *casari dal 1925*. Pillars: Alpine altitude milk · 100
@@ -87,9 +87,9 @@ years of craft · sustainable operation. Ladder: Fresco → Stagionato → Vecch
 Business (HubSpot call/text logging). Distribution = native/scheduler (no Marketing Hub). Email-safe
 HTML sell sheet built as the in-body option.
 
-### 2026-06-16 — Email-safe sell sheet + Stefano package + PDFs
+### 2026-06-16 — Email-safe sell sheet + client package + PDFs
 Built `Asiago_Sell_Sheet_Email.html` (table/inline-CSS/hosted-image, 600px, Georgia+Arial, hero text on
-a solid band). Restructured the Stefano note (to Stefano, cc Eleonora): purpose-led + contents map +
+a solid band). Restructured the client note (to the client, cc Eleonora): purpose-led + contents map +
 social hand-off section + SEAFRIGO freight ask + 5-way comparison/US cost map. Rendered all assets to
 `pdf_out/` (pandoc→libreoffice for md; weasyprint for the sell sheet). Phone placeholder removed pending
 OpenPhone. Unblocks: a send-ready package + an in-body sell-sheet option.
