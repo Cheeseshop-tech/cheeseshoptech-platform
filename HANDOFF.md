@@ -18,6 +18,24 @@ shipped and just left on disk).
 **Read first:** `CLAUDE_CODE_BRIEF.md` → this → `docs/BUILD_LOG.md` (top) →
 `docs/ONBOARDING_AND_AGENTS_SDD.md` + `docs/CONTENT_ENGINE_WIRING_SPEC.md`.
 
+## 🔎 LOGIN DIAGNOSIS — "can't reach Media Hub / Content Engine as House admin" (2026-07-13)
+Not a bug. Site is in passcode mode (`VITE_AUTH_MODE=passcode`). Both Media Hub and Content
+Engine are `admin`-gated (`NAV`: `tools`→`["admin"]`; Media Hub is a card *inside* Content
+Engine for admins, not a sidebar tab — the standalone `media` tab is `["pr","influencer",
+"creator"]` only). Two causes:
+1. **Stale `client` unlock persists in the browser.** `auth-context.jsx` keeps the last unlock
+   in `localStorage["cs-portal-unlocked"]` and never re-prompts while set. If Rick last entered
+   the Monti *client* passcode, `/?app=1` renders him as `client` → Content Engine + tenant
+   switcher hidden. Only the **House passcode** (`PORTAL_HOUSE_PASSCODE`) returns `admin`.
+2. **Media Hub has no admin sidebar tab by design** (2026-07-02 reorg) — reach it via
+   Content Engine → Media Hub card.
+**FIX (procedure, no code change):** Sign out (clears the unlock) → go to `/?app=1` (or `admin.`
+subdomain; bare apex = Coming Soon) → enter the **House passcode** → Content Engine → Media Hub
+card. Shortcut: `localStorage.clear()` in console, reload `/?app=1`. If Content Engine still
+absent after House passcode, verify `PORTAL_HOUSE_PASSCODE` is set in the Netlify site's env
+(the site serving cheeseshoptech.com). Console tell: `localStorage.getItem('cs-portal-unlocked')` returning `"client"`
+= confirmed cause.
+
 ## ✅ LIVE HUBSPOT EMAIL ACTIVITY → CRM DASHBOARD (2026-07-06, cont. 11)
 crm-hubspot.js now feeds the Recent-activity card real sales-email engagements (last 20 sends/
 replies/bounces, contact + company names, relative times) — the Asiago Touch 1 feed. Degrades

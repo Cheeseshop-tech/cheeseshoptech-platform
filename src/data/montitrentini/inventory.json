@@ -1,33 +1,11 @@
 {
   "schemaVersion": "1.2",
   "clientId": "monti-trentini",
-  "lastUpdated": "2026-07-09",
-  "source": "availability_2026-07-10.csv",
-  "generatedAt": "2026-07-10T12:18:50.656Z",
+  "lastUpdated": "2026-07-13",
+  "source": "availability_2026-07-14.csv",
+  "generatedAt": "2026-07-14T12:21:27.306Z",
   "generatedBy": "scripts/sync-inventory.mjs",
   "skus": {
-    "11111": {
-      "code": "11111",
-      "name": "SAMPLES",
-      "casesAvail": 0,
-      "casesInTransit": 0,
-      "comment": "",
-      "commentEn": "",
-      "lots": [
-        {
-          "lotNum": "1308488",
-          "status": "on_hand",
-          "receiptDate": "2026-07-06",
-          "eta": null,
-          "cases": 3,
-          "reserved": 3,
-          "netAvailLb": 15,
-          "expDate": "2035-12-31",
-          "expMonth": null,
-          "comment": "(finte forme) Consorzio Grana Padano, labels from Stefano?"
-        }
-      ]
-    },
     "20141": {
       "code": "20141",
       "name": "CACIOTTA RED CHILI PEPPER 6 LBS",
@@ -153,67 +131,7 @@
       "commentEn": "",
       "lots": [
         {
-          "lotNum": "1296195",
-          "status": "on_hand",
-          "receiptDate": "2026-05-15",
-          "eta": null,
-          "cases": 60,
-          "reserved": 60,
-          "netAvailLb": 1680,
-          "expDate": "2027-04-04",
-          "expMonth": null,
-          "comment": "TJ"
-        },
-        {
           "lotNum": "1304216",
-          "status": "on_hand",
-          "receiptDate": "2026-06-18",
-          "eta": null,
-          "cases": 60,
-          "reserved": 60,
-          "netAvailLb": 1680,
-          "expDate": "2027-05-05",
-          "expMonth": null,
-          "comment": "TJ"
-        },
-        {
-          "lotNum": "1304222",
-          "status": "on_hand",
-          "receiptDate": "2026-06-18",
-          "eta": null,
-          "cases": 60,
-          "reserved": 60,
-          "netAvailLb": 1680,
-          "expDate": "2027-05-05",
-          "expMonth": null,
-          "comment": "TJ"
-        },
-        {
-          "lotNum": "1304229",
-          "status": "on_hand",
-          "receiptDate": "2026-06-18",
-          "eta": null,
-          "cases": 60,
-          "reserved": 60,
-          "netAvailLb": 1680,
-          "expDate": "2027-05-05",
-          "expMonth": null,
-          "comment": "TJ"
-        },
-        {
-          "lotNum": "1304230",
-          "status": "on_hand",
-          "receiptDate": "2026-06-18",
-          "eta": null,
-          "cases": 60,
-          "reserved": 60,
-          "netAvailLb": 1680,
-          "expDate": "2027-05-05",
-          "expMonth": null,
-          "comment": "TJ"
-        },
-        {
-          "lotNum": "1304236",
           "status": "on_hand",
           "receiptDate": "2026-06-18",
           "eta": null,
@@ -317,18 +235,6 @@
           "reserved": 60,
           "netAvailLb": 1680,
           "expDate": "2027-05-05",
-          "expMonth": null,
-          "comment": "TJ"
-        },
-        {
-          "lotNum": "1296207",
-          "status": "on_hand",
-          "receiptDate": "2026-05-15",
-          "eta": null,
-          "cases": 60,
-          "reserved": 60,
-          "netAvailLb": 1680,
-          "expDate": "2027-05-29",
           "expMonth": null,
           "comment": "TJ"
         },
@@ -759,7 +665,7 @@
     "20511": {
       "code": "20511",
       "name": "FONTAL 1/4 WHEEL",
-      "casesAvail": 480,
+      "casesAvail": 240,
       "casesInTransit": 0,
       "comment": "Lettieri",
       "commentEn": "",
@@ -772,18 +678,6 @@
           "cases": 240,
           "reserved": 0,
           "netAvailLb": 1468.41,
-          "expDate": "2026-11-22",
-          "expMonth": null,
-          "comment": ""
-        },
-        {
-          "lotNum": "1290766",
-          "status": "on_hand",
-          "receiptDate": "2026-04-24",
-          "eta": null,
-          "cases": 240,
-          "reserved": 0,
-          "netAvailLb": 1526.75,
           "expDate": "2026-11-22",
           "expMonth": null,
           "comment": ""
@@ -847,8 +741,8 @@
           "status": "on_hand",
           "receiptDate": "2026-05-15",
           "eta": null,
-          "cases": 110,
-          "reserved": 110,
+          "cases": 90,
+          "reserved": 90,
           "netAvailLb": 522.84,
           "expDate": "2026-12-16",
           "expMonth": null,
@@ -1585,7 +1479,7 @@
     "02073": {
       "code": "02073",
       "name": "ASIAGO FRESCO PDO 1/4 WHEEL NT",
-      "casesAvail": 628,
+      "casesAvail": 616,
       "casesInTransit": 120,
       "comment": "Cowbell monthly plan 50x, average purchase TONY 10x, ACE Endico sometimes, Baldor 108x",
       "commentEn": "",
@@ -1595,7 +1489,7 @@
           "status": "on_hand",
           "receiptDate": "2026-05-15",
           "eta": null,
-          "cases": 28,
+          "cases": 16,
           "reserved": 0,
           "netAvailLb": 208.87,
           "expDate": "2026-12-16",
@@ -1645,7 +1539,7 @@
       "name": "ASIAGO FRESCO PDO 7 OZ EW",
       "casesAvail": 0,
       "casesInTransit": 0,
-      "comment": "we don't have project right now",
+      "comment": "always 5 cases/month available per Lettieri",
       "commentEn": "",
       "lots": []
     },
@@ -2073,35 +1967,11 @@
     "05007": {
       "code": "05007",
       "name": "GRANA PADANO PDO 1/8 WHEEL",
-      "casesAvail": 1552,
+      "casesAvail": 1368,
       "casesInTransit": 640,
       "comment": "",
       "commentEn": "",
       "lots": [
-        {
-          "lotNum": "1308158",
-          "status": "on_hand",
-          "receiptDate": "2026-07-03",
-          "eta": null,
-          "cases": 80,
-          "reserved": 0,
-          "netAvailLb": 1713.17,
-          "expDate": "2027-01-30",
-          "expMonth": null,
-          "comment": ""
-        },
-        {
-          "lotNum": "1308159",
-          "status": "on_hand",
-          "receiptDate": "2026-07-03",
-          "eta": null,
-          "cases": 104,
-          "reserved": 0,
-          "netAvailLb": 2167.57,
-          "expDate": "2027-01-30",
-          "expMonth": null,
-          "comment": "Ace Endico?"
-        },
         {
           "lotNum": "1308160",
           "status": "on_hand",
@@ -2112,7 +1982,7 @@
           "netAvailLb": 2129.59,
           "expDate": "2027-01-30",
           "expMonth": null,
-          "comment": "Ace Endico?"
+          "comment": ""
         },
         {
           "lotNum": "1308161",
@@ -2124,7 +1994,7 @@
           "netAvailLb": 2175.31,
           "expDate": "2027-01-30",
           "expMonth": null,
-          "comment": "Ace Endico?"
+          "comment": ""
         },
         {
           "lotNum": "1308163",
@@ -2306,7 +2176,7 @@
     "05025": {
       "code": "05025",
       "name": "PARMIGIANO REGGIANO PDO 1/8 WHEEL",
-      "casesAvail": 246,
+      "casesAvail": 147,
       "casesInTransit": 99,
       "comment": "always have at least 1/2 pallet (check with Stefano)",
       "commentEn": "",
@@ -2320,18 +2190,6 @@
           "reserved": 0,
           "netAvailLb": 1107.112,
           "expDate": "2027-03-27",
-          "expMonth": null,
-          "comment": ""
-        },
-        {
-          "lotNum": "1304215",
-          "status": "on_hand",
-          "receiptDate": "2026-06-18",
-          "eta": null,
-          "cases": 99,
-          "reserved": 0,
-          "netAvailLb": 2181.3,
-          "expDate": "2027-05-18",
           "expMonth": null,
           "comment": ""
         },
