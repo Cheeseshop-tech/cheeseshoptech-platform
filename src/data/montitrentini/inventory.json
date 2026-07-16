@@ -1,9 +1,9 @@
 {
   "schemaVersion": "1.2",
   "clientId": "monti-trentini",
-  "lastUpdated": "2026-07-13",
-  "source": "availability_2026-07-14.csv",
-  "generatedAt": "2026-07-14T12:21:27.306Z",
+  "lastUpdated": "2026-07-14",
+  "source": "availability_2026-07-16.csv",
+  "generatedAt": "2026-07-16T12:16:25.929Z",
   "generatedBy": "scripts/sync-inventory.mjs",
   "skus": {
     "20141": {
@@ -1006,29 +1006,17 @@
     "40103": {
       "code": "40103",
       "name": "PECORINO ROMANO PDO WHOLE WHEEL",
-      "casesAvail": 54,
+      "casesAvail": 27,
       "casesInTransit": 0,
       "comment": "keep 1-2 pallet in stock",
       "commentEn": "",
       "lots": [
         {
-          "lotNum": "1285660",
-          "status": "on_hand",
-          "receiptDate": "2026-04-03",
-          "eta": null,
-          "cases": 9,
-          "reserved": 0,
-          "netAvailLb": 512.629,
-          "expDate": "2027-03-06",
-          "expMonth": null,
-          "comment": "Cowbell monthly plan"
-        },
-        {
           "lotNum": "1285662",
           "status": "on_hand",
           "receiptDate": "2026-04-03",
           "eta": null,
-          "cases": 45,
+          "cases": 27,
           "reserved": 0,
           "netAvailLb": 2524.23,
           "expDate": "2027-03-06",
@@ -1298,34 +1286,22 @@
     "01032": {
       "code": "01032",
       "name": "SHARP PROVOLONE (HALF CYLINDER)",
-      "casesAvail": 79,
+      "casesAvail": 29,
       "casesInTransit": 0,
       "comment": "only Cowbell and Dekalb, Cheese Imp order that item",
       "commentEn": "",
       "lots": [
         {
-          "lotNum": "1290757",
-          "status": "on_hand",
-          "receiptDate": "2026-04-24",
-          "eta": null,
-          "cases": 7,
-          "reserved": 0,
-          "netAvailLb": 107.283,
-          "expDate": "2026-11-22",
-          "expMonth": null,
-          "comment": "Cowbell 0.5$/lbs promotion next order"
-        },
-        {
           "lotNum": "1308182",
           "status": "on_hand",
           "receiptDate": "2026-07-03",
           "eta": null,
-          "cases": 72,
+          "cases": 29,
           "reserved": 0,
           "netAvailLb": 1097.59,
           "expDate": "2027-02-04",
           "expMonth": null,
-          "comment": "Cowbell 0.5$/lbs promotion next order"
+          "comment": "Cowbell 0.5$/lbs?"
         }
       ]
     },
@@ -1479,29 +1455,17 @@
     "02073": {
       "code": "02073",
       "name": "ASIAGO FRESCO PDO 1/4 WHEEL NT",
-      "casesAvail": 616,
+      "casesAvail": 560,
       "casesInTransit": 120,
       "comment": "Cowbell monthly plan 50x, average purchase TONY 10x, ACE Endico sometimes, Baldor 108x",
       "commentEn": "",
       "lots": [
         {
-          "lotNum": "1296203",
-          "status": "on_hand",
-          "receiptDate": "2026-05-15",
-          "eta": null,
-          "cases": 16,
-          "reserved": 0,
-          "netAvailLb": 208.87,
-          "expDate": "2026-12-16",
-          "expMonth": null,
-          "comment": ""
-        },
-        {
           "lotNum": "1304244",
           "status": "on_hand",
           "receiptDate": "2026-06-18",
           "eta": null,
-          "cases": 240,
+          "cases": 200,
           "reserved": 0,
           "netAvailLb": 1703.92,
           "expDate": "2027-01-09",
@@ -1539,7 +1503,7 @@
       "name": "ASIAGO FRESCO PDO 7 OZ EW",
       "casesAvail": 0,
       "casesInTransit": 0,
-      "comment": "always 5 cases/month available per Lettieri",
+      "comment": "always 5-10 cases/month available per Lettieri",
       "commentEn": "",
       "lots": []
     },
@@ -1863,29 +1827,17 @@
     "04181": {
       "code": "04181",
       "name": "VEZZENA CHEESE AGED WHOLE WHEEL",
-      "casesAvail": 24,
+      "casesAvail": 20,
       "casesInTransit": 0,
       "comment": "CowBell 5x per monthly plan",
       "commentEn": "",
       "lots": [
         {
-          "lotNum": "1225718",
-          "status": "on_hand",
-          "receiptDate": "2025-08-21",
-          "eta": null,
-          "cases": 3,
-          "reserved": 0,
-          "netAvailLb": 64.032,
-          "expDate": "2026-07-24",
-          "expMonth": null,
-          "comment": ""
-        },
-        {
           "lotNum": "1296208",
           "status": "on_hand",
           "receiptDate": "2026-05-15",
           "eta": null,
-          "cases": 21,
+          "cases": 20,
           "reserved": 0,
           "netAvailLb": 426.79,
           "expDate": "2027-04-15",
