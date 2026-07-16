@@ -52,6 +52,31 @@ rather than swap silently. Also confirmed `catalog.json`'s per-SKU `image` field
 
 Suggestion list now 11 items (P0 4, P1 4, P2 3). No code changed — still audit only.
 
+**Audit closed out — final domain: Auth/Roles, House Admin Console, tenant routing.** Subdomain
+tenant routing (apex/`admin.`/`<client>.`) works exactly as documented. Auth itself is further
+along than its own doc: `AUTH_AND_ROLES.md` (2026-06-05) still describes one shared passcode; the
+real system is a 3-tier server-side passcode (`client`/`client-admin`/`admin`, per-tenant), and
+it's genuinely enforced — but **only on the three write endpoints** (`items-save.js`,
+`media-update.js`, `media-delete.js`, hardened 2026-07-06 after a direct-curl exploit).
+
+**Most serious finding of the whole audit: that write-side fix was never extended to reads.**
+`crm.js`/`crm-hubspot.js`/`crm-summary.js`, `items-get.js`, `media-list.js`, `inventory.js`, and
+`history.js`'s POST all have zero server-side auth check today — a bare function URL, no passcode
+header, returns the tenant's CRM data/pricing/inventory or accepts a movement-record write. The
+fix pattern (`_write-guard.js`'s `requireWriteAuth()`) already exists and is proven; this is
+applying it to more endpoints, not new design. Filed as the new #1 P0 item, ahead of everything
+else in the audit.
+
+Multi-tenancy at the config level: 2 real configs (`montitrentini.json` live, `demo.json` empty
+scaffold), resolver genuinely config-driven, "new client = config only" is plausible but untested
+with a real second client. House Console itself is the one doc in this whole audit found to be
+accurate about its own incompleteness — `HOUSE_CONSOLE_SPEC.md` already says the pieces missing
+(client-selector shell, items importer, bulk upload) aren't built, and they aren't.
+
+**Audit complete.** All originally-named domains covered. 12 prioritized fixes filed (P0 5, P1 4,
+P2 3). Full detail in `docs/WIRING_AUDIT_2026-07-15.md`. No code changed by any pass — audit only,
+by design, so Rick decides what to act on and in what order.
+
 ---
 
 ## 2026-07-15 — CORRECTION: ERP monthly is POUNDS not dollars; 2024 = Jan–Jul by construction

@@ -161,50 +161,104 @@ still renders in the Catalog via a frozen items-seed backfill (can go stale if t
 rerun since a catalog.json name change — minor). SKU-only-in-items.js (entered in Media Hub, not yet
 priced) is simply invisible in Proposals/Pricing tool, by construction, not broken.
 
+## 8. Auth/Roles, House Admin Console, tenant routing — the audit's most serious finding
+
+**Tenant routing (apex / `admin.` / `<client>.` doors) works exactly as documented** —
+`clientConfig.js`'s subdomain resolver correctly implements the door model, no drift.
+
+**Auth is further along than its own doc says, but has a real hole the doc doesn't mention
+either.** `AUTH_AND_ROLES.md` (dated 2026-06-05, "single shared passcode, everyone sees the same
+portal") is stale — the code has a real 3-tier server-side passcode system
+(`client`/`client-admin`/`admin`, per-tenant `PORTAL_ADMIN_PASSCODE_<TENANT>`), and it's genuinely
+enforced on the three Cloudinary write endpoints (`items-save.js`, `media-update.js`,
+`media-delete.js` all 401 without the right passcode header — this was a real fix shipped
+2026-07-06 after a direct-curl exploit was found).
+
+**That write-side fix was never extended to reads. This is the audit's most serious finding.**
+Every Netlify function that returns sensitive data — `crm.js`/`crm-hubspot.js`/`crm-summary.js`
+(full HubSpot company/contact/deal data), `items-get.js` (pricing/item docs), `media-list.js`
+(full asset list including unapproved/draft), `inventory.js` — has **zero auth check**. Anyone who
+knows or guesses a function URL (`https://<site>/.netlify/functions/crm-hubspot`, no passcode
+header needed) gets the tenant's CRM data directly. `history.js`'s POST (writes movement/sales
+records) has the same gap — its own code comment assumes "the app is passcode-gated," but that's a
+client-side assumption the function itself never verifies. The House Console's role walls
+(`agency-console.jsx`'s admin-only routes) are the same story: client-side route-hiding with no
+matching server-side check on the data those routes pull.
+
+**Multi-tenancy at the config level is real but thin, consistent with earlier findings.** Only two
+configs exist — `montitrentini.json` (fully live) and `demo.json` (empty scaffold). The resolver
+genuinely drives UI/theme/tools from config with no code changes required, so "add a client =
+config only" is plausible — just never exercised with a second real client yet.
+
+**House Console is a partial build**, not a stale-doc situation — `HOUSE_CONSOLE_SPEC.md` itself
+already says the client-selector shell, items importer, and bulk upload/tagging aren't built; the
+audit confirms the doc is accurate here, unlike most other docs in this audit.
+
 ## Improvement suggestions, prioritized
 
 **P0 — fix now, cheap, real risk:**
-1. Correct `INTEGRATION_WIRING_BRIEF.md`, `CRM_CONNECTOR.md`, and `.env.example` to reflect the real
-   HubSpot-direct architecture. The `.env.example` gap in particular could cause someone to
-   regress prod CRM to a dead path by innocently "resetting to defaults."
-2. Delete or clearly mark dead code: `netlify/functions/crm.js` (Make proxy) and its mock dataset —
+1. **Unauthenticated read endpoints — the most serious finding in this audit.** `crm.js`,
+   `crm-hubspot.js`, `crm-summary.js`, `items-get.js`, `media-list.js`, `inventory.js`, and
+   `history.js`'s POST all have zero server-side auth check — anyone who knows or guesses the
+   function URL gets the tenant's CRM data, pricing, inventory, or can write movement records
+   directly, no passcode needed. The write-side fix that closed this exact hole for
+   `items-save.js`/`media-update.js`/`media-delete.js` (2026-07-06, after a direct-curl exploit)
+   was never extended to reads. Same `requireWriteAuth()` pattern already exists in
+   `_write-guard.js` — this is applying an existing, proven fix to more endpoints, not new design.
+2. Correct `INTEGRATION_WIRING_BRIEF.md`, `CRM_CONNECTOR.md`, `.env.example`, and
+   `AUTH_AND_ROLES.md` to reflect the real HubSpot-direct and 3-tier-passcode architecture. The
+   `.env.example` gap in particular could cause someone to regress prod CRM to a dead path by
+   innocently "resetting to defaults."
+3. Delete or clearly mark dead code: `netlify/functions/crm.js` (Make proxy) and its mock dataset —
    nothing calls it, and its presence makes the architecture look more undecided than it is.
-3. Add a small validation script (or extend an existing one) that diffs `catalog.json` SKU codes
+4. Add a small validation script (or extend an existing one) that diffs `catalog.json` SKU codes
    against `inventory.json` SKU codes and prints the mismatch — same discipline already applied to
    sales-history matching today, just not yet automated as a repeatable check.
-4. **Proposal price-drift.** A sent proposal link reprices silently if `catalog.json` changes before
+5. **Proposal price-drift.** A sent proposal link reprices silently if `catalog.json` changes before
    the buyer reopens it — no freeze, no "price changed since you last viewed this" indicator. Cheapest
    fix: snapshot the quoted price at generation time and show a badge if the live price has since
    moved ("this price has changed since it was sent — showing current pricing"), rather than silently
    swapping the number. Doesn't require giving up live pricing, just surfacing when it moved.
 
 **P1 — real gaps worth scheduling:**
-5. **Fix name-source drift in Proposals and the Pricing tool.** Both still read `catalog.json`'s
+6. **Fix name-source drift in Proposals and the Pricing tool.** Both still read `catalog.json`'s
    name field instead of `items.js` — the same bug `studio-director.js` had until today's fix,
    just not applied to these two siblings yet. Same pattern, same fix: join `items.js` for
    name/copy, `catalog.json` for price/specs.
-6. ~~Automate sale capture into history.js~~ — **struck, wrong premise.** Rick: forecasting is meant
+7. ~~Automate sale capture into history.js~~ — **struck, wrong premise.** Rick: forecasting is meant
    to run off quarterly sales reports as a batch tool, not live order entry. "Record sale" is a rep
    note-taking aid only ("what did this customer order last time"), not the forecast's data source.
    No fix needed here — this is working as intended, see §2 correction above.
-7. Unify the two HubSpot read paths (`crm-hubspot.js` / `crm-summary.js`) into one function with two
+8. Unify the two HubSpot read paths (`crm-hubspot.js` / `crm-summary.js`) into one function with two
    call sites, or at minimum document why they're separate — right now a HubSpot schema change means
    remembering to update both.
-8. Pick one brand-kit consumption pattern (token layer vs. raw `getBrandKit()`) and migrate the
+9. Pick one brand-kit consumption pattern (token layer vs. raw `getBrandKit()`) and migrate the
    other surface onto it — Proposals is the one without a fallback safety net today.
 
 **P2 — lower urgency, real but not urgent:**
-9. `images.json` staleness — pick one of the two options already on the table in `HANDOFF.md`
-   (Cloudinary webhook auto-resync, or a "manifest last synced" indicator) rather than letting it
-   sit as an open decision indefinitely.
-10. Remove the dead duplicate `name`/blurb/`image` fields from `catalog.json`/`items-seed.json` once
+10. `images.json` staleness — pick one of the two options already on the table in `HANDOFF.md`
+    (Cloudinary webhook auto-resync, or a "manifest last synced" indicator) rather than letting it
+    sit as an open decision indefinitely.
+11. Remove the dead duplicate `name`/blurb/`image` fields from `catalog.json`/`items-seed.json` once
     the Price List Creator schema work that touches them is scheduled anyway — not worth a
     standalone pass. Now three confirmed-dead fields, not one.
-11. Automate BSE → kit sync (download-then-import is fine at one tenant; won't scale past a handful).
+12. Automate BSE → kit sync (download-then-import is fine at one tenant; won't scale past a handful).
 
 ## Docs that need a correction pass (lower priority than the code fixes above, but real)
 
 `INTEGRATION_WIRING_BRIEF.md`, `CRM_CONNECTOR.md`, `CONTENT_ENGINE_WIRING_SPEC.md` §4 (BSE-gating
-and Import-button lines), `.env.example`. None of these are wrong about intent — they're wrong about
-current state, because they weren't updated when the work shipped. Same category of problem
-`DATA_OWNERSHIP_MAP.md` had before this session's earlier correction pass.
+and Import-button lines), `.env.example`, `AUTH_AND_ROLES.md` (still describes a single shared
+passcode; the real system is a 3-tier server-side passcode with per-tenant admin credentials).
+None of these are wrong about intent — they're wrong about current state, because they weren't
+updated when the work shipped. Same category of problem `DATA_OWNERSHIP_MAP.md` had before this
+session's earlier correction pass. `HOUSE_CONSOLE_SPEC.md` is the one exception found across the
+whole audit — it accurately describes itself as partially built.
+
+## Audit scope — closed out
+
+All originally-named domains covered: CRM/HubSpot, Pricing/Inventory/Forecast, Brand Kit/BSE,
+Media Hub/Content Engine, Product Catalog/Proposal Engine/Pricing Tool, Storefront/Campaigns
+(confirmed correctly mock, no findings), Auth/Roles/House Console/tenant routing. 12 prioritized
+fixes filed (P0: 5, P1: 4, P2: 3). Highest-priority item is the unauthenticated read-endpoint
+finding in §8 — everything else in this audit is either a doc-drift correction or a UX/consistency
+improvement; that one is an actual exposure.

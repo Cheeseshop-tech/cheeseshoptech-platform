@@ -1,5 +1,5 @@
 #!/bin/bash
-# Double-click to commit + push: full wiring audit across CRM/Forecast/Brand Kit/Media Hub.
+# Double-click to commit + push: full wiring audit — all domains, closed out.
 cd "$(dirname "$0")" || exit 1
 export GIT_OPTIONAL_LOCKS=0
 
@@ -11,14 +11,16 @@ git add \
   "docs/BUILD_LOG.md" \
   "COMMIT WIRING AUDIT.command"
 
-git commit -m "docs: full wiring audit — CRM/Forecast/Brand Kit/Media Hub/Catalog/Proposals
+git commit -m "docs: full wiring audit — CRM/Forecast/Brand Kit/Media Hub/Catalog/Proposals/Auth
 
 - New docs/WIRING_AUDIT_2026-07-15.md: read real code (imports, env-flag branches, actual
-  callers) instead of trusting the wiring docs, then diffed the two. Two passes: platform
-  infra (CRM/Forecast/Brand Kit/Media Hub), then Product Catalog/Proposal Engine/Pricing tool.
-- Finding: platform is wired better than its docs say. CRM (HubSpot direct), BSE gating, and
-  the BSE Import-kit-JSON button are all live; INTEGRATION_WIRING_BRIEF.md, CRM_CONNECTOR.md,
-  and CONTENT_ENGINE_WIRING_SPEC.md still describe these as mock/open.
+  callers) instead of trusting the wiring docs, then diffed the two. Three passes: platform
+  infra (CRM/Forecast/Brand Kit/Media Hub), Product Catalog/Proposal Engine/Pricing tool, then
+  Auth/Roles/House Console/tenant routing. All originally-named domains now covered.
+- Finding: platform is wired better than its docs say in most places. CRM (HubSpot direct),
+  BSE gating, the BSE Import-kit-JSON button, and the 3-tier passcode system are all live;
+  INTEGRATION_WIRING_BRIEF.md, CRM_CONNECTOR.md, CONTENT_ENGINE_WIRING_SPEC.md, and
+  AUTH_AND_ROLES.md still describe these as mock/open/single-passcode.
 - Corrected mid-audit by Rick: forecast-core.js is meant to run off quarterly sales reports as
   a batch tool, never live order entry -- the Proforma's 'Record sale' button is a rep
   note-taking aid only, not a forecast input. Original 'automate sale capture' suggestion
@@ -33,7 +35,14 @@ git commit -m "docs: full wiring audit — CRM/Forecast/Brand Kit/Media Hub/Cata
   pricing is deliberately always-live with no freeze -- a reopened proposal link can show a
   silently different price than originally quoted. Real trust/dispute risk, not hypothetical.
   Also confirmed catalog.json's per-SKU image field is fully dead (zero references in src/).
-- 11 prioritized improvement suggestions (P0-P2) filed in the audit doc. No code changed."
+- MOST SERIOUS FINDING: the write-path auth fix shipped 2026-07-06 (items-save.js,
+  media-update.js, media-delete.js -- 401 without the right passcode) was never extended to
+  reads. crm.js/crm-hubspot.js/crm-summary.js, items-get.js, media-list.js, inventory.js, and
+  history.js's POST all have zero server-side auth check today -- a bare function URL returns
+  the tenant's CRM data/pricing/inventory, no passcode needed. Filed as new #1 P0 item, ahead
+  of everything else. The fix pattern (_write-guard.js's requireWriteAuth()) already exists.
+- 12 prioritized improvement suggestions (P0 5, P1 4, P2 3) filed in the audit doc. No code
+  changed by any pass -- audit only, by design, so Rick decides what to act on and in what order."
 
 echo
 echo "Pushing (triggers Netlify deploy)…"
