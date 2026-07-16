@@ -38,18 +38,60 @@ export function imageForCode(resolved, code) {
   return m?.images.find((i) => i.code === code || i.sku === code) || null;
 }
 
+/* ---- Low-res reference placeholders (INTERNAL SURFACES ONLY) --------------------------------
+ * Thumbnails lifted out of Monti Trentini's Cut & Wrap assortment sheet: 116x111 to 331x210 px,
+ * 150-211 ppi, against 2000-6732 px for a real packshot. They are NOT in Cloudinary and never
+ * should be — the Media Hub is the item's source of truth, and a wrong image there is worse than
+ * a missing one because nothing flags it.
+ *
+ * They live in /public/placeholders/<code>.webp (108 KB for all 17) and are OPT-IN per call site. Internal tools
+ * (Proforma, inventory, forecasting) pass allowPlaceholder so a rep can identify a SKU at a
+ * glance. Customer-facing surfaces — proposals, sell sheets — must NOT pass it. Anything a buyer
+ * sees gets a real packshot or nothing.
+ *
+ * Retire a code from this set the moment Stefano sends its hi-res original.
+ * See docs/STEFANO_QUEUE_2026-07-09.md §D.
+ */
+const PLACEHOLDER_CODES = new Set([
+  "01101", "01174", "01190", "02091", "03044", "03047", "04165", "04176", "05050",
+  "05099", "20423", "20424", "20480", "20481", "40086", "40162", "40163",
+]);
+
+/** Per-code caveats, surfaced in the UI next to the placeholder. */
+const PLACEHOLDER_NOTES = {
+  "03044": "The assortment sheet prints one identical photo for 03044 and 03047. One of them is wrong.",
+  "03047": "The assortment sheet prints one identical photo for 03044 and 03047. One of them is wrong.",
+  "01174": "The sheet shows a Wedge and a Disc under this one item number. This is the Wedge.",
+};
+
+/** True when `code` has only a low-res reference thumbnail standing in for a real packshot. */
+export function isPlaceholderImage(resolved, code) {
+  return !imageForCode(resolved, code) && PLACEHOLDER_CODES.has(code);
+}
+
+/** Caveat text for a placeholder, or "" when there is none. */
+export function placeholderNote(code) {
+  return PLACEHOLDER_NOTES[code] || "";
+}
+
 /**
  * Build a delivery URL for a SKU/product code at a preset.
- * Manifest-first (real publicId + version + format); falls back to the legacy
- * `<config.images.folder>/<code>` packshot convention for codes not yet in the manifest,
- * so every priced SKU still renders while the sync catches up. Returns "" if neither resolves.
+ * Manifest-first (real publicId + version + format). Then, when `allowPlaceholder` is set and we
+ * hold a low-res reference thumbnail for the code, the local placeholder. Then the legacy
+ * `<config.images.folder>/<code>` packshot convention for codes not yet in the manifest, so every
+ * priced SKU still renders while the sync catches up. Returns "" if none resolves.
+ *
+ * The placeholder is checked BEFORE the legacy convention on purpose: the legacy path builds a
+ * URL blindly and can't tell us whether the asset exists, so it would mask the placeholder with
+ * a broken image. A real packshot always wins — it's in the manifest, and the manifest is first.
  */
-export function codeImageUrl(resolved, config, code, preset = "card") {
+export function codeImageUrl(resolved, config, code, preset = "card", { allowPlaceholder = false } = {}) {
   const rec = imageForCode(resolved, code);
   if (rec) {
     const m = getImages(resolved);
     return cldImage({ cloud: m.cloud, publicId: rec.publicId, version: rec.version, format: rec.format, preset });
   }
+  if (allowPlaceholder && PLACEHOLDER_CODES.has(code)) return `/placeholders/${code}.webp`;
   const img = config?.images;
   if (img?.provider === "cloudinary" && img.cloud && code) {
     return cldImage({ cloud: img.cloud, publicId: `${img.folder}/${code}`, format: "jpg", preset });

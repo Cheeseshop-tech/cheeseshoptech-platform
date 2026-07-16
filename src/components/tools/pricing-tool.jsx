@@ -10,7 +10,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@
 import { useToast } from "@/components/ui/toast.jsx";
 import { appendHistory, loadHistory } from "@/lib/history.js";
 import { usePricingData } from "@/lib/use-pricing-data.js";
-import { codeImageUrl } from "@/lib/images.js";
+import { codeImageUrl, isPlaceholderImage, placeholderNote } from "@/lib/images.js";
 import * as PC from "@/lib/pricing-core.js";
 import * as FC from "@/lib/forecast-core.js";
 
@@ -205,8 +205,12 @@ function Proforma({ data, brand, resolved, onNavigate }) {
 
   const opts = { tierId, basis, volumeId, customPct };
   // Manifest-first (real catalog image when the code has one), legacy packshot fallback otherwise.
-  const imgLarge = (code) => codeImageUrl(resolved, config, code, "card");     // row thumbnail (64px, retina)
-  const imgPreview = (code) => codeImageUrl(resolved, config, code, "preview"); // detail dialog (large, crisp)
+  // Proforma is an INTERNAL surface, so it opts into the low-res reference placeholders (see
+  // lib/images.js). Proposals and sell sheets deliberately do not — a buyer never sees one.
+  const PH = { allowPlaceholder: true };
+  const imgLarge = (code) => codeImageUrl(resolved, config, code, "card", PH);     // row thumbnail (64px, retina)
+  const imgPreview = (code) => codeImageUrl(resolved, config, code, "preview", PH); // detail dialog (large, crisp)
+  const isPh = (code) => isPlaceholderImage(resolved, code);
   const setCases = (code, v) => setQty((q) => { const n = Math.max(0, Math.floor(Number(v) || 0)); const next = { ...q }; if (n) next[code] = n; else delete next[code]; return next; });
 
   const visible = skus.filter((s) => !search || (s.code + " " + s.name + " " + s.category).toLowerCase().includes(search.trim().toLowerCase()));
@@ -410,11 +414,16 @@ function Proforma({ data, brand, resolved, onNavigate }) {
                         <button
                           type="button"
                           onClick={() => setDetail(s)}
-                          title="View product details"
-                          className="group/img relative h-16 w-16 flex-none overflow-hidden rounded-base border border-border bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                          title={isPh(s.code) ? "Low-res reference image — awaiting hi-res packshot" : "View product details"}
+                          className={"group/img relative h-16 w-16 flex-none overflow-hidden rounded-base border bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand "
+                            + (isPh(s.code) ? "border-dashed border-fg-muted/60" : "border-border")}
                         >
                           <img loading="lazy" src={imgLarge(s.code)} alt="" onError={(e) => (e.currentTarget.style.visibility = "hidden")}
                             className="h-full w-full object-contain transition-transform group-hover/img:scale-110" />
+                          {/* A dashed border + "REF" corner: never let a 150 ppi thumbnail pass for a packshot. */}
+                          {isPh(s.code) && (
+                            <span className="absolute bottom-0 right-0 rounded-tl-base bg-fg/70 px-1 text-[9px] font-semibold leading-tight text-white">REF</span>
+                          )}
                           <span className="absolute inset-0 flex items-center justify-center bg-fg/0 text-transparent transition-colors group-hover/img:bg-fg/40 group-hover/img:text-white">
                             <Search className="h-4 w-4" />
                           </span>
@@ -479,6 +488,8 @@ function Proforma({ data, brand, resolved, onNavigate }) {
           sku={detail}
           onClose={() => setDetail(null)}
           imgUrl={detail ? imgPreview(detail.code) : ""}
+          imgIsPlaceholder={detail ? isPh(detail.code) : false}
+          imgNote={detail ? placeholderNote(detail.code) : ""}
           unit={detail ? PC.quoteUnitPrice(detail, opts, config) : null}
           inv={detail ? inventory.skus[detail.code] : null}
           tierLabel={tier.label}
@@ -490,7 +501,7 @@ function Proforma({ data, brand, resolved, onNavigate }) {
 
 /* Product detail — opens from the proforma thumbnail. Built for live customer conversations:
    big image + description + the specs and questions a buyer actually asks. */
-function ProductDetailDialog({ sku, onClose, imgUrl, unit, inv, tierLabel, onNavigate }) {
+function ProductDetailDialog({ sku, onClose, imgUrl, imgIsPlaceholder = false, imgNote = "", unit, inv, tierLabel, onNavigate }) {
   const [copied, setCopied] = useState(false);
   if (!sku) return null;
   const m = sku.marketing || {};
@@ -523,16 +534,32 @@ function ProductDetailDialog({ sku, onClose, imgUrl, unit, inv, tierLabel, onNav
         <div className="flex max-h-[88vh] flex-col">
           {/* hero photo on top, full width */}
           <div className="relative flex items-center justify-center bg-white p-4 md:rounded-t-base">
-            <img src={imgUrl} alt={sku.productName} className="max-h-[56vh] w-auto max-w-full object-contain" />
-            {/* action group sits along the bottom of the photo, clear of the X close (top-right) */}
-            <div className="absolute inset-x-0 bottom-3 flex flex-wrap items-center justify-center gap-1.5 px-3">
-              <button type="button" onClick={shareImage} title="Share" className={chip}><Share2 className="h-3.5 w-3.5" /> Share</button>
-              <button type="button" onClick={downloadImage} title="Download image" className={chip}><Download className="h-3.5 w-3.5" /> Download</button>
-              <button type="button" onClick={copyLink} title="Copy image link" className={chip}>
-                {copied ? <><Check className="h-3.5 w-3.5" style={{ color: "#16a34a" }} /> Copied</> : <><LinkIcon className="h-3.5 w-3.5" /> Copy link</>}
-              </button>
-            </div>
+            {/* A placeholder is a 150 ppi thumbnail. Don't upscale it into a hero — show it at its
+                native size so it reads as a reference, not a photo we'd stand behind. */}
+            <img src={imgUrl} alt={sku.productName}
+              className={imgIsPlaceholder
+                ? "max-h-[220px] w-auto max-w-full object-contain opacity-90"
+                : "max-h-[56vh] w-auto max-w-full object-contain"} />
+            {/* Share / Download / Copy link are hidden for placeholders on purpose: every one of
+                them puts a low-res image in a buyer's hands. Nothing leaves here but a packshot. */}
+            {!imgIsPlaceholder && (
+              <div className="absolute inset-x-0 bottom-3 flex flex-wrap items-center justify-center gap-1.5 px-3">
+                <button type="button" onClick={shareImage} title="Share" className={chip}><Share2 className="h-3.5 w-3.5" /> Share</button>
+                <button type="button" onClick={downloadImage} title="Download image" className={chip}><Download className="h-3.5 w-3.5" /> Download</button>
+                <button type="button" onClick={copyLink} title="Copy image link" className={chip}>
+                  {copied ? <><Check className="h-3.5 w-3.5" style={{ color: "#16a34a" }} /> Copied</> : <><LinkIcon className="h-3.5 w-3.5" /> Copy link</>}
+                </button>
+              </div>
+            )}
           </div>
+          {imgIsPlaceholder && (
+            <div className="border-y border-border bg-surface px-6 py-2.5 text-xs text-fg-muted">
+              <span className="font-semibold text-fg">Reference image only.</span>{" "}
+              Low-res thumbnail from the assortment sheet — not a packshot. Not shareable, not for
+              print or proposals. Awaiting a hi-res original from the producer.
+              {imgNote && <span className="mt-1 block">{imgNote}</span>}
+            </div>
+          )}
 
           {/* details below, scrollable */}
           <div className="overflow-y-auto p-6">
