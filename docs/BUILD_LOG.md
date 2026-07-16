@@ -8,6 +8,27 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-07-15 — CORRECTION: ERP monthly is POUNDS not dollars; 2024 = Jan–Jul by construction
+
+**Trigger:** Rick uploaded the three source PDFs ("this is not complete") — read directly.
+**Two corrections to tonight's earlier entry (and yesterday's parse):**
+1. Reports are *"Statistica Di Riepilogo Mensilizzata — In Peso"* — **by weight**. Values are
+   lbs, not USD ("Qtà" = quantità). The parse tied the right numbers with the wrong label.
+2. All three PDFs were **elaborated 2024-07-30** ("Da GENNAIO A LUGLIO") — 2024 covers Jan–Jul
+   only by construction. Not missing data; a stale run date.
+**Corrected coverage:** 2024 = 17,977 lb = **2.7% of broker 667,210 lb** (~4.7% pro-rated).
+Conclusion unchanged — small slice, gate stays shut — but units and diagnosis now true.
+**Action:** generator + seed rebuilt as schema `1.1-monthly-lb` (soldLb; cases = lb ÷ lbPerCase
+real pack spec — better than the price-inferred estimate it replaces; 173/251 records convert).
+Coverage gate now measured in lbs. Month-column alignment flagged PROVISIONAL (PDF text
+extraction scrambles columns; totals tie, placement unverifiable — proper CSV makes it moot).
+Data request updated: run the SAME report fresh (through current closed month), all customers,
+In Peso + In Valore, xlsx/csv. Docs corrected in place; seed supersedes the mislabeled v1.0.
+**Lesson:** a parse that checksums perfectly can still mislabel units — read the report header,
+not just the numbers.
+
+---
+
 ## 2026-07-15 — Monthly forecast pipeline built + GATED; ERP monthly exposed as a <1% slice
 
 **Decision (Rick):** build the monthly system properly now ("build the template at least"), flag

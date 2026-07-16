@@ -3,10 +3,11 @@
 // forecast-core.js. Live rep captures (history.js ledger) always flow to the forecast;
 // the HISTORICAL seed flows only when its own data-quality gate says it's forecast-grade.
 //
-// Why the gate: the only monthly history on hand today is a <1% ERP slice (2024: 0.36% of
-// broker USD, dead after June). Feeding that to runRate()/yoyGrowth() would print confidently
-// wrong numbers. The seed carries forecastReady, set by the generator from measured coverage —
-// when the proper full report lands and the seed is rebuilt, this seam opens automatically.
+// Why the gate: the only monthly history on hand today is a small ERP slice in POUNDS (2024:
+// 2.7% of broker lbs, and Jan–Jul only — the source PDFs were elaborated 2024-07-30). Feeding
+// that to runRate()/yoyGrowth() would print confidently wrong numbers. The seed carries
+// forecastReady, set by the generator from measured coverage — when the proper full report
+// lands and the seed is rebuilt, this seam opens automatically.
 
 import seed from "@/data/montitrentini/sales-monthly.json";
 
@@ -23,7 +24,7 @@ export function seedMovementRecords(tenantId) {
       period: r.period,
       soldCases: r.soldCases,
       missedCases: 0,
-      estimated: r.estimated,
+      casesBasis: r.casesBasis,
       source: r.source,
     }));
 }

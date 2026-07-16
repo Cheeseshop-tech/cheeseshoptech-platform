@@ -2,21 +2,23 @@
 
 **Updated:** 2026-07-15 · **Branch:** `phase-2-6-build` · **Surface:** Cowork
 **Handing off to:** next session (surface/model unspecified).
-**Push state (re-verified 2026-07-15 22:40 via `git rev-parse HEAD` == `origin/phase-2-6-build`,
-both `bb7f8bc`, "docs: close out 2026-07-15"): everything from today is on the remote.** Five
-commits landed this session, in order: `1246648` (sales-history reconciliation + ERP monthly
-parse, recovered after the git-lock incident below), `2d8dbcb` (this incident's writeup),
-`b386bf9` (Agent A1 wiring fix + spec), `038247c` (placeholder-image thumbnails, separate
-workstream from an earlier session), `bb7f8bc` (docs close-out). A final buildlog check after
-`bb7f8bc` caught untracked files predating today that the earlier "nothing uncommitted" claim
-missed — **`CLAUDE.md` (the working-memory file itself, never committed), the 2026-07-13
-marketing image request (`docs/MARKETING_IMAGE_REQUEST_2026-07-13.md` + `.csv`, referenced from
-CLAUDE.md's key-docs index), the never-run `COMMIT LOGIN DIAGNOSIS.command` (its HANDOFF payload
-already landed via later commits — kept for the record), and 3 inventory-autosync backups
-(07-09/-10/-14; earlier ones are committed)** — swept in via `COMMIT SWEEP UNTRACKED DOCS.command`.
-`.gitignore` now excludes `~$*` Office temp-lock files.
+**Push state (FINAL for 2026-07-15): seven commits on the remote through `b28aa64`; the eighth
+and last — the units correction, which includes this HANDOFF — ships via
+`COMMIT UNITS CORRECTION.command`.** The day, in order: `1246648` (sales-history reconciliation +
+ERP monthly parse, recovered after the git-lock incident below) → `2d8dbcb` (incident writeup) →
+`b386bf9` (Agent A1 wiring fix + spec) → `038247c` (placeholder-image thumbnails) → `bb7f8bc`
+(first docs close-out) → `7450a30` (post-close sweep: CLAUDE.md — never previously in git —
+marketing image request docs, stragglers, `~$*` gitignore) → `b28aa64` (monthly forecast pipeline,
+built + quality-gated) → **pending:** units correction (ERP monthly = POUNDS not USD; 2024 =
+Jan–Jul by construction; seed `1.1-monthly-lb`).
+**Close check now includes `git status --porcelain`, not just HEAD==origin** — that's what caught
+the sweep files and kept "nothing uncommitted" honest.
 **Read first:** `CLAUDE_CODE_BRIEF.md` → this → `docs/BUILD_LOG.md` (top) →
+`docs/SALES_DATA_COVERAGE_2026-07-15.md` (forecast-data state of play) →
 `docs/AGENT_A1_BUILD_SPEC.md` → `docs/ONBOARDING_AND_AGENTS_SDD.md` + `docs/CONTENT_ENGINE_WIRING_SPEC.md`.
+**Single blocking action, Rick's:** send the monthly-report request to Sales Management via
+Stefano — copy-paste block in `docs/CLIENT_DATA_REQUESTS_2026-07-15_sales-monthly.md`. The
+forecast engine goes live on receipt with zero code changes.
 
 ## ⚠️ GIT LOCK INCIDENT — stray `HEAD.lock` blocked commits for a full day, recovered clean (2026-07-15)
 A `.git/HEAD.lock` dated **2026-07-14 08:21** (a full day old, predates this session) silently
@@ -66,7 +68,13 @@ PDFs were always a small direct slice (which slice = open question for Stefano).
 (`docs/CLIENT_DATA_REQUESTS_2026-07-15_sales-monthly.md`) is the real unblock. Raw data unchanged
 at `src/data/montitrentini/source/erp_monthly_{raw,resolved}_2021-2024.json` (commit `1246648`).
 
-## 🏗️ MONTHLY FORECAST PIPELINE — BUILT + GATED (2026-07-15 late session)
+## 🏗️ MONTHLY FORECAST PIPELINE — BUILT + GATED (2026-07-15 late session; UNITS CORRECTED same night)
+**⚠️ CORRECTION (from the source PDFs, Rick-uploaded):** the ERP values are **POUNDS, not
+dollars** — reports are "In Peso" (by weight) — and all three PDFs were **elaborated 2024-07-30**,
+so 2024 = Jan–Jul by construction. Corrected coverage: 2024 = 17,977 lb = **2.7% of broker
+667,210 lb**. Conclusion unchanged (slice; gate shut); seed rebuilt as `1.1-monthly-lb` with
+cases from real pack specs. Details: `docs/SALES_DATA_COVERAGE_2026-07-15.md` (corrections
+section) + BUILD_LOG correction entry.
 The whole monthly system exists and is wired into the Movement tab; only forecast-grade data is
 missing. Pieces: `scripts/build-sales-monthly.mjs` (generator — add the proper report to
 `SOURCES` and re-run; that's the entire integration) → `src/data/montitrentini/sales-monthly.json`
