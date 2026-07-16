@@ -2,6 +2,7 @@
 // adapters from the live source file); the real backend (Netlify function over the canonical
 // store) drops in behind getPricingData() later — same return shape.
 
+import { writeAuthHeader } from "@/lib/auth-context.jsx";
 import mtConfig from "@/data/montitrentini/client.config.json";
 import mtCatalog from "@/data/montitrentini/catalog.json";
 import mtInventory from "@/data/montitrentini/inventory.json";
@@ -35,8 +36,11 @@ export function getPricingData(resolved) {
 export async function fetchInventory(tenantId) {
   if (PRICING_BACKEND === "mock") return null;
   try {
+    // Reads now require the passcode header server-side (2026-07-16) — replay the unlock passcode.
+    // A 401 (pre-update unlock, no stashed passcode) lands in the `null` return below, so the
+    // caller keeps the bundled inventory snapshot; sign out/in restores live stock.
     const res = await fetch(`/.netlify/functions/inventory?tenant=${encodeURIComponent(tenantId)}`,
-      { headers: { Accept: "application/json" } });
+      { headers: { Accept: "application/json", ...writeAuthHeader() } });
     if (!res.ok) return null;
     const data = await res.json();
     return data && data.inventory ? data.inventory : null;

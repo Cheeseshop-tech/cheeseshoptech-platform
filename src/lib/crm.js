@@ -1,10 +1,10 @@
 // CRM data layer (OM §7). The CRM of record is HubSpot (Salesforce was dropped — see
-// INTEGRATION_WIRING_BRIEF.md, 2026-06-17). Today this serves a MOCK so the dashboard is
-// fully buildable; the real backend drops in behind getCrmData() as a Netlify function
-// (netlify/functions/crm.js) that calls the HubSpot API read-only with the token held
-// server-side (Netlify env HUBSPOT_TOKEN). Direct-HubSpot, not Make. See docs/CRM_CONNECTOR.md.
+// INTEGRATION_WIRING_BRIEF.md, 2026-06-17). Live backend = netlify/functions/crm-hubspot.js,
+// which calls the HubSpot API read-only with the token held server-side (Netlify env
+// HUBSPOT_TOKEN). Direct-HubSpot, not Make (the Make proxy was deleted 2026-07-16).
 
 import { rolesOf } from "./auth.js";
+import { writeAuthHeader } from "./auth-context.jsx";
 
 export function hasCrm(resolved) {
   return resolved?.crm && resolved.crm !== "none";
@@ -85,8 +85,10 @@ const MOCK = {
   },
 };
 
-// "mock" (bundled sample) | "hubspot" (direct read-only, companies+contacts only — see
-// netlify/functions/crm-hubspot.js scope note) | anything else = Make-webhook proxy (crm.js).
+// "mock" (bundled sample) | anything else = "hubspot" (direct read-only, companies+contacts
+// only — see netlify/functions/crm-hubspot.js scope note). The Make-webhook proxy
+// (netlify/functions/crm.js) was DELETED 2026-07-16 (wiring-audit P0 #3, dead code) — if a Make
+// seam returns, it returns as a new backend value here, not by resurrecting that file.
 export const CRM_BACKEND = import.meta.env.VITE_CRM_BACKEND || "mock";
 const USE_MOCK = CRM_BACKEND === "mock";
 // True while CRM data is sample (no live backend). Real source = HubSpot (INTEGRATION_WIRING_BRIEF.md).
@@ -97,8 +99,12 @@ export const crmIsSample = USE_MOCK;
 export async function getCrmData(resolved) {
   if (!hasCrm(resolved)) return null;
   if (USE_MOCK) return MOCK[resolved.id] || emptyDataset();
-  const fn = CRM_BACKEND === "hubspot" ? "crm-hubspot" : "crm";
-  const res = await fetch(`/.netlify/functions/${fn}?tenant=${encodeURIComponent(resolved.id)}`);
+  // Reads now require the passcode header server-side (2026-07-16) — replay the unlock passcode.
+  // Any failure (incl. 401 from a pre-update unlock with no stashed passcode) degrades to the
+  // empty dataset — dashboard cards hide rather than crash; sign out/in restores the header.
+  const res = await fetch(`/.netlify/functions/crm-hubspot?tenant=${encodeURIComponent(resolved.id)}`, {
+    headers: { ...writeAuthHeader() },
+  });
   return res.ok ? await res.json() : emptyDataset();
 }
 

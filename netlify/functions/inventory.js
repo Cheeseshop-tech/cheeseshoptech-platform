@@ -6,11 +6,12 @@
 // Front end uses this when VITE_PRICING_BACKEND=function (see src/lib/pricing.js).
 // Read side needs NO secret — it only returns inventory/stock for the app to display.
 import { connectLambda, getStore } from "@netlify/blobs";
+import { requireReadAuth, jsonUnauthorized } from "./_write-guard.js";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type",
+  "Access-Control-Allow-Headers": "Content-Type, x-portal-passcode",
 };
 const json = (status, body, extra = {}) => ({
   statusCode: status,
@@ -20,9 +21,16 @@ const json = (status, body, extra = {}) => ({
 
 export const handler = async (event) => {
   if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: CORS, body: "" };
-  if (event.httpMethod !== "GET") return json(405, { error: "Method not allowed" });
 
   const tenant = (event.queryStringParameters?.tenant || "").replace(/[^a-z0-9-]/gi, "");
+
+  // Any valid passcode tier (2026-07-16, wiring-audit P0 #1) — live stock used to be readable
+  // from a bare URL with zero auth. Guard sits AFTER the OPTIONS branch so preflight still works.
+  const readAuth = requireReadAuth(event, tenant);
+  if (!readAuth.ok) return jsonUnauthorized(readAuth);
+
+  if (event.httpMethod !== "GET") return json(405, { error: "Method not allowed" });
+
   if (!tenant) return json(400, { error: "Missing tenant" });
 
   try {

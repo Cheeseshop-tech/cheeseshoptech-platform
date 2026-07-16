@@ -42,6 +42,34 @@ export function requireWriteAuth(event, tenant = "") {
   return { ok: false, status: 401, error: "Invalid passcode for this action" };
 }
 
+/**
+ * Read-tier auth (2026-07-16, wiring-audit P0 #1): identical model to requireWriteAuth(),
+ * with ONE difference — reads ALSO accept the base client-tier passcode (PORTAL_PASSCODE),
+ * mirroring exactly the tiers gate.js unlocks the portal with. Rationale: the 2026-07-06 write
+ * fix was never extended to reads, so every data-returning function (crm-hubspot, crm-summary,
+ * items-get, media-list, inventory, history) answered a bare URL with tenant data. Now any
+ * valid passcode tier is required to read; writes stay admin/client-admin only.
+ * @param {object} event   Netlify function event.
+ * @param {string} [tenant] Optional tenant id/subdomain for the per-tenant admin passcode.
+ * @returns {{ok:true, role:"admin"|"client-admin"|"client"} | {ok:false, status:number, error:string}}
+ */
+export function requireReadAuth(event, tenant = "") {
+  const provided = (header(event, "x-portal-passcode") || "").toString();
+  if (!provided) return { ok: false, status: 401, error: "Missing passcode (x-portal-passcode header)" };
+
+  const house = process.env.PORTAL_HOUSE_PASSCODE;
+  const genericAdmin = process.env.PORTAL_ADMIN_PASSCODE;
+  const tenantKey = tenant ? `PORTAL_ADMIN_PASSCODE_${tenant.toUpperCase().replace(/-/g, "_")}` : null;
+  const tenantAdmin = tenantKey ? process.env[tenantKey] : null;
+  const client = process.env.PORTAL_PASSCODE; // base tier — reads only, mirrors gate.js
+
+  if (house && provided === house) return { ok: true, role: "admin" };
+  if (tenantAdmin && provided === tenantAdmin) return { ok: true, role: "client-admin" };
+  if (genericAdmin && provided === genericAdmin) return { ok: true, role: "client-admin" };
+  if (client && provided === client) return { ok: true, role: "client" };
+  return { ok: false, status: 401, error: "Invalid passcode" };
+}
+
 export function jsonUnauthorized(result) {
   return {
     statusCode: result.status,

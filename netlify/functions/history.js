@@ -6,11 +6,13 @@
 // Pilot-grade: append-only, validated + capped; the app is passcode-gated. Harden with per-user
 // auth when that lands. The read side is non-secret (it only returns the team's own movement data).
 import { connectLambda, getStore } from "@netlify/blobs";
+import { requireReadAuth, jsonUnauthorized } from "./_write-guard.js";
+import { logWrite } from "./_write-log.js";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type",
+  "Access-Control-Allow-Headers": "Content-Type, x-portal-passcode",
 };
 const json = (status, body) => ({
   statusCode: status,
@@ -36,6 +38,23 @@ function sanitize(r) {
 
 export const handler = async (event) => {
   if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: CORS, body: "" };
+
+  // Any valid passcode tier (2026-07-16, wiring-audit P0 #1) — reps on the base client tier
+  // record sales from the Proforma tab, so reads AND writes here accept all three tiers. The
+  // old code comment assumed "the app is passcode-gated," but nothing verified that server-side:
+  // a bare URL could read the whole movement ledger or POST fake sales records. Guard sits
+  // AFTER the OPTIONS branch so preflight still works. POST additionally logs itself per the
+  // STANDING RULE in docs/BUILD_LOG.md (every write endpoint logs itself).
+  const readAuth = requireReadAuth(
+    event,
+    cleanTenant(event.queryStringParameters?.tenant) ||
+      (() => { try { return cleanTenant(JSON.parse(event.body || "{}").tenant); } catch { return ""; } })()
+  );
+  if (!readAuth.ok) {
+    if (event.httpMethod === "POST") await logWrite(event, { fn: "history", ok: false, status: readAuth.status });
+    return jsonUnauthorized(readAuth);
+  }
+
   try {
     connectLambda(event);
     const store = getStore("history");
@@ -59,6 +78,10 @@ export const handler = async (event) => {
       const seen = new Set(existing.map((r) => r.id));
       const merged = existing.concat(incoming.filter((r) => !seen.has(r.id))).slice(-MAX_STORED);
       await store.set(tenant, JSON.stringify(merged));
+      await logWrite(event, {
+        fn: "history", ok: true, role: readAuth.role,
+        action: `append ${incoming.length} movement record(s)`, tenant,
+      });
       return json(200, { ok: true, added: incoming.length, total: merged.length });
     }
 

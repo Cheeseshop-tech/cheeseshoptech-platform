@@ -1,5 +1,17 @@
 # CheeseShop TECH — Auth & Roles
 
+> **Addendum 2026-07-16 — server-side READ auth (wiring-audit P0 #1).** All data-returning
+> Netlify functions (`crm-hubspot`, `crm-summary`, `items-get`, `media-list`, `inventory`,
+> `history`) now require **any valid passcode tier server-side**, verified via
+> `requireReadAuth()` in `netlify/functions/_write-guard.js`. Tiers mirror `gate.js`:
+> `PORTAL_PASSCODE` → `client`, `PORTAL_ADMIN_PASSCODE[_<TENANT>]` → `client-admin`,
+> `PORTAL_HOUSE_PASSCODE` → `admin`. Reads accept all three tiers (incl. base client — reps must
+> read); **writes remain admin/client-admin only** (`requireWriteAuth()`, 2026-07-06). The
+> browser replays the unlock passcode as the `x-portal-passcode` header (`writeAuthHeader()` in
+> `src/lib/auth-context.jsx`). Browsers unlocked before this deploy must sign out and re-enter
+> the passcode. Note also: this doc's Netlify-Identity description below predates the live
+> 3-tier passcode-pilot system — see the audit's §8 for current state.
+
 **Status:** Phase 3 (built; needs Netlify-side enablement to go live) · **Last updated:** 2026-06-05
 
 Auth runs on **Netlify Identity (GoTrue)**. Netlify confirmed on 2026-02-19 that Identity is

@@ -143,8 +143,15 @@ export async function loadItems(tenantFolder) {
     try { return withSeed(migrateDoc(JSON.parse(localStorage.getItem(LS_KEY(tenantFolder)) || "{}")), tenantFolder); }
     catch { return withSeed(emptyDoc(), tenantFolder); }
   }
-  const res = await fetch(`/.netlify/functions/items-get?folder=${encodeURIComponent(tenantFolder)}`);
+  // Reads now require the passcode header server-side (2026-07-16) — replay the unlock passcode.
+  // A 401 (pre-update unlock, no stashed passcode) throws RELOGIN_MSG; buyer-facing callers
+  // (use-items-doc.js, buyer-catalog) catch and fall back to catalog.json names, so a proposal
+  // link never blanks — surfaces with error UI show the sign-out/sign-in fix instead.
+  const res = await fetch(`/.netlify/functions/items-get?folder=${encodeURIComponent(tenantFolder)}`, {
+    headers: { ...writeAuthHeader() },
+  });
   if (res.status === 404) return withSeed(emptyDoc(), tenantFolder);
+  if (res.status === 401) throw new Error(RELOGIN_MSG);
   if (!res.ok) throw new Error(`Items load failed (${res.status})`);
   return withSeed(migrateDoc(await res.json()), tenantFolder);
 }

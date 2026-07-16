@@ -54,6 +54,12 @@ export function MediaHub({ resolved }) {
     setAssets(null);
     listAssets({ folder: null, tenantFolder: resolved.cloudinaryFolder, legacyFolders: resolved.cloudinaryLegacyFolders, user }).then((a) => {
       if (alive) setAssets(a);
+    }).catch((e) => {
+      // 401 (read guard, 2026-07-16) throws RELOGIN_MSG from listAssets — surface the actual
+      // fix (sign out / re-enter passcode) instead of leaving the grid on a skeleton forever.
+      if (!alive) return;
+      setAssets([]);
+      toast({ title: "Media didn't load", description: String(e?.message || e), tone: "warning" });
     });
     return () => { alive = false; };
   }, [resolved.cloudinaryFolder, user]);

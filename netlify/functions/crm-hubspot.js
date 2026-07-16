@@ -16,11 +16,18 @@
 // without it — check the JSON's activityNote field when the card doesn't show).
 const CHANNEL_PROPERTY = "channel";
 
+import { requireReadAuth, jsonUnauthorized } from "./_write-guard.js";
+
 const HUBSPOT_SEARCH = "https://api.hubapi.com/crm/v3/objects/companies/search";
 const PAGE_SIZE = 100;
 const MAX_PAGES = 10; // safety cap — up to 1000 companies; raise if the tenant grows past that
 
-export const handler = async () => {
+export const handler = async (event) => {
+  // Any valid passcode tier (2026-07-16, wiring-audit P0 #1) — this returns the tenant's full
+  // company/contact/email-activity data; a bare URL used to get all of it with zero auth.
+  const readAuth = requireReadAuth(event, event.queryStringParameters?.tenant || "");
+  if (!readAuth.ok) return jsonUnauthorized(readAuth);
+
   const token = process.env.HUBSPOT_TOKEN;
   if (!token) return json(500, { error: "HUBSPOT_TOKEN not configured" });
 

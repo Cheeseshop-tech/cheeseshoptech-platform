@@ -13,7 +13,15 @@ const USAGE_IDS = [
   "social", "press", "event", "brand-asset", "email-campaign", "print", "web-marketing",
 ];
 
+import { requireReadAuth, jsonUnauthorized } from "./_write-guard.js";
+import { tenantFromPath } from "./_write-log.js";
+
 export const handler = async (event) => {
+  // Any valid passcode tier (2026-07-16, wiring-audit P0 #1) — the full asset list (including
+  // unapproved/draft) used to be readable from a bare URL with zero auth.
+  const readAuth = requireReadAuth(event, tenantFromPath(event.queryStringParameters?.folder) || "");
+  if (!readAuth.ok) return jsonUnauthorized(readAuth);
+
   const cloud = process.env.CLOUDINARY_CLOUD_NAME;
   const key = process.env.CLOUDINARY_API_KEY;
   const secret = process.env.CLOUDINARY_API_SECRET;

@@ -5,7 +5,16 @@
 //
 // GET ?folder=clients/montitrentini  ->  200 {version, updatedAt, items} | 404 if never saved
 
+import { requireReadAuth, jsonUnauthorized } from "./_write-guard.js";
+import { tenantFromPath } from "./_write-log.js";
+
 export const handler = async (event) => {
+  // Any valid passcode tier (2026-07-16, wiring-audit P0 #1) — item identity/copy docs used to
+  // be readable from a bare URL with zero auth. Tenant derived from the folder path so a
+  // per-tenant admin passcode also validates.
+  const readAuth = requireReadAuth(event, tenantFromPath(event.queryStringParameters?.folder) || "");
+  if (!readAuth.ok) return jsonUnauthorized(readAuth);
+
   if (event.httpMethod !== "GET") return json(405, { error: "Method not allowed" });
 
   const cloud = process.env.CLOUDINARY_CLOUD_NAME;

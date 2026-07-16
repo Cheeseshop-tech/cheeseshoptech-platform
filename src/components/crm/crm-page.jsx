@@ -2,20 +2,24 @@ import { useEffect, useState } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table.jsx";
+import { writeAuthHeader } from "@/lib/auth-context.jsx";
+import { RELOGIN_MSG } from "@/lib/media.js";
 
 // CRM page (tenant Operations portal). Read-only view of the connected HubSpot CRM via the
 // crm-summary function (server-side service key). Shows pipeline totals + the newest contacts.
 // Distinct from the Campaigns page (social/email marketing). Records are managed in HubSpot.
 export function CrmPage({ resolved }) {
-  const [state, setState] = useState("loading"); // "loading" | "error" | { counts, recentContacts }
+  const [state, setState] = useState("loading"); // "loading" | "error" | "relogin" | { counts, recentContacts }
   useEffect(() => {
     let alive = true;
-    fetch("/.netlify/functions/crm-summary")
+    // Passcode header required server-side since 2026-07-16. A 401 = this browser unlocked
+    // before that deploy (no stashed passcode) → tell the user the fix, not a bare "unavailable".
+    fetch(`/.netlify/functions/crm-summary?tenant=${encodeURIComponent(resolved.id || "")}`, { headers: { ...writeAuthHeader() } })
       .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
       .then((d) => { if (alive) setState(d?.counts ? d : "error"); })
-      .catch(() => { if (alive) setState("error"); });
+      .catch((status) => { if (alive) setState(status === 401 ? "relogin" : "error"); });
     return () => { alive = false; };
-  }, []);
+  }, [resolved.id]);
 
   const ok = state && typeof state === "object";
   const counts = ok ? state.counts : {};
@@ -35,7 +39,11 @@ export function CrmPage({ resolved }) {
         </div>
         {ok && <Badge variant="success">Live</Badge>}
         {state === "error" && <Badge variant="muted">Unavailable</Badge>}
+        {state === "relogin" && <Badge variant="warning">Sign in again</Badge>}
       </div>
+      {state === "relogin" && (
+        <p className="mb-6 rounded-base border border-border bg-surface p-3 text-sm text-fg-muted">{RELOGIN_MSG}</p>
+      )}
 
       <div className="mb-6 grid grid-cols-3 gap-4">
         {tiles.map((t) => {

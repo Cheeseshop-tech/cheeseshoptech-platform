@@ -8,6 +8,45 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-07-16 — Read endpoints now require a passcode (wiring-audit P0 #1 + #3 closed)
+
+**Decision:** close the audit's most serious finding — every data-returning Netlify function
+answered a bare URL with tenant data (CRM companies/contacts/email activity, item docs, full
+media list incl. drafts, live stock), and `history.js` accepted unauthenticated POSTs of sales
+records. Same model as the proven 2026-07-06 write guard, with one difference: **reads accept
+any valid passcode tier**, including the base client passcode (`PORTAL_PASSCODE`) — reps must be
+able to read; writes stay admin/client-admin only.
+
+**Action:**
+- `_write-guard.js` — new `requireReadAuth(event, tenant)` beside `requireWriteAuth()`. Tiers
+  mirror `gate.js` exactly: house → `admin`, per-tenant/generic admin → `client-admin`,
+  `PORTAL_PASSCODE` → `client`. 401 via the existing `jsonUnauthorized()`.
+- Guarded: `crm-hubspot.js`, `crm-summary.js`, `items-get.js`, `media-list.js`, `inventory.js`
+  (guard after the OPTIONS branch; `x-portal-passcode` added to CORS allow-headers), and
+  `history.js` GET **and** POST — the Proforma "Record sale" path is base-client-tier, so any
+  tier passes. `history.js` POST now also calls `logWrite()` (once on auth failure, once on
+  success) per the standing rule below.
+- Deleted `netlify/functions/crm.js` (dead Make proxy, P0 #3). Its only reference was the dead
+  fallback branch in `src/lib/crm.js`, removed in the same pass — non-mock CRM now always means
+  `crm-hubspot`.
+- Frontend: every read call replays the unlock passcode via the existing `writeAuthHeader()` —
+  `media.js` (listAssets), `items.js` (loadItems), `pricing.js` (fetchInventory), `history.js`
+  (GET + POST), `crm.js` (getCrmData), `crm-page.jsx` + `agency-console.jsx` (crm-summary ×3).
+- Buyer-facing proposal links unaffected: `use-items-doc.js` already treats any loadItems failure
+  (incl. 401) as null → catalog.json names render; no error UI, no retry loop.
+
+**⚠️ Operator impact:** any browser that unlocked the portal BEFORE this deploy has no stashed
+passcode to replay (same as the 2026-07-06 "edits not sticking" incident) — its reads will 401
+until the user **signs out and re-enters the passcode**. The UI says so instead of showing empty
+data: Media Hub toasts the re-login message, CRM page + Agency Console show a "sign in again /
+re-enter passcode" badge. Silent-degrade surfaces (pricing tool inventory → bundled snapshot,
+movement ledger → local records) keep working on last-known data until re-login.
+
+**Status:** `node --check` clean on all changed functions; `vite build` clean. Deploy, then
+sign out/in on every browser that was already unlocked.
+
+---
+
 ## 2026-07-16 — Name-source drift fixed in Proposals + Pricing Tool (wiring-audit P1 #6)
 
 **Decision:** apply the same items.js-preferred name join that `studio-director.js` got on

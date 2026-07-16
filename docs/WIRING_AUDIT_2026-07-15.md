@@ -207,12 +207,23 @@ audit confirms the doc is accurate here, unlike most other docs in this audit.
    `items-save.js`/`media-update.js`/`media-delete.js` (2026-07-06, after a direct-curl exploit)
    was never extended to reads. Same `requireWriteAuth()` pattern already exists in
    `_write-guard.js` — this is applying an existing, proven fix to more endpoints, not new design.
+   **Fixed 2026-07-16** — new `requireReadAuth()` in `_write-guard.js` (same model; reads also
+   accept the base `PORTAL_PASSCODE` tier) now guards `crm-hubspot`, `crm-summary`, `items-get`,
+   `media-list`, `inventory`, and `history` (GET + POST; POST also logs via `logWrite()` per the
+   BUILD_LOG standing rule). All frontend reads replay the unlock passcode via
+   `writeAuthHeader()`. Buyer-facing proposal links are unaffected (items fetch degrades to
+   catalog names on failure). Operator note: browsers unlocked before this deploy must sign out
+   and re-enter the passcode. See BUILD_LOG 2026-07-16.
 2. Correct `INTEGRATION_WIRING_BRIEF.md`, `CRM_CONNECTOR.md`, `.env.example`, and
    `AUTH_AND_ROLES.md` to reflect the real HubSpot-direct and 3-tier-passcode architecture. The
    `.env.example` gap in particular could cause someone to regress prod CRM to a dead path by
    innocently "resetting to defaults."
 3. Delete or clearly mark dead code: `netlify/functions/crm.js` (Make proxy) and its mock dataset —
    nothing calls it, and its presence makes the architecture look more undecided than it is.
+   **Fixed 2026-07-16** — `netlify/functions/crm.js` deleted. Its one remaining reference was the
+   dead fallback branch in `src/lib/crm.js` (`CRM_BACKEND` values other than mock/hubspot routed
+   to it); that branch was removed in the same pass, so non-mock now always means the direct
+   HubSpot function. See BUILD_LOG 2026-07-16.
 4. Add a small validation script (or extend an existing one) that diffs `catalog.json` SKU codes
    against `inventory.json` SKU codes and prints the mismatch — same discipline already applied to
    sales-history matching today, just not yet automated as a repeatable check.

@@ -3,6 +3,7 @@
 // also sync to the central store (/.netlify/functions/history) so every rep shares one history
 // (one mind / one body). Same key as the legacy ledger so prior captures carry over.
 import { PRICING_BACKEND } from "@/lib/pricing.js";
+import { writeAuthHeader } from "@/lib/auth-context.jsx";
 
 const LS_KEY = "mt-movement-ledger";
 const newId = () => Date.now() + "-" + Math.random().toString(36).slice(2, 8);
@@ -20,9 +21,11 @@ export function appendHistory(tenantId, records) {
   const stamped = (records || []).map((r) => ({ id: newId(), ...r }));
   saveLocal(loadLocal().concat(stamped));
   if (PRICING_BACKEND !== "mock" && stamped.length) {
+    // Passcode header required server-side since 2026-07-16 (any tier — reps included). A 401
+    // (pre-update unlock) means the record stays local-only until the rep signs out/in.
     fetch("/.netlify/functions/history", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...writeAuthHeader() },
       body: JSON.stringify({ tenant: tenantId, records: stamped }),
     }).catch(() => { /* offline — stays in localStorage, syncs implicitly next capture */ });
   }
@@ -35,8 +38,10 @@ export async function loadHistory(tenantId) {
   const local = loadLocal();
   if (PRICING_BACKEND === "mock") return local;
   try {
-    const res = await fetch(`/.netlify/functions/history?tenant=${encodeURIComponent(tenantId)}`);
-    if (!res.ok) return local;
+    const res = await fetch(`/.netlify/functions/history?tenant=${encodeURIComponent(tenantId)}`, {
+      headers: { ...writeAuthHeader() },
+    });
+    if (!res.ok) return local; // incl. 401 from a pre-update unlock — local ledger still shows
     const data = await res.json();
     const remote = Array.isArray(data.records) ? data.records : [];
     const seen = new Set(remote.map((r) => r.id));

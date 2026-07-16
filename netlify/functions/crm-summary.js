@@ -6,9 +6,16 @@
 // Service-key scopes required: crm.objects.{contacts,companies,deals}.read.
 // Additive + read-only — cannot modify any CRM data. See docs/INTEGRATION_WIRING_BRIEF.md.
 
+import { requireReadAuth, jsonUnauthorized } from "./_write-guard.js";
+
 const OBJECTS = ["contacts", "companies", "deals"];
 
-export const handler = async () => {
+export const handler = async (event) => {
+  // Any valid passcode tier (2026-07-16, wiring-audit P0 #1) — CRM counts + newest contacts
+  // (names/emails) used to be readable from a bare URL with zero auth.
+  const readAuth = requireReadAuth(event, event.queryStringParameters?.tenant || "");
+  if (!readAuth.ok) return jsonUnauthorized(readAuth);
+
   const token = process.env.HUBSPOT_TOKEN;
   if (!token) return json(500, { ok: false, error: "HUBSPOT_TOKEN not configured" });
 

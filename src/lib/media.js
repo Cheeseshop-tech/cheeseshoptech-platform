@@ -110,7 +110,11 @@ export async function listAssets({ folder, tenantFolder, legacyFolders, user }) 
     const legacy = (legacyFolders || []).length
       ? `&legacy=${encodeURIComponent(legacyFolders.join(","))}`
       : "";
-    const res = await fetch(`/.netlify/functions/media-list?folder=${encodeURIComponent(tenantFolder)}${legacy}`);
+    // Reads now require the passcode header server-side (2026-07-16) — replay the unlock passcode.
+    const res = await fetch(`/.netlify/functions/media-list?folder=${encodeURIComponent(tenantFolder)}${legacy}`, {
+      headers: { ...writeAuthHeader() },
+    });
+    if (res.status === 401) throw new Error(RELOGIN_MSG); // pre-update unlock — no stashed passcode
     assets = res.ok ? await res.json() : [];
   }
   const allowed = visibleStatesFor(user);
@@ -146,11 +150,11 @@ export async function updateAsset({ publicId, displayName, usage, sku, alt, desc
   return patch;
 }
 
-// 401 from a write endpoint almost always means the browser unlocked BEFORE the 2026-07-06
-// write-guard update, so there's no passcode stashed to replay — tell the user the actual fix
-// instead of a bare status code.
+// 401 from a write endpoint (2026-07-06 write guard) or a read endpoint (2026-07-16 read guard)
+// almost always means the browser unlocked BEFORE the guard deployed, so there's no passcode
+// stashed to replay — tell the user the actual fix instead of a bare status code.
 export const RELOGIN_MSG =
-  "Not authorized to save — sign out and re-enter your passcode (a security update now requires it), then retry.";
+  "Not authorized — sign out and re-enter your passcode (a security update now requires it), then retry.";
 
 /**
  * Permanently delete one asset from Cloudinary (admin clearance). Live backend calls the

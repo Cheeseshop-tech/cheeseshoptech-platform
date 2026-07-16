@@ -7,6 +7,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@
 import { listClients } from "@/lib/clientConfig.js";
 import { getPricingData, fetchInventory } from "@/lib/pricing.js";
 import { getBuyerCatalog } from "@/lib/catalog.js";
+import { writeAuthHeader } from "@/lib/auth-context.jsx";
 
 // Agency Console — the house dashboard's P0 panels (ADMIN_DASHBOARDS_SPEC §3, built per
 // Rick's v1 priorities): tenant management · integration health · data pipelines.
@@ -36,13 +37,15 @@ export function AgencyConsole({ onNavigate }) {
 // Auto-loads on mount from the read-only crm-summary function (HubSpot via the service key, server-side).
 // Falls back gracefully to "—"/unavailable in dev (no functions) or if the token/scopes aren't set.
 function CrmSnapshotPanel() {
-  const [state, setState] = useState("loading"); // "loading" | "error" | { counts }
+  const [state, setState] = useState("loading"); // "loading" | "error" | "relogin" | { counts }
   useEffect(() => {
     let alive = true;
-    fetch("/.netlify/functions/crm-summary")
+    // Passcode header required server-side since 2026-07-16 (read guard). 401 = browser
+    // unlocked before that deploy → no stashed passcode → sign out/in fixes it.
+    fetch("/.netlify/functions/crm-summary", { headers: { ...writeAuthHeader() } })
       .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
       .then((d) => { if (alive) setState(d?.counts ? d : "error"); })
-      .catch(() => { if (alive) setState("error"); });
+      .catch((status) => { if (alive) setState(status === 401 ? "relogin" : "error"); });
     return () => { alive = false; };
   }, []);
 
@@ -63,6 +66,7 @@ function CrmSnapshotPanel() {
         </div>
         {ok && <Badge variant="success" className="ml-auto"><CheckCircle2 className="mr-1 h-3 w-3" />live</Badge>}
         {state === "error" && <Badge variant="muted" className="ml-auto">unavailable</Badge>}
+        {state === "relogin" && <Badge variant="warning" className="ml-auto">sign out &amp; re-enter passcode</Badge>}
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-3 gap-4">
@@ -176,9 +180,10 @@ function IntegrationPanel({ clients }) {
   async function pingCrm() {
     setCrm("checking");
     try {
-      const res = await fetch("/.netlify/functions/crm-summary");
+      // Read guard (2026-07-16): the passcode header must replay, same as every other read.
+      const res = await fetch("/.netlify/functions/crm-summary", { headers: { ...writeAuthHeader() } });
       const data = await res.json().catch(() => null);
-      setCrm(res.ok && data?.counts ? data : "error");
+      setCrm(res.status === 401 ? "relogin" : res.ok && data?.counts ? data : "error");
     } catch {
       setCrm("error");
     }
@@ -263,6 +268,7 @@ function IntegrationPanel({ clients }) {
               <TableCell>
                 {crm && typeof crm === "object" && <Badge variant="success"><CheckCircle2 className="mr-1 h-3 w-3" />live</Badge>}
                 {crm === "error" && <Badge variant="error"><AlertTriangle className="mr-1 h-3 w-3" />error</Badge>}
+                {crm === "relogin" && <Badge variant="warning"><AlertTriangle className="mr-1 h-3 w-3" />re-enter passcode</Badge>}
                 {crm === "checking" && <Badge variant="muted">checking…</Badge>}
                 {crm === null && <Badge variant="muted">untested</Badge>}
               </TableCell>
@@ -271,6 +277,7 @@ function IntegrationPanel({ clients }) {
                   <Button size="sm" variant="outline" onClick={pingCrm}><RefreshCw className="h-3.5 w-3.5" /> Test</Button>
                   {crm && typeof crm === "object" && <span className="text-fg">{crm.counts?.contacts ?? "—"} contacts · {crm.counts?.companies ?? "—"} cos · {crm.counts?.deals ?? "—"} deals</span>}
                   {crm === "error" && <span className="text-error">check token / scopes</span>}
+                  {crm === "relogin" && <span className="text-fg-muted">sign out and re-enter your passcode, then retest</span>}
                 </span>
               </TableCell>
             </TableRow>
