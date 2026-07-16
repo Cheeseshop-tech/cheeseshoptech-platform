@@ -11,21 +11,29 @@ git add \
   "docs/BUILD_LOG.md" \
   "COMMIT WIRING AUDIT.command"
 
-git commit -m "docs: full wiring audit — CRM/Forecast/Brand Kit/Media Hub vs. actual code
+git commit -m "docs: full wiring audit — CRM/Forecast/Brand Kit/Media Hub/Catalog/Proposals
 
 - New docs/WIRING_AUDIT_2026-07-15.md: read real code (imports, env-flag branches, actual
-  callers) instead of trusting the wiring docs, then diffed the two.
+  callers) instead of trusting the wiring docs, then diffed the two. Two passes: platform
+  infra (CRM/Forecast/Brand Kit/Media Hub), then Product Catalog/Proposal Engine/Pricing tool.
 - Finding: platform is wired better than its docs say. CRM (HubSpot direct), BSE gating, and
   the BSE Import-kit-JSON button are all live; INTEGRATION_WIRING_BRIEF.md, CRM_CONNECTOR.md,
   and CONTENT_ENGINE_WIRING_SPEC.md still describe these as mock/open.
-- Real gap: forecast-core.js is genuine wired infrastructure (Pricing Tool Movement tab), but
-  the only path from a real sale into it is a manual 'Record sale' click -- no automated
-  capture.
+- Corrected mid-audit by Rick: forecast-core.js is meant to run off quarterly sales reports as
+  a batch tool, never live order entry -- the Proforma's 'Record sale' button is a rep
+  note-taking aid only, not a forecast input. Original 'automate sale capture' suggestion
+  struck, kept for the record. Saved as standing memory so it isn't re-proposed.
 - Mid-audit: confirmed the sales-monthly.js + build-sales-monthly.mjs seam already existed
   for merging ERP monthly data into forecasting -- it ran against today's new ERP files
   independently during this session (commits b28aa64, 7e18ce5), catching a units bug along
   the way. Gate correctly still closed (2.69% 2024 coverage).
-- 9 prioritized improvement suggestions (P0-P2) filed in the audit doc. No code changed."
+- Catalog/Proposals pass: buyer-catalog.jsx wired correctly to items.js. Proposals and the
+  Pricing tool are NOT -- both still read catalog.json's name field, same bug
+  studio-director.js had until today's fix, not yet applied here. Bigger finding: proposal
+  pricing is deliberately always-live with no freeze -- a reopened proposal link can show a
+  silently different price than originally quoted. Real trust/dispute risk, not hypothetical.
+  Also confirmed catalog.json's per-SKU image field is fully dead (zero references in src/).
+- 11 prioritized improvement suggestions (P0-P2) filed in the audit doc. No code changed."
 
 echo
 echo "Pushing (triggers Netlify deploy)…"

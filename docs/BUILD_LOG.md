@@ -32,6 +32,26 @@ not an architecture problem, just insufficient 2024 coverage.
 Nine improvement suggestions filed, prioritized P0 (doc/dead-code fixes, cheap) through P2. Full list
 in the audit doc. No code changed by this pass — audit only.
 
+**Correction from Rick, same day:** the Pricing/Forecast section's "reps might forget to click
+Record Sale" framing was wrong. Forecasting is meant to run off **quarterly sales reports as a
+batch tool**, not live order entry — the Proforma's "Record sale" button is strictly a rep
+note-taking aid ("what did this customer order last time"), never the forecast's data source.
+Audit doc corrected in place (struck the old suggestion, kept for the record); saved as a standing
+memory (`cst-forecast-is-quarterly-batch-not-live`) so this isn't re-proposed later.
+
+**Audit extended to Product Catalog / Proposal Engine / Pricing Tool** (§7 of the audit doc).
+Catalog (`buyer-catalog.jsx`) is wired correctly to `items.js`. **Proposals and the Pricing tool are
+not** — both still read `catalog.json`'s name field, the same bug `studio-director.js` had until
+today's fix, just not applied here yet. Bigger finding: **proposal pricing is deliberately
+always-live with no freeze** — a buyer reopening an old proposal link can see a silently different
+price than what they were originally quoted, by design ("prices always quote live," per the code's
+own comments). Real, not hypothetical, trust/dispute risk the day a price actually moves. Suggested
+fix: snapshot the quoted price at send time, show a "price has changed since this was sent" badge
+rather than swap silently. Also confirmed `catalog.json`'s per-SKU `image` field is fully dead
+(zero references in `src/`) — third confirmed-dead duplicate field alongside name/blurb.
+
+Suggestion list now 11 items (P0 4, P1 4, P2 3). No code changed — still audit only.
+
 ---
 
 ## 2026-07-15 — CORRECTION: ERP monthly is POUNDS not dollars; 2024 = Jan–Jul by construction
