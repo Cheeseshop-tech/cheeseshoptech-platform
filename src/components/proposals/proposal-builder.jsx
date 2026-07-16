@@ -10,6 +10,7 @@ import { useToast } from "@/components/ui/toast.jsx";
 import { useAuth } from "@/lib/auth-context.jsx";
 import { rolesOf } from "@/lib/auth.js";
 import { usePricingData } from "@/lib/use-pricing-data.js";
+import { useItemsDoc } from "@/lib/use-items-doc.js";
 import {
   emptyProposal, loadDraft, saveDraft, buildShareUrl, flattenSkus,
 } from "@/lib/proposals.js";
@@ -35,7 +36,12 @@ export function ProposalBuilder({ resolved }) {
   const [preview, setPreview] = useState(false);
   const [composeOpen, setComposeOpen] = useState(false);
 
-  const allSkus = useMemo(() => (pricing ? flattenSkus(pricing.catalog) : []), [pricing]);
+  // Canonical item copy (Media Hub items.js) joins by SKU code: items name wins, catalog.json
+  // name is the fallback for SKUs not yet in the items doc. Null while loading — harmless,
+  // the memo recomputes with the preferred names once the doc lands.
+  const itemsDoc = useItemsDoc(resolved);
+
+  const allSkus = useMemo(() => (pricing ? flattenSkus(pricing.catalog, itemsDoc) : []), [pricing, itemsDoc]);
   const byCategory = useMemo(() => {
     const groups = {};
     for (const item of allSkus) {
@@ -273,7 +279,7 @@ export function ProposalBuilder({ resolved }) {
               <div key={cat}>
                 <p className="cs-eyebrow mb-2 text-brand-primary">{cat}</p>
                 <div className="space-y-1">
-                  {items.map(({ product, sku }) => {
+                  {items.map(({ sku, name }) => {
                     const checked = p.skus.includes(sku.code);
                     const img = codeImageUrl(resolved, config, sku.code, "card");
                     return (
@@ -292,7 +298,7 @@ export function ProposalBuilder({ resolved }) {
                         />
                         {img && <img src={img} alt="" loading="lazy" className="h-12 w-12 flex-none rounded-base border border-border bg-white object-contain" />}
                         <span className="min-w-0 flex-1">
-                          <span className="block truncate text-sm font-medium text-fg">{product.name}</span>
+                          <span className="block truncate text-sm font-medium text-fg">{name}</span>
                           <span className="block truncate text-xs text-fg-muted">{sku.packing}</span>
                         </span>
                         <span className="font-mono text-xs text-fg-muted">#{sku.code}</span>

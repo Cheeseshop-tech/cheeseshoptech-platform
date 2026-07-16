@@ -9,6 +9,8 @@
 // The link sits behind the tenant passcode gate. Per-proposal revocable keys = v2 (needs
 // the backend seam; see spec §8).
 
+import { getItem } from "./items.js";
+
 const DRAFT_KEY = (tenantId) => `cs-proposal-draft-${tenantId}`;
 
 export const emptyProposal = () => ({
@@ -73,20 +75,33 @@ export function buildShareUrl(resolved, proposal) {
   return url.toString();
 }
 
-/** Flatten the canonical catalog into selectable SKUs, resolving the parent product. */
-export function flattenSkus(catalog) {
+/**
+ * Canonical display name for a SKU line. Name resolution follows DATA_OWNERSHIP_MAP.md
+ * (same join as studio-director.js pickProducts): the canonical item record (Media Hub's
+ * items.js — identity + copy) wins; catalog.json's own `name` is only the fallback for a
+ * SKU that hasn't been entered into the items doc yet. `itemsDoc` may be null (still
+ * loading, or the fetch failed) — then the catalog name renders, so a buyer-facing
+ * proposal never blanks a product name. Pricing/pack specs stay catalog.json's.
+ */
+export function skuDisplayName(itemsDoc, product, sku) {
+  return (sku?.code ? getItem(itemsDoc, sku.code)?.name : null) || product?.name || "";
+}
+
+/** Flatten the canonical catalog into selectable SKUs, resolving the parent product.
+ *  Each entry carries the resolved `name` (items.js-preferred, see skuDisplayName). */
+export function flattenSkus(catalog, itemsDoc = null) {
   const out = [];
   for (const product of catalog?.products || []) {
     for (const sku of product.skus || []) {
-      out.push({ product, sku });
+      out.push({ product, sku, name: skuDisplayName(itemsDoc, product, sku) });
     }
   }
   return out;
 }
 
-/** Look up the {product, sku} pairs for the proposal's selected codes (order preserved). */
-export function resolveSkus(catalog, codes) {
-  const all = flattenSkus(catalog);
+/** Look up the {product, sku, name} entries for the proposal's selected codes (order preserved). */
+export function resolveSkus(catalog, codes, itemsDoc = null) {
+  const all = flattenSkus(catalog, itemsDoc);
   return (codes || [])
     .map((code) => all.find((x) => x.sku.code === code))
     .filter(Boolean);

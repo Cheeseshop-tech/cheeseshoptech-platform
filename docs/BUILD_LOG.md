@@ -8,6 +8,32 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-07-16 — Name-source drift fixed in Proposals + Pricing Tool (wiring-audit P1 #6)
+
+**Decision:** apply the same items.js-preferred name join that `studio-director.js` got on
+2026-07-15 (commit `b386bf9`) to the two remaining siblings that still read product names straight
+off `catalog.json` — Proposals and the Pricing Tool. Canonical rule (2026-07-03): item identity +
+copy live in `items.js` (Media Hub items.json); pricing/pack specs stay in `catalog.json`; joined
+by SKU code.
+
+**Action:**
+- New `src/lib/use-items-doc.js` — small React hook that loads the tenant's items doc (async,
+  same pattern as buyer-catalog/media-hub); returns `null` while loading or on failure so every
+  consumer falls back to the catalog name and no surface ever blanks or blocks.
+- `src/lib/proposals.js` — new `skuDisplayName(itemsDoc, product, sku)`; `flattenSkus()` /
+  `resolveSkus()` take an optional `itemsDoc` and carry a resolved `name` per entry (items.js
+  name wins, `catalog.json` `name` only for SKUs not yet in the items doc).
+- `proposal-builder.jsx` + `proposal-view.jsx` — render the resolved `name`. proposal-view is
+  buyer-facing: a failed/slow items fetch degrades to the catalog name, never an empty heading.
+- `pricing-tool.jsx` — shared `productName()` join applied to all four tabs (Proforma rows +
+  detail dialog, Shelf Life, Movement, Commitments). Pricing logic, pack specs, and all other
+  `catalog.json` consumption untouched.
+
+**Status:** built clean (`vite build`), `node --check` clean on changed libs. Edit a product name
+in Media Hub's items panel and the Catalog, Proposals, and Pricing Tool now all show the same name.
+
+---
+
 ## 2026-07-15 — Full wiring audit across CRM, Pricing/Forecast, Brand Kit, Media Hub
 
 Rick asked for an audit of app-to-app wiring and the data-flow docs, with improvement suggestions.

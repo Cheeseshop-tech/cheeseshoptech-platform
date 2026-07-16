@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge.jsx";
 import { EmptyState } from "@/components/ui/empty-state.jsx";
 import { DeckViewer } from "@/components/presentations/presentations-page.jsx";
 import { usePricingData } from "@/lib/use-pricing-data.js";
+import { useItemsDoc } from "@/lib/use-items-doc.js";
 import { quoteUnitPrice } from "@/lib/pricing-core.js";
 import { proposalFromLocation, resolveSkus } from "@/lib/proposals.js";
 import { codeImageUrl } from "@/lib/images.js";
@@ -23,9 +24,15 @@ export function ProposalView({ resolved, proposal: given }) {
   const config = pricing?.config;
   const kit = getBrandKit(resolved);
 
+  // Canonical item copy (Media Hub items.js) joins by SKU code — items name wins,
+  // catalog.json name is the fallback. This surface is BUYER-FACING: itemsDoc is null
+  // until loaded and stays null if the fetch fails, and resolveSkus falls back to the
+  // catalog name in both cases, so a product name never blanks or breaks the link.
+  const itemsDoc = useItemsDoc(resolved);
+
   const items = useMemo(
-    () => (proposal && pricing ? resolveSkus(pricing.catalog, proposal.skus) : []),
-    [proposal, pricing]
+    () => (proposal && pricing ? resolveSkus(pricing.catalog, proposal.skus, itemsDoc) : []),
+    [proposal, pricing, itemsDoc]
   );
 
   if (!proposal) {
@@ -148,14 +155,14 @@ export function ProposalView({ resolved, proposal: given }) {
           {theme.tokens.product === "grid-three-up" ? (
             // GRID-THREE-UP — premium gallery: small quiet cards, image-forward, lots of air.
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {items.map(({ product, sku }) => {
+              {items.map(({ sku, name }) => {
                 const img = codeImageUrl(resolved, config, sku.code, "card");
                 const unit = config ? quoteUnitPrice(sku, quoteOpts, config) : null;
                 return (
                   <div key={sku.code} className="overflow-hidden rounded-base border border-border">
                     {img ? <img src={img} alt="" loading="lazy" className="aspect-square w-full bg-white object-contain" /> : <div className="aspect-square w-full bg-bg" />}
                     <div className="p-3 text-center">
-                      <h3 className="font-heading text-base" style={{ color: tc.ink }}>{product.name}</h3>
+                      <h3 className="font-heading text-base" style={{ color: tc.ink }}>{name}</h3>
                       <p className="text-xs text-fg-muted">{sku.packing}</p>
                       {unit != null && <p className="mt-1 font-heading text-lg" style={{ color: tc.ink }}>${unit.toFixed(2)}<span className="text-xs text-fg-muted">/{sku.unit}</span></p>}
                     </div>
@@ -165,7 +172,7 @@ export function ProposalView({ resolved, proposal: given }) {
             </div>
           ) : theme.tokens.product === "grid-two-up" ? (
             <div className="grid gap-4 sm:grid-cols-2">
-              {items.map(({ product, sku }) => {
+              {items.map(({ product, sku, name }) => {
                 const img = codeImageUrl(resolved, config, sku.code, "card");
                 const unit = config ? quoteUnitPrice(sku, quoteOpts, config) : null;
                 return (
@@ -173,7 +180,7 @@ export function ProposalView({ resolved, proposal: given }) {
                     {img ? <img src={img} alt="" loading="lazy" className="aspect-square w-full bg-white object-contain" /> : <div className="aspect-square w-full bg-bg" />}
                     <div className="p-4">
                       <div className="flex items-center justify-between gap-2">
-                        <h3 className="font-heading text-lg" style={{ color: tc.ink }}>{product.name}</h3>
+                        <h3 className="font-heading text-lg" style={{ color: tc.ink }}>{name}</h3>
                         {product.marketing?.badge && <Badge variant="accent">{product.marketing.badge}</Badge>}
                       </div>
                       <p className="text-sm text-fg-muted">{sku.packing}</p>
@@ -194,14 +201,14 @@ export function ProposalView({ resolved, proposal: given }) {
                 <span className="w-20 text-right">Code</span>
                 <span className="w-24 text-right">Price</span>
               </div>
-              {items.map(({ product, sku }, i) => {
+              {items.map(({ product, sku, name }, i) => {
                 const img = codeImageUrl(resolved, config, sku.code, "card");
                 const unit = config ? quoteUnitPrice(sku, quoteOpts, config) : null;
                 return (
                   <div key={sku.code} className={"flex items-center gap-3 bg-surface px-3 py-2 " + (i > 0 ? "border-t border-border" : "")}>
                     {img ? <img src={img} alt="" loading="lazy" className="h-10 w-10 flex-none rounded-base border border-border bg-white object-contain" /> : <div className="h-10 w-10 flex-none rounded-base bg-bg" />}
                     <div className="flex min-w-0 flex-1 items-center gap-2">
-                      <h3 className="truncate font-heading text-sm" style={{ color: tc.ink }}>{product.name}</h3>
+                      <h3 className="truncate font-heading text-sm" style={{ color: tc.ink }}>{name}</h3>
                       {product.marketing?.badge && <Badge variant="accent">{product.marketing.badge}</Badge>}
                     </div>
                     <span className="hidden w-24 text-xs text-fg-muted sm:block">{sku.packing}</span>
@@ -214,7 +221,7 @@ export function ProposalView({ resolved, proposal: given }) {
           ) : (
             // IMAGE-LEFT — editorial rows: large image, name, blurb, code + price.
             <div className="overflow-hidden rounded-base border border-border">
-              {items.map(({ product, sku }, i) => {
+              {items.map(({ product, sku, name }, i) => {
                 const img = codeImageUrl(resolved, config, sku.code, "card");
                 const unit = config ? quoteUnitPrice(sku, quoteOpts, config) : null;
                 return (
@@ -222,7 +229,7 @@ export function ProposalView({ resolved, proposal: given }) {
                     {img ? <img src={img} alt="" loading="lazy" className="h-24 w-24 flex-none rounded-base border border-border bg-white object-contain" /> : <div className="h-24 w-24 flex-none rounded-base bg-bg" />}
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="font-heading text-lg" style={{ color: tc.ink }}>{product.name}</h3>
+                        <h3 className="font-heading text-lg" style={{ color: tc.ink }}>{name}</h3>
                         {product.marketing?.badge && <Badge variant="accent">{product.marketing.badge}</Badge>}
                       </div>
                       <p className="text-sm text-fg-muted">{sku.packing}</p>

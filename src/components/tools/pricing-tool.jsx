@@ -11,6 +11,8 @@ import { useToast } from "@/components/ui/toast.jsx";
 import { appendHistory, loadHistory } from "@/lib/history.js";
 import { seedMovementRecords, seedStatus } from "@/lib/sales-monthly.js";
 import { usePricingData } from "@/lib/use-pricing-data.js";
+import { useItemsDoc } from "@/lib/use-items-doc.js";
+import { getItem } from "@/lib/items.js";
 import { codeImageUrl, isPlaceholderImage, placeholderNote } from "@/lib/images.js";
 import * as PC from "@/lib/pricing-core.js";
 import * as FC from "@/lib/forecast-core.js";
@@ -22,12 +24,22 @@ const fmtDate = (iso) => (iso ? new Date(iso + "T00:00:00").toLocaleDateString("
 const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const titleCase = (s) => String(s || "").toLowerCase().replace(/\b([a-z])/g, (m, c) => c.toUpperCase());
 
+// Product NAME join (DATA_OWNERSHIP_MAP.md, same pattern as studio-director.js pickProducts):
+// the canonical item record (Media Hub items.js — identity + copy) wins; catalog.json's own
+// `name` is only the fallback for a SKU not yet entered into the items doc (or while the doc
+// is still loading / failed to load — itemsDoc may be null and this never breaks).
+// Pricing, pack specs and everything else keep coming from catalog.json untouched.
+const productName = (itemsDoc, code, product) => titleCase(getItem(itemsDoc, code)?.name || product?.name);
+
 const selCls =
   "rounded-base border border-border bg-bg px-2.5 py-2 text-sm text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand";
 const fieldLabel = "text-[10px] font-semibold uppercase tracking-wide text-fg-muted";
 
 export function PricingTool({ resolved, onNavigate }) {
   const { data, stockSource } = usePricingData(resolved);
+  // Canonical item names (Media Hub items.js) — null until loaded; every consumer falls
+  // back to catalog.json's name, so the tool renders instantly and never blanks a name.
+  const itemsDoc = useItemsDoc(resolved);
 
   if (!data) {
     return (
@@ -71,10 +83,10 @@ export function PricingTool({ resolved, onNavigate }) {
             <TabsTrigger value="movement">Movement</TabsTrigger>
             <TabsTrigger value="commitments">Commitments</TabsTrigger>
           </TabsList>
-          <TabsContent value="proforma"><Proforma data={data} brand={resolved.brand} resolved={resolved} onNavigate={onNavigate} /></TabsContent>
-          <TabsContent value="shelflife"><ShelfLife data={data} /></TabsContent>
-          <TabsContent value="movement"><Movement data={data} resolved={resolved} /></TabsContent>
-          <TabsContent value="commitments"><Commitments data={data} /></TabsContent>
+          <TabsContent value="proforma"><Proforma data={data} brand={resolved.brand} resolved={resolved} onNavigate={onNavigate} itemsDoc={itemsDoc} /></TabsContent>
+          <TabsContent value="shelflife"><ShelfLife data={data} itemsDoc={itemsDoc} /></TabsContent>
+          <TabsContent value="movement"><Movement data={data} resolved={resolved} itemsDoc={itemsDoc} /></TabsContent>
+          <TabsContent value="commitments"><Commitments data={data} itemsDoc={itemsDoc} /></TabsContent>
         </Tabs>
       )}
     </div>
@@ -169,7 +181,7 @@ function DataIntake() {
 }
 
 /* ---------------- Proforma ---------------- */
-function Proforma({ data, brand, resolved, onNavigate }) {
+function Proforma({ data, brand, resolved, onNavigate, itemsDoc }) {
   const { config, catalog, inventory, commitments } = data;
   const { toast } = useToast();
   const skus = useMemo(
@@ -177,11 +189,11 @@ function Proforma({ data, brand, resolved, onNavigate }) {
       p.skus.map((s) => ({
         ...s,
         category: p.category,
-        name: titleCase(p.name) + " · " + s.packing,
-        productName: titleCase(p.name),
+        name: productName(itemsDoc, s.code, p) + " · " + s.packing,
+        productName: productName(itemsDoc, s.code, p),
         marketing: p.marketing || {},
       }))),
-    [catalog]
+    [catalog, itemsDoc]
   );
   const cmap = useMemo(() => {
     const m = {}; (commitments.commitments || []).forEach((c) => { if (c.kind === "standing_plan") m[c.skuCode] = c; }); return m;
@@ -627,9 +639,9 @@ function ProductDetailDialog({ sku, onClose, imgUrl, imgIsPlaceholder = false, i
    Live view of on-hand stock by remaining shelf life. The "move it before < 4 months" rule
    (QUOTING_TOOL_PRINCIPLES §4) made visible: expired / under-4mo / watch buckets, cases at risk,
    soonest-expiry first. Reserved cases are netted out; in-transit is excluded (no firm expiry). */
-function ShelfLife({ data }) {
+function ShelfLife({ data, itemsDoc }) {
   const { catalog, inventory } = data;
-  const names = useMemo(() => { const m = {}; catalog.products.forEach((p) => p.skus.forEach((s) => (m[s.code] = titleCase(p.name) + " · " + s.packing))); return m; }, [catalog]);
+  const names = useMemo(() => { const m = {}; catalog.products.forEach((p) => p.skus.forEach((s) => (m[s.code] = productName(itemsDoc, s.code, p) + " · " + s.packing))); return m; }, [catalog, itemsDoc]);
   const [filter, setFilter] = useState("active");
   const rows = useMemo(() => {
     const now = new Date(), dayMs = 86400000, out = [];
@@ -709,10 +721,10 @@ function ShelfLife({ data }) {
 }
 
 /* ---------------- Movement ---------------- */
-function Movement({ data, resolved }) {
+function Movement({ data, resolved, itemsDoc }) {
   const { catalog, inventory, commitments, config } = data;
   const [horizon, setHorizon] = useState(3);
-  const names = useMemo(() => { const m = {}; catalog.products.forEach((p) => p.skus.forEach((s) => (m[s.code] = titleCase(p.name) + " · " + s.packing))); return m; }, [catalog]);
+  const names = useMemo(() => { const m = {}; catalog.products.forEach((p) => p.skus.forEach((s) => (m[s.code] = productName(itemsDoc, s.code, p) + " · " + s.packing))); return m; }, [catalog, itemsDoc]);
   // Shared movement history (one mind / one body): the central store merged with local captures.
   const [ledger, setLedger] = useState([]);
   useEffect(() => {
@@ -808,9 +820,9 @@ function Movement({ data, resolved }) {
 }
 
 /* ---------------- Commitments ---------------- */
-function Commitments({ data }) {
+function Commitments({ data, itemsDoc }) {
   const { catalog, commitments } = data;
-  const names = useMemo(() => { const m = {}; catalog.products.forEach((p) => p.skus.forEach((s) => (m[s.code] = titleCase(p.name) + " · " + s.packing))); return m; }, [catalog]);
+  const names = useMemo(() => { const m = {}; catalog.products.forEach((p) => p.skus.forEach((s) => (m[s.code] = productName(itemsDoc, s.code, p) + " · " + s.packing))); return m; }, [catalog, itemsDoc]);
   const plans = (commitments.commitments || []).filter((c) => c.kind === "standing_plan");
   const review = commitments._needsReview || [];
   const inactive = (commitments.commitments || []).filter((c) => c.kind === "inactive");

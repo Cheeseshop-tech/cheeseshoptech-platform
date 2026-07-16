@@ -130,6 +130,8 @@ platform's "5 agents" framing isn't overstated in anything client-facing.
 
 ## 7. Product Catalog / Proposal Engine / Pricing Tool — the name-source fix didn't reach two siblings
 
+> **Fixed 2026-07-16** — both siblings now join `items.js` for names with a `catalog.json` fallback (P1 item 6 below).
+
 Product Catalog (`buyer-catalog.jsx`) is wired correctly: driven by `items.js` for name/copy,
 `images.js` for photos, matches the documented model exactly, no price shown (out of scope for that
 surface by design).
@@ -225,6 +227,9 @@ audit confirms the doc is accurate here, unlike most other docs in this audit.
    name field instead of `items.js` — the same bug `studio-director.js` had until today's fix,
    just not applied to these two siblings yet. Same pattern, same fix: join `items.js` for
    name/copy, `catalog.json` for price/specs.
+   **Fixed 2026-07-16** — `proposals.js` (`flattenSkus`/`resolveSkus` + new `skuDisplayName`),
+   `pricing-tool.jsx` (all four tabs), and a shared `lib/use-items-doc.js` hook; items.js name
+   wins, catalog.json name is the fallback. See BUILD_LOG.
 7. ~~Automate sale capture into history.js~~ — **struck, wrong premise.** Rick: forecasting is meant
    to run off quarterly sales reports as a batch tool, not live order entry. "Record sale" is a rep
    note-taking aid only ("what did this customer order last time"), not the forecast's data source.
