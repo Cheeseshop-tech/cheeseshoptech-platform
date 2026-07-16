@@ -8,6 +8,38 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-07-15 — Git lock incident: commits silently failing since 2026-07-14, recovered clean
+
+`.git/HEAD.lock`, dated **2026-07-14 08:21** — a full day old, predating this session entirely —
+was silently blocking every commit/ref-update on the repo. `COMMIT SALES HISTORY.command` and the
+first run of `COMMIT ERP MONTHLY DATA.command` both got through `git add` (files staged fine) and
+failed at the ref-update step with `fatal: cannot lock ref 'HEAD'`. **The scripts' own success
+message printed anyway** — the post-push status check only verifies `git push` exits 0, which it
+does trivially ("Everything up-to-date") when there's nothing new to push. Worth hardening: check
+`$?` after `git commit` too, not just after `git push`.
+
+Sandbox-side `rm -f`/`mv` on `.git/HEAD.lock` and `.git/index.lock` both failed with "Operation not
+permitted" despite matching ownership — a known FUSE/bind-mount limitation on this repo's shared
+mount (see `docs/... sandbox-git-lock-trap` memory), now confirmed to hit `HEAD.lock` too, not just
+`index.lock`.
+
+**No data was lost.** Git writes the commit object to the object database before it locks the ref,
+so every failed attempt still produced a real, complete commit — just dangling, unreachable from
+any branch. `git fsck --unreachable` surfaced them; `git diff --stat` against the prior HEAD
+confirmed the latest one (`1246648`) was an exact, clean superset of the intended 10 files (no
+partial or duplicate content). Recovered with a plain ref move from Rick's real Terminal (native
+filesystem, no FUSE restriction there): `rm -f` the three stray lock files, then
+`git update-ref refs/heads/phase-2-6-build 1246648...` — ref-only, didn't touch the working tree,
+so the still-pending Agent A1 wiring / placeholder-images changes were untouched throughout.
+Verified via `git rev-parse HEAD` == `git rev-parse origin/phase-2-6-build`.
+
+**Takeaway for next time:** if a commit script reports success but `git log` doesn't show a new
+commit, check for a stale `.git/*.lock` file before assuming the script is broken — the object may
+already exist, dangling, and just need its ref pointed at it (cheaper and safer than re-running the
+whole build).
+
+---
+
 ## 2026-07-15 — ERP monthly sales history (2021-2024) parsed, validated, cross-referenced to SKU
 
 Rick uploaded 3 PDFs of Monti Trentini's own ERP export ("Statistica Di Riepilogo Mensilizzata") —
@@ -46,8 +78,8 @@ different legal/DBA name in the ERP.
 `history.js`'s movement-ledger shape — same open decision flagged in the entry below (annual vs.
 monthly shape), except this data actually clears the monthly-granularity blocker for 2021-2024 (not
 2025, which is still broker-export/annual only). Needs Rick's call on how the two datasets should
-combine. Raw + resolved data staged at `src/data/montitrentini/source/erp_monthly_{raw,resolved}_
-2021-2024.json`. Ship via `COMMIT ERP MONTHLY DATA.command`.
+combine. Raw + resolved data live at `src/data/montitrentini/source/erp_monthly_{raw,resolved}_
+2021-2024.json` — commit `1246648`, pushed after the lock-recovery documented above.
 
 ---
 
@@ -121,9 +153,9 @@ that's the real prerequisite for either agent.
      monthly split vs. wait for real monthly data vs. extend forecast-core to accept an annual
      fallback).
 
-**Status.** `sales-history.json` built, reconciled, uncommitted on disk. Not yet wired into
-`forecast-core.js`/`history.js` — both open flags above need a decision first. **Ship via
-`COMMIT SALES HISTORY.command`.**
+**Status.** `sales-history.json` built, reconciled, **live on remote (commit `1246648`, pushed
+2026-07-15 after a git-lock recovery — see that entry above).** Not yet wired into
+`forecast-core.js`/`history.js` — both open flags above still need a decision first.
 
 ---
 

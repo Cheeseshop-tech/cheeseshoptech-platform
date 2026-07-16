@@ -2,22 +2,39 @@
 
 **Updated:** 2026-07-15 · **Branch:** `phase-2-6-build` · **Surface:** Cowork
 **Handing off to:** next session (surface/model unspecified).
-**Push state (verified 2026-07-15 via `git status` — last commit `65d4411`, "inventory: auto-sync
-2026-07-14"):** this session's changes are uncommitted on disk across THREE separate commit
-buttons — run them in any order, each stages only its own files:
-`COMMIT AGENT A1 WIRING.command` (`src/lib/studio-director.js`, `docs/DATA_OWNERSHIP_MAP.md`,
-`docs/AGENT_A1_BUILD_SPEC.md`), `COMMIT SALES HISTORY.command` (broker-export reconciliation), and
-`COMMIT ERP MONTHLY DATA.command` (this ERP PDF parse). `docs/BUILD_LOG.md` and this file are
-shared and get staged by whichever button runs last — that's fine, git dedupes. **Also sitting
-uncommitted/untracked from an EARLIER session and NOT part of that button** (separate workstream,
-don't bundle it in): `src/lib/images.js` + `src/components/tools/pricing-tool.jsx` (placeholder-
-thumbnail feature), `docs/MARKETING_IMAGE_REQUEST_2026-07-13.*`, `public/placeholders/`,
-`CLAUDE.md`, `src/archive/backup_2026-07-{09,10,14}_inventory_autosync/` — its own button
-(`COMMIT PLACEHOLDER IMAGES.command`) already exists and was simply never run.
+**Push state (verified 2026-07-15 via `git rev-parse HEAD` == `git rev-parse origin/phase-2-6-build`
+— both `1246648`, "data(erp-monthly): parse + validate 2021-2024 ERP monthly sales"):** sales-history
+reconciliation + ERP monthly parse are **live on the remote.** Still uncommitted on disk, own
+button each: `COMMIT AGENT A1 WIRING.command` (`src/lib/studio-director.js`,
+`docs/DATA_OWNERSHIP_MAP.md`, `docs/AGENT_A1_BUILD_SPEC.md`) and, separate workstream, don't bundle
+it in, `COMMIT PLACEHOLDER IMAGES.command` (`src/lib/images.js` + `src/components/tools/
+pricing-tool.jsx`, `docs/MARKETING_IMAGE_REQUEST_2026-07-13.*`, `public/placeholders/`, `CLAUDE.md`,
+`src/archive/backup_2026-07-{09,10,14}_inventory_autosync/`).
 **Read first:** `CLAUDE_CODE_BRIEF.md` → this → `docs/BUILD_LOG.md` (top) →
 `docs/AGENT_A1_BUILD_SPEC.md` → `docs/ONBOARDING_AND_AGENTS_SDD.md` + `docs/CONTENT_ENGINE_WIRING_SPEC.md`.
 
-## 🆕 ERP MONTHLY DATA (2021-2024) PARSED + VALIDATED — merge decision needed (2026-07-15)
+## ⚠️ GIT LOCK INCIDENT — stray `HEAD.lock` blocked commits for a full day, recovered clean (2026-07-15)
+A `.git/HEAD.lock` dated **2026-07-14 08:21** (a full day old, predates this session) silently
+blocked every `git commit`/`update-ref` on this repo since then — `COMMIT SALES HISTORY.command`
+and the first `COMMIT ERP MONTHLY DATA.command` run both got as far as `git add` and failed at the
+ref-update step, while the script's own success message still printed (its post-push status check
+didn't verify the commit itself landed — worth hardening the commit-button template with a
+post-commit `$?` check, not just post-push). Sandbox-side `rm`/`mv` on the lock files failed with
+"Operation not permitted" even as owner — a known FUSE/bind-mount quirk (see
+[[sandbox-git-lock-trap]]), confirmed this time to also affect `HEAD.lock`, not just `index.lock`.
+
+**No data was lost.** `git commit` had already created the full, correct commit object each time
+(git writes the object before it locks the ref) — they just sat dangling, unreachable from any
+branch. `git fsck --unreachable` found them; the last one (`1246648`) was a clean superset containing
+exactly the intended 10 files (sales-history.json, both ERP files, BUILD_LOG/HANDOFF, the xlsx, both
+commit scripts — verified via `git diff --stat` against the prior HEAD before recovering). Recovery
+was a plain `rm -f .git/*.lock .git/refs/heads/*.lock` + `git update-ref refs/heads/phase-2-6-build
+1246648...` from Rick's real Terminal (not the sandbox) — ref-only, didn't touch the working tree,
+so the still-pending Agent A1 wiring / placeholder-images changes were untouched throughout.
+**If commits silently stop landing again, check for a stale `.git/*.lock` file before assuming
+the script itself is broken.**
+
+## ✅ ERP MONTHLY DATA (2021-2024) — SHIPPED (2026-07-15)
 Parsed your 3 ERP PDFs (`2024.pdf`, `2023-2022.pdf`, `2022-2021.pdf`) into 346 clean item-year rows,
 double-validated (checksums to $0.00 diff against the PDF's own totals, AND 2022 independently
 agrees to the penny across both files that contain it). This data is genuinely **monthly** —
@@ -37,10 +54,10 @@ customer/broker code entirely.
 
 **Open decision, yours:** how to combine this monthly 2021-2024 data with the annual 2025
 `sales-history.json` — separate file per era, force both into `history.js`'s movement-ledger shape
-now, or wait. Not decided for you. Data staged at `src/data/montitrentini/source/
-erp_monthly_{raw,resolved}_2021-2024.json`. Ship via `COMMIT ERP MONTHLY DATA.command`.
+now, or wait. Not decided for you. Data live at `src/data/montitrentini/source/
+erp_monthly_{raw,resolved}_2021-2024.json` (commit `1246648`).
 
-## ⚠️ SALES HISTORY RECONCILED — 2 flags need you/Stefano before forecasting trusts it (2026-07-15)
+## ✅ SALES HISTORY RECONCILED — SHIPPED, 2 flags still need you/Stefano (2026-07-15)
 Uploaded sales history (7 broker exports) reconciled to real SKUs — 99.4% of 2025 $ volume matched,
 5 items confirmed by you interactively. Built `src/data/montitrentini/sales-history.json` (39 SKUs,
 annual, lbs + case-equivalent, aggregate + per-customer). **Caught a bug before it did damage:**
@@ -63,7 +80,7 @@ phantom SKU codes not in the real price list — rebuilt against `catalog.json`'
    decision: synthetic monthly split (flagged as estimated), wait for real monthly data from
    Stefano, or extend forecast-core to accept an annual fallback tier.
 
-Ship via `COMMIT SALES HISTORY.command`.
+Live at `src/data/montitrentini/sales-history.json` (commit `1246648`).
 
 ## ✅ AGENT A1 WIRING FIX + SPEC — first Content Engine agent confirmed shipped (2026-07-15)
 Rick asked to solidify inter-app wiring and ship the first Content Engine agent (A1) before any UI
