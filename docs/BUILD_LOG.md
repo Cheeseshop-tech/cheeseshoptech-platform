@@ -8,6 +8,49 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-07-15 — ERP monthly sales history (2021-2024) parsed, validated, cross-referenced to SKU
+
+Rick uploaded 3 PDFs of Monti Trentini's own ERP export ("Statistica Di Riepilogo Mensilizzata") —
+`2024.pdf` (Jan-Jul 2024), `2023-2022.pdf`, `2022-2021.pdf` — after flagging that Tony's Fine Foods
+item-level sales were missing from the broker-export sales history built earlier today. This ERP
+data is genuinely monthly (unlike the annual-only broker exports), which is what `forecast-core.js`
+needs for `runRate()`/`yoyGrowth()`.
+
+**Parser built and double-validated.** `parse_pdfs.py` extracts customer → item → year → 12 monthly
+qtys from the Italian-language report structure. Two bugs caught and fixed before trusting the
+output: (1) "Totale Intestatario"/"Totale Provincia" subtotal lines were being misread as
+continuation data for the prior item (~50% over-count); (2) the "Totale Generale" checksum itself
+was summing 13 numbers (12 months + the report's own total column) instead of 12 (~50%
+under-count in the validation, not the data). Fixed both. Result: 346 item-year rows, every primary
+year checksums to $0.00 diff against the PDF's own printed grand total. **Independent cross-check**:
+2022 appears in both `2023-2022.pdf` and `2022-2021.pdf` as different years-per-block — both parse
+to the identical $12,368.55, confirming the parser is sound, not just checksum-matching by luck.
+
+**SKU cross-reference (same discipline as the phantom-SKU bug caught earlier today):** of 83
+distinct item codes in the ERP data, 30 aren't in `catalog.json`'s active 99-SKU list — mostly small
+legacy/discontinued codes (flights, old wedge SKUs), 7.8% of $ after one fix. The one large one,
+`20471 URBANI AGED TRUFFLE CHEESE` ($5,351.46), is the exact item Rick already resolved today
+("effectively for forecasting purposes the same cheese") — mapped to 20533. **92.2% of $ now
+resolved to a real catalog SKU**; the other 29 codes are listed, unmapped, in
+`source/erp_monthly_resolved_2021-2024.json` (`sku_status: "UNRESOLVED"`) pending Rick's call —
+not silently resolved.
+
+**Customer-overlap finding, relevant to the Tony's Fine Foods question:** 16 distinct customers in
+this ERP data (Botticelli Foods, Di Palo Fine Foods, Alma Gourmet, Sogno Toscano, Gus Sclafani,
+Urbani Truffles, Altomonte, Baldor, others). **Tony's Fine Foods does not appear here either** —
+same gap as the broker-export data. This is evidence, not proof, that Tony's Fine Foods' item-level
+detail sits in a system/export neither dataset has touched yet, or the account is booked under a
+different legal/DBA name in the ERP.
+
+**Not yet done:** merge this 2021-2024 monthly data into `sales-history.json` or into
+`history.js`'s movement-ledger shape — same open decision flagged in the entry below (annual vs.
+monthly shape), except this data actually clears the monthly-granularity blocker for 2021-2024 (not
+2025, which is still broker-export/annual only). Needs Rick's call on how the two datasets should
+combine. Raw + resolved data staged at `src/data/montitrentini/source/erp_monthly_{raw,resolved}_
+2021-2024.json`. Ship via `COMMIT ERP MONTHLY DATA.command`.
+
+---
+
 ## ⚠️ CANONICAL FACT — read first
 
 **The platform core IS CheeseShop TECH. Monti Trentini is a CLIENT (tenant #1), not the platform.**
@@ -31,6 +74,111 @@ almost didn't happen — the gap was in the endpoints nobody thought to double-c
   still be probed silently; a log with no guard is a diary of a break-in.
 - Read the log at `netlify/functions/write-log.js` (GET, house-admin passcode only).
 - Full rationale: `docs/TRUST_BY_DESIGN_REVIEW_2026-07-07.md`.
+
+---
+
+## 2026-07-15 — Sales history reconciled to SKU + staged for forecasting (cont.)
+
+**Decision.** Rick uploaded 7 broker/customer ERP exports (Tot Cowbell/Customers/Gordon/Richard
+Customers/Selected/Tama/Trader Joe's, "2025-24" = 2024 full year vs 2025 YTD through 10/15) — the
+`06_Sales_History.xlsx` onboarding-kit gap that blocks Agents A3 (Replenishment) and A4
+(Projection/Production). Chose quick analysis first, then pivoted mid-session to "tighten the
+product code identity" — reconciling the free-text item descriptions to real SKU codes, since
+that's the real prerequisite for either agent.
+
+**Action.**
+- Built a two-stage matcher (product-name family match, then portion/flavor-variant tag match to
+  disambiguate SKUs sharing a name) against `catalog.json`. **First pass used `items-seed.json`
+  as the corpus and got it dangerously wrong:** 52.7% of 2025 dollar volume, including the single
+  largest line item (~$2.1M), matched to SKU codes that don't exist in the active price list —
+  `items-seed.json` carries 26 stale/legacy codes catalog.json doesn't. Rebuilt the corpus from
+  `catalog.json`'s active 99 SKUs only. Fixed both large items correctly without prompting.
+  Logged as a standing rule: `catalog.json` is the accurate source for product identity/naming
+  right now, not `items-seed.json`/`items.js` — see memory `cst-price-list-authoritative-for-names`.
+- Rick manually confirmed 5 low-confidence items interactively (Piave Vecchio → 03003 Asiago
+  Vecchio DOP; Fioretto/Urbani/"Aged Truffle Cheese" → 20533 Fioretto Stagionato with Truffle,
+  noting the Urbani co-brand is discontinued but the cheese rolls into 20533 for forecasting;
+  Caciotta Rustiga with Truffle confirmed as 20150's working name). Final: **99.4% of 2025 dollar
+  volume resolved to a real SKU** (2 genuinely open items are dry-cured ham — not a Monti product,
+  likely a different producer's line mixed into the export).
+- Built `src/data/montitrentini/sales-history.json` — 39 SKUs, 2024 + 2025 YTD (+ annualized) in
+  both lbs and case-equivalents (converted via each SKU's `catalog.json` `pack.netLb`), aggregate
+  and per-customer. Source audit trail (`sku_match_review.csv`, `overrides.json` with Rick's
+  confirmations) saved to `src/data/montitrentini/source/`.
+- **Two flags raised, not resolved — need Rick/Stefano before this feeds any reorder decision:**
+  1. SKU 20150 (Caciotta Rustiga with Truffle, the #1 item, $2.1M) computes to ~44,000 cases sold
+     in 2025 YTD from actual invoiced sales — `inventory.json`'s own comment on that SKU says
+     "average purchase TONY 55 per month" (~660/year), a ~67x gap on its face. **Likely a
+     non-issue:** "Tony" isn't a company anywhere in the sales-history export, and a second
+     inventory.json comment lists Tony alongside real customer names (Cowbell/ACE Endico/Baldor),
+     suggesting Tony is a person/contact whose typical order was noted, not total company demand —
+     apples to oranges, not a contradiction. Worth a quick confirm with Stefano, not urgent.
+  2. `forecast-core.js`'s `runRate()`/`yoyGrowth()` require MONTHLY periods (6-month window,
+     13-month minimum for YoY); this sales history is annual only (2 buckets: 2024, 2025 YTD).
+     **Not wired into `history.js`'s movement-ledger store** — writing annual totals into a
+     monthly-shaped store would silently produce wrong run-rate/YoY math. Staged as a standalone
+     file instead; bridging it into the forecasting engine is an open decision (fabricate a
+     monthly split vs. wait for real monthly data vs. extend forecast-core to accept an annual
+     fallback).
+
+**Status.** `sales-history.json` built, reconciled, uncommitted on disk. Not yet wired into
+`forecast-core.js`/`history.js` — both open flags above need a decision first. **Ship via
+`COMMIT SALES HISTORY.command`.**
+
+---
+
+## 2026-07-15 — Agent A1 (Content Engine) data-wiring fix + spec; Auto-compose found already shipped
+
+**Decision.** Rick: solidify inter-app wiring + ship the first Content Engine agent (A1, per
+`ONBOARDING_AND_AGENTS_SDD.md`) before any UI-direction work. Scope confirmed via three questions:
+rewire the agent's data path + fix the stale ownership doc (not a full `catalog.json`/
+`items-seed.json` dedupe); keep Stage 2 (AI) in scope, accepting it's blocked on Rick's Anthropic
+billing setup; UI direction is CST platform chrome, not tenant brand, and comes after real screens
+exist to design against.
+
+**Action.**
+- Wrote `docs/AGENT_A1_BUILD_SPEC.md` (Parts A–E), updated in place as each part landed rather than
+  left to go stale.
+- **Correction caught before shipping:** the spec's original Part A plan was to reroute Studio
+  Director's images from `media.js` (`listAssets()`) to `images.js` (`imageForCode()`). Reading
+  both files closed that: `listAssets()` IS the Media Hub (same mock data / same `media-list`
+  endpoint the Media Hub UI itself uses); `images.js` is a narrower, generated, build-time-only
+  per-SKU manifest with no usage tags or approval state — it cannot serve `pickAsset()`'s scoring
+  job (hero/lifestyle/product candidates by tag + approval + SKU). Swapping would have broken image
+  selection. **Not done — correctly abandoned before touching code.**
+- **What Part A actually fixed:** `studio-director.js`'s `pickProducts()` sourced product-range
+  slide names from `catalog.json`'s own `name` field instead of the canonical `items.js` record
+  (Media Hub's item-copy source, 2026-07-03 decision). `directDraft()` now also loads the tenant's
+  `items.js` doc; `pickProducts()` prefers it, falling back to catalog.json only for SKUs not yet
+  entered there. Also deleted a third, dead image-resolution path in the same function
+  (`p.skus.find(...).image` from catalog.json) — confirmed via repo grep nothing downstream ever
+  consumed it.
+- Rewrote `docs/DATA_OWNERSHIP_MAP.md` — it still said (2026-06-13) product copy must NOT live in
+  Media Hub, contradicting the 2026-07-03 `items.js` decision. Split "Product" into two domain rows
+  (identity + copy → Media Hub; pricing → Price List), fixed the SKU join diagram, logged the
+  remaining `catalog.json`/`items-seed.json` duplicate name/blurb fields as tracked-not-fixed.
+- **Found, not built:** the "Auto-compose" UI trigger `CONTENT_ENGINE_WIRING_SPEC.md` §4 lists as
+  an open gap already exists in `slide-studio.jsx` (empty-state card + toolbar button), wired to
+  `directDraft()`. That gap-list entry and the SDD's "not yet exposed" framing of A1 are stale.
+  **A1 is functionally shipped** — Stage 0/1 auto-compose runs end-to-end on the corrected data.
+- Surfaced, discussed, **not built**: `images.json` only refreshes via manual
+  `npm run sync:images` + redeploy — no webhook, no cron — and `VITE_IMAGES_BACKEND` isn't set
+  anywhere (`.env.example` or `netlify.toml`), so the "live" adapter branch in `images.js` is dead
+  code; the manifest is 100% static in every environment today. Real staleness risk for Catalog /
+  Proposals / Pricing after any Media Hub change. Two fix options proposed, neither built: a
+  Cloudinary webhook → resync function, or a lighter "manifest last synced" indicator in house
+  admin. Awaiting Rick's pick.
+- Designed, **not built**: Part E, post-sale CRM pipeline stages (`PO Received` / `Processing` /
+  `Shipped` real; `Billed` / `Collected` inert placeholders) behind an off-by-default per-tenant
+  flag — deliberately deprioritized per Rick's instruction to focus on wiring + the agent first.
+
+**Status.** Parts A + the ownership-doc fix are done, uncommitted on disk. Part B needed no code —
+already shipped, timing unclear. Part C blocked on Rick's Anthropic billing + spend cap. Parts D
+(visual direction) and E (pipeline toggle) are spec'd, not built. **Ship via
+`COMMIT AGENT A1 WIRING.command`.** Unrelated pre-existing uncommitted work on disk from an earlier
+session (`images.js` placeholder-thumbnail feature, `pricing-tool.jsx`, `docs/
+MARKETING_IMAGE_REQUEST_2026-07-13.*`) is untouched by this session — its own commit button
+(`COMMIT PLACEHOLDER IMAGES.command`) already exists and was simply never run; don't bundle it in.
 
 ---
 

@@ -1,22 +1,107 @@
 # HANDOFF — CheeseShop TECH platform
 
-**Updated:** 2026-07-06 · **Branch:** `phase-2-6-build` · **Surface:** Cowork
-**Handing off to: Claude Fable 5** (next surface/model for this project).
-**Push state (verified 2026-07-06 via `git fetch` + `rev-list`):** origin/phase-2-6-build is
-0 ahead / 0 behind local through `fa95627` (client tier v1) — everything through today's earlier
-work is confirmed on origin. **Still uncommitted on disk right now:** this file, `docs/BUILD_LOG.md`,
-`config/clients/client.schema.json`, `config/clients/montitrentini.json`, `src/App.jsx`,
-`src/components/home/home-hub.jsx`, `src/components/layout/app-shell.jsx`
-→ ship via `COMMIT SALES REP MOBILE FIX.command` (repo root, double-click). Also sitting
-uncommitted/untracked and NOT part of that button (separate workstreams, don't bundle them in):
-`monti_asiago_campaign/*` (Asiago launch materials), `brand/`, `design/asiago-wheel/*` (Blender +
-Higgsfield handoff docs/renders), `HUBSPOT_CLEANUP_PLAN_2026-07-01.md` + its .docx,
-`src/data/montitrentini/inventory.NEW.json` + `source/availability_2026-07-04.csv*`,
-`src/archive/`, and a handful of older unused `COMMIT *.command` files (BRAND SYSTEMS ENGINE,
-MARKET NEWS, MEDIA HUB SEARCH — check each against origin before running; some may already be
-shipped and just left on disk).
+**Updated:** 2026-07-15 · **Branch:** `phase-2-6-build` · **Surface:** Cowork
+**Handing off to:** next session (surface/model unspecified).
+**Push state (verified 2026-07-15 via `git status` — last commit `65d4411`, "inventory: auto-sync
+2026-07-14"):** this session's changes are uncommitted on disk across THREE separate commit
+buttons — run them in any order, each stages only its own files:
+`COMMIT AGENT A1 WIRING.command` (`src/lib/studio-director.js`, `docs/DATA_OWNERSHIP_MAP.md`,
+`docs/AGENT_A1_BUILD_SPEC.md`), `COMMIT SALES HISTORY.command` (broker-export reconciliation), and
+`COMMIT ERP MONTHLY DATA.command` (this ERP PDF parse). `docs/BUILD_LOG.md` and this file are
+shared and get staged by whichever button runs last — that's fine, git dedupes. **Also sitting
+uncommitted/untracked from an EARLIER session and NOT part of that button** (separate workstream,
+don't bundle it in): `src/lib/images.js` + `src/components/tools/pricing-tool.jsx` (placeholder-
+thumbnail feature), `docs/MARKETING_IMAGE_REQUEST_2026-07-13.*`, `public/placeholders/`,
+`CLAUDE.md`, `src/archive/backup_2026-07-{09,10,14}_inventory_autosync/` — its own button
+(`COMMIT PLACEHOLDER IMAGES.command`) already exists and was simply never run.
 **Read first:** `CLAUDE_CODE_BRIEF.md` → this → `docs/BUILD_LOG.md` (top) →
-`docs/ONBOARDING_AND_AGENTS_SDD.md` + `docs/CONTENT_ENGINE_WIRING_SPEC.md`.
+`docs/AGENT_A1_BUILD_SPEC.md` → `docs/ONBOARDING_AND_AGENTS_SDD.md` + `docs/CONTENT_ENGINE_WIRING_SPEC.md`.
+
+## 🆕 ERP MONTHLY DATA (2021-2024) PARSED + VALIDATED — merge decision needed (2026-07-15)
+Parsed your 3 ERP PDFs (`2024.pdf`, `2023-2022.pdf`, `2022-2021.pdf`) into 346 clean item-year rows,
+double-validated (checksums to $0.00 diff against the PDF's own totals, AND 2022 independently
+agrees to the penny across both files that contain it). This data is genuinely **monthly** —
+`sales-history.json` from earlier today is annual-only, so this is the real unblock for
+`forecast-core.js`'s run-rate/YoY math, but only for 2021-2024. 2025 is still annual/YTD only.
+
+Cross-referenced item codes against `catalog.json`: 92.2% of $ resolved to a real active SKU. The
+one big miss (`20471 Urbani Aged Truffle Cheese`, $5.3K) is the same discontinued-label item you
+already told me maps to 20533 — applied. 29 smaller legacy codes (flights, old wedge SKUs, ~7.8% of
+$) are listed but NOT mapped — your call, not guessed.
+
+**On Tony's Fine Foods:** checked the 16 customers in this ERP data too — Tony's Fine Foods isn't
+in this dataset either. Same absence as the broker exports. Doesn't resolve the question, but rules
+out "it's just missing from one export" — worth asking Stefano whether Tony's books under a
+different name in the ERP, or whether their orders route through a different
+customer/broker code entirely.
+
+**Open decision, yours:** how to combine this monthly 2021-2024 data with the annual 2025
+`sales-history.json` — separate file per era, force both into `history.js`'s movement-ledger shape
+now, or wait. Not decided for you. Data staged at `src/data/montitrentini/source/
+erp_monthly_{raw,resolved}_2021-2024.json`. Ship via `COMMIT ERP MONTHLY DATA.command`.
+
+## ⚠️ SALES HISTORY RECONCILED — 2 flags need you/Stefano before forecasting trusts it (2026-07-15)
+Uploaded sales history (7 broker exports) reconciled to real SKUs — 99.4% of 2025 $ volume matched,
+5 items confirmed by you interactively. Built `src/data/montitrentini/sales-history.json` (39 SKUs,
+annual, lbs + case-equivalent, aggregate + per-customer). **Caught a bug before it did damage:**
+first pass matched against `items-seed.json` and put 52.7% of dollars (incl. the #1 item, $2.1M) on
+phantom SKU codes not in the real price list — rebuilt against `catalog.json`'s active SKUs only.
+
+**Two things flagged — one likely a non-issue on closer look, one still open:**
+1. SKU 20150 (Caciotta Rustiga w/ Truffle, your #1 item) computes to ~44,000 cases sold in 2025 YTD
+   from real invoices vs. `inventory.json`'s note "average purchase TONY 55 per month" (~660/year).
+   **Likely explained, not a data conflict:** "Tony" isn't a company anywhere in the sales-history
+   export (Rick confirmed), and a second inventory.json comment lists Tony alongside real customer
+   names (`"Cowbell monthly plan 50x, average purchase TONY 10x, ACE Endico sometimes, Baldor
+   108x"`) — every other name there is a real account, so Tony reads as a person (a contact/rep),
+   not a company. If so, "55 per month" was always one person's typical order, never meant to equal
+   total company-wide demand — apples to oranges, not a contradiction. Worth a quick confirm with
+   Stefano/whoever wrote those comments, then this can be dropped as a non-issue.
+2. `forecast-core.js` needs monthly data (`runRate`/`yoyGrowth`); this sales history is annual only
+   (2024 total, 2025 YTD). Did **not** force it into `history.js`'s monthly movement-ledger shape —
+   that would silently corrupt the existing run-rate math. Staged as its own file instead. Needs a
+   decision: synthetic monthly split (flagged as estimated), wait for real monthly data from
+   Stefano, or extend forecast-core to accept an annual fallback tier.
+
+Ship via `COMMIT SALES HISTORY.command`.
+
+## ✅ AGENT A1 WIRING FIX + SPEC — first Content Engine agent confirmed shipped (2026-07-15)
+Rick asked to solidify inter-app wiring and ship the first Content Engine agent (A1) before any UI
+work. Wrote `docs/AGENT_A1_BUILD_SPEC.md` (Parts A–E) and worked Part A.
+
+**Caught and reversed before shipping:** the plan was to reroute Studio Director's images from
+`media.js` to `images.js`. Reading both files showed `listAssets()` (`media.js`) IS the Media Hub;
+`images.js` is a narrower static per-SKU manifest that can't do tag/approval scoring. **Did not
+make that change** — would have broken image selection.
+
+**What actually shipped:** `studio-director.js`'s `pickProducts()` now sources product-range slide
+names from the canonical `items.js` record (Media Hub) instead of `catalog.json`'s own `name`
+field, with catalog.json as fallback only for SKUs not yet in the items doc. Dead third image path
+in the same function removed. `docs/DATA_OWNERSHIP_MAP.md` corrected — it still said product copy
+must not live in Media Hub, contradicting the 2026-07-03 decision already live in code.
+
+**Bonus finding:** the "Auto-compose" UI trigger that `CONTENT_ENGINE_WIRING_SPEC.md` §4 lists as
+missing already exists in `slide-studio.jsx` — **A1 is functionally shipped**, running end-to-end
+on the now-correct data. That wiring-spec gap-list entry is stale and worth a quick correction pass
+of its own sometime.
+
+**Open, discussed, not built:**
+1. `images.json` (the canonical image manifest) only refreshes via manual `npm run sync:images` +
+   redeploy — no webhook, no cron, and `VITE_IMAGES_BACKEND` is unset everywhere so the "live"
+   code path is dead. Real staleness risk: Media Hub shows a new/re-tagged photo immediately,
+   Catalog/Proposals/Pricing show the old manifest until someone remembers to resync + redeploy.
+   Two options on the table, your call: (a) Cloudinary webhook → auto-resync Netlify function, or
+   (b) a lighter "manifest last synced: X" indicator in house admin so staleness is at least
+   visible. Neither built yet.
+2. Stage 2 (AI pass) still blocked on **your** Anthropic pay-as-you-go billing + spend cap
+   (separate from your Claude subscription) — sitting parked since 2026-07-02, you confirmed you
+   want it in scope, not deferred.
+3. Part D (new CST platform visual direction) and Part E (post-sale CRM pipeline stages —
+   PO Received/Processing/Shipped real, Billed/Collected inert placeholders, behind an off-by-
+   default flag) are both spec'd in `AGENT_A1_BUILD_SPEC.md`, explicitly deprioritized behind this
+   work per your instruction, not started.
+
+**Ship via `COMMIT AGENT A1 WIRING.command`** (new, this session).
 
 ## 🔎 LOGIN DIAGNOSIS — "can't reach Media Hub / Content Engine as House admin" (2026-07-13)
 Not a bug. Site is in passcode mode (`VITE_AUTH_MODE=passcode`). Both Media Hub and Content

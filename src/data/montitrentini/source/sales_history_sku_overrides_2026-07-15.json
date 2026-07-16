@@ -1,0 +1,32 @@
+{
+  "PIAVE VECCHIO PDO > 12 MONTHS": {
+    "sku": "03003",
+    "name": "Asiago Vecchio DOP",
+    "pack": "Whole Wheel, 16-18 lbs",
+    "note": "Rick, 2026-07-15: confirmed Asiago Vecchio, not Piave; whole wheel pack."
+  },
+  "CHEESE FIORETTO AGED": {
+    "sku": "20533",
+    "name": "Fioretto Stagionato with Truffle",
+    "pack": "Whole Wheels vacuum packed - 4,4 lb",
+    "note": "Rick, 2026-07-15: confirmed."
+  },
+  "CACIOTTA RUSTEGA WITH TRUFFLE  6 LB": {
+    "sku": "20150",
+    "name": "Caciotta Rustiga with Truffle",
+    "pack": "TRUFFLE  (with black truffle)  6 lb",
+    "note": "Rick, 2026-07-15: confirmed SKU + display name (catalog.json currently lists this product generically as \"Caciotta (Basket Rind)\")."
+  },
+  "URBANI AGED TRUFFLE CHEESE": {
+    "sku": "20533",
+    "name": "Fioretto Stagionato with Truffle",
+    "pack": "Whole Wheels vacuum packed - 4,4 lb",
+    "note": "Rick, 2026-07-15: Urbani co-brand collaboration, now discontinued under that label \u2014 same underlying cheese as Fioretto Stagionato with Truffle (20533). Roll into 20533 for forecasting; do not expect future volume under the Urbani label specifically."
+  },
+  "AGED TRUFFLE CHEESE": {
+    "sku": "20533",
+    "name": "Fioretto Stagionato with Truffle",
+    "pack": "Whole Wheels vacuum packed - 4,4 lb",
+    "note": "Rick, 2026-07-15: confirmed."
+  }
+}

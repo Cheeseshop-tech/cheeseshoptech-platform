@@ -1,0 +1,1234 @@
+{
+  "schemaVersion": "1.0-annual",
+  "clientId": "monti-trentini",
+  "source": "7 broker/customer ERP exports (Tot Cowbell/Customers/Gordon/Richard Customers/Selected/Tama/Trader Joe's, 2025-24), reconciled to catalog.json SKUs",
+  "generatedAt": "2026-07-15",
+  "granularity": "ANNUAL \u2014 NOT monthly. 2024 = full year. 2025 = YTD through 2025-10-15 (288 days), annualized figure also provided (x365/288) for run-rate comparison. forecast-core.js's runRate()/yoyGrowth() require monthly periods and CANNOT consume this file as-is \u2014 see handoff note.",
+  "unmatchedUsd2025Excluded": 28212.78,
+  "skus": {
+    "20724": {
+      "qty2024_lb": 483.0,
+      "qty2025_ytd_lb": 2438.3,
+      "qty2025_annualized_lb": 3090.2,
+      "cases2024": 37.2,
+      "cases2025_ytd": 187.6,
+      "cases2025_annualized": 237.8,
+      "lbPerCase": 13.0,
+      "usd2024": 3846.86,
+      "usd2025_ytd": 20314.2,
+      "usd2025_annualized": 25745.43,
+      "byCustomer": {
+        "COW BELL LLC": {
+          "qty2024_lb": 212.01,
+          "qty2025_lb": 122.34,
+          "usd2024": 1559.45,
+          "usd2025_ytd": 944.53
+        },
+        "ACE ENDICO": {
+          "qty2024_lb": 0.0,
+          "qty2025_lb": 195.05,
+          "usd2024": 0.0,
+          "usd2025_ytd": 1469.53
+        },
+        "MUSCO": {
+          "qty2024_lb": 271.02,
+          "qty2025_lb": 2089.19,
+          "usd2024": 2287.41,
+          "usd2025_ytd": 17632.76
+        },
+        "SAVORY CHEESE": {
+          "qty2024_lb": 0.0,
+          "qty2025_lb": 31.68,
+          "usd2024": 0.0,
+          "usd2025_ytd": 267.38
+        }
+      }
+    },
+    "20464": {
+      "qty2024_lb": 1055.6,
+      "qty2025_ytd_lb": 347.0,
+      "qty2025_annualized_lb": 439.8,
+      "cases2024": 58.6,
+      "cases2025_ytd": 19.3,
+      "cases2025_annualized": 24.5,
+      "lbPerCase": 18.0,
+      "usd2024": 9929.17,
+      "usd2025_ytd": 3485.67,
+      "usd2025_annualized": 4417.6,
+      "byCustomer": {
+        "COW BELL LLC": {
+          "qty2024_lb": 865.46,
+          "qty2025_lb": 347.02,
+          "usd2024": 8146.08,
+          "usd2025_ytd": 3485.67
+        },
+        "ALTOMONTE": {
+          "qty2024_lb": 190.17,
+          "qty2025_lb": 0.0,
+          "usd2024": 1783.09,
+          "usd2025_ytd": 0.0
+        }
+      }
+    },
+    "02073": {
+      "qty2024_lb": 2267.9,
+      "qty2025_ytd_lb": 3454.0,
+      "qty2025_annualized_lb": 4377.5,
+      "cases2024": 151.2,
+      "cases2025_ytd": 230.3,
+      "cases2025_annualized": 291.9,
+      "lbPerCase": 15.0,
+      "usd2024": 12813.37,
+      "usd2025_ytd": 20568.67,
+      "usd2025_annualized": 26067.93,
+      "byCustomer": {
+        "COW BELL LLC": {
+          "qty2024_lb": 1349.71,
+          "qty2025_lb": 2781.19,
+          "usd2024": 7584.66,
+          "usd2025_ytd": 16565.9
+        },
+        "TAMA TRADING COMPANY, INC": {
+          "qty2024_lb": 111.42,
+          "qty2025_lb": 0.0,
+          "usd2024": 646.24,
+          "usd2025_ytd": 0.0
+        },
+        "SELECTED FOOD & BEVERAGE": {
+          "qty2024_lb": 775.61,
+          "qty2025_lb": 494.01,
+          "usd2024": 4407.44,
+          "usd2025_ytd": 2903.21
+        },
+        "ACE ENDICO": {
+          "qty2024_lb": 0.0,
+          "qty2025_lb": 178.79,
+          "usd2024": 0.0,
+          "usd2025_ytd": 1099.56
+        },
+        "ALTOMONTE": {
+          "qty2024_lb": 31.2,
+          "qty2025_lb": 0.0,
+          "usd2024": 175.03,
+          "usd2025_ytd": 0.0
+        }
+      }
+    },
+    "02005": {
+      "qty2024_lb": 4047.1,
+      "qty2025_ytd_lb": 3251.9,
+      "qty2025_annualized_lb": 4121.4,
+      "cases2024": 134.9,
+      "cases2025_ytd": 108.4,
+      "cases2025_annualized": 137.4,
+      "lbPerCase": 30.0,
+      "usd2024": 21281.43,
+      "usd2025_ytd": 18319.76,
+      "usd2025_annualized": 23217.75,
+      "byCustomer": {
+        "COW BELL LLC": {
+          "qty2024_lb": 119.69,
+          "qty2025_lb": 632.63,
+          "usd2024": 652.31,
+          "usd2025_ytd": 3548.61
+        },
+        "ALMA GOURMET": {
+          "qty2024_lb": 3927.41,
+          "qty2025_lb": 2590.65,
+          "usd2024": 20629.12,
+          "usd2025_ytd": 14617.25
+        },
+        "SAVORY CHEESE": {
+          "qty2024_lb": 0.0,
+          "qty2025_lb": 28.66,
+          "usd2024": 0.0,
+          "usd2025_ytd": 153.9
+        }
+      }
+    },
+    "20569": {
+      "qty2024_lb": 22174.5,
+      "qty2025_ytd_lb": 3434.1,
+      "qty2025_annualized_lb": 4352.2,
+      "cases2024": 1108.7,
+      "cases2025_ytd": 171.7,
+      "cases2025_annualized": 217.6,
+      "lbPerCase": 20,
+      "usd2024": 119187.3,
+      "usd2025_ytd": 20837.64,
+      "usd2025_annualized": 26408.81,
+      "byCustomer": {
+        "COW BELL LLC": {
+          "qty2024_lb": 0.0,
+          "qty2025_lb": 3230.79,
+          "usd2024": 0.0,
+          "usd2025_ytd": 19743.99
+        },
+        "SELECTED FOOD & BEVERAGE": {
+          "qty2024_lb": 22174.54,
+          "qty2025_lb": 0.0,
+          "usd2024": 119187.3,
+          "usd2025_ytd": 0.0
+        },
+        "ACE ENDICO": {
+          "qty2024_lb": 0.0,
+          "qty2025_lb": 203.28,
+          "usd2024": 0.0,
+          "usd2025_ytd": 1093.65
+        }
+      }
+    },
+    "20228": {
+      "qty2024_lb": 1458.9,
+      "qty2025_ytd_lb": 44601.9,
+      "qty2025_annualized_lb": 56526.7,
+      "cases2024": 243.2,
+      "cases2025_ytd": 7433.7,
+      "cases2025_annualized": 9421.2,
+      "lbPerCase": 6.0,
+      "usd2024": 8675.82,
+      "usd2025_ytd": 267152.4,
+      "usd2025_annualized": 338578.56,
+      "byCustomer": {
+        "COW BELL LLC": {
+          "qty2024_lb": 364.61,
+          "qty2025_lb": 453.89,
+          "usd2024": 2157.7,
+          "usd2025_ytd": 2858.48
+        },
+        "TRADER JOE'S COMPANY": {
+          "qty2024_lb": 0.0,
+          "qty2025_lb": 42583.21,
+          "usd2024": 0.0,
+          "usd2025_ytd": 254574.53
+        },
+        "ALMA GOURMET": {
+          "qty2024_lb": 8.97,
+          "qty2025_lb": 0.0,
+          "usd2024": 52.92,
+          "usd2025_ytd": 0.0
+        },
+        "GFI": {
+          "qty2024_lb": 1085.32,
+          "qty2025_lb": 1564.8,
+          "usd2024": 6465.2,
+          "usd2025_ytd": 9719.39
+        }
+      }
+    },
+    "20150": {
+      "qty2024_lb": 430390.6,
+      "qty2025_ytd_lb": 264236.8,
+      "qty2025_annualized_lb": 334883.4,
+      "cases2024": 71731.8,
+      "cases2025_ytd": 44039.5,
+      "cases2025_annualized": 55813.9,
+      "lbPerCase": 6.0,
+      "usd2024": 3434062.26,
+      "usd2025_ytd": 2120429.3,
+      "usd2025_annualized": 2687349.63,
+      "byCustomer": {
+        "COW BELL LLC": {
+          "qty2024_lb": 599.77,
+          "qty2025_lb": 340.22,
+          "usd2024": 4389.88,
+          "usd2025_ytd": 2673.53
+        },
+        "TAMA TRADING COMPANY, INC": {
+          "qty2024_lb": 572.5,
+          "qty2025_lb": 373.61,
+          "usd2024": 4551.38,
+          "usd2025_ytd": 2977.84
+        },
+        "TRADER JOE'S COMPANY": {
+          "qty2024_lb": 429218.35,
+          "qty2025_lb": 263522.93,
+          "usd2024": 3425121.0,
+          "usd2025_ytd": 2114777.93
+        }
+      }
+    },
+    "20567": {
+      "qty2024_lb": 164.6,
+      "qty2025_ytd_lb": 42.2,
+      "qty2025_annualized_lb": 53.5,
+      "cases2024": 37.4,
+      "cases2025_ytd": 9.6,
+      "cases2025_annualized": 12.2,
+      "lbPerCase": 4.4,
+      "usd2024": 1996.32,
+      "usd2025_ytd": 676.42,
+      "usd2025_annualized": 857.27,
+      "byCustomer": {
+        "COW BELL LLC": {
+          "qty2024_lb": 111.61,
+          "qty2025_lb": 42.25,
+          "usd2024": 1786.88,
+          "usd2025_ytd": 676.42
+        },
+        "SELECTED FOOD & BEVERAGE": {
+          "qty2024_lb": 13.09,
+          "qty2025_lb": 0.0,
+          "usd2024": 209.44,
+          "usd2025_ytd": 0.0
+        },
+        "SAVORY CHEESE": {
+          "qty2024_lb": 39.9,
+          "qty2025_lb": 0.0,
+          "usd2024": 0.0,
+          "usd2025_ytd": 0.0
+        }
+      }
+    },
+    "20533": {
+      "qty2024_lb": 3955.4,
+      "qty2025_ytd_lb": 3068.6,
+      "qty2025_annualized_lb": 3889.1,
+      "cases2024": 898.9,
+      "cases2025_ytd": 697.4,
+      "cases2025_annualized": 883.9,
+      "lbPerCase": 4.4,
+      "usd2024": 33449.31,
+      "usd2025_ytd": 26593.73,
+      "usd2025_annualized": 33703.86,
+      "byCustomer": {
+        "COW BELL LLC": {
+          "qty2024_lb": 0.0,
+          "qty2025_lb": 5.21,
+          "usd2024": 0.0,
+          "usd2025_ytd": 16.05
+        },
+        "TAMA TRADING COMPANY, INC": {
+          "qty2024_lb": 0.0,
+          "qty2025_lb": 25.93,
+          "usd2024": 0.0,
+          "usd2025_ytd": 83.75
+        },
+        "SELECTED FOOD & BEVERAGE": {
+          "qty2024_lb": 568.15,
+          "qty2025_lb": 453.68,
+          "usd2024": 4595.31,
+          "usd2025_ytd": 3982.85
+        },
+        "ALMA GOURMET": {
+          "qty2024_lb": 235.95,
+          "qty2025_lb": 0.0,
+          "usd2024": 1882.92,
+          "usd2025_ytd": 0.0
+        },
+        "BALDOR": {
+          "qty2024_lb": 2001.87,
+          "qty2025_lb": 1467.45,
+          "usd2024": 16662.16,
+          "usd2025_ytd": 12209.17
+        },
+        "GFI": {
+          "qty2024_lb": 1135.56,
+          "qty2025_lb": 1015.96,
+          "usd2024": 10193.85,
+          "usd2025_ytd": 9528.53
+        },
+        "SAVORY CHEESE": {
+          "qty2024_lb": 13.83,
+          "qty2025_lb": 100.42,
+          "usd2024": 115.07,
+          "usd2025_ytd": 773.38
+        }
+      }
+    },
+    "05411": {
+      "qty2024_lb": 8213.0,
+      "qty2025_ytd_lb": 10216.7,
+      "qty2025_annualized_lb": 12948.2,
+      "cases2024": 114.1,
+      "cases2025_ytd": 141.9,
+      "cases2025_annualized": 179.8,
+      "lbPerCase": 72.0,
+      "usd2024": 60293.1,
+      "usd2025_ytd": 91192.66,
+      "usd2025_annualized": 115574.03,
+      "byCustomer": {
+        "COW BELL LLC": {
+          "qty2024_lb": 7329.17,
+          "qty2025_lb": 8736.65,
+          "usd2024": 53900.16,
+          "usd2025_ytd": 76096.56
+        },
+        "SELECTED FOOD & BEVERAGE": {
+          "qty2024_lb": 492.89,
+          "qty2025_lb": 1480.01,
+          "usd2024": 3664.18,
+          "usd2025_ytd": 15096.1
+        },
+        "ALTOMONTE": {
+          "qty2024_lb": 390.94,
+          "qty2025_lb": 0.0,
+          "usd2024": 2728.76,
+          "usd2025_ytd": 0.0
+        }
+      }
+    },
+    "05095": {
+      "qty2024_lb": 8621.9,
+      "qty2025_ytd_lb": 11814.2,
+      "qty2025_annualized_lb": 14972.8,
+      "cases2024": 119.7,
+      "cases2025_ytd": 164.1,
+      "cases2025_annualized": 208.0,
+      "lbPerCase": 72.0,
+      "usd2024": 55997.87,
+      "usd2025_ytd": 86664.93,
+      "usd2025_annualized": 109835.76,
+      "byCustomer": {
+        "COW BELL LLC": {
+          "qty2024_lb": 839.17,
+          "qty2025_lb": 87.65,
+          "usd2024": 5916.15,
+          "usd2025_ytd": 689.81
+        },
+        "SELECTED FOOD & BEVERAGE": {
+          "qty2024_lb": 7186.38,
+          "qty2025_lb": 6029.48,
+          "usd2024": 46252.95,
+          "usd2025_ytd": 43063.07
+        },
+        "ACE ENDICO": {
+          "qty2024_lb": 0.0,
+          "qty2025_lb": 5090.59,
+          "usd2024": 0.0,
+          "usd2025_ytd": 38363.6
+        },
+        "ALTOMONTE": {
+          "qty2024_lb": 165.65,
+          "qty2025_lb": 0.0,
+          "usd2024": 1098.26,
+          "usd2025_ytd": 0.0
+        },
+        "SAVORY CHEESE": {
+          "qty2024_lb": 430.68,
+          "qty2025_lb": 606.46,
+          "usd2024": 2730.51,
+          "usd2025_ytd": 4548.45
+        }
+      }
+    },
+    "04145": {
+      "qty2024_lb": 28.6,
+      "qty2025_ytd_lb": 15.5,
+      "qty2025_annualized_lb": 19.7,
+      "cases2024": 4.1,
+      "cases2025_ytd": 2.2,
+      "cases2025_annualized": 2.8,
+      "lbPerCase": 7.0,
+      "usd2024": 184.56,
+      "usd2025_ytd": 98.83,
+      "usd2025_annualized": 125.25,
+      "byCustomer": {
+        "COW BELL LLC": {
+          "qty2024_lb": 0.0,
+          "qty2025_lb": 15.54,
+          "usd2024": 0.0,
+          "usd2025_ytd": 98.83
+        },
+        "ALTOMONTE": {
+          "qty2024_lb": 28.57,
+          "qty2025_lb": 0.0,
+          "usd2024": 184.56,
+          "usd2025_ytd": 0.0
+        }
+      }
+    },
+    "04154": {
+      "qty2024_lb": 41403.2,
+      "qty2025_ytd_lb": 332.0,
+      "qty2025_annualized_lb": 420.7,
+      "cases2024": 1380.1,
+      "cases2025_ytd": 11.1,
+      "cases2025_annualized": 14.1,
+      "lbPerCase": 30.0,
+      "usd2024": 231864.15,
+      "usd2025_ytd": 1366.85,
+      "usd2025_annualized": 1732.29,
+      "byCustomer": {
+        "COW BELL LLC": {
+          "qty2024_lb": 301.87,
+          "qty2025_lb": 195.14,
+          "usd2024": 1829.34,
+          "usd2025_ytd": 935.87
+        },
+        "TRADER JOE'S COMPANY": {
+          "qty2024_lb": 40936.71,
+          "qty2025_lb": 0.0,
+          "usd2024": 229037.4,
+          "usd2025_ytd": 0.0
+        },
+        "BALDOR": {
+          "qty2024_lb": 136.73,
+          "qty2025_lb": 0.0,
+          "usd2024": 828.58,
+          "usd2025_ytd": 0.0
+        },
+        "SAVORY CHEESE": {
+          "qty2024_lb": 27.86,
+          "qty2025_lb": 136.82,
+          "usd2024": 168.83,
+          "usd2025_ytd": 430.98
+        }
+      }
+    },
+    "40020": {
+      "qty2024_lb": 3124.0,
+      "qty2025_ytd_lb": 1931.1,
+      "qty2025_annualized_lb": 2447.4,
+      "cases2024": 240.3,
+      "cases2025_ytd": 148.5,
+      "cases2025_annualized": 188.2,
+      "lbPerCase": 13.0,
+      "usd2024": 20862.07,
+      "usd2025_ytd": 13490.64,
+      "usd2025_annualized": 17097.51,
+      "byCustomer": {
+        "COW BELL LLC": {
+          "qty2024_lb": 96.73,
+          "qty2025_lb": 68.7,
+          "usd2024": 659.7,
+          "usd2025_ytd": 468.54
+        },
+        "SELECTED FOOD & BEVERAGE": {
+          "qty2024_lb": 269.94,
+          "qty2025_lb": 189.06,
+          "usd2024": 1761.03,
+          "usd2025_ytd": 1347.18
+        },
+        "ALMA GOURMET": {
+          "qty2024_lb": 2757.31,
+          "qty2025_lb": 1673.32,
+          "usd2024": 18441.34,
+          "usd2025_ytd": 11674.92
+        }
+      }
+    },
+    "02302": {
+      "qty2024_lb": 3584.2,
+      "qty2025_ytd_lb": 2580.1,
+      "qty2025_annualized_lb": 3270.0,
+      "cases2024": 128.0,
+      "cases2025_ytd": 92.1,
+      "cases2025_annualized": 116.7,
+      "lbPerCase": 28.0,
+      "usd2024": 21388.33,
+      "usd2025_ytd": 15494.43,
+      "usd2025_annualized": 19637.04,
+      "byCustomer": {
+        "COW BELL LLC": {
+          "qty2024_lb": 141.88,
+          "qty2025_lb": 580.3,
+          "usd2024": 769.61,
+          "usd2025_ytd": 2971.46
+        },
+        "ALMA GOURMET": {
+          "qty2024_lb": 230.65,
+          "qty2025_lb": 206.22,
+          "usd2024": 1217.83,
+          "usd2025_ytd": 1245.57
+        },
+        "ALTOMONTE": {
+          "qty2024_lb": 147.52,
+          "qty2025_lb": 0.0,
+          "usd2024": 830.54,
+          "usd2025_ytd": 0.0
+        },
+        "GFI": {
+          "qty2024_lb": 3034.77,
+          "qty2025_lb": 1793.62,
+          "usd2024": 18404.77,
+          "usd2025_ytd": 11277.4
+        },
+        "SAVORY CHEESE": {
+          "qty2024_lb": 29.41,
+          "qty2025_lb": 0.0,
+          "usd2024": 165.58,
+          "usd2025_ytd": 0.0
+        }
+      }
+    },
+    "05033": {
+      "qty2024_lb": 5901.9,
+      "qty2025_ytd_lb": 7322.3,
+      "qty2025_annualized_lb": 9280.0,
+      "cases2024": 82.0,
+      "cases2025_ytd": 101.7,
+      "cases2025_annualized": 128.9,
+      "lbPerCase": 72.0,
+      "usd2024": 44645.59,
+      "usd2025_ytd": 67524.01,
+      "usd2025_annualized": 85577.3,
+      "byCustomer": {
+        "COW BELL LLC": {
+          "qty2024_lb": 0.0,
+          "qty2025_lb": 600.05,
+          "usd2024": 0.0,
+          "usd2025_ytd": 7128.05
+        },
+        "SELECTED FOOD & BEVERAGE": {
+          "qty2024_lb": 4531.76,
+          "qty2025_lb": 5652.02,
+          "usd2024": 34259.93,
+          "usd2025_ytd": 50774.59
+        },
+        "SAVORY CHEESE": {
+          "qty2024_lb": 1370.14,
+          "qty2025_lb": 1070.23,
+          "usd2024": 10385.66,
+          "usd2025_ytd": 9621.37
+        }
+      }
+    },
+    "40103": {
+      "qty2024_lb": 18452.3,
+      "qty2025_ytd_lb": 13689.9,
+      "qty2025_annualized_lb": 17350.1,
+      "cases2024": 318.1,
+      "cases2025_ytd": 236.0,
+      "cases2025_annualized": 299.1,
+      "lbPerCase": 58.0,
+      "usd2024": 128904.63,
+      "usd2025_ytd": 96702.34,
+      "usd2025_annualized": 122556.79,
+      "byCustomer": {
+        "COW BELL LLC": {
+          "qty2024_lb": 4969.15,
+          "qty2025_lb": 2762.39,
+          "usd2024": 35903.7,
+          "usd2025_ytd": 19366.76
+        },
+        "TAMA TRADING COMPANY, INC": {
+          "qty2024_lb": 12307.63,
+          "qty2025_lb": 10634.74,
+          "usd2024": 84770.44,
+          "usd2025_ytd": 75285.98
+        },
+        "SELECTED FOOD & BEVERAGE": {
+          "qty2024_lb": 44.92,
+          "qty2025_lb": 0.0,
+          "usd2024": 314.17,
+          "usd2025_ytd": 0.0
+        },
+        "ALTOMONTE": {
+          "qty2024_lb": 1116.73,
+          "qty2025_lb": 0.0,
+          "usd2024": 7872.95,
+          "usd2025_ytd": 0.0
+        },
+        "SAVORY CHEESE": {
+          "qty2024_lb": 13.83,
+          "qty2025_lb": 292.8,
+          "usd2024": 43.37,
+          "usd2025_ytd": 2049.6
+        }
+      }
+    },
+    "40104": {
+      "qty2024_lb": 16779.3,
+      "qty2025_ytd_lb": 19606.8,
+      "qty2025_annualized_lb": 24848.9,
+      "cases2024": 289.3,
+      "cases2025_ytd": 338.0,
+      "cases2025_annualized": 428.4,
+      "lbPerCase": 58.0,
+      "usd2024": 124287.57,
+      "usd2025_ytd": 145341.91,
+      "usd2025_annualized": 184200.68,
+      "byCustomer": {
+        "COW BELL LLC": {
+          "qty2024_lb": 3006.43,
+          "qty2025_lb": 4770.04,
+          "usd2024": 22448.75,
+          "usd2025_ytd": 35924.72
+        },
+        "TAMA TRADING COMPANY, INC": {
+          "qty2024_lb": 0.0,
+          "qty2025_lb": 5583.48,
+          "usd2024": 0.0,
+          "usd2025_ytd": 39363.54
+        },
+        "SELECTED FOOD & BEVERAGE": {
+          "qty2024_lb": 13772.83,
+          "qty2025_lb": 9253.32,
+          "usd2024": 101838.82,
+          "usd2025_ytd": 70053.65
+        }
+      }
+    },
+    "01032": {
+      "qty2024_lb": 162.3,
+      "qty2025_ytd_lb": 216.9,
+      "qty2025_annualized_lb": 274.9,
+      "cases2024": 8.1,
+      "cases2025_ytd": 10.8,
+      "cases2025_annualized": 13.7,
+      "lbPerCase": 20.0,
+      "usd2024": 996.77,
+      "usd2025_ytd": 987.51,
+      "usd2025_annualized": 1251.53,
+      "byCustomer": {
+        "COW BELL LLC": {
+          "qty2024_lb": 0.0,
+          "qty2025_lb": 216.91,
+          "usd2024": 0.0,
+          "usd2025_ytd": 987.51
+        },
+        "ALTOMONTE": {
+          "qty2024_lb": 162.34,
+          "qty2025_lb": 0.0,
+          "usd2024": 996.77,
+          "usd2025_ytd": 0.0
+        }
+      }
+    },
+    "20584": {
+      "qty2024_lb": 255.3,
+      "qty2025_ytd_lb": 215.9,
+      "qty2025_annualized_lb": 273.6,
+      "cases2024": 14.2,
+      "cases2025_ytd": 12.0,
+      "cases2025_annualized": 15.2,
+      "lbPerCase": 18.0,
+      "usd2024": 2132.08,
+      "usd2025_ytd": 2150.87,
+      "usd2025_annualized": 2725.93,
+      "byCustomer": {
+        "COW BELL LLC": {
+          "qty2024_lb": 233.27,
+          "qty2025_lb": 215.92,
+          "usd2024": 1947.8,
+          "usd2025_ytd": 2150.87
+        },
+        "SAVORY CHEESE": {
+          "qty2024_lb": 22.07,
+          "qty2025_lb": 0.0,
+          "usd2024": 184.28,
+          "usd2025_ytd": 0.0
+        }
+      }
+    },
+    "04181": {
+      "qty2024_lb": 3826.3,
+      "qty2025_ytd_lb": 598.8,
+      "qty2025_annualized_lb": 758.9,
+      "cases2024": 225.1,
+      "cases2025_ytd": 35.2,
+      "cases2025_annualized": 44.6,
+      "lbPerCase": 17.0,
+      "usd2024": 29195.23,
+      "usd2025_ytd": 4669.66,
+      "usd2025_annualized": 5918.15,
+      "byCustomer": {
+        "COW BELL LLC": {
+          "qty2024_lb": 215.53,
+          "qty2025_lb": 245.93,
+          "usd2024": 1566.9,
+          "usd2025_ytd": 1889.75
+        },
+        "SELECTED FOOD & BEVERAGE": {
+          "qty2024_lb": 484.73,
+          "qty2025_lb": 0.0,
+          "usd2024": 3523.99,
+          "usd2025_ytd": 0.0
+        },
+        "ALMA GOURMET": {
+          "qty2024_lb": 0.0,
+          "qty2025_lb": 66.53,
+          "usd2024": 0.0,
+          "usd2025_ytd": 526.25
+        },
+        "BALDOR": {
+          "qty2024_lb": 413.12,
+          "qty2025_lb": 21.52,
+          "usd2024": 3003.38,
+          "usd2025_ytd": 156.45
+        },
+        "GFI": {
+          "qty2024_lb": 2712.92,
+          "qty2025_lb": 264.8,
+          "usd2024": 21100.96,
+          "usd2025_ytd": 2097.21
+        }
+      }
+    },
+    "05018": {
+      "qty2024_lb": 56088.2,
+      "qty2025_ytd_lb": 95420.0,
+      "qty2025_annualized_lb": 120931.5,
+      "cases2024": 3116.0,
+      "cases2025_ytd": 5301.1,
+      "cases2025_annualized": 6718.4,
+      "lbPerCase": 18.0,
+      "usd2024": 365186.15,
+      "usd2025_ytd": 728801.6,
+      "usd2025_annualized": 923654.81,
+      "byCustomer": {
+        "GORDON FOOD SERVICE HQ": {
+          "qty2024_lb": 0.0,
+          "qty2025_lb": 43581.76,
+          "usd2024": 0.0,
+          "usd2025_ytd": 336732.21
+        },
+        "TAMA TRADING COMPANY, INC": {
+          "qty2024_lb": 33473.19,
+          "qty2025_lb": 24551.59,
+          "usd2024": 215807.97,
+          "usd2025_ytd": 186261.05
+        },
+        "SELECTED FOOD & BEVERAGE": {
+          "qty2024_lb": 21848.17,
+          "qty2025_lb": 27286.6,
+          "usd2024": 144473.11,
+          "usd2025_ytd": 205808.34
+        },
+        "ALTOMONTE": {
+          "qty2024_lb": 766.88,
+          "qty2025_lb": 0.0,
+          "usd2024": 4905.07,
+          "usd2025_ytd": 0.0
+        }
+      }
+    },
+    "05025": {
+      "qty2024_lb": 26013.0,
+      "qty2025_ytd_lb": 22199.2,
+      "qty2025_annualized_lb": 28134.4,
+      "cases2024": 1445.2,
+      "cases2025_ytd": 1233.3,
+      "cases2025_annualized": 1563.0,
+      "lbPerCase": 18.0,
+      "usd2024": 204471.67,
+      "usd2025_ytd": 208661.1,
+      "usd2025_annualized": 264448.96,
+      "byCustomer": {
+        "TAMA TRADING COMPANY, INC": {
+          "qty2024_lb": 10108.37,
+          "qty2025_lb": 11372.74,
+          "usd2024": 77348.55,
+          "usd2025_ytd": 109903.05
+        },
+        "SELECTED FOOD & BEVERAGE": {
+          "qty2024_lb": 15342.83,
+          "qty2025_lb": 10826.49,
+          "usd2024": 122662.43,
+          "usd2025_ytd": 98758.05
+        },
+        "ALTOMONTE": {
+          "qty2024_lb": 561.8,
+          "qty2025_lb": 0.0,
+          "usd2024": 4460.69,
+          "usd2025_ytd": 0.0
+        }
+      }
+    },
+    "04028": {
+      "qty2024_lb": 475.4,
+      "qty2025_ytd_lb": 478.1,
+      "qty2025_annualized_lb": 606.0,
+      "cases2024": 108.0,
+      "cases2025_ytd": 108.7,
+      "cases2025_annualized": 137.8,
+      "lbPerCase": 4.4,
+      "usd2024": 3461.48,
+      "usd2025_ytd": 3558.45,
+      "usd2025_annualized": 4509.84,
+      "byCustomer": {
+        "TAMA TRADING COMPANY, INC": {
+          "qty2024_lb": 399.92,
+          "qty2025_lb": 356.26,
+          "usd2024": 2979.42,
+          "usd2025_ytd": 2654.13
+        },
+        "ALMA GOURMET": {
+          "qty2024_lb": 46.99,
+          "qty2025_lb": 87.29,
+          "usd2024": 308.73,
+          "usd2025_ytd": 645.05
+        },
+        "SAVORY CHEESE": {
+          "qty2024_lb": 28.47,
+          "qty2025_lb": 34.57,
+          "usd2024": 173.33,
+          "usd2025_ytd": 259.27
+        }
+      }
+    },
+    "04046": {
+      "qty2024_lb": 95.7,
+      "qty2025_ytd_lb": 240.9,
+      "qty2025_annualized_lb": 305.3,
+      "cases2024": 21.8,
+      "cases2025_ytd": 54.7,
+      "cases2025_annualized": 69.3,
+      "lbPerCase": 4.4,
+      "usd2024": 725.21,
+      "usd2025_ytd": 1969.1,
+      "usd2025_annualized": 2495.56,
+      "byCustomer": {
+        "TAMA TRADING COMPANY, INC": {
+          "qty2024_lb": 0.0,
+          "qty2025_lb": 116.68,
+          "usd2024": 0.0,
+          "usd2025_ytd": 920.55
+        },
+        "SELECTED FOOD & BEVERAGE": {
+          "qty2024_lb": 70.03,
+          "qty2025_lb": 50.05,
+          "usd2024": 530.12,
+          "usd2025_ytd": 418.85
+        },
+        "ACE ENDICO": {
+          "qty2024_lb": 0.0,
+          "qty2025_lb": 74.17,
+          "usd2024": 0.0,
+          "usd2025_ytd": 629.7
+        },
+        "ALTOMONTE": {
+          "qty2024_lb": 25.67,
+          "qty2025_lb": 0.0,
+          "usd2024": 195.09,
+          "usd2025_ytd": 0.0
+        }
+      }
+    },
+    "20520": {
+      "qty2024_lb": 68.3,
+      "qty2025_ytd_lb": 77.1,
+      "qty2025_annualized_lb": 97.7,
+      "cases2024": 17.1,
+      "cases2025_ytd": 19.3,
+      "cases2025_annualized": 24.5,
+      "lbPerCase": 4.0,
+      "usd2024": 345.43,
+      "usd2025_ytd": 524.47,
+      "usd2025_annualized": 664.69,
+      "byCustomer": {
+        "TAMA TRADING COMPANY, INC": {
+          "qty2024_lb": 0.0,
+          "qty2025_lb": 67.67,
+          "usd2024": 0.0,
+          "usd2025_ytd": 467.01
+        },
+        "ALTOMONTE": {
+          "qty2024_lb": 45.56,
+          "qty2025_lb": 0.0,
+          "usd2024": 256.05,
+          "usd2025_ytd": 0.0
+        },
+        "SAVORY CHEESE": {
+          "qty2024_lb": 22.72,
+          "qty2025_lb": 9.42,
+          "usd2024": 89.38,
+          "usd2025_ytd": 57.46
+        }
+      }
+    },
+    "20519": {
+      "qty2024_lb": 484.2,
+      "qty2025_ytd_lb": 313.9,
+      "qty2025_annualized_lb": 397.8,
+      "cases2024": 121.1,
+      "cases2025_ytd": 78.5,
+      "cases2025_annualized": 99.5,
+      "lbPerCase": 4.0,
+      "usd2024": 2954.63,
+      "usd2025_ytd": 2054.36,
+      "usd2025_annualized": 2603.62,
+      "byCustomer": {
+        "TAMA TRADING COMPANY, INC": {
+          "qty2024_lb": 0.0,
+          "qty2025_lb": 31.69,
+          "usd2024": 0.0,
+          "usd2025_ytd": 204.08
+        },
+        "SELECTED FOOD & BEVERAGE": {
+          "qty2024_lb": 446.57,
+          "qty2025_lb": 276.32,
+          "usd2024": 2728.61,
+          "usd2025_ytd": 1813.48
+        },
+        "ALTOMONTE": {
+          "qty2024_lb": 37.67,
+          "qty2025_lb": 0.0,
+          "usd2024": 226.02,
+          "usd2025_ytd": 0.0
+        },
+        "SAVORY CHEESE": {
+          "qty2024_lb": 0.0,
+          "qty2025_lb": 5.85,
+          "usd2024": 0.0,
+          "usd2025_ytd": 36.8
+        }
+      }
+    },
+    "02091": {
+      "qty2024_lb": 5.2,
+      "qty2025_ytd_lb": 0.0,
+      "qty2025_annualized_lb": 0.0,
+      "cases2024": 1.0,
+      "cases2025_ytd": 0.0,
+      "cases2025_annualized": 0.0,
+      "lbPerCase": 5.25,
+      "usd2024": 0.0,
+      "usd2025_ytd": 0.0,
+      "usd2025_annualized": 0.0,
+      "byCustomer": {
+        "TAMA TRADING COMPANY, INC": {
+          "qty2024_lb": 5.25,
+          "qty2025_lb": 0.0,
+          "usd2024": 0.0,
+          "usd2025_ytd": 0.0
+        }
+      }
+    },
+    "03014": {
+      "qty2024_lb": 689.5,
+      "qty2025_ytd_lb": 324.3,
+      "qty2025_annualized_lb": 411.0,
+      "cases2024": 156.7,
+      "cases2025_ytd": 73.7,
+      "cases2025_annualized": 93.4,
+      "lbPerCase": 4.4,
+      "usd2024": 4835.38,
+      "usd2025_ytd": 2561.7,
+      "usd2025_annualized": 3246.6,
+      "byCustomer": {
+        "SELECTED FOOD & BEVERAGE": {
+          "qty2024_lb": 689.48,
+          "qty2025_lb": 252.26,
+          "usd2024": 4835.38,
+          "usd2025_ytd": 1964.74
+        },
+        "ACE ENDICO": {
+          "qty2024_lb": 0.0,
+          "qty2025_lb": 72.01,
+          "usd2024": 0.0,
+          "usd2025_ytd": 596.96
+        }
+      }
+    },
+    "20717": {
+      "qty2024_lb": 2287.9,
+      "qty2025_ytd_lb": 106495.5,
+      "qty2025_annualized_lb": 134968.3,
+      "cases2024": 190.7,
+      "cases2025_ytd": 8874.6,
+      "cases2025_annualized": 11247.3,
+      "lbPerCase": 12,
+      "usd2024": 11393.94,
+      "usd2025_ytd": 598805.88,
+      "usd2025_annualized": 758903.29,
+      "byCustomer": {
+        "SELECTED FOOD & BEVERAGE": {
+          "qty2024_lb": 2287.94,
+          "qty2025_lb": 106495.55,
+          "usd2024": 11393.94,
+          "usd2025_ytd": 598805.88
+        }
+      }
+    },
+    "20423": {
+      "qty2024_lb": 0.0,
+      "qty2025_ytd_lb": 242.9,
+      "qty2025_annualized_lb": 307.8,
+      "cases2024": 0.0,
+      "cases2025_ytd": 46.3,
+      "cases2025_annualized": 58.7,
+      "lbPerCase": 5.25,
+      "usd2024": 0.0,
+      "usd2025_ytd": 987.41,
+      "usd2025_annualized": 1251.41,
+      "byCustomer": {
+        "SELECTED FOOD & BEVERAGE": {
+          "qty2024_lb": 0.0,
+          "qty2025_lb": 242.88,
+          "usd2024": 0.0,
+          "usd2025_ytd": 987.41
+        }
+      }
+    },
+    "05012": {
+      "qty2024_lb": 3596.9,
+      "qty2025_ytd_lb": 2482.9,
+      "qty2025_annualized_lb": 3146.8,
+      "cases2024": 99.9,
+      "cases2025_ytd": 69.0,
+      "cases2025_annualized": 87.4,
+      "lbPerCase": 36.0,
+      "usd2024": 23984.04,
+      "usd2025_ytd": 19567.53,
+      "usd2025_annualized": 24799.13,
+      "byCustomer": {
+        "SELECTED FOOD & BEVERAGE": {
+          "qty2024_lb": 3596.88,
+          "qty2025_lb": 2482.92,
+          "usd2024": 23984.04,
+          "usd2025_ytd": 19567.53
+        }
+      }
+    },
+    "40174": {
+      "qty2024_lb": 688.0,
+      "qty2025_ytd_lb": 1407.1,
+      "qty2025_annualized_lb": 1783.3,
+      "cases2024": 57.3,
+      "cases2025_ytd": 117.3,
+      "cases2025_annualized": 148.7,
+      "lbPerCase": 12.0,
+      "usd2024": 5800.81,
+      "usd2025_ytd": 12651.98,
+      "usd2025_annualized": 16034.63,
+      "byCustomer": {
+        "SELECTED FOOD & BEVERAGE": {
+          "qty2024_lb": 688.04,
+          "qty2025_lb": 1407.13,
+          "usd2024": 5800.81,
+          "usd2025_ytd": 12651.98
+        }
+      }
+    },
+    "40107": {
+      "qty2024_lb": 68.4,
+      "qty2025_ytd_lb": 310.5,
+      "qty2025_annualized_lb": 393.5,
+      "cases2024": 5.3,
+      "cases2025_ytd": 23.9,
+      "cases2025_annualized": 30.3,
+      "lbPerCase": 13.0,
+      "usd2024": 473.73,
+      "usd2025_ytd": 2451.08,
+      "usd2025_annualized": 3106.4,
+      "byCustomer": {
+        "ACE ENDICO": {
+          "qty2024_lb": 0.0,
+          "qty2025_lb": 83.05,
+          "usd2024": 0.0,
+          "usd2025_ytd": 699.28
+        },
+        "ALMA GOURMET": {
+          "qty2024_lb": 0.0,
+          "qty2025_lb": 227.4,
+          "usd2024": 0.0,
+          "usd2025_ytd": 1751.8
+        },
+        "ALTOMONTE": {
+          "qty2024_lb": 68.36,
+          "qty2025_lb": 0.0,
+          "usd2024": 473.73,
+          "usd2025_ytd": 0.0
+        }
+      }
+    },
+    "03003": {
+      "qty2024_lb": 0.0,
+      "qty2025_ytd_lb": 166.6,
+      "qty2025_annualized_lb": 211.1,
+      "cases2024": 0.0,
+      "cases2025_ytd": 9.8,
+      "cases2025_annualized": 12.4,
+      "lbPerCase": 17.0,
+      "usd2024": 0.0,
+      "usd2025_ytd": 1650.61,
+      "usd2025_annualized": 2091.92,
+      "byCustomer": {
+        "ACE ENDICO": {
+          "qty2024_lb": 0.0,
+          "qty2025_lb": 166.56,
+          "usd2024": 0.0,
+          "usd2025_ytd": 1650.61
+        }
+      }
+    },
+    "20511": {
+      "qty2024_lb": 91.3,
+      "qty2025_ytd_lb": 11.1,
+      "qty2025_annualized_lb": 14.0,
+      "cases2024": 20.8,
+      "cases2025_ytd": 2.5,
+      "cases2025_annualized": 3.2,
+      "lbPerCase": 4.4,
+      "usd2024": 514.44,
+      "usd2025_ytd": 58.62,
+      "usd2025_annualized": 74.29,
+      "byCustomer": {
+        "ALMA GOURMET": {
+          "qty2024_lb": 68.26,
+          "qty2025_lb": 11.06,
+          "usd2024": 402.04,
+          "usd2025_ytd": 58.62
+        },
+        "SAVORY CHEESE": {
+          "qty2024_lb": 23.08,
+          "qty2025_lb": 0.0,
+          "usd2024": 112.4,
+          "usd2025_ytd": 0.0
+        }
+      }
+    },
+    "03044": {
+      "qty2024_lb": 99.6,
+      "qty2025_ytd_lb": 0.0,
+      "qty2025_annualized_lb": 0.0,
+      "cases2024": 19.0,
+      "cases2025_ytd": 0.0,
+      "cases2025_annualized": 0.0,
+      "lbPerCase": 5.25,
+      "usd2024": 679.14,
+      "usd2025_ytd": 0.0,
+      "usd2025_annualized": 0.0,
+      "byCustomer": {
+        "ALTOMONTE": {
+          "qty2024_lb": 99.58,
+          "qty2025_lb": 0.0,
+          "usd2024": 679.14,
+          "usd2025_ytd": 0.0
+        }
+      }
+    },
+    "20453": {
+      "qty2024_lb": 64.5,
+      "qty2025_ytd_lb": 0.0,
+      "qty2025_annualized_lb": 0.0,
+      "cases2024": 14.6,
+      "cases2025_ytd": 0.0,
+      "cases2025_annualized": 0.0,
+      "lbPerCase": 4.4,
+      "usd2024": 0.0,
+      "usd2025_ytd": 0.0,
+      "usd2025_annualized": 0.0,
+      "byCustomer": {
+        "SAVORY CHEESE": {
+          "qty2024_lb": 64.45,
+          "qty2025_lb": 0.0,
+          "usd2024": 0.0,
+          "usd2025_ytd": 0.0
+        }
+      }
+    },
+    "20438": {
+      "qty2024_lb": 44.0,
+      "qty2025_ytd_lb": 0.0,
+      "qty2025_annualized_lb": 0.0,
+      "cases2024": 3.1,
+      "cases2025_ytd": 0.0,
+      "cases2025_annualized": 0.0,
+      "lbPerCase": 14.0,
+      "usd2024": 256.4,
+      "usd2025_ytd": 0.0,
+      "usd2025_annualized": 0.0,
+      "byCustomer": {
+        "SAVORY CHEESE": {
+          "qty2024_lb": 43.98,
+          "qty2025_lb": 0.0,
+          "usd2024": 256.4,
+          "usd2025_ytd": 0.0
+        }
+      }
+    }
+  }
+}
