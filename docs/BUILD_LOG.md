@@ -8,6 +8,33 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-07-15 — Monthly forecast pipeline built + GATED; ERP monthly exposed as a <1% slice
+
+**Decision (Rick):** build the monthly system properly now ("build the template at least"), flag
+the bad 2024 data, and request the proper report — no synthetic splits, no waiting idle.
+**Finding that reshaped it:** sanity check of `erp_monthly_resolved_2021-2024.json` against the
+broker exports: ERP 2024 = **$17,977 across 7 customers = 0.36%** of sales-history's $4,991,076,
+and dead after 2024-06. Yesterday's "real unblock for forecast-core" claim was wrong — the PDFs
+were always a tiny direct slice. Parse was faithful (checksums tied); the source was thin.
+**Action:**
+- `scripts/build-sales-monthly.mjs` — generator: any monthly source → canonical seed. Computes
+  per-year coverage against broker USD; `forecastReady` is measured (2024 ≥ 80% of broker), never
+  hand-set. Proper report = add to `SOURCES`, re-run, done.
+- `src/data/montitrentini/sales-monthly.json` — canonical monthly seed (251 records, 2021–2024,
+  USD + estimated cases via implied $/case, per-record provenance). Ships `forecastReady: false`.
+- `src/lib/sales-monthly.js` — seam to forecast-core. Seed flows only when the gate opens; live
+  rep captures always flow. `seedStatus()` explains the hold in the Movement tab.
+- `pricing-tool.jsx` Movement — merges seed + ledger; run-rate/YoY light up automatically when
+  the gate opens. esbuild-verified.
+- `docs/SALES_DATA_COVERAGE_2026-07-15.md` — the finding. `docs/CLIENT_DATA_REQUESTS_2026-07-15_
+  sales-monthly.md` — copy-paste request to Sales Management (full sales-by-item-by-month,
+  Jan 2024→current, cases+lbs+USD, xlsx/csv) + acceptance checklist + 15-min drop-in procedure.
+**What it unblocks:** the forecast engine goes live the day the proper report lands — zero code.
+**Also flagged:** sales-history 2025 "YTD through 2025-10-15" is ~9 months stale vs today —
+the new report request covers the gap (through most recent closed month).
+
+---
+
 ## 2026-07-15 — Post-close sweep: untracked docs committed, "nothing uncommitted" claim corrected
 
 **Action:** A buildlog check after the `bb7f8bc` close-out found untracked files predating today:

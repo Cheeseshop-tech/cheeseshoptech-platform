@@ -9,6 +9,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs.j
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table.jsx";
 import { useToast } from "@/components/ui/toast.jsx";
 import { appendHistory, loadHistory } from "@/lib/history.js";
+import { seedMovementRecords, seedStatus } from "@/lib/sales-monthly.js";
 import { usePricingData } from "@/lib/use-pricing-data.js";
 import { codeImageUrl, isPlaceholderImage, placeholderNote } from "@/lib/images.js";
 import * as PC from "@/lib/pricing-core.js";
@@ -719,7 +720,9 @@ function Movement({ data, resolved }) {
     loadHistory(resolved?.id).then((recs) => { if (alive) setLedger(recs); });
     return () => { alive = false; };
   }, [resolved?.id]);
-  const movement = { records: ledger };
+  // Historical monthly seed (gated by data quality in sales-monthly.js) + live rep captures.
+  const seedRecs = useMemo(() => seedMovementRecords(resolved?.id), [resolved?.id]);
+  const movement = { records: [...seedRecs, ...ledger] };
   // Every SKU we SELL, not just every SKU we happen to have stock rows for. A product with no
   // inventory row is a product we can still be asked to fulfil and still need to forecast —
   // it must not vanish from this table. forecast-core treats a missing inventory row as 0/0.
@@ -758,7 +761,8 @@ function Movement({ data, resolved }) {
         ))}
       </div>
       <p className="mb-3 rounded-base border border-border bg-surface px-3 py-2 text-xs text-fg-muted">
-        {ledger.length ? `Using ${ledger.length} captured movement record(s) + standing commitments.` : "No sell-through captured yet — projections are commitment-driven. Run-rate & YoY accrue as reps record sales in Proforma."}
+        {ledger.length ? `Using ${ledger.length} captured movement record(s)${seedRecs.length ? ` + ${seedRecs.length} historical` : ""} + standing commitments.` : "No sell-through captured yet — projections are commitment-driven. Run-rate & YoY accrue as reps record sales in Proforma."}
+        {seedStatus(resolved?.id) && ` ${seedStatus(resolved?.id)}`}
         {dormant > 0 && ` ${dormant} product(s) have no stock and no demand signal — switch to "All products" to see them.`}
       </p>
       <Card>

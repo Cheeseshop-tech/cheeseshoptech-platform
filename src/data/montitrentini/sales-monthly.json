@@ -1,0 +1,2561 @@
+{
+  "schemaVersion": "1.0-monthly",
+  "clientId": "monti-trentini",
+  "generatedAt": "2026-07-16",
+  "generator": "scripts/build-sales-monthly.mjs",
+  "units": "soldUsd = net USD (credits netted). soldCases = ESTIMATED from implied $/case — see casesBasis per record.",
+  "forecastReady": false,
+  "forecastReadyRule": "2024 seed-USD ≥ 80% of broker-export 2024 USD",
+  "forecastReadyDetail": "HELD BACK: 2024 coverage is 0.36% of broker USD. Awaiting the full monthly report — docs/CLIENT_DATA_REQUESTS_2026-07-15_sales-monthly.md. Add it to SOURCES in the generator and re-run.",
+  "sources": [
+    {
+      "id": "erp_monthly_2021-2024",
+      "kind": "ERP 'sales by customer/item' PDF parse (USD, per customer×item×month)",
+      "file": "src/data/montitrentini/source/erp_monthly_resolved_2021-2024.json",
+      "records": 295,
+      "unresolvedRows": 92,
+      "unresolvedUsd": 11279.28
+    }
+  ],
+  "coverage": {
+    "2021": {
+      "usd": 53950.33,
+      "records": 69,
+      "skus": 28,
+      "lastActivePeriod": "2021-12"
+    },
+    "2022": {
+      "usd": 21689.64,
+      "records": 31,
+      "skus": 19,
+      "lastActivePeriod": "2022-12"
+    },
+    "2023": {
+      "usd": 39042.3,
+      "records": 86,
+      "skus": 25,
+      "lastActivePeriod": "2023-12"
+    },
+    "2024": {
+      "usd": 17977.14,
+      "records": 65,
+      "skus": 29,
+      "lastActivePeriod": "2024-06",
+      "brokerUsd": 4991076.24,
+      "shareOfBroker": 0.0036,
+      "flag": "INCOMPLETE — ERP slice only; no activity after 2024-06; do not forecast from this"
+    }
+  },
+  "records": [
+    {
+      "skuCode": "05007",
+      "period": "2021-01",
+      "soldUsd": 1950.18,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "01101",
+      "period": "2021-02",
+      "soldUsd": 52.5,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "01190",
+      "period": "2021-02",
+      "soldUsd": 52.5,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "04165",
+      "period": "2021-02",
+      "soldUsd": 267.75,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "04176",
+      "period": "2021-02",
+      "soldUsd": 63,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20150",
+      "period": "2021-02",
+      "soldUsd": 8.8,
+      "soldCases": 0.2,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20162",
+      "period": "2021-02",
+      "soldUsd": 6.34,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20423",
+      "period": "2021-02",
+      "soldUsd": 225.75,
+      "soldCases": 10.6,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2025 YTD)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20424",
+      "period": "2021-02",
+      "soldUsd": 231,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20480",
+      "period": "2021-02",
+      "soldUsd": 173.25,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20481",
+      "period": "2021-02",
+      "soldUsd": 194.25,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40103",
+      "period": "2021-02",
+      "soldUsd": 19576.26,
+      "soldCases": 48.3,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40104",
+      "period": "2021-02",
+      "soldUsd": 3177.08,
+      "soldCases": 7.4,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "04176",
+      "period": "2021-03",
+      "soldUsd": 183.75,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20423",
+      "period": "2021-03",
+      "soldUsd": 26.25,
+      "soldCases": 1.2,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2025 YTD)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20424",
+      "period": "2021-03",
+      "soldUsd": 26.25,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20480",
+      "period": "2021-03",
+      "soldUsd": 26.25,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20481",
+      "period": "2021-03",
+      "soldUsd": 26.25,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40163",
+      "period": "2021-03",
+      "soldUsd": 183.75,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20533",
+      "period": "2021-04",
+      "soldUsd": 1312.46,
+      "soldCases": 35.3,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40104",
+      "period": "2021-04",
+      "soldUsd": 3144.03,
+      "soldCases": 7.3,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "01101",
+      "period": "2021-06",
+      "soldUsd": 63,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "01190",
+      "period": "2021-06",
+      "soldUsd": 63,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "02091",
+      "period": "2021-06",
+      "soldUsd": 78.75,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20423",
+      "period": "2021-06",
+      "soldUsd": 36.75,
+      "soldCases": 1.7,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2025 YTD)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20424",
+      "period": "2021-06",
+      "soldUsd": 36.75,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20480",
+      "period": "2021-06",
+      "soldUsd": 36.75,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20481",
+      "period": "2021-06",
+      "soldUsd": 36.75,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40103",
+      "period": "2021-06",
+      "soldUsd": 2438.74,
+      "soldCases": 6,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "01101",
+      "period": "2021-07",
+      "soldUsd": 105,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "01190",
+      "period": "2021-07",
+      "soldUsd": 105,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "02005",
+      "period": "2021-07",
+      "soldUsd": 200.33,
+      "soldCases": 1.3,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "04165",
+      "period": "2021-07",
+      "soldUsd": 157.5,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "04176",
+      "period": "2021-07",
+      "soldUsd": 157.5,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "05095",
+      "period": "2021-07",
+      "soldUsd": 150,
+      "soldCases": 0.3,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20423",
+      "period": "2021-07",
+      "soldUsd": 157.5,
+      "soldCases": 7.4,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2025 YTD)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20424",
+      "period": "2021-07",
+      "soldUsd": 178.5,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20480",
+      "period": "2021-07",
+      "soldUsd": 105,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20481",
+      "period": "2021-07",
+      "soldUsd": 157.5,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20533",
+      "period": "2021-07",
+      "soldUsd": 9.49,
+      "soldCases": 0.3,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40103",
+      "period": "2021-07",
+      "soldUsd": 2451.86,
+      "soldCases": 6.1,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40162",
+      "period": "2021-07",
+      "soldUsd": 157.5,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "01101",
+      "period": "2021-08",
+      "soldUsd": 89.25,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "01190",
+      "period": "2021-08",
+      "soldUsd": 89.25,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "04165",
+      "period": "2021-08",
+      "soldUsd": 26.25,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "04176",
+      "period": "2021-08",
+      "soldUsd": 26.25,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20481",
+      "period": "2021-08",
+      "soldUsd": 26.25,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20533",
+      "period": "2021-08",
+      "soldUsd": 3578.86,
+      "soldCases": 96.2,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40103",
+      "period": "2021-08",
+      "soldUsd": 2589.87,
+      "soldCases": 6.4,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "02005",
+      "period": "2021-09",
+      "soldUsd": 88.36,
+      "soldCases": 0.6,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "04165",
+      "period": "2021-09",
+      "soldUsd": 26.25,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "04176",
+      "period": "2021-09",
+      "soldUsd": 26.25,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "04181",
+      "period": "2021-09",
+      "soldUsd": 17.66,
+      "soldCases": 0.1,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "05411",
+      "period": "2021-09",
+      "soldUsd": 761.66,
+      "soldCases": 1.4,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40103",
+      "period": "2021-09",
+      "soldUsd": 2501.02,
+      "soldCases": 6.2,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "02073",
+      "period": "2021-10",
+      "soldUsd": 58.2,
+      "soldCases": 0.7,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "04028",
+      "period": "2021-10",
+      "soldUsd": 6,
+      "soldCases": 0.2,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "04046",
+      "period": "2021-10",
+      "soldUsd": 10.18,
+      "soldCases": 0.3,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "04145",
+      "period": "2021-10",
+      "soldUsd": 14.09,
+      "soldCases": 0.3,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "05001",
+      "period": "2021-10",
+      "soldUsd": 715.98,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "05007",
+      "period": "2021-10",
+      "soldUsd": 650.48,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20533",
+      "period": "2021-10",
+      "soldUsd": 9.97,
+      "soldCases": 0.3,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40104",
+      "period": "2021-10",
+      "soldUsd": 901.47,
+      "soldCases": 2.1,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40140",
+      "period": "2021-10",
+      "soldUsd": 13.63,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "02005",
+      "period": "2021-11",
+      "soldUsd": 58.35,
+      "soldCases": 0.4,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "03003",
+      "period": "2021-11",
+      "soldUsd": 18.14,
+      "soldCases": 0.1,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2025 YTD)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "05095",
+      "period": "2021-11",
+      "soldUsd": 947.84,
+      "soldCases": 2,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40103",
+      "period": "2021-11",
+      "soldUsd": 2549.3,
+      "soldCases": 6.3,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "05095",
+      "period": "2021-12",
+      "soldUsd": 358.7,
+      "soldCases": 0.8,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "02005",
+      "period": "2022-01",
+      "soldUsd": 296.68,
+      "soldCases": 1.9,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "03057",
+      "period": "2022-01",
+      "soldUsd": 40.16,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "05411",
+      "period": "2022-01",
+      "soldUsd": 761.24,
+      "soldCases": 1.4,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20519",
+      "period": "2022-01",
+      "soldUsd": 21.5,
+      "soldCases": 0.9,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "05411",
+      "period": "2022-02",
+      "soldUsd": 81,
+      "soldCases": 0.2,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40104",
+      "period": "2022-02",
+      "soldUsd": 1320,
+      "soldCases": 3.1,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20150",
+      "period": "2022-03",
+      "soldUsd": 14,
+      "soldCases": 0.3,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "02005",
+      "period": "2022-04",
+      "soldUsd": 399.54,
+      "soldCases": 2.5,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "02073",
+      "period": "2022-04",
+      "soldUsd": 75.82,
+      "soldCases": 0.9,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "03010",
+      "period": "2022-04",
+      "soldUsd": 50.6,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "03023",
+      "period": "2022-04",
+      "soldUsd": 80,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "04154",
+      "period": "2022-04",
+      "soldUsd": 175.16,
+      "soldCases": 1,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "05007",
+      "period": "2022-04",
+      "soldUsd": 2436.92,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "05411",
+      "period": "2022-04",
+      "soldUsd": 801.66,
+      "soldCases": 1.5,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40103",
+      "period": "2022-04",
+      "soldUsd": 1723.06,
+      "soldCases": 4.3,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40104",
+      "period": "2022-04",
+      "soldUsd": 3324.36,
+      "soldCases": 7.7,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "02005",
+      "period": "2022-05",
+      "soldUsd": 304.62,
+      "soldCases": 1.9,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "03003",
+      "period": "2022-05",
+      "soldUsd": 117.06,
+      "soldCases": 0.7,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2025 YTD)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "04181",
+      "period": "2022-05",
+      "soldUsd": 39.38,
+      "soldCases": 0.3,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "05095",
+      "period": "2022-05",
+      "soldUsd": 1114.68,
+      "soldCases": 2.4,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "02005",
+      "period": "2022-11",
+      "soldUsd": 304.9,
+      "soldCases": 1.9,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "05095",
+      "period": "2022-11",
+      "soldUsd": 1689.54,
+      "soldCases": 3.6,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "05411",
+      "period": "2022-11",
+      "soldUsd": 1579.18,
+      "soldCases": 3,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20453",
+      "period": "2022-11",
+      "soldUsd": 33.18,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20464",
+      "period": "2022-11",
+      "soldUsd": 252.26,
+      "soldCases": 1.5,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20533",
+      "period": "2022-11",
+      "soldUsd": 42.5,
+      "soldCases": 1.1,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "02005",
+      "period": "2022-12",
+      "soldUsd": 283.58,
+      "soldCases": 1.8,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "05095",
+      "period": "2022-12",
+      "soldUsd": 1719.32,
+      "soldCases": 3.7,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "05411",
+      "period": "2022-12",
+      "soldUsd": 1574.16,
+      "soldCases": 3,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20464",
+      "period": "2022-12",
+      "soldUsd": 612.2,
+      "soldCases": 3.6,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20584",
+      "period": "2022-12",
+      "soldUsd": 421.38,
+      "soldCases": 2.8,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40103",
+      "period": "2023-01",
+      "soldUsd": 4424.76,
+      "soldCases": 10.9,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "05034",
+      "period": "2023-02",
+      "soldUsd": 2715.83,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20464",
+      "period": "2023-02",
+      "soldUsd": 362.12,
+      "soldCases": 2.1,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20520",
+      "period": "2023-02",
+      "soldUsd": 25.27,
+      "soldCases": 1.3,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20533",
+      "period": "2023-02",
+      "soldUsd": 29.5,
+      "soldCases": 0.8,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20584",
+      "period": "2023-02",
+      "soldUsd": 63.88,
+      "soldCases": 0.4,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "02005",
+      "period": "2023-03",
+      "soldUsd": 1157.49,
+      "soldCases": 7.3,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "02206",
+      "period": "2023-03",
+      "soldUsd": 90.23,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "04028",
+      "period": "2023-03",
+      "soldUsd": 24.06,
+      "soldCases": 0.8,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20162",
+      "period": "2023-03",
+      "soldUsd": 50.79,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20464",
+      "period": "2023-03",
+      "soldUsd": 99.74,
+      "soldCases": 0.6,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20511",
+      "period": "2023-03",
+      "soldUsd": 112.12,
+      "soldCases": 4.5,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20533",
+      "period": "2023-03",
+      "soldUsd": 59,
+      "soldCases": 1.6,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20567",
+      "period": "2023-03",
+      "soldUsd": 26,
+      "soldCases": 0.5,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40020",
+      "period": "2023-03",
+      "soldUsd": 53.13,
+      "soldCases": 0.6,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40107",
+      "period": "2023-03",
+      "soldUsd": 82.88,
+      "soldCases": 0.9,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40109",
+      "period": "2023-03",
+      "soldUsd": 279.3,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40158",
+      "period": "2023-03",
+      "soldUsd": 383.44,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "04028",
+      "period": "2023-04",
+      "soldUsd": 56.24,
+      "soldCases": 1.8,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40020",
+      "period": "2023-04",
+      "soldUsd": 267.8,
+      "soldCases": 3.1,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40103",
+      "period": "2023-04",
+      "soldUsd": 2971.94,
+      "soldCases": 7.3,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "02005",
+      "period": "2023-05",
+      "soldUsd": 294.49,
+      "soldCases": 1.9,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "02206",
+      "period": "2023-05",
+      "soldUsd": 207.44,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "05001",
+      "period": "2023-05",
+      "soldUsd": 827.4,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "05095",
+      "period": "2023-05",
+      "soldUsd": 421.01,
+      "soldCases": 0.9,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "05411",
+      "period": "2023-05",
+      "soldUsd": 387.2,
+      "soldCases": 0.7,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20464",
+      "period": "2023-05",
+      "soldUsd": 441.02,
+      "soldCases": 2.6,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20567",
+      "period": "2023-05",
+      "soldUsd": 27.15,
+      "soldCases": 0.5,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40020",
+      "period": "2023-05",
+      "soldUsd": 209.49,
+      "soldCases": 2.4,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40107",
+      "period": "2023-05",
+      "soldUsd": 69.23,
+      "soldCases": 0.8,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40158",
+      "period": "2023-05",
+      "soldUsd": 193.81,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "02206",
+      "period": "2023-06",
+      "soldUsd": 62.14,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "02302",
+      "period": "2023-06",
+      "soldUsd": 122.28,
+      "soldCases": 0.7,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "03003",
+      "period": "2023-06",
+      "soldUsd": 97.09,
+      "soldCases": 0.6,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2025 YTD)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "04181",
+      "period": "2023-06",
+      "soldUsd": 93.32,
+      "soldCases": 0.7,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "05001",
+      "period": "2023-06",
+      "soldUsd": 430.67,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "05034",
+      "period": "2023-06",
+      "soldUsd": 440.24,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20511",
+      "period": "2023-06",
+      "soldUsd": 229.57,
+      "soldCases": 9.3,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20533",
+      "period": "2023-06",
+      "soldUsd": 29.5,
+      "soldCases": 0.8,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "02005",
+      "period": "2023-08",
+      "soldUsd": 438.35,
+      "soldCases": 2.8,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "03047",
+      "period": "2023-08",
+      "soldUsd": 6.41,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "05001",
+      "period": "2023-08",
+      "soldUsd": 851.12,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "05034",
+      "period": "2023-08",
+      "soldUsd": 3573.65,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20464",
+      "period": "2023-08",
+      "soldUsd": 324.23,
+      "soldCases": 1.9,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20584",
+      "period": "2023-08",
+      "soldUsd": 149.67,
+      "soldCases": 1,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40020",
+      "period": "2023-08",
+      "soldUsd": 199.6,
+      "soldCases": 2.3,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40107",
+      "period": "2023-08",
+      "soldUsd": 14.24,
+      "soldCases": 0.2,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "02005",
+      "period": "2023-09",
+      "soldUsd": 278.66,
+      "soldCases": 1.8,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "02073",
+      "period": "2023-09",
+      "soldUsd": 218.22,
+      "soldCases": 2.6,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "02302",
+      "period": "2023-09",
+      "soldUsd": 154.53,
+      "soldCases": 0.9,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "04028",
+      "period": "2023-09",
+      "soldUsd": 26.6,
+      "soldCases": 0.8,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "05001",
+      "period": "2023-09",
+      "soldUsd": 434.29,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "05095",
+      "period": "2023-09",
+      "soldUsd": 1250.03,
+      "soldCases": 2.7,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "05411",
+      "period": "2023-09",
+      "soldUsd": 1076.86,
+      "soldCases": 2,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20464",
+      "period": "2023-09",
+      "soldUsd": 330.24,
+      "soldCases": 1.9,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20511",
+      "period": "2023-09",
+      "soldUsd": 219.2,
+      "soldCases": 8.9,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20584",
+      "period": "2023-09",
+      "soldUsd": 105.96,
+      "soldCases": 0.7,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40020",
+      "period": "2023-09",
+      "soldUsd": 341.97,
+      "soldCases": 3.9,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40107",
+      "period": "2023-09",
+      "soldUsd": 81.09,
+      "soldCases": 0.9,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40109",
+      "period": "2023-09",
+      "soldUsd": 131.98,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40158",
+      "period": "2023-09",
+      "soldUsd": 300.75,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "02005",
+      "period": "2023-10",
+      "soldUsd": 770.3,
+      "soldCases": 4.9,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "04028",
+      "period": "2023-10",
+      "soldUsd": 28.16,
+      "soldCases": 0.9,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20567",
+      "period": "2023-10",
+      "soldUsd": 55.38,
+      "soldCases": 1,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40020",
+      "period": "2023-10",
+      "soldUsd": 128.69,
+      "soldCases": 1.5,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40107",
+      "period": "2023-10",
+      "soldUsd": 206.77,
+      "soldCases": 2.3,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "02005",
+      "period": "2023-11",
+      "soldUsd": 681.16,
+      "soldCases": 4.3,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "02206",
+      "period": "2023-11",
+      "soldUsd": 152.9,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "04028",
+      "period": "2023-11",
+      "soldUsd": 53.7,
+      "soldCases": 1.7,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "04181",
+      "period": "2023-11",
+      "soldUsd": 70.39,
+      "soldCases": 0.5,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20228",
+      "period": "2023-11",
+      "soldUsd": 52,
+      "soldCases": 1.5,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20533",
+      "period": "2023-11",
+      "soldUsd": 29.5,
+      "soldCases": 0.8,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40020",
+      "period": "2023-11",
+      "soldUsd": 241.47,
+      "soldCases": 2.8,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40103",
+      "period": "2023-11",
+      "soldUsd": 2926.99,
+      "soldCases": 7.2,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40107",
+      "period": "2023-11",
+      "soldUsd": 137.83,
+      "soldCases": 1.5,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "02206",
+      "period": "2023-12",
+      "soldUsd": 209.68,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "04181",
+      "period": "2023-12",
+      "soldUsd": 286.99,
+      "soldCases": 2.2,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "05095",
+      "period": "2023-12",
+      "soldUsd": 419.48,
+      "soldCases": 0.9,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20228",
+      "period": "2023-12",
+      "soldUsd": 208,
+      "soldCases": 5.8,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20464",
+      "period": "2023-12",
+      "soldUsd": 410.52,
+      "soldCases": 2.4,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20511",
+      "period": "2023-12",
+      "soldUsd": 220.09,
+      "soldCases": 8.9,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20533",
+      "period": "2023-12",
+      "soldUsd": 47.2,
+      "soldCases": 1.3,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40020",
+      "period": "2023-12",
+      "soldUsd": 262.98,
+      "soldCases": 3,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40103",
+      "period": "2023-12",
+      "soldUsd": 2754.87,
+      "soldCases": 6.8,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40109",
+      "period": "2023-12",
+      "soldUsd": 134.35,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40158",
+      "period": "2023-12",
+      "soldUsd": 126.68,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "02005",
+      "period": "2024-01",
+      "soldUsd": 670.6,
+      "soldCases": 4.3,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "02206",
+      "period": "2024-01",
+      "soldUsd": 230.65,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "03014",
+      "period": "2024-01",
+      "soldUsd": 19.45,
+      "soldCases": 0.6,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "05001",
+      "period": "2024-01",
+      "soldUsd": 612.49,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "05034",
+      "period": "2024-01",
+      "soldUsd": 885.22,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "05411",
+      "period": "2024-01",
+      "soldUsd": 550.25,
+      "soldCases": 1,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20229",
+      "period": "2024-01",
+      "soldUsd": 8.97,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20451",
+      "period": "2024-01",
+      "soldUsd": 86.39,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20453",
+      "period": "2024-01",
+      "soldUsd": 32.66,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20464",
+      "period": "2024-01",
+      "soldUsd": 188.27,
+      "soldCases": 1.1,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20533",
+      "period": "2024-01",
+      "soldUsd": 147.5,
+      "soldCases": 4,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40020",
+      "period": "2024-01",
+      "soldUsd": 178.73,
+      "soldCases": 2.1,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40103",
+      "period": "2024-01",
+      "soldUsd": 2760.29,
+      "soldCases": 6.8,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40109",
+      "period": "2024-01",
+      "soldUsd": 105.2,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40158",
+      "period": "2024-01",
+      "soldUsd": 126.55,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "02073",
+      "period": "2024-02",
+      "soldUsd": 31.2,
+      "soldCases": 0.4,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "04046",
+      "period": "2024-02",
+      "soldUsd": 25.67,
+      "soldCases": 0.8,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "04145",
+      "period": "2024-02",
+      "soldUsd": 28.57,
+      "soldCases": 0.6,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "05007",
+      "period": "2024-02",
+      "soldUsd": 520.76,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "05411",
+      "period": "2024-02",
+      "soldUsd": 390.94,
+      "soldCases": 0.7,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20464",
+      "period": "2024-02",
+      "soldUsd": 103.83,
+      "soldCases": 0.6,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40020",
+      "period": "2024-02",
+      "soldUsd": 345.49,
+      "soldCases": 4,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40103",
+      "period": "2024-02",
+      "soldUsd": 2464.38,
+      "soldCases": 6.1,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40107",
+      "period": "2024-02",
+      "soldUsd": 68.36,
+      "soldCases": 0.8,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "02005",
+      "period": "2024-03",
+      "soldUsd": 274.88,
+      "soldCases": 1.7,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "02206",
+      "period": "2024-03",
+      "soldUsd": 91.73,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "05018",
+      "period": "2024-03",
+      "soldUsd": 103.37,
+      "soldCases": 0.9,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20511",
+      "period": "2024-03",
+      "soldUsd": 105.07,
+      "soldCases": 4.2,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20533",
+      "period": "2024-03",
+      "soldUsd": 88.46,
+      "soldCases": 2.4,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20567",
+      "period": "2024-03",
+      "soldUsd": 13.41,
+      "soldCases": 0.3,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20584",
+      "period": "2024-03",
+      "soldUsd": 104.56,
+      "soldCases": 0.7,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40020",
+      "period": "2024-03",
+      "soldUsd": 130.14,
+      "soldCases": 1.5,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40103",
+      "period": "2024-03",
+      "soldUsd": -2075.69,
+      "soldCases": -5.1,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40107",
+      "period": "2024-03",
+      "soldUsd": 38.93,
+      "soldCases": 0.4,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40109",
+      "period": "2024-03",
+      "soldUsd": 132.39,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "02005",
+      "period": "2024-04",
+      "soldUsd": 383.67,
+      "soldCases": 2.4,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "04154",
+      "period": "2024-04",
+      "soldUsd": 55.33,
+      "soldCases": 0.3,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "04181",
+      "period": "2024-04",
+      "soldUsd": 55.75,
+      "soldCases": 0.4,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "05001",
+      "period": "2024-04",
+      "soldUsd": 417.36,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "05018",
+      "period": "2024-04",
+      "soldUsd": 102.33,
+      "soldCases": 0.9,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "05034",
+      "period": "2024-04",
+      "soldUsd": 826.29,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "05411",
+      "period": "2024-04",
+      "soldUsd": 594.5,
+      "soldCases": 1.1,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20464",
+      "period": "2024-04",
+      "soldUsd": 123.22,
+      "soldCases": 0.7,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20511",
+      "period": "2024-04",
+      "soldUsd": 231.68,
+      "soldCases": 9.4,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20519",
+      "period": "2024-04",
+      "soldUsd": 18.07,
+      "soldCases": 0.7,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20533",
+      "period": "2024-04",
+      "soldUsd": 29.49,
+      "soldCases": 0.8,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20584",
+      "period": "2024-04",
+      "soldUsd": 186.28,
+      "soldCases": 1.2,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40020",
+      "period": "2024-04",
+      "soldUsd": 89.39,
+      "soldCases": 1,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40158",
+      "period": "2024-04",
+      "soldUsd": 254,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "02005",
+      "period": "2024-05",
+      "soldUsd": 661.41,
+      "soldCases": 4.2,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "04181",
+      "period": "2024-05",
+      "soldUsd": 232.46,
+      "soldCases": 1.8,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "05001",
+      "period": "2024-05",
+      "soldUsd": 878.8,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20533",
+      "period": "2024-05",
+      "soldUsd": 284.37,
+      "soldCases": 7.6,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40020",
+      "period": "2024-05",
+      "soldUsd": 246.72,
+      "soldCases": 2.8,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "02005",
+      "period": "2024-06",
+      "soldUsd": 399.03,
+      "soldCases": 2.5,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "02206",
+      "period": "2024-06",
+      "soldUsd": 121.41,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "03003",
+      "period": "2024-06",
+      "soldUsd": 39.06,
+      "soldCases": 0.2,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2025 YTD)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "04154",
+      "period": "2024-06",
+      "soldUsd": 133.17,
+      "soldCases": 0.8,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "04181",
+      "period": "2024-06",
+      "soldUsd": 41.22,
+      "soldCases": 0.3,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "05001",
+      "period": "2024-06",
+      "soldUsd": 435.47,
+      "soldCases": null,
+      "casesBasis": "no implied price — USD only",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "05095",
+      "period": "2024-06",
+      "soldUsd": 337.16,
+      "soldCases": 0.7,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20464",
+      "period": "2024-06",
+      "soldUsd": 210.09,
+      "soldCases": 1.2,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20511",
+      "period": "2024-06",
+      "soldUsd": 295.76,
+      "soldCases": 12,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "20533",
+      "period": "2024-06",
+      "soldUsd": 372.48,
+      "soldCases": 10,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    },
+    {
+      "skuCode": "40020",
+      "period": "2024-06",
+      "soldUsd": 331.5,
+      "soldCases": 3.8,
+      "casesBasis": "estimated from USD @ implied $/case (sales-history 2024)",
+      "estimated": true,
+      "inCatalog": true,
+      "source": "erp_monthly_2021-2024"
+    }
+  ]
+}

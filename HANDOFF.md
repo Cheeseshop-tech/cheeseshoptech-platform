@@ -57,10 +57,28 @@ out "it's just missing from one export" — worth asking Stefano whether Tony's 
 different name in the ERP, or whether their orders route through a different
 customer/broker code entirely.
 
-**Open decision, yours:** how to combine this monthly 2021-2024 data with the annual 2025
-`sales-history.json` — separate file per era, force both into `history.js`'s movement-ledger shape
-now, or wait. Not decided for you. Data live at `src/data/montitrentini/source/
-erp_monthly_{raw,resolved}_2021-2024.json` (commit `1246648`).
+**~~Open decision~~ DECIDED 2026-07-15 (late session):** Rick chose "build the system properly
+with monthly sales, flag 2024, request the proper report." **⚠️ And the sanity check that followed
+supersedes this section's framing: the ERP monthly data is NOT the unblock** — 2024 ERP monthly is
+$17,977 / 7 customers = **0.36%** of the broker exports' $4.99M, and records stop at 2024-06. The
+PDFs were always a small direct slice (which slice = open question for Stefano). See the
+**MONTHLY FORECAST PIPELINE** section below — built end-to-end and gated; the proper report
+(`docs/CLIENT_DATA_REQUESTS_2026-07-15_sales-monthly.md`) is the real unblock. Raw data unchanged
+at `src/data/montitrentini/source/erp_monthly_{raw,resolved}_2021-2024.json` (commit `1246648`).
+
+## 🏗️ MONTHLY FORECAST PIPELINE — BUILT + GATED (2026-07-15 late session)
+The whole monthly system exists and is wired into the Movement tab; only forecast-grade data is
+missing. Pieces: `scripts/build-sales-monthly.mjs` (generator — add the proper report to
+`SOURCES` and re-run; that's the entire integration) → `src/data/montitrentini/sales-monthly.json`
+(canonical seed, 251 records 2021–2024, `forecastReady:false` — computed from measured coverage,
+2024 must reach ≥80% of broker USD) → `src/lib/sales-monthly.js` (seam: seed feeds forecast-core
+only when the gate opens; live history.js captures always flow; `seedStatus()` shows the hold in
+the UI) → `pricing-tool.jsx` Movement (merges seed + ledger). **Next actions: (1) Rick sends the
+data request** — copy-paste block ready in `docs/CLIENT_DATA_REQUESTS_2026-07-15_sales-monthly.md`,
+routed to Sales Management via Stefano, includes the two clarifiers (what slice were the PDFs;
+2025 exports' exact through-date — note they read "through 2025-10-15," ~9 months stale).
+**(2) On receipt:** acceptance checklist in that doc, then the 15-min drop-in. Full finding:
+`docs/SALES_DATA_COVERAGE_2026-07-15.md`.
 
 ## ✅ SALES HISTORY RECONCILED — SHIPPED, 2 flags still need you/Stefano (2026-07-15)
 Uploaded sales history (7 broker exports) reconciled to real SKUs — 99.4% of 2025 $ volume matched,
