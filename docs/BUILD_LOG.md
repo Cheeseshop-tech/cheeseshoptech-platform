@@ -8,6 +8,22 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-07-15 — Post-close sweep: untracked docs committed, "nothing uncommitted" claim corrected
+
+**Action:** A buildlog check after the `bb7f8bc` close-out found untracked files predating today:
+`CLAUDE.md` (the project working-memory file — read-first in every session, yet never in git),
+`docs/MARKETING_IMAGE_REQUEST_2026-07-13.md` + `.csv` (referenced from CLAUDE.md's key-docs
+index), `COMMIT LOGIN DIAGNOSIS.command` (2026-07-13; never run — its HANDOFF payload landed via
+later HANDOFF commits, kept for the record per convention), and 3 inventory-autosync backups
+(2026-07-09/-10/-14, ~64K each; all earlier backups are committed). Added `~$*` to `.gitignore`
+(Excel temp-lock junk, e.g. `~$Monti_Trentini_SKU_Match_Review.xlsx`).
+**Why:** HANDOFF's push-state header claimed "nothing uncommitted" — true for tracked files, blind
+to untracked ones. `git status --porcelain` (not just HEAD==origin) is now part of the close check.
+**Status:** shipped via `COMMIT SWEEP UNTRACKED DOCS.command` (script includes the post-commit
+`$?` check the 2026-07-15 git-lock incident recommended).
+
+---
+
 ## 2026-07-15 — Git lock incident: commits silently failing since 2026-07-14, recovered clean
 
 `.git/HEAD.lock`, dated **2026-07-14 08:21** — a full day old, predating this session entirely —

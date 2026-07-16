@@ -2,12 +2,19 @@
 
 **Updated:** 2026-07-15 · **Branch:** `phase-2-6-build` · **Surface:** Cowork
 **Handing off to:** next session (surface/model unspecified).
-**Push state (verified 2026-07-15 via `git rev-parse HEAD` == `git rev-parse origin/phase-2-6-build`
-— both `038247c`, "feat(images): low-res reference placeholders, internal surfaces only"):**
-**everything from today is on the remote, nothing uncommitted.** Four commits landed this session,
-in order: `1246648` (sales-history reconciliation + ERP monthly parse, recovered after the git-lock
-incident below), `2d8dbcb` (this incident's writeup), `b386bf9` (Agent A1 wiring fix + spec),
-`038247c` (placeholder-image thumbnails, separate workstream from an earlier session).
+**Push state (re-verified 2026-07-15 22:40 via `git rev-parse HEAD` == `origin/phase-2-6-build`,
+both `bb7f8bc`, "docs: close out 2026-07-15"): everything from today is on the remote.** Five
+commits landed this session, in order: `1246648` (sales-history reconciliation + ERP monthly
+parse, recovered after the git-lock incident below), `2d8dbcb` (this incident's writeup),
+`b386bf9` (Agent A1 wiring fix + spec), `038247c` (placeholder-image thumbnails, separate
+workstream from an earlier session), `bb7f8bc` (docs close-out). A final buildlog check after
+`bb7f8bc` caught untracked files predating today that the earlier "nothing uncommitted" claim
+missed — **`CLAUDE.md` (the working-memory file itself, never committed), the 2026-07-13
+marketing image request (`docs/MARKETING_IMAGE_REQUEST_2026-07-13.md` + `.csv`, referenced from
+CLAUDE.md's key-docs index), the never-run `COMMIT LOGIN DIAGNOSIS.command` (its HANDOFF payload
+already landed via later commits — kept for the record), and 3 inventory-autosync backups
+(07-09/-10/-14; earlier ones are committed)** — swept in via `COMMIT SWEEP UNTRACKED DOCS.command`.
+`.gitignore` now excludes `~$*` Office temp-lock files.
 **Read first:** `CLAUDE_CODE_BRIEF.md` → this → `docs/BUILD_LOG.md` (top) →
 `docs/AGENT_A1_BUILD_SPEC.md` → `docs/ONBOARDING_AND_AGENTS_SDD.md` + `docs/CONTENT_ENGINE_WIRING_SPEC.md`.
 
