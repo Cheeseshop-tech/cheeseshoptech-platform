@@ -8,6 +8,32 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-07-15 — Full wiring audit across CRM, Pricing/Forecast, Brand Kit, Media Hub
+
+Rick asked for an audit of app-to-app wiring and the data-flow docs, with improvement suggestions.
+Full report: `docs/WIRING_AUDIT_2026-07-15.md`. Method: read real code (imports, env-flag branches,
+actual function callers) rather than trust the wiring docs, then diffed the two.
+
+**Headline: the platform is wired better than its docs say.** CRM (HubSpot), Brand Kit/BSE gating,
+and the BSE "Import kit JSON" button are all live and working — `INTEGRATION_WIRING_BRIEF.md`,
+`CRM_CONNECTOR.md`, and `CONTENT_ENGINE_WIRING_SPEC.md` §4 all still describe these as mock/open.
+Real gap found in Pricing/Forecast: `forecast-core.js` is genuine working infrastructure (wired into
+Pricing Tool's Movement tab), but the only path from a real sale into it is a manual "Record sale"
+click — no automated capture, so it's likely run on close to zero real volume so far.
+
+**Mid-audit discovery:** the "open decision" from earlier today's HANDOFF (how to merge the new ERP
+monthly data into forecasting) already had an answer — `sales-monthly.js` + `scripts/
+build-sales-monthly.mjs` is an existing quality-gated seam built for exactly this. Between the start
+and end of this audit, that pipeline ran against today's new ERP files (commits `b28aa64`, `7e18ce5`
+— not this session's doing, presumably run directly by Rick), catching and fixing a units bug (2024
+seed mislabeled USD, corrected to pounds). Gate is still closed (2.69% of broker volume) — correctly,
+not an architecture problem, just insufficient 2024 coverage.
+
+Nine improvement suggestions filed, prioritized P0 (doc/dead-code fixes, cheap) through P2. Full list
+in the audit doc. No code changed by this pass — audit only.
+
+---
+
 ## 2026-07-15 — CORRECTION: ERP monthly is POUNDS not dollars; 2024 = Jan–Jul by construction
 
 **Trigger:** Rick uploaded the three source PDFs ("this is not complete") — read directly.
