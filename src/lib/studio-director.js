@@ -9,6 +9,7 @@
 import { getBrandKit } from "./brandKit.js";
 import { getPricingData } from "./pricing.js";
 import { listAssets } from "./media.js";
+import { loadItems, getItem } from "./items.js";
 import { getSlideTemplate } from "./slide-templates.js";
 
 // Slot `tag` vocabulary (templates) → Media Hub usage-taxonomy ids. Templates predate the
@@ -67,14 +68,21 @@ function pickStory(kit, { storyKeys = [], audience } = {}) {
 
 /* ---------- product resolution ---------- */
 // Up to n products for range cards: opportunity SKUs first, then featured, then catalog order.
-function pickProducts(catalog, skuCodes = [], n = 3) {
+// Name resolution follows DATA_OWNERSHIP_MAP.md: the canonical item record (Media Hub's
+// items.js, same source Product Catalog reads) wins; catalog.json's own `name` is only the
+// fallback for a SKU that hasn't been entered into the items doc yet. Images for this card are
+// resolved separately via pickAsset() (Media Hub) below — catalog.json's own per-SKU `image`
+// field is never used here, so there's exactly one image path, not two.
+function pickProducts(catalog, itemsDoc, skuCodes = [], n = 3) {
   const products = catalog?.products || [];
   const out = [];
   const seen = new Set();
   const push = (p, sku) => {
     if (!p || seen.has(p.id) || out.length >= n) return;
     seen.add(p.id);
-    out.push({ name: titleCase(p.name), sku: sku || p.skus?.[0]?.code || "", image: (sku ? p.skus.find((s) => s.code === sku) : p.skus?.[0])?.image || "" });
+    const code = sku || p.skus?.[0]?.code || "";
+    const itemName = code ? getItem(itemsDoc, code)?.name : null;
+    out.push({ name: titleCase(itemName || p.name), sku: code });
   };
   for (const code of skuCodes) {
     const p = products.find((pr) => (pr.skus || []).some((s) => s.code === code));
@@ -106,6 +114,11 @@ export async function directDraft({ resolved, user, opportunity } = {}) {
   } catch { assets = []; }
   assets = assets.filter((a) => (a.format ? !["mp4", "mov"].includes(a.format) : true));
 
+  // Canonical item copy (Media Hub items.js) — see pickProducts() below for how this joins
+  // with catalog.json by SKU. Never throws: an empty/missing doc just falls back to catalog names.
+  let itemsDoc = null;
+  try { itemsDoc = await loadItems(resolved.cloudinaryFolder); } catch { itemsDoc = null; }
+
   const hasVoice = !!(kit && ((kit.storyBlocks || []).length || (kit.voice?.readyPhrases || []).length || kit.voice?.motto));
   if (!hasVoice && !assets.length) return null;
 
@@ -116,7 +129,7 @@ export async function directDraft({ resolved, user, opportunity } = {}) {
   const secondStory = pickStory(kit, { storyKeys: [], audience: opp.audience }) === story
     ? (kit?.storyBlocks || []).filter((b) => b !== story)[0] || null
     : pickStory(kit, { audience: opp.audience });
-  const products = pickProducts(catalog, opp.skuCodes || [], 3);
+  const products = pickProducts(catalog, itemsDoc, opp.skuCodes || [], 3);
   const brandName = kit?.brandName || resolved.brand?.name || "";
   const attribution = kit?.attribution || brandName;
 
