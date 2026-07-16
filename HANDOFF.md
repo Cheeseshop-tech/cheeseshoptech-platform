@@ -3,13 +3,11 @@
 **Updated:** 2026-07-15 · **Branch:** `phase-2-6-build` · **Surface:** Cowork
 **Handing off to:** next session (surface/model unspecified).
 **Push state (verified 2026-07-15 via `git rev-parse HEAD` == `git rev-parse origin/phase-2-6-build`
-— both `1246648`, "data(erp-monthly): parse + validate 2021-2024 ERP monthly sales"):** sales-history
-reconciliation + ERP monthly parse are **live on the remote.** Still uncommitted on disk, own
-button each: `COMMIT AGENT A1 WIRING.command` (`src/lib/studio-director.js`,
-`docs/DATA_OWNERSHIP_MAP.md`, `docs/AGENT_A1_BUILD_SPEC.md`) and, separate workstream, don't bundle
-it in, `COMMIT PLACEHOLDER IMAGES.command` (`src/lib/images.js` + `src/components/tools/
-pricing-tool.jsx`, `docs/MARKETING_IMAGE_REQUEST_2026-07-13.*`, `public/placeholders/`, `CLAUDE.md`,
-`src/archive/backup_2026-07-{09,10,14}_inventory_autosync/`).
+— both `038247c`, "feat(images): low-res reference placeholders, internal surfaces only"):**
+**everything from today is on the remote, nothing uncommitted.** Four commits landed this session,
+in order: `1246648` (sales-history reconciliation + ERP monthly parse, recovered after the git-lock
+incident below), `2d8dbcb` (this incident's writeup), `b386bf9` (Agent A1 wiring fix + spec),
+`038247c` (placeholder-image thumbnails, separate workstream from an earlier session).
 **Read first:** `CLAUDE_CODE_BRIEF.md` → this → `docs/BUILD_LOG.md` (top) →
 `docs/AGENT_A1_BUILD_SPEC.md` → `docs/ONBOARDING_AND_AGENTS_SDD.md` + `docs/CONTENT_ENGINE_WIRING_SPEC.md`.
 
@@ -83,8 +81,8 @@ phantom SKU codes not in the real price list — rebuilt against `catalog.json`'
 Live at `src/data/montitrentini/sales-history.json` (commit `1246648`).
 
 ## ✅ AGENT A1 WIRING FIX + SPEC — first Content Engine agent confirmed shipped (2026-07-15)
-Rick asked to solidify inter-app wiring and ship the first Content Engine agent (A1) before any UI
-work. Wrote `docs/AGENT_A1_BUILD_SPEC.md` (Parts A–E) and worked Part A.
+Live at commit `b386bf9`. Rick asked to solidify inter-app wiring and ship the first Content Engine
+agent (A1) before any UI work. Wrote `docs/AGENT_A1_BUILD_SPEC.md` (Parts A–E) and worked Part A.
 
 **Caught and reversed before shipping:** the plan was to reroute Studio Director's images from
 `media.js` to `images.js`. Reading both files showed `listAssets()` (`media.js`) IS the Media Hub;
@@ -118,7 +116,17 @@ of its own sometime.
    default flag) are both spec'd in `AGENT_A1_BUILD_SPEC.md`, explicitly deprioritized behind this
    work per your instruction, not started.
 
-**Ship via `COMMIT AGENT A1 WIRING.command`** (new, this session).
+## ✅ PLACEHOLDER IMAGE THUMBNAILS — SHIPPED (2026-07-15, commit `038247c`)
+Earlier-session workstream, separate from everything above, landed today. Cloudinary hi-res-only
+rule unchanged — 17 low-res reference thumbnails (116x111–331x210px, 150–211 ppi, from the Cut &
+Wrap assortment sheet) are served locally from `/public/placeholders`, never uploaded to Cloudinary.
+Re-encoded PNG → WebP (836 KB → 108 KB, 87% smaller). `codeImageUrl(..., { allowPlaceholder })` is
+opt-in per call site — only Proforma passes it; `proposal-builder`/`proposal-view` don't, so a
+buyer can never be shown or sent one (verified: `allowPlaceholder` appears nowhere under
+`components/proposals`). Resolution order is manifest → placeholder → legacy convention, so a real
+packshot always wins. Proforma row gets a dashed border + "REF" corner tag; the detail dialog shows
+native size (no upscaling), a "Reference image only" banner, and hides Share/Download/Copy link
+(each would put a 150 ppi image somewhere it could be mistaken for a real asset).
 
 ## 🔎 LOGIN DIAGNOSIS — "can't reach Media Hub / Content Engine as House admin" (2026-07-13)
 Not a bug. Site is in passcode mode (`VITE_AUTH_MODE=passcode`). Both Media Hub and Content

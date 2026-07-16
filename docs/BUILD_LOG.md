@@ -204,13 +204,28 @@ exist to design against.
   `Shipped` real; `Billed` / `Collected` inert placeholders) behind an off-by-default per-tenant
   flag — deliberately deprioritized per Rick's instruction to focus on wiring + the agent first.
 
-**Status.** Parts A + the ownership-doc fix are done, uncommitted on disk. Part B needed no code —
+**Status.** Parts A + the ownership-doc fix **shipped — commit `b386bf9`.** Part B needed no code —
 already shipped, timing unclear. Part C blocked on Rick's Anthropic billing + spend cap. Parts D
-(visual direction) and E (pipeline toggle) are spec'd, not built. **Ship via
-`COMMIT AGENT A1 WIRING.command`.** Unrelated pre-existing uncommitted work on disk from an earlier
-session (`images.js` placeholder-thumbnail feature, `pricing-tool.jsx`, `docs/
-MARKETING_IMAGE_REQUEST_2026-07-13.*`) is untouched by this session — its own commit button
-(`COMMIT PLACEHOLDER IMAGES.command`) already exists and was simply never run; don't bundle it in.
+(visual direction) and E (pipeline toggle) are spec'd, not built. The unrelated placeholder-
+thumbnail workstream (`images.js`, `pricing-tool.jsx`, `docs/MARKETING_IMAGE_REQUEST_2026-07-13.*`)
+also shipped today, separately — commit `038247c`, see entry below.
+
+---
+
+## 2026-07-15 — Placeholder image thumbnails shipped (commit `038247c`)
+
+Earlier-session workstream (not part of today's wiring/agent/sales-data work) landed today. 17
+low-res reference thumbnails from the Cut & Wrap assortment sheet (116x111–331x210px, 150–211 ppi),
+re-encoded PNG → WebP (836 KB → 108 KB total, 87% smaller), served locally from
+`/public/placeholders` — **Cloudinary hi-res-only rule unchanged**, these never get uploaded there.
+
+`codeImageUrl(..., { allowPlaceholder })` is opt-in per call site: only the Proforma tool passes it.
+`proposal-builder` and `proposal-view` don't, so a buyer can never be shown or sent a placeholder —
+verified `allowPlaceholder` appears nowhere under `components/proposals`. Resolution order is
+manifest → placeholder → legacy convention, so any real packshot in the manifest always wins over a
+placeholder. Proforma row: dashed border + "REF" corner tag. Detail dialog: native size (no
+upscaling into a hero), "Reference image only" banner, Share/Download/Copy link hidden (each would
+put a 150 ppi image somewhere it could pass as a real asset).
 
 ---
 
