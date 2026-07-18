@@ -12,9 +12,58 @@ const USAGE_IDS = [
   "product-catalog", "hero", "story-block", "lifestyle", "food-styling", "production",
   "social", "press", "event", "brand-asset", "email-campaign", "print", "web-marketing",
 ];
+// Background-removal tag convention (2026-07-18, dispatch/background audit fix #3). Not a usage
+// purpose — it's a per-asset quality flag, same idea as the approval tags — so it's surfaced as
+// its own boolean rather than folded into usage[].
+const BG_REMOVED_TAG = "bg-removed";
 
 import { requireReadAuth, jsonUnauthorized } from "./_write-guard.js";
 import { tenantFromPath } from "./_write-log.js";
+
+// Map one Cloudinary Admin API resource to the shape src/lib/media.js expects. Shared by both
+// the legacy (fetch-everything) path and the paged path below so they can never drift.
+function mapResource(r) {
+  const segs = r.public_id.split("/");
+  // Assets sitting at the tenant root (no products/brand/raw subfolder) default to
+  // "products" so they show on the Media Hub's default tab.
+  const folder = FOLDERS.find((f) => segs.includes(f)) || "products";
+  const tags = r.tags || [];
+  // Untagged assets are finished, published product photography → "approved-for-press".
+  // Only an explicit "draft" tag marks a work-in-progress; this keeps the library from
+  // showing a sea of DRAFT badges on real packshots.
+  const approvalState = APPROVAL_TAGS.find((s) => tags.includes(s)) || "approved-for-press";
+  return {
+    publicId: r.public_id,
+    sku: r.context?.custom?.sku || "",
+    folder,
+    title: r.context?.custom?.caption || segs[segs.length - 1],
+    alt: r.context?.custom?.alt || "",
+    description: r.context?.custom?.description || "",
+    usage: tags.filter((t) => USAGE_IDS.includes(t)),
+    approvalState,
+    bgRemoved: tags.includes(BG_REMOVED_TAG),
+    format: r.format,
+    width: r.width,
+    height: r.height,
+    // Added so this ONE live endpoint can also feed the canonical images.json manifest
+    // (scripts/sync-images.mjs --live) without needing the Cloudinary Admin API secret
+    // locally — version for cache-busting, bytes/modified for display only.
+    version: r.version,
+    bytes: r.bytes,
+    modified: (r.created_at || "").slice(0, 10),
+  };
+}
+
+// Legacy assets (2026-07-06) get their SKU DERIVED from the filename (monti/01021 → sku 01021)
+// when Cloudinary context didn't already set one. Shared by both paths.
+function withLegacySku(r, legacy) {
+  if (r.context?.custom?.sku) return r;
+  const name = r.public_id.slice(legacy.length + 1);
+  if (/^[A-Za-z0-9-]+$/.test(name)) {
+    return { ...r, context: { ...r.context, custom: { ...r.context?.custom, sku: name } } };
+  }
+  return r;
+}
 
 export const handler = async (event) => {
   // Any valid passcode tier (2026-07-16, wiring-audit P0 #1) — the full asset list (including
@@ -44,19 +93,69 @@ export const handler = async (event) => {
     .filter(Boolean);
 
   const auth = Buffer.from(`${key}:${secret}`).toString("base64");
-  // Page through next_cursor (cap at ~500 assets / 5 pages per prefix) so we don't truncate.
-  async function listPrefix(prefix) {
+
+  async function fetchPage(prefix, cursor, maxResults) {
     const base =
       `https://api.cloudinary.com/v1_1/${cloud}/resources/image` +
-      `?type=upload&prefix=${encodeURIComponent(prefix)}&max_results=100&tags=true&context=true`;
+      `?type=upload&prefix=${encodeURIComponent(prefix)}&max_results=${maxResults}&tags=true&context=true`;
+    const res = await fetch(cursor ? `${base}&next_cursor=${encodeURIComponent(cursor)}` : base, {
+      headers: { Authorization: `Basic ${auth}` },
+    });
+    if (!res.ok) throw new Error(`Cloudinary ${res.status}`);
+    return res.json();
+  }
+
+  // ---- PAGED MODE (2026-07-18, media-hub load-time fix) ------------------------------------
+  // The Media Hub used to await the WHOLE tenant asset set (main folder + every legacy folder,
+  // each internally paged up to 500) before rendering a single tile — fine at dozens of assets,
+  // increasingly slow as Rick tags more (292+ today, across `monti-trentini` + legacy `monti`).
+  // Opt-in via `paged=1` so the old "everything at once" behavior below is UNCHANGED for the
+  // other two callers (MediaPicker, Studio Director) that still want a full list in one call.
+  // `cursor` walks: "main:<raw|>" → once main is exhausted, "legacy:<index>:<raw|>" → null.
+  if (event.queryStringParameters?.paged) {
+    const maxResults = Math.min(Number(event.queryStringParameters?.max_results) || 60, 100);
+    const rawCursorParam = event.queryStringParameters?.cursor || `main:`;
+    const [source, idxOrCursor, maybeCursor] = rawCursorParam.split(":");
+
+    try {
+      if (source === "main") {
+        const rawCursor = idxOrCursor || null;
+        const data = await fetchPage(folderPrefix, rawCursor, maxResults);
+        const assets = (data.resources || []).map(mapResource);
+        const nextCursor = data.next_cursor
+          ? `main:${data.next_cursor}`
+          : legacyFolders.length ? `legacy:0:` : null;
+        return json(200, { assets, nextCursor });
+      }
+
+      // source === "legacy" — idxOrCursor is the legacy-folder INDEX, maybeCursor its raw cursor.
+      const idx = Number(idxOrCursor) || 0;
+      const legacy = legacyFolders[idx];
+      if (!legacy) return json(200, { assets: [], nextCursor: null });
+      const rawCursor = maybeCursor || null;
+      const data = await fetchPage(legacy, rawCursor, maxResults);
+      const assets = (data.resources || [])
+        // Admin-API `prefix` is a STRING match (`monti` also matches `monti-trentini/…`) — keep
+        // only assets exactly inside this legacy folder.
+        .filter((r) => r.public_id.startsWith(`${legacy}/`))
+        .map((r) => withLegacySku(r, legacy))
+        .map(mapResource);
+      const nextCursor = data.next_cursor
+        ? `legacy:${idx}:${data.next_cursor}`
+        : legacyFolders[idx + 1] ? `legacy:${idx + 1}:` : null;
+      return json(200, { assets, nextCursor });
+    } catch (err) {
+      return json(502, { error: String(err?.message || err) });
+    }
+  }
+
+  // ---- FULL MODE (unchanged) — everything in one response, bare array ----------------------
+  async function listPrefix(prefix) {
+    // Page through next_cursor (cap at ~500 assets / 5 pages per prefix) so we don't truncate.
     let resources = [];
     let cursor = null;
     for (let page = 0; page < 5; page++) {
-      const res = await fetch(cursor ? `${base}&next_cursor=${encodeURIComponent(cursor)}` : base, {
-        headers: { Authorization: `Basic ${auth}` },
-      });
-      if (!res.ok) throw new Error(`Cloudinary ${res.status}`);
-      const data = await res.json();
+      const data = await fetchPage(prefix, cursor, 100);
       resources = resources.concat(data.resources || []);
       cursor = data.next_cursor;
       if (!cursor) break;
@@ -74,47 +173,11 @@ export const handler = async (event) => {
         // keep only assets exactly inside the legacy folder, and never duplicate.
         if (!r.public_id.startsWith(`${legacy}/`) || seen.has(r.public_id)) continue;
         seen.add(r.public_id);
-        // Filename = item code for legacy packshots → derive sku unless context already set one.
-        const name = r.public_id.slice(legacy.length + 1);
-        if (!r.context?.custom?.sku && /^[A-Za-z0-9-]+$/.test(name)) {
-          r.context = { ...r.context, custom: { ...r.context?.custom, sku: name } };
-        }
-        resources.push(r);
+        resources.push(withLegacySku(r, legacy));
       }
     }
 
-    const assets = resources.map((r) => {
-      const segs = r.public_id.split("/");
-      // Assets sitting at the tenant root (no products/brand/raw subfolder) default to
-      // "products" so they show on the Media Hub's default tab.
-      const folder = FOLDERS.find((f) => segs.includes(f)) || "products";
-      const tags = r.tags || [];
-      // Untagged assets are finished, published product photography → "approved-for-press".
-      // Only an explicit "draft" tag marks a work-in-progress; this keeps the library from
-      // showing a sea of DRAFT badges on real packshots.
-      const approvalState = APPROVAL_TAGS.find((s) => tags.includes(s)) || "approved-for-press";
-      return {
-        publicId: r.public_id,
-        sku: r.context?.custom?.sku || "",
-        folder,
-        title: r.context?.custom?.caption || segs[segs.length - 1],
-        alt: r.context?.custom?.alt || "",
-        description: r.context?.custom?.description || "",
-        usage: tags.filter((t) => USAGE_IDS.includes(t)),
-        approvalState,
-        format: r.format,
-        width: r.width,
-        height: r.height,
-        // Added so this ONE live endpoint can also feed the canonical images.json manifest
-        // (scripts/sync-images.mjs --live) without needing the Cloudinary Admin API secret
-        // locally — version for cache-busting, bytes/modified for display only.
-        version: r.version,
-        bytes: r.bytes,
-        modified: (r.created_at || "").slice(0, 10),
-      };
-    });
-
-    return json(200, assets);
+    return json(200, resources.map(mapResource));
   } catch (err) {
     return json(502, { error: String(err?.message || err) });
   }

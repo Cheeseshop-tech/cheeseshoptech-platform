@@ -124,6 +124,45 @@ export async function listAssets({ folder, tenantFolder, legacyFolders, user }) 
 }
 
 /**
+ * Paginated sibling of listAssets() (2026-07-18, media-hub load-time fix). Fetches ONE page at a
+ * time from the live backend instead of awaiting the whole tenant asset set — the Media Hub was
+ * blocking its first paint on every asset (main folder + every legacy folder) before rendering a
+ * single tile, and that only gets slower as more assets get tagged. Mock mode has too little data
+ * to bother paging — it returns everything in one "page" with no next cursor.
+ *
+ * Other callers (MediaPicker, Studio Director) are UNCHANGED — they still call listAssets() and
+ * get the full list in one call, which is fine for an on-demand picker opened after a click.
+ *
+ * @param {object} o
+ * @param {string} [o.cursor] Opaque cursor from a previous call's `nextCursor` (omit for page 1).
+ * @param {number} [o.maxResults=60] Assets per page (server caps at 100).
+ * @returns {Promise<{assets: Array, nextCursor: string|null}>}
+ */
+export async function listAssetsPage({ tenantFolder, legacyFolders, user, cursor, maxResults = 60 }) {
+  const allowed = visibleStatesFor(user);
+  if (USE_MOCK) {
+    const assets = (MOCK[tenantFolder] || [])
+      .filter((a) => allowed.has(a.approvalState));
+    return { assets, nextCursor: null };
+  }
+  const legacy = (legacyFolders || []).length
+    ? `&legacy=${encodeURIComponent(legacyFolders.join(","))}`
+    : "";
+  const cursorParam = cursor ? `&cursor=${encodeURIComponent(cursor)}` : "";
+  const res = await fetch(
+    `/.netlify/functions/media-list?paged=1&max_results=${maxResults}&folder=${encodeURIComponent(tenantFolder)}${legacy}${cursorParam}`,
+    { headers: { ...writeAuthHeader() } }
+  );
+  if (res.status === 401) throw new Error(RELOGIN_MSG);
+  if (!res.ok) return { assets: [], nextCursor: null };
+  const data = await res.json();
+  return {
+    assets: (data.assets || []).filter((a) => allowed.has(a.approvalState)),
+    nextCursor: data.nextCursor || null,
+  };
+}
+
+/**
  * Update one asset's metadata (name, usage, sku, alt, approval). Live backend writes to Cloudinary
  * via the media-update function (secret stays server-side); mock mode is a no-op success so the UI
  * still works in dev. Returns the patch of fields to merge into local state.

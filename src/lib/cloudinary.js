@@ -20,6 +20,21 @@ export const TRANSFORMS = {
   original:"f_auto,q_auto",                                  // full, format/quality optimized
 };
 
+// Transparent-safe siblings of the three presets above (2026-07-18, dispatch/background audit
+// fix #3). `b_white` PAINTS a white background into the delivered pixels — fine for today's flat
+// studio-JPG packshots, but it flattens any alpha channel a real background-removed PNG would
+// carry, so a transparent packshot could never actually show the surrounding card's own color.
+// Same crop/size math, just no forced pad color, so an asset's real alpha (if any) survives
+// delivery and whatever's behind the <img> in the DOM (each surface's own container background)
+// shows through. Selected automatically by cldImage() when the caller passes `transparent: true`
+// — see codeImageUrl() in lib/images.js, which does this per-asset based on the manifest's
+// `bgRemoved` flag, so no call site needs to change to benefit once an image is tagged.
+const TRANSPARENT_TRANSFORMS = {
+  micro: "c_pad,w_96,h_96,f_auto,q_auto",
+  thumb: "c_pad,w_160,h_160,f_auto,q_auto",
+  card:  "c_pad,w_360,h_360,f_auto,q_auto",
+};
+
 /**
  * THE canonical Cloudinary delivery-URL builder. Every image surface calls this so sizing,
  * cropping, and the "no g_auto on huge masters" rule live in exactly one place.
@@ -31,10 +46,13 @@ export const TRANSFORMS = {
  * @param {number|string} [o.version]  Optional Cloudinary version (cache-bust) -> /v123/.
  * @param {string} [o.format]  Optional explicit extension (e.g. "png"); omit to let f_auto pick.
  * @param {string} [o.attachmentName]  If set, forces a download with this filename.
+ * @param {boolean} [o.transparent]  Skip the white pad for micro/thumb/card so real alpha survives
+ *   delivery (preview/hero/original never pad white, so this has no effect on those presets).
  */
-export function cldImage({ publicId, preset = "card", cloud = CLOUD_NAME, version, format, attachmentName }) {
+export function cldImage({ publicId, preset = "card", cloud = CLOUD_NAME, version, format, attachmentName, transparent = false }) {
   if (!publicId) return "";
-  let t = TRANSFORMS[preset] || TRANSFORMS.card;
+  const table = transparent ? TRANSPARENT_TRANSFORMS : TRANSFORMS;
+  let t = table[preset] || TRANSFORMS[preset] || TRANSFORMS.card;
   if (attachmentName) t = `fl_attachment:${attachmentName}` + (preset === "original" ? "" : `,${t}`);
   const v = version ? `v${version}/` : "";
   const ext = format ? `.${format}` : "";

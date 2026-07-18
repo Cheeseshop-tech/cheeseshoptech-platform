@@ -8,6 +8,54 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-07-18 — Image dispatch audit + Media Hub load-time fix (not yet committed as of writing)
+
+**Decision:** audit whether Media Hub/Cloudinary is really the ONE dispatch source for every app,
+and whether qualifying images (product tag + item number) are on a removed/transparent
+background — Rick's ask, ahead of him tagging the rest of the catalog. Full findings:
+`docs/IMAGE_DISPATCH_AUDIT_2026-07-18.md`. Two real, live-confirmed bugs, not hypothetical: a
+lifestyle cow photo (`mucche-alpeggio`) carries the Alpeggio packshot's item number `20724` with
+no product tag at all, and would win that SKU by manifest-order luck (same defect the 2026-07-09
+Image Health report flagged — still live nine days later); and 59 of 70 assets in the legacy
+`monti/<code>` folder carry zero tags/context, so `scripts/sync-images.mjs --live` never even
+requested that folder (no `legacy=` param passed) — an entire shot-and-ready photo set was
+invisible to the app regardless of tagging.
+
+**Action (audit → fix, same session):**
+- `scripts/sync-images.mjs` (both Admin API and `--live` modes) — the manifest now only assigns a
+  SKU's `code`/`sku` when the asset ALSO carries the `product-catalog` tag AND is approved
+  (`gatedCode()`). Closes the `20724`-class bug at the source for every future sync, in both
+  modes. Also now reads `config/clients/<tenant>.json` `cloudinaryLegacyFolders` itself and loops
+  those prefixes (previously only `netlify/functions/media-list.js`'s own full-mode loop knew
+  about legacy folders — Admin API mode never fetched them, and `--live` mode never passed
+  `legacy=` in its request).
+- `scripts/validate-images.mjs` (new) — `npm run validate:images`. One-command report: qualifying
+  count, missing-tag-but-has-SKU (the leak class), tagged-but-no-SKU, tagged+numbered-but-draft,
+  duplicate SKUs. Report only — never writes to Cloudinary or images.json.
+- **Background-removal path built, not yet used by any real asset.** `lib/cloudinary.js` gained
+  transparent-safe `TRANSPARENT_TRANSFORMS` (same crop/size as `thumb`/`card`/`micro`, no forced
+  `b_white` pad) selected via a new `cldImage({ transparent: true })` option.
+  `netlify/functions/media-list.js` and `sync-images.mjs` now surface a `bgRemoved` boolean off a
+  new `bg-removed` Cloudinary tag convention. `lib/images.js` `codeImageUrl()` and `lib/catalog.js`
+  `cldThumb()` read the manifest record's `bgRemoved` and pass `transparent` through automatically
+  — no call site in Proposals/Pricing/Catalog needed to change. Today every qualifying photo is
+  still a flat JPG (confirmed live, zero false positives), so this has no visible effect yet; it
+  activates the moment Rick tags a background-removed asset `bg-removed` and re-syncs.
+- **Media Hub load-time fix** (Rick: "noticing longer and longer load times"). Root cause,
+  confirmed in code: the Hub awaited the WHOLE tenant asset set (main folder + every legacy
+  folder, each internally paged up to 500) before rendering a single tile — only gets slower as
+  more assets get tagged (292+ today). `netlify/functions/media-list.js` gained an opt-in
+  `paged=1` mode (cursor walks `main:<raw>` → `legacy:<idx>:<raw>` → done) alongside the untouched
+  full-fetch path the other two callers (`MediaPicker`, Studio Director) still use.
+  `lib/media.js` gained `listAssetsPage()`; `media-hub.jsx`'s fetch effect now pulls page 1 fast
+  and streams the rest in behind it instead of blocking first paint on everything.
+
+**Status:** `vite build` clean (1688 modules), `node --check` clean on every changed `.js`/`.mjs`.
+Not committed yet — Rick reviewing the diff first. No data was changed or deleted in Cloudinary;
+this is entirely app-side (2 new files, 7 modified, `package.json` +1 script).
+
+---
+
 ## 2026-07-16 — Quote validity + price snapshot (wholesale Phase 1, audit P0 #5)
 
 **Decision:** ship Phase 1 of `WHOLESALE_ORDERING_WORKFLOW_SPEC.md` — every quote carries a

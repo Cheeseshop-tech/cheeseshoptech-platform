@@ -12,7 +12,7 @@ import {
 import { useToast } from "@/components/ui/toast.jsx";
 import { useAuth } from "@/lib/auth-context.jsx";
 import { cldUrl, uploadAsset, UPLOAD_PRESET, CLOUD_NAME } from "@/lib/cloudinary.js";
-import { listAssets, updateAsset, deleteAsset, APPROVAL, USAGE, usageLabel, canUpload, canManageMedia, canDeleteMedia, PRODUCT_USAGE_ID } from "@/lib/media.js";
+import { listAssetsPage, updateAsset, deleteAsset, APPROVAL, USAGE, usageLabel, canUpload, canManageMedia, canDeleteMedia, PRODUCT_USAGE_ID } from "@/lib/media.js";
 import { loadItems, emptyDoc, canManageItems, emptyItem, upsertItem, saveItems, getItem, specLine } from "@/lib/items.js";
 import { ItemsPanel } from "@/components/media/items-panel.jsx";
 
@@ -47,20 +47,41 @@ export function MediaHub({ resolved }) {
   // Items document (source of truth for item records + description cards). Hoisted here so the
   // rail can count items and future surfaces (asset dialog, catalog) can share it.
   const [itemsDoc, setItemsDoc] = useState(null);
+  // True while more pages are still streaming in behind the first one (see the effect below).
+  const [loadingMore, setLoadingMore] = useState(false);
 
-  // Fetch the whole asset set ONCE; tabs filter it client-side by usage tag (instant switching).
+  // Fetch the asset set PAGE BY PAGE (2026-07-18, load-time fix) instead of awaiting the whole
+  // tenant set (main folder + every legacy folder) before the grid can render a single tile.
+  // Page 1 lands fast and paints immediately; the rest stream in in the background and get
+  // appended, so tabs/search/counts fill in progressively instead of the hub sitting on a
+  // skeleton for however long the FULL fetch takes — which only grows as more assets get tagged.
   useEffect(() => {
     let alive = true;
     setAssets(null);
-    listAssets({ folder: null, tenantFolder: resolved.cloudinaryFolder, legacyFolders: resolved.cloudinaryLegacyFolders, user }).then((a) => {
-      if (alive) setAssets(a);
-    }).catch((e) => {
-      // 401 (read guard, 2026-07-16) throws RELOGIN_MSG from listAssets — surface the actual
-      // fix (sign out / re-enter passcode) instead of leaving the grid on a skeleton forever.
-      if (!alive) return;
-      setAssets([]);
-      toast({ title: "Media didn't load", description: String(e?.message || e), tone: "warning" });
-    });
+    setLoadingMore(true);
+    (async () => {
+      let cursor;
+      let first = true;
+      try {
+        do {
+          const { assets: page, nextCursor } = await listAssetsPage({
+            tenantFolder: resolved.cloudinaryFolder, legacyFolders: resolved.cloudinaryLegacyFolders, user, cursor,
+          });
+          if (!alive) return;
+          setAssets((prev) => (first ? page : [...(prev || []), ...page]));
+          first = false;
+          cursor = nextCursor;
+        } while (cursor && alive);
+      } catch (e) {
+        // 401 (read guard, 2026-07-16) throws RELOGIN_MSG — surface the actual fix (sign out /
+        // re-enter passcode) instead of leaving the grid on a skeleton forever.
+        if (!alive) return;
+        setAssets((prev) => prev || []);
+        toast({ title: "Media didn't load", description: String(e?.message || e), tone: "warning" });
+      } finally {
+        if (alive) setLoadingMore(false);
+      }
+    })();
     return () => { alive = false; };
   }, [resolved.cloudinaryFolder, user]);
 
@@ -236,6 +257,7 @@ export function MediaHub({ resolved }) {
             <>
               <p className="mb-3 text-sm text-fg-muted">
                 {q && display ? `${filteredDisplay.length} of ${display.length} shown` : `${filteredDisplay.length} shown`}
+                {loadingMore && " · loading more from Cloudinary…"}
               </p>
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
                 {filteredDisplay.slice(0, shown).map((a) => (

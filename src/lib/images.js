@@ -6,7 +6,10 @@
 //
 // Manifest shape: { tenant, cloud, folder, generatedAt, images: [{
 //   publicId, version, format, category, title, code, sku, orig,
-//   approvalState, width, height, bytes, modified }] }
+//   approvalState, width, height, bytes, modified, bgRemoved }] }
+// `bgRemoved` (2026-07-18): true when the Cloudinary asset carries the `bg-removed` tag Rick
+// applies once a packshot is actually background-removed — see sync-images.mjs and
+// codeImageUrl() below, which uses it to skip the white pad at delivery time.
 
 import mtImages from "@/data/montitrentini/images.json";
 import tplImages from "@/data/_template/images.json";
@@ -89,7 +92,11 @@ export function codeImageUrl(resolved, config, code, preset = "card", { allowPla
   const rec = imageForCode(resolved, code);
   if (rec) {
     const m = getImages(resolved);
-    return cldImage({ cloud: m.cloud, publicId: rec.publicId, version: rec.version, format: rec.format, preset });
+    // 2026-07-18 (dispatch/background audit fix #3): once a manifest record is tagged
+    // `bg-removed` (see sync-images.mjs), skip the forced white pad so its real alpha survives
+    // delivery and the surface's own container color shows through — no call site needs to
+    // change to pick this up; it's automatic per-asset the moment the tag is set and re-synced.
+    return cldImage({ cloud: m.cloud, publicId: rec.publicId, version: rec.version, format: rec.format, preset, transparent: !!rec.bgRemoved });
   }
   if (allowPlaceholder && PLACEHOLDER_CODES.has(code)) return `/placeholders/${code}.webp`;
   const img = config?.images;

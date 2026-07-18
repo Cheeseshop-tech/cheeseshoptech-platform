@@ -31,6 +31,7 @@ export function getBuyerCatalog(resolved) {
       modified: im.modified,
       cl_w: im.width,
       cl_h: im.height,
+      bgRemoved: !!im.bgRemoved, // 2026-07-18: threaded through so the Catalog skips white-pad too
     })),
   };
 }
@@ -40,7 +41,7 @@ export function getBuyerCatalog(resolved) {
 // again drift from the Media hub. Call shape stays (cloud, im) where im = {cl_id, cl_v, cl_fmt}. ----
 
 export const cldThumb = (cloud, im) =>
-  cldImage({ cloud, publicId: im.cl_id, version: im.cl_v, format: im.cl_fmt, preset: "card" });
+  cldImage({ cloud, publicId: im.cl_id, version: im.cl_v, format: im.cl_fmt, preset: "card", transparent: !!im.bgRemoved });
 
 export const cldBig = (cloud, im) =>
   cldImage({ cloud, publicId: im.cl_id, version: im.cl_v, format: im.cl_fmt, preset: "preview" });
