@@ -63,7 +63,13 @@ function BuyerCatalog({ data, brandName, tenantId, itemsFolder }) {
   // ROWS = the item list (mirrors the price list / item data). One row per item number.
   const rows = useMemo(() => {
     if (!itemsDoc) return null; // loading
-    return listItems(itemsDoc).map((it) => ({ it, imgs: imagesByCode[it.sku] || [] }));
+    const mapped = listItems(itemsDoc).map((it) => ({ it, imgs: imagesByCode[it.sku] || [] }));
+    // Product Catalog loads alphabetically by product NAME (2026-07-18, Rick asked for this) —
+    // deliberately separate from listItems()'s own order (by item number/SKU), which the Media
+    // Hub's Items tab still uses so it keeps mirroring the price sheet's row order.
+    return mapped.sort((a, b) =>
+      (a.it.name || "").localeCompare(b.it.name || "", undefined, { sensitivity: "base" })
+    );
   }, [itemsDoc, imagesByCode]);
 
   const [query, setQuery] = useState("");

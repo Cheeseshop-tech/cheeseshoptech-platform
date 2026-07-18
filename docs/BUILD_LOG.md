@@ -8,6 +8,24 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-07-18 — Product Catalog now loads alphabetically by product name
+
+**What (Rick asked to load the Product Catalog alphabetically):** the Catalog's row order came
+from `listItems()` in `src/lib/items.js`, sorted by item number/SKU — because that helper mirrors
+the price & inventory sheet's own row order, which the Media Hub's Items tab (an admin editing
+view) needs to keep matching.
+
+Rather than change that shared helper (which would have silently re-sorted the admin Items tab
+too), `buyer-catalog.jsx` now sorts its own `rows` alphabetically by product `name` right after
+mapping them, case-insensitively (`localeCompare` with `sensitivity: "base"`). Category counts,
+search filtering, and pagination all read from `rows` afterward, so they inherit the new order
+for free — no other change needed.
+
+**Verified:** fresh clone at the current commit, edited, `vite build` clean; identical edit
+applied to the real repo, confirmed byte-identical (md5) to the verified copy.
+
+---
+
 ## 2026-07-18 — Refresh button feedback + FIX: Access log city/state was always blank
 
 **Refresh button (Rick asked: "animate on click and turn green to signify refreshed"):** the
