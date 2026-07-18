@@ -9,6 +9,12 @@
 //
 // The request includes the tenant subdomain so per-tenant admin passcodes resolve.
 // Replaced by Clerk at client #2; the roles carry over unchanged.
+//
+// Every real attempt (success or failure) is logged — WHO (IP), WHEN, WHICH tier, for WHICH
+// tenant (2026-07-18, closes the "logins aren't tracked at all" gap — writes have been logged
+// since 2026-07-06, but the login step itself never was). See _login-log.js / login-log.js.
+
+import { logLogin } from "./_login-log.js";
 
 export const handler = async (event) => {
   if (event.httpMethod !== "POST") return resp(405, { error: "Method not allowed" });
@@ -23,6 +29,8 @@ export const handler = async (event) => {
     passcode = (body.passcode || "").toString();
     tenant = (body.tenant || "").toString().toLowerCase().replace(/[^a-z0-9-]/g, "");
   } catch { /* ignore */ }
+  // Empty passcode = the Agency Console's health-check ping (pingGate() in agency-console.jsx),
+  // not a real login attempt — skip logging so the log isn't noise from every dashboard load.
   if (!passcode) return resp(401, { ok: false });
 
   const tenantKey = tenant ? `PORTAL_ADMIN_PASSCODE_${tenant.toUpperCase().replace(/-/g, "_")}` : null;
@@ -30,9 +38,14 @@ export const handler = async (event) => {
   const house = process.env.PORTAL_HOUSE_PASSCODE;
 
   // Most-privileged match wins; tiers must use distinct passcodes to be meaningful.
-  if (house && passcode === house) return resp(200, { ok: true, role: "admin" });
-  if (clientAdmin && passcode === clientAdmin) return resp(200, { ok: true, role: "client-admin" });
-  if (passcode === client) return resp(200, { ok: true, role: !house ? roleForLegacyHouse(event) : "client" });
+  let role = null;
+  if (house && passcode === house) role = "admin";
+  else if (clientAdmin && passcode === clientAdmin) role = "client-admin";
+  else if (passcode === client) role = !house ? roleForLegacyHouse(event) : "client";
+
+  await logLogin(event, { ok: !!role, role, tenant: tenant || null });
+
+  if (role) return resp(200, { ok: true, role });
   return resp(401, { ok: false });
 };
 

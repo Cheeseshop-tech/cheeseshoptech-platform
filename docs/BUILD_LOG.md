@@ -8,6 +8,28 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-07-18 — Login/IP tracking: the passcode gate is now logged, with a House Console view
+
+**What (Rick asked "can I track logins from IP addresses?"):** answer was no — writes have been
+logged with IP since 2026-07-06 (`_write-log.js`), but the actual login step (`gate.js`) recorded
+nothing at all: no IP, no timestamp, not even success vs. failure. Built the missing half:
+
+- `netlify/functions/_login-log.js` — same Netlify Blobs audit-log pattern as `_write-log.js`
+  (capped rolling window, never blocks the request it's describing), its own `login-log` store.
+- `gate.js` now calls it on every real attempt (both success and failure), recording IP, tenant,
+  which passcode tier matched (or none), and result. The Agency Console's health-check ping
+  (empty passcode, `pingGate()`) is deliberately excluded so the log isn't noise from every
+  dashboard load.
+- `netlify/functions/login-log.js` — house-admin-only read endpoint, mirrors `write-log.js`.
+- Agency Console (`agency-console.jsx`) gained an **Access log** panel — last 25 login attempts,
+  IP / tenant / tier / result, with a manual refresh. Same `RoleGate roles={["admin"]}` as the
+  rest of the console, so no new auth surface.
+
+**Not yet built:** any alerting (e.g. "notify me on N failed attempts") or geo/IP-lookup — this is
+visibility only, same scope as the existing write-action log.
+
+---
+
 ## 2026-07-18 — Fixed a silent 401 in the live image scripts; ran the first validate:images report
 
 **What:** `sync-images.mjs --live` and the new `validate-images.mjs` both called `media-list.js`

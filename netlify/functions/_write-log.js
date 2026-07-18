@@ -15,7 +15,7 @@ const STORE = "write-log";
 const KEY = "log";
 const MAX_ENTRIES = 500; // rolling window — bounded size, enough history for one operator
 
-function callerIp(event) {
+export function callerIp(event) {
   const h = (event && event.headers) || {};
   return h["x-nf-client-connection-ip"] || h["client-ip"] || h["x-forwarded-for"] || "";
 }
