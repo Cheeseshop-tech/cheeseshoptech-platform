@@ -1,6 +1,6 @@
 # Wholesale Ordering Workflow — canonical spec
 
-**Date:** 2026-07-16 · **Status:** DIRECTION SET (Rick) — phases 1–4 not built
+**Date:** 2026-07-16 · **Status:** DIRECTION SET (Rick) — **Phase 1 SHIPPED 2026-07-16** (quote validity + price snapshot; see BUILD_LOG); phases 2–4 not built
 **Decision:** wholesale pricing + PO submission evolve INSIDE the portal catalog.
 The ecomm platform (Storefront, currently mock) is reserved for future D2C retail only.
 Related: `docs/PROPOSAL_BUYER_EMAIL_GATE_SPEC.md`, quoting principles (FOB SEAFRIGO base,
@@ -46,7 +46,6 @@ customer-profiles (pricing domain — Price List Creator, NOT Media Hub)
   freight              → basis default + lane rate (e.g. $/lb lane or flat), floors still apply
   priceLevel           → resolved output: tier + override + freight = what THIS customer pays
   authorizedEmails     → feeds the buyer gate (phase 2+)
-  validityDefaultDays  → default quote window for proformas
 ```
 
 Selecting a customer in the Proforma auto-fills tier/margin/freight from the profile; the rep
@@ -60,7 +59,7 @@ customer NAME is the join key across all three, same discipline as the SKU join.
 
 | Phase | What ships | Depends on |
 |---|---|---|
-| **1** | Proforma valid-before date + price snapshot: quote is *valid until X*; reopened after expiry → "quote expired — request updated pricing," never a silent reprice. Covers wiring-audit P0 #5 for proposals too. | nothing — buildable now |
+| **1** | Proforma valid-before date + price snapshot: quote is *valid until X*; reopened after expiry → "quote expired — request updated pricing," never a silent reprice. Covers wiring-audit P0 #5 for proposals too. **The date is REP-SPECIFIED per quote — deliberately NOT a default window (Rick, 2026-07-16: market is volatile; the rep judges validity per quote, per market conditions).** **SHIPPED 2026-07-16** (see BUILD_LOG). | nothing — buildable now |
 | **2** | Buyer email gate on proposal links (replaces sharing the base passcode with buyers; captures contacts) | `PROPOSAL_BUYER_EMAIL_GATE_SPEC.md` |
 | **3** | Customer pricing profiles + per-customer freight/margin auto-fill in the Pricing Tool; signed-in buyer sees their price level in the catalog (server-side resolution — prices never computed client-side from raw margin data) | 1, 2 |
 | **4** | PO submission from the catalog → order record → rep confirmation → pipeline stages (Part E flag on) → Bill/Collect placeholders get real | 3 |

@@ -12,7 +12,7 @@ import { rolesOf } from "@/lib/auth.js";
 import { usePricingData } from "@/lib/use-pricing-data.js";
 import { useItemsDoc } from "@/lib/use-items-doc.js";
 import {
-  emptyProposal, loadDraft, saveDraft, buildShareUrl, flattenSkus,
+  emptyProposal, loadDraft, saveDraft, buildShareUrl, flattenSkus, snapshotPrices,
 } from "@/lib/proposals.js";
 import { codeImageUrl } from "@/lib/images.js";
 import { getBrandKit, AUDIENCES, storyBlocksFor } from "@/lib/brandKit.js";
@@ -26,7 +26,8 @@ import { ProposalView } from "./proposal-view.jsx";
 // data: copy + a presentation deck + a SKU selection priced at a class of trade. One
 // generic engine for both tiers: the house pitches prospects with CST's brand/data, a
 // client admin pitches buyers with theirs. Output = preview + shareable gated link
-// (the proposal travels in the URL; prices always quote live).
+// (the proposal travels in the URL). A priced proposal requires a rep-set valid-until
+// date and freezes its quoted prices into the link at share time (wholesale Phase 1).
 export function ProposalBuilder({ resolved }) {
   const { data: pricing } = usePricingData(resolved);
   const { toast } = useToast();
@@ -94,10 +95,29 @@ export function ProposalBuilder({ resolved }) {
     update("skus", has ? p.skus.filter((c) => c !== code) : [...p.skus, code]);
   }
 
+  // A priced proposal must carry a rep-specified valid-until date before it can be shared
+  // (wholesale Phase 1 / audit P0 #5). Deliberately NO default window — the rep judges
+  // validity per quote, per market conditions.
+  const needsValidUntil = !!p.tierId && !p.validUntil;
+
   function copyLink() {
-    const url = buildShareUrl(resolved, p);
+    if (needsValidUntil) {
+      toast({ title: "Set a quote valid-until date", description: "This proposal shows pricing — pick the date the quote is valid until before sharing.", tone: "warning" });
+      return;
+    }
+    // Freeze the quote at share time: the snapshot travels inside the link, so the buyer
+    // sees exactly these prices until the valid-until date — never a silent reprice.
+    const snap = p.tierId ? snapshotPrices(p, config, pricing.catalog) : null;
+    const shared = { ...p, priceSnapshot: snap };
+    const url = buildShareUrl(resolved, shared);
     navigator.clipboard?.writeText(url).then(
-      () => toast({ title: "Share link copied", description: "Passcode-gated; prices quote live at open.", tone: "success" }),
+      () => toast({
+        title: "Share link copied",
+        description: p.tierId && p.validUntil
+          ? `Passcode-gated; prices frozen as quoted, valid until ${p.validUntil}.`
+          : "Passcode-gated; no pricing shown on this proposal.",
+        tone: "success",
+      }),
       () => toast({ title: "Couldn't copy link", tone: "error" }),
     );
   }
@@ -107,7 +127,10 @@ export function ProposalBuilder({ resolved }) {
       <div>
         <div className="mb-4 flex items-center justify-between print:hidden">
           <Button variant="ghost" size="sm" onClick={() => setPreview(false)}>← Back to builder</Button>
-          <Button variant="primary" size="sm" onClick={copyLink}><LinkIcon className="h-4 w-4" /> Copy share link</Button>
+          <Button variant="primary" size="sm" onClick={copyLink} disabled={needsValidUntil}
+            title={needsValidUntil ? "This proposal shows pricing — set a quote valid-until date first" : undefined}>
+            <LinkIcon className="h-4 w-4" /> Copy share link
+          </Button>
         </div>
         <ProposalView resolved={resolved} proposal={p} />
       </div>
@@ -156,7 +179,8 @@ export function ProposalBuilder({ resolved }) {
           <Button variant="outline" size="sm" onClick={() => setPreview(true)}>
             <Eye className="h-4 w-4" /> Preview
           </Button>
-          <Button variant="primary" size="sm" onClick={copyLink}>
+          <Button variant="primary" size="sm" onClick={copyLink} disabled={needsValidUntil}
+            title={needsValidUntil ? "This proposal shows pricing — set a quote valid-until date first" : undefined}>
             <LinkIcon className="h-4 w-4" /> Copy share link
           </Button>
         </div>
@@ -257,8 +281,19 @@ export function ProposalBuilder({ resolved }) {
                 <option value="">No pricing shown</option>
                 {tiers.map((t) => <option key={t.id} value={t.id}>{t.label} ({t.adjustPct >= 0 ? "+" : ""}{t.adjustPct}%)</option>)}
               </select>
-              <p className="text-xs text-fg-muted">Prices quote live from the canonical price list — the link can never go stale.</p>
+              <p className="text-xs text-fg-muted">Prices are frozen as quoted when you copy the share link, and hold until the valid-until date below.</p>
             </div>
+            {p.tierId && (
+              <div className="grid gap-1.5">
+                <Label htmlFor="pb-valid-until">Quote valid until <span className="text-error">*</span></Label>
+                <Input id="pb-valid-until" type="date" value={p.validUntil || ""} onChange={(e) => update("validUntil", e.target.value)} />
+                <p className="text-xs text-fg-muted">
+                  {p.validUntil
+                    ? `Quoted prices hold through ${p.validUntil}; after that the link shows "quote expired — request updated pricing."`
+                    : "Required before sharing — you set the window per quote (no default; the market moves)."}
+                </p>
+              </div>
+            )}
             <div className="grid gap-1.5">
               <Label htmlFor="pb-date">Date</Label>
               <Input id="pb-date" type="date" value={p.date} onChange={(e) => update("date", e.target.value)} />

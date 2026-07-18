@@ -232,6 +232,14 @@ audit confirms the doc is accurate here, unlike most other docs in this audit.
    fix: snapshot the quoted price at generation time and show a badge if the live price has since
    moved ("this price has changed since it was sent — showing current pricing"), rather than silently
    swapping the number. Doesn't require giving up live pricing, just surfacing when it moved.
+   **Fixed 2026-07-16** — wholesale Phase 1 (`WHOLESALE_ORDERING_WORKFLOW_SPEC.md`): a priced
+   proposal now requires a rep-specified valid-until date (no default window, by design) and
+   freezes its per-SKU prices into the link at share time (`snapshotPrices()`/`quoteStatus()` in
+   `src/lib/proposals.js`). The buyer view renders the snapshot with "Valid until <date>" while
+   valid, and a prominent "quote expired — request updated pricing" notice after (live prices then
+   labeled current/non-quote). Legacy links (no snapshot) render live exactly as before. The
+   Proforma print gained the same required date, shown in the meta block and footer. Never a
+   silent reprice. See BUILD_LOG 2026-07-16.
 
 **P1 — real gaps worth scheduling:**
 6. **Fix name-source drift in Proposals and the Pricing tool.** Both still read `catalog.json`'s

@@ -8,6 +8,43 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-07-16 — Quote validity + price snapshot (wholesale Phase 1, audit P0 #5)
+
+**Decision:** ship Phase 1 of `WHOLESALE_ORDERING_WORKFLOW_SPEC.md` — every quote carries a
+**rep-specified valid-until date** and a **price snapshot taken at generation time**; a reopened
+quote NEVER silently reprices. The date is deliberately **not defaulted** (no "+30 days"
+pre-fill): the market is volatile and the rep judges validity per quote, per market conditions
+(Rick, 2026-07-16). This also closes wiring-audit P0 #5 (proposal price-drift).
+
+**Action:**
+- `src/lib/proposals.js` — proposal record gains `validUntil` (rep-set date, empty by default)
+  and `priceSnapshot` (`{ takenAt, basis, tierId, tierLabel, prices: { code: $/unit } }`). New
+  `snapshotPrices()` freezes the then-current per-SKU quoted prices at share time; new
+  `quoteStatus()` classifies a proposal as `legacy` / `quoted` / `expired` (valid THROUGH the
+  stated date, local end-of-day). No backend needed: the proposal travels in the link, so the
+  snapshot travels with it — no new write endpoint, no auth surface change.
+- `proposal-builder.jsx` — a priced proposal (tier selected) shows a required "Quote valid
+  until" date input; both Copy-share-link buttons are disabled (with hint) until it's set.
+  `copyLink()` embeds the snapshot into the shared link. Unpriced proposals are unaffected.
+- `proposal-view.jsx` (buyer-facing) — renders by `quoteStatus()`: while valid, the SNAPSHOT
+  prices render (the quote holds even if the live price moved) with a "Quote valid until <date>"
+  badge; after the date, a prominent "This quote expired on <date> — request updated pricing"
+  notice renders and prices below it are clearly labeled today's current pricing, not the quote.
+  Legacy links (no date/snapshot) render live prices exactly as before — no crash, no false
+  "expired". Snapshot data lives in the proposal record itself, so none of this depends on the
+  items.js fetch (pre-deploy-unlocked viewers and catalog-fallback names are safe).
+- `pricing-tool.jsx` (Proforma tab) — required "Quote valid until" date input (empty by default);
+  Print/PDF is disabled with a hint until set. The printed document is the quote record: it bakes
+  in the per-SKU prices + basis/class-of-trade/custom % shown, displays the valid-until date in
+  the meta block (beside Bill to / Basis / Class of trade) and replaces the old hardcoded "Quote
+  valid 30 days." footer with "Quote valid until <date> — request updated pricing after this
+  date."
+
+**Status:** shipped. Live pricing math, catalog.json spec consumption, and the 2026-07-16
+name-join fix untouched. Phase 2 (buyer email gate) next per the spec.
+
+---
+
 ## 2026-07-16 — Read endpoints now require a passcode (wiring-audit P0 #1 + #3 closed)
 
 **Decision:** close the audit's most serious finding — every data-returning Netlify function

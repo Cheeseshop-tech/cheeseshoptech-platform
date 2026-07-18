@@ -10,6 +10,7 @@
 // the backend seam; see spec §8).
 
 import { getItem } from "./items.js";
+import { quoteUnitPrice } from "./pricing-core.js";
 
 const DRAFT_KEY = (tenantId) => `cs-proposal-draft-${tenantId}`;
 
@@ -29,6 +30,14 @@ export const emptyProposal = () => ({
   tierId: "",
   skus: [],
   date: new Date().toISOString().slice(0, 10),
+  // Quote validity (wholesale Phase 1, WHOLESALE_ORDERING_WORKFLOW_SPEC.md / audit P0 #5).
+  // REP-SPECIFIED per quote — deliberately NO default window (market is volatile; the rep
+  // judges validity per quote). Required before a priced proposal link can be shared.
+  validUntil: "",
+  // Per-SKU price freeze taken when the share link is generated (see snapshotPrices).
+  // The proposal travels in the link, so the snapshot travels with it — the buyer view
+  // renders these prices, never a silent live reprice. null = legacy / unpriced proposal.
+  priceSnapshot: null,
 });
 
 export function loadDraft(tenantId) {
@@ -73,6 +82,51 @@ export function buildShareUrl(resolved, proposal) {
   url.searchParams.set("page", "proposal");
   url.hash = `p=${encodeProposal(proposal)}`;
   return url.toString();
+}
+
+// -- Quote validity + price snapshot (wholesale Phase 1) --
+
+/**
+ * Freeze the proposal's quoted prices at share time. Returns the snapshot object stored on
+ * the proposal record (and therefore inside the share link): the then-current per-SKU unit
+ * prices plus the pricing inputs shown (basis, class of trade). Returns null when the
+ * proposal shows no pricing (no tierId) or the config isn't loaded — an unpriced proposal
+ * carries no snapshot, by design.
+ */
+export function snapshotPrices(proposal, config, catalog) {
+  if (!proposal?.tierId || !config || !catalog) return null;
+  const opts = { tierId: proposal.tierId, basis: config?.pricing?.costBasis };
+  const prices = {};
+  for (const { sku } of resolveSkus(catalog, proposal.skus)) {
+    prices[sku.code] = quoteUnitPrice(sku, opts, config);
+  }
+  const tier = (config?.pricing?.tiers || []).find((t) => t.id === proposal.tierId);
+  return {
+    takenAt: new Date().toISOString().slice(0, 10),
+    basis: config?.pricing?.costBasis || "FOB",
+    tierId: proposal.tierId,
+    tierLabel: tier?.label || "",
+    prices, // { [skuCode]: $/unit as quoted, or null if unpriceable at snapshot time }
+  };
+}
+
+/**
+ * Where this proposal stands on quote validity. Never a silent reprice — the mode drives
+ * what the buyer view renders:
+ *  - "legacy"  — pre-Phase-1 proposal (no validUntil, no snapshot): render live prices
+ *                exactly as before; no false "expired", no crash.
+ *  - "quoted"  — before the valid-until date: render the SNAPSHOT prices (that's the
+ *                quote; it holds even if the live price moved) with "Valid until <date>".
+ *  - "expired" — past the date: "quote expired — request updated pricing"; live prices
+ *                may render only when clearly labeled current/non-quote.
+ * The quote is valid THROUGH the stated date (expires at local end-of-day).
+ */
+export function quoteStatus(proposal, now = new Date()) {
+  const validUntil = proposal?.validUntil || "";
+  const snapshot = proposal?.priceSnapshot || null;
+  if (!validUntil && !snapshot) return { mode: "legacy", validUntil: "", snapshot: null };
+  const expired = validUntil ? now > new Date(validUntil + "T23:59:59") : false;
+  return { mode: expired ? "expired" : "quoted", validUntil, snapshot };
 }
 
 /**

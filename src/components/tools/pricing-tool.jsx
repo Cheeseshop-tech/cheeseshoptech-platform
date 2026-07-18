@@ -215,6 +215,10 @@ function Proforma({ data, brand, resolved, onNavigate, itemsDoc }) {
   const [search, setSearch] = useState("");
   const [qty, setQty] = useState({});
   const [detail, setDetail] = useState(null); // sku whose product-detail dialog is open
+  // Quote valid-until date — REP-SPECIFIED per quote, deliberately NO default window
+  // (Rick, 2026-07-16: market is volatile; the rep judges validity per quote). Required
+  // before the proforma can be printed/generated (wholesale Phase 1 / audit P0 #5).
+  const [validUntil, setValidUntil] = useState("");
 
   const opts = { tierId, basis, volumeId, customPct };
   // Manifest-first (real catalog image when the code has one), legacy packshot fallback otherwise.
@@ -253,8 +257,12 @@ function Proforma({ data, brand, resolved, onNavigate, itemsDoc }) {
   }
 
   // Print / save-as-PDF: open a clean branded proforma document and trigger print.
+  // The printed document IS the quote record: it bakes in the then-current per-SKU prices
+  // plus the pricing inputs shown (basis, class of trade, custom %) and the rep-set
+  // valid-until date — the price snapshot at generation time (wholesale Phase 1).
   function printProforma() {
     if (!items.length) { toast({ title: "Nothing to print", description: "Enter case quantities first.", tone: "warning" }); return; }
+    if (!validUntil) { toast({ title: "Set a quote valid-until date", description: "Every proforma carries a rep-set validity date — no default window.", tone: "warning" }); return; }
     const brandColor = (brand && brand.colors && brand.colors.primary) || "#064E22";
     const b = (config.brand) || {};
     const rows = order.lines.map((l) => {
@@ -276,7 +284,7 @@ function Proforma({ data, brand, resolved, onNavigate, itemsDoc }) {
       tfoot tr.grand td{font-size:17px;color:${brandColor}}.ft{margin-top:32px;color:#1f1f1f;font-size:11px;text-align:center}
     </style></head><body>
       <div class="hd"><div><h1>${esc(b.name || "Monti Trentini")}</h1><div class="sub">${esc(b.tagline || "")}</div></div><div><div class="pf">PROFORMA</div><div class="sub">${TODAY}</div></div></div>
-      <div class="meta"><div><b>Bill to</b>${esc(customer || "—")}</div><div><b>Basis</b>${basis === "pickup" ? "Pickup (EXW)" : "Delivered"}</div><div><b>Class of trade</b>${esc(tier.label || "")}</div>${customPct ? `<div><b>Custom</b>${customPct > 0 ? "+" : ""}${customPct}%</div>` : ""}</div>
+      <div class="meta"><div><b>Bill to</b>${esc(customer || "—")}</div><div><b>Basis</b>${basis === "pickup" ? "Pickup (EXW)" : "Delivered"}</div><div><b>Class of trade</b>${esc(tier.label || "")}</div>${customPct ? `<div><b>Custom</b>${customPct > 0 ? "+" : ""}${customPct}%</div>` : ""}<div><b>Quote valid until</b><span style="font-weight:700;color:${brandColor}">${esc(fmtDate(validUntil))}</span></div></div>
       <table><thead><tr><th>Item</th><th>Product</th><th class="r">Cases</th><th class="r">Lbs (est.)</th><th class="r">$/lb (firm)</th><th class="r">Line total (est.)</th></tr></thead>
       <tbody>${rows}</tbody>
       <tfoot><tr><td colspan="5" class="r">Merchandise (${order.lines.length} lines · ${lbsFmt(order.totalLbs)} lb)</td><td class="r">${money(order.merchSubtotal)}</td></tr>${fees}<tr class="grand"><td colspan="5" class="r">GRAND TOTAL (estimate)</td><td class="r">${money(grand)}</td></tr></tfoot></table>
@@ -284,7 +292,7 @@ function Proforma({ data, brand, resolved, onNavigate, itemsDoc }) {
         Prices are quoted <b>per pound (firm)</b>. Bulk cheese is sold by <b>catch weight</b> — line and order totals are
         <b>estimates based on average weights</b>; the actual weight of each item will vary and is confirmed when the order
         is weighed at our warehouse. The trucking fee shown is an <b>estimate pending confirmation with the logistics
-        provider</b>. Processing and logistics are billed as separate line items. Quote valid 30 days. &nbsp;·&nbsp; Casa Finco · casari dal 1925.
+        provider</b>. Processing and logistics are billed as separate line items. <b>Quote valid until ${esc(fmtDate(validUntil))}</b> — request updated pricing after this date. &nbsp;·&nbsp; Casa Finco · casari dal 1925.
       </div>
       <script>window.onload=function(){window.print();}<\/script></body></html>`;
     const w = window.open("", "_blank");
@@ -338,6 +346,12 @@ function Proforma({ data, brand, resolved, onNavigate, itemsDoc }) {
             <span className={fieldLabel}>Custom ±%</span>
             <input type="number" step="0.5" className={selCls + " w-20"} value={customPct} onChange={(e) => setCustomPct(Number(e.target.value) || 0)} />
           </div>
+          <div className="flex flex-col gap-1">
+            <span className={fieldLabel}>Quote valid until <span className="text-error">*</span></span>
+            {/* Rep-specified per quote — intentionally empty by default, never pre-filled. */}
+            <input type="date" className={selCls + (validUntil ? "" : " border-warning")} value={validUntil}
+              onChange={(e) => setValidUntil(e.target.value)} />
+          </div>
           {basis === "delivered" && (
             <>
               <div className="flex flex-col gap-1">
@@ -384,7 +398,13 @@ function Proforma({ data, brand, resolved, onNavigate, itemsDoc }) {
                 <div className="flex items-center gap-2 rounded-base bg-brand-primary px-4 py-2 text-brand-on-primary">
                   <span className="font-heading text-sm">Grand total</span><span className="font-mono text-lg font-semibold">{money(grand)}</span><span className="text-[10px] uppercase tracking-wide opacity-80">est.</span>
                 </div>
-                <Button variant="outline" onClick={printProforma}>Print / PDF</Button>
+                <div className="flex flex-col items-end gap-0.5">
+                  <Button variant="outline" onClick={printProforma} disabled={!validUntil}
+                    title={!validUntil ? "Set a quote valid-until date first — every proforma carries one" : undefined}>
+                    Print / PDF
+                  </Button>
+                  {!validUntil && <span className="text-[10px] text-fg-muted">Set “Quote valid until” to print</span>}
+                </div>
                 <Button variant="primary" onClick={recordSale}>Record sale</Button>
               </div>
             </CardContent>

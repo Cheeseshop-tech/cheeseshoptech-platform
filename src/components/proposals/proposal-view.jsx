@@ -7,7 +7,7 @@ import { DeckViewer } from "@/components/presentations/presentations-page.jsx";
 import { usePricingData } from "@/lib/use-pricing-data.js";
 import { useItemsDoc } from "@/lib/use-items-doc.js";
 import { quoteUnitPrice } from "@/lib/pricing-core.js";
-import { proposalFromLocation, resolveSkus } from "@/lib/proposals.js";
+import { proposalFromLocation, resolveSkus, quoteStatus } from "@/lib/proposals.js";
 import { codeImageUrl } from "@/lib/images.js";
 import { getBrandKit } from "@/lib/brandKit.js";
 import { getTheme, themeColors, themeSpec } from "@/lib/themes.js";
@@ -16,8 +16,10 @@ import { cldUrl } from "@/lib/cloudinary.js";
 // Rendered proposal (v2) — what the buyer sees at the shared link (?page=proposal#p=…).
 // Composed from the tenant's BRAND KIT (logo, imagery, story blocks, colors) and the selected
 // THEME (which colors lead, density, type register, cover + product layout — the fixed
-// image-placement zones). Prices quote LIVE from the canonical price list, so a link can never
-// drift. The kit is the single source; the theme is a register of it.
+// image-placement zones). Pricing: a priced link carries a PRICE SNAPSHOT + rep-set valid-until
+// date (wholesale Phase 1) — the snapshot renders until it expires, then the view says "quote
+// expired"; legacy links (no snapshot) still quote live as before. The kit is the single
+// source; the theme is a register of it.
 export function ProposalView({ resolved, proposal: given }) {
   const proposal = given || proposalFromLocation();
   const { data: pricing } = usePricingData(resolved);
@@ -45,6 +47,22 @@ export function ProposalView({ resolved, proposal: given }) {
   const deck = (resolved.presentations || []).find((d) => d.key === proposal.deckKey);
   const tier = config?.pricing?.tiers?.find((t) => t.id === proposal.tierId);
   const quoteOpts = { tierId: proposal.tierId, basis: config?.pricing?.costBasis };
+
+  // Quote validity + price freeze (wholesale Phase 1 / audit P0 #5). Never a silent reprice:
+  //  - "legacy"  — pre-Phase-1 link (no validUntil/snapshot): live prices, exactly as before.
+  //  - "quoted"  — the SNAPSHOT prices render (that's the quote — it holds even if the live
+  //                price moved), labeled "Valid until <date>".
+  //  - "expired" — a prominent "quote expired — request updated pricing" notice; live prices
+  //                render below it clearly labeled as current/non-quote pricing.
+  // The snapshot lives in the proposal record itself (it travels in the link), so this never
+  // depends on an items.js/config fetch succeeding.
+  const quote = quoteStatus(proposal);
+  const snapPrices = quote.snapshot?.prices || null;
+  const unitFor = (sku) =>
+    quote.mode === "quoted" && snapPrices
+      ? (snapPrices[sku.code] ?? null)
+      : (config ? quoteUnitPrice(sku, quoteOpts, config) : null);
+  const fmtQDate = (iso) => (iso ? new Date(iso + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) : "");
 
   // tc.lead = the color that LEADS filled surfaces; tc.onCanvas = the legible color for type
   // (equals lead for dark/colored leads; equals the primary brand color for a light "cream" lead
@@ -150,14 +168,27 @@ export function ProposalView({ resolved, proposal: given }) {
       {items.length > 0 && (
         <div className={sp.section}>
           <h2 className={`${sp.heading} mb-1 text-2xl`} style={{ color: tc.onCanvas }}>The range</h2>
-          <p className="mb-4 text-sm text-fg-muted">{items.length} selections{tier ? <> · <Badge variant="muted">{tier.label}</Badge></> : null}</p>
+          <p className="mb-4 text-sm text-fg-muted">
+            {items.length} selections{tier ? <> · <Badge variant="muted">{tier.label}</Badge></> : null}
+            {quote.mode === "quoted" && quote.validUntil ? <> · <Badge variant="success">Quote valid until {fmtQDate(quote.validUntil)}</Badge></> : null}
+          </p>
+          {quote.mode === "expired" && (
+            <div className="mb-4 rounded-base border-2 p-4" style={{ borderColor: tc.onCanvas, background: tc.cream }}>
+              <p className="font-heading text-lg" style={{ color: tc.onCanvas }}>
+                This quote expired on {fmtQDate(quote.validUntil)} — request updated pricing.
+              </p>
+              <p className="mt-1 text-sm" style={{ color: tc.ink }}>
+                Prices below are today's current pricing, shown for reference only — they are not the quoted prices.
+              </p>
+            </div>
+          )}
 
           {theme.tokens.product === "grid-three-up" ? (
             // GRID-THREE-UP — premium gallery: small quiet cards, image-forward, lots of air.
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {items.map(({ sku, name }) => {
                 const img = codeImageUrl(resolved, config, sku.code, "card");
-                const unit = config ? quoteUnitPrice(sku, quoteOpts, config) : null;
+                const unit = unitFor(sku);
                 return (
                   <div key={sku.code} className="overflow-hidden rounded-base border border-border">
                     {img ? <img src={img} alt="" loading="lazy" className="aspect-square w-full bg-white object-contain" /> : <div className="aspect-square w-full bg-bg" />}
@@ -174,7 +205,7 @@ export function ProposalView({ resolved, proposal: given }) {
             <div className="grid gap-4 sm:grid-cols-2">
               {items.map(({ product, sku, name }) => {
                 const img = codeImageUrl(resolved, config, sku.code, "card");
-                const unit = config ? quoteUnitPrice(sku, quoteOpts, config) : null;
+                const unit = unitFor(sku);
                 return (
                   <div key={sku.code} className="overflow-hidden rounded-base border border-border">
                     {img ? <img src={img} alt="" loading="lazy" className="aspect-square w-full bg-white object-contain" /> : <div className="aspect-square w-full bg-bg" />}
@@ -203,7 +234,7 @@ export function ProposalView({ resolved, proposal: given }) {
               </div>
               {items.map(({ product, sku, name }, i) => {
                 const img = codeImageUrl(resolved, config, sku.code, "card");
-                const unit = config ? quoteUnitPrice(sku, quoteOpts, config) : null;
+                const unit = unitFor(sku);
                 return (
                   <div key={sku.code} className={"flex items-center gap-3 bg-surface px-3 py-2 " + (i > 0 ? "border-t border-border" : "")}>
                     {img ? <img src={img} alt="" loading="lazy" className="h-10 w-10 flex-none rounded-base border border-border bg-white object-contain" /> : <div className="h-10 w-10 flex-none rounded-base bg-bg" />}
@@ -223,7 +254,7 @@ export function ProposalView({ resolved, proposal: given }) {
             <div className="overflow-hidden rounded-base border border-border">
               {items.map(({ product, sku, name }, i) => {
                 const img = codeImageUrl(resolved, config, sku.code, "card");
-                const unit = config ? quoteUnitPrice(sku, quoteOpts, config) : null;
+                const unit = unitFor(sku);
                 return (
                   <div key={sku.code} className={"flex items-center gap-4 bg-surface p-4 " + (i > 0 ? "border-t border-border" : "")}>
                     {img ? <img src={img} alt="" loading="lazy" className="h-24 w-24 flex-none rounded-base border border-border bg-white object-contain" /> : <div className="h-24 w-24 flex-none rounded-base bg-bg" />}
@@ -246,7 +277,13 @@ export function ProposalView({ resolved, proposal: given }) {
             </div>
           )}
           <p className="mt-3 text-xs text-fg-muted">
-            Merchandise pricing only ({config?.pricing?.costBasis || "FOB"}); freight & handling quoted as separate line items at order time. Prices reflect the live {resolved.brand.name} price list as of today.
+            {quote.mode === "quoted" && quote.snapshot ? (
+              <>Merchandise pricing only ({quote.snapshot.basis}); freight &amp; handling quoted as separate line items at order time. Prices as quoted on {fmtQDate(quote.snapshot.takenAt)} — this quote is valid until {fmtQDate(quote.validUntil)}.</>
+            ) : quote.mode === "expired" ? (
+              <>This quote expired on {fmtQDate(quote.validUntil)}. Prices shown are today's current pricing for reference — not the quoted prices. Request updated pricing.</>
+            ) : (
+              <>Merchandise pricing only ({config?.pricing?.costBasis || "FOB"}); freight &amp; handling quoted as separate line items at order time. Prices reflect the live {resolved.brand.name} price list as of today.</>
+            )}
           </p>
         </div>
       )}
