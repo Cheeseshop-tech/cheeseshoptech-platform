@@ -14,8 +14,15 @@ const MAX_BYTES = 900_000; // items.json is text; ~1 MB guard against runaway pa
 export const handler = async (event) => {
   if (event.httpMethod !== "POST") return json(405, { error: "Method not allowed" });
 
-  // CST (house) or a client's admin only — see _write-guard.js.
-  const writeAuth = requireWriteAuth(event);
+  let body;
+  try { body = JSON.parse(event.body || "{}"); } catch { return json(400, { error: "Bad JSON" }); }
+
+  // CST (house) or a client's admin only — see _write-guard.js. Tenant now read explicitly from
+  // the POST body (2026-07-18 fix, mirrors the items-get.js/media-list.js read-side fix) — this
+  // used to call requireWriteAuth(event) with NO tenant at all, so a per-tenant admin passcode
+  // (PORTAL_ADMIN_PASSCODE_<TENANT>, e.g. Monti Trentini's manager passcode) could never save
+  // items — only the generic PORTAL_ADMIN_PASSCODE or house passcode ever worked here.
+  const writeAuth = requireWriteAuth(event, (body.tenant || "").replace(/[^a-z0-9-]/gi, ""));
   if (!writeAuth.ok) {
     await logWrite(event, { fn: "items-save", ok: false, status: writeAuth.status });
     return jsonUnauthorized(writeAuth);
@@ -25,9 +32,6 @@ export const handler = async (event) => {
   const key = process.env.CLOUDINARY_API_KEY;
   const secret = process.env.CLOUDINARY_API_SECRET;
   if (!cloud || !key || !secret) return json(500, { error: "Cloudinary env vars not configured" });
-
-  let body;
-  try { body = JSON.parse(event.body || "{}"); } catch { return json(400, { error: "Bad JSON" }); }
 
   const folder = (body.folder || "").replace(/[^a-zA-Z0-9_\-/]/g, "");
   if (!folder) return json(400, { error: "Missing folder" });

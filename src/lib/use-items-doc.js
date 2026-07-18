@@ -18,7 +18,7 @@ export function useItemsDoc(resolved) {
     let alive = true;
     setDoc(null);
     if (!folder) return undefined;
-    loadItems(folder).then((d) => { if (alive) setDoc(d); }).catch(() => { /* keep null → catalog fallback */ });
+    loadItems(folder, resolved?.id).then((d) => { if (alive) setDoc(d); }).catch(() => { /* keep null → catalog fallback */ });
     return () => { alive = false; };
   }, [folder]);
   return doc;

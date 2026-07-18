@@ -100,7 +100,7 @@ const USE_MOCK = (import.meta.env.VITE_MEDIA_BACKEND || "mock") === "mock";
  * from the filename server-side (see media-list.js).
  * @returns {Promise<Array>} assets
  */
-export async function listAssets({ folder, tenantFolder, legacyFolders, user }) {
+export async function listAssets({ folder, tenantFolder, legacyFolders, user, tenantId = "" }) {
   let assets;
   if (USE_MOCK) {
     assets = MOCK[tenantFolder] || [];
@@ -111,9 +111,13 @@ export async function listAssets({ folder, tenantFolder, legacyFolders, user }) 
       ? `&legacy=${encodeURIComponent(legacyFolders.join(","))}`
       : "";
     // Reads now require the passcode header server-side (2026-07-16) — replay the unlock passcode.
-    const res = await fetch(`/.netlify/functions/media-list?folder=${encodeURIComponent(tenantFolder)}${legacy}`, {
-      headers: { ...writeAuthHeader() },
-    });
+    // `tenantId` (2026-07-18 fix): explicit tenant id/subdomain so a per-tenant admin passcode
+    // (PORTAL_ADMIN_PASSCODE_<TENANT>) actually authorizes this read — media-list.js used to try
+    // deriving it from `folder`, which never matched (see media-list.js for the full story).
+    const res = await fetch(
+      `/.netlify/functions/media-list?folder=${encodeURIComponent(tenantFolder)}${legacy}&tenant=${encodeURIComponent(tenantId)}`,
+      { headers: { ...writeAuthHeader() } }
+    );
     if (res.status === 401) throw new Error(RELOGIN_MSG); // pre-update unlock — no stashed passcode
     assets = res.ok ? await res.json() : [];
   }
@@ -138,7 +142,7 @@ export async function listAssets({ folder, tenantFolder, legacyFolders, user }) 
  * @param {number} [o.maxResults=60] Assets per page (server caps at 100).
  * @returns {Promise<{assets: Array, nextCursor: string|null}>}
  */
-export async function listAssetsPage({ tenantFolder, legacyFolders, user, cursor, maxResults = 60 }) {
+export async function listAssetsPage({ tenantFolder, legacyFolders, user, cursor, maxResults = 60, tenantId = "" }) {
   const allowed = visibleStatesFor(user);
   if (USE_MOCK) {
     const assets = (MOCK[tenantFolder] || [])
@@ -149,8 +153,9 @@ export async function listAssetsPage({ tenantFolder, legacyFolders, user, cursor
     ? `&legacy=${encodeURIComponent(legacyFolders.join(","))}`
     : "";
   const cursorParam = cursor ? `&cursor=${encodeURIComponent(cursor)}` : "";
+  // `tenantId` (2026-07-18 fix): see listAssets() above — same explicit tenant id/subdomain.
   const res = await fetch(
-    `/.netlify/functions/media-list?paged=1&max_results=${maxResults}&folder=${encodeURIComponent(tenantFolder)}${legacy}${cursorParam}`,
+    `/.netlify/functions/media-list?paged=1&max_results=${maxResults}&folder=${encodeURIComponent(tenantFolder)}${legacy}${cursorParam}&tenant=${encodeURIComponent(tenantId)}`,
     { headers: { ...writeAuthHeader() } }
   );
   if (res.status === 401) throw new Error(RELOGIN_MSG);
@@ -167,7 +172,7 @@ export async function listAssetsPage({ tenantFolder, legacyFolders, user, cursor
  * via the media-update function (secret stays server-side); mock mode is a no-op success so the UI
  * still works in dev. Returns the patch of fields to merge into local state.
  */
-export async function updateAsset({ publicId, displayName, usage, sku, alt, description, approvalState }) {
+export async function updateAsset({ publicId, displayName, usage, sku, alt, description, approvalState, tenantId = "" }) {
   const patch = {};
   if (displayName != null) patch.title = displayName;
   if (Array.isArray(usage)) patch.usage = usage;
@@ -176,10 +181,12 @@ export async function updateAsset({ publicId, displayName, usage, sku, alt, desc
   if (description != null) patch.description = description;
   if (approvalState) patch.approvalState = approvalState;
   if (USE_MOCK) return patch; // dev: update local state only
+  // `tenantId` (2026-07-18 fix): media-update.js used to check auth with NO tenant at all, so a
+  // per-tenant admin passcode could never authorize this write — now sent explicitly.
   const res = await fetch("/.netlify/functions/media-update", {
     method: "POST",
     headers: { "content-type": "application/json", ...writeAuthHeader() },
-    body: JSON.stringify({ publicId, displayName, usage, sku, alt, description, approvalState }),
+    body: JSON.stringify({ publicId, displayName, usage, sku, alt, description, approvalState, tenant: tenantId }),
   });
   if (!res.ok) {
     if (res.status === 401) throw new Error(RELOGIN_MSG);
@@ -201,13 +208,15 @@ export const RELOGIN_MSG =
  * DESTRUCTIVE — callers must gate on canDeleteMedia() and confirm with the user first.
  * @returns {Promise<{ok:true, publicId:string}>}
  */
-export async function deleteAsset({ publicId, resourceType = "image" }) {
+export async function deleteAsset({ publicId, resourceType = "image", tenantId = "" }) {
   if (!publicId) throw new Error("Missing publicId");
   if (USE_MOCK) return { ok: true, publicId }; // dev: drop from local state only
+  // `tenantId` (2026-07-18 fix): media-delete.js used to check auth with NO tenant at all — see
+  // updateAsset() above for the same story.
   const res = await fetch("/.netlify/functions/media-delete", {
     method: "POST",
     headers: { "content-type": "application/json", ...writeAuthHeader() },
-    body: JSON.stringify({ publicId, resourceType }),
+    body: JSON.stringify({ publicId, resourceType, tenant: tenantId }),
   });
   if (!res.ok) {
     if (res.status === 401) throw new Error(RELOGIN_MSG);

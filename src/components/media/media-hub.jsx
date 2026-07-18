@@ -73,7 +73,7 @@ export function MediaHub({ resolved }) {
           // hub is already interactive.
           const { assets: page, nextCursor } = await listAssetsPage({
             tenantFolder: resolved.cloudinaryFolder, legacyFolders: resolved.cloudinaryLegacyFolders, user, cursor,
-            maxResults: first ? INITIAL_PAGE : PAGE,
+            maxResults: first ? INITIAL_PAGE : PAGE, tenantId: resolved.id,
           });
           if (!alive) return;
           setAssets((prev) => (first ? page : [...(prev || []), ...page]));
@@ -99,7 +99,7 @@ export function MediaHub({ resolved }) {
   useEffect(() => {
     let alive = true;
     setItemsDoc(null);
-    loadItems(resolved.cloudinaryFolder)
+    loadItems(resolved.cloudinaryFolder, resolved.id)
       .then((d) => { if (alive) setItemsDoc(d); })
       .catch(() => { if (alive) setItemsDoc(emptyDoc()); });
     return () => { alive = false; };
@@ -302,7 +302,7 @@ export function MediaHub({ resolved }) {
           const prev = itemsDoc;
           setItemsDoc(next);
           try {
-            await saveItems(resolved.cloudinaryFolder, next);
+            await saveItems(resolved.cloudinaryFolder, next, resolved.id);
             return true;
           } catch (err) {
             setItemsDoc(prev);
@@ -314,7 +314,7 @@ export function MediaHub({ resolved }) {
         onSave={async (fields) => {
           const id = active.publicId;
           try {
-            const patch = await updateAsset({ publicId: id, ...fields });
+            const patch = await updateAsset({ publicId: id, ...fields, tenantId: resolved.id });
             const apply = (x) => x.publicId === id ? { ...x, ...patch } : x;
             setActive((a) => (a ? { ...a, ...patch } : a));
             setAssets((list) => list?.map(apply));
@@ -334,7 +334,7 @@ export function MediaHub({ resolved }) {
         onDelete={async () => {
           const id = active.publicId;
           try {
-            await deleteAsset({ publicId: id });
+            await deleteAsset({ publicId: id, tenantId: resolved.id });
             const drop = (list) => (list || []).filter((x) => x.publicId !== id);
             setAssets(drop);
             setRecent((prev) => {

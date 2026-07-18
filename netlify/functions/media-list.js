@@ -18,7 +18,6 @@ const USAGE_IDS = [
 const BG_REMOVED_TAG = "bg-removed";
 
 import { requireReadAuth, jsonUnauthorized } from "./_write-guard.js";
-import { tenantFromPath } from "./_write-log.js";
 
 // Map one Cloudinary Admin API resource to the shape src/lib/media.js expects. Shared by both
 // the legacy (fetch-everything) path and the paged path below so they can never drift.
@@ -68,7 +67,15 @@ function withLegacySku(r, legacy) {
 export const handler = async (event) => {
   // Any valid passcode tier (2026-07-16, wiring-audit P0 #1) — the full asset list (including
   // unapproved/draft) used to be readable from a bare URL with zero auth.
-  const readAuth = requireReadAuth(event, tenantFromPath(event.queryStringParameters?.folder) || "");
+  //
+  // 2026-07-18 fix: this used to derive the tenant via tenantFromPath(folder), which only ever
+  // matches a "clients/<slug>" style path — but `folder` here is a bare Cloudinary folder name
+  // (e.g. "monti-trentini"), so it NEVER matched and the per-tenant admin passcode
+  // (PORTAL_ADMIN_PASSCODE_<TENANT>) could never unlock this endpoint. crm-summary.js,
+  // crm-hubspot.js, inventory.js, and history.js all already take an explicit `tenant` query
+  // param instead — matching that pattern here so per-tenant manager passcodes actually work
+  // on reads, not just at login (found live-testing the new Monti Trentini manager passcode).
+  const readAuth = requireReadAuth(event, (event.queryStringParameters?.tenant || "").replace(/[^a-z0-9-]/gi, ""));
   if (!readAuth.ok) return jsonUnauthorized(readAuth);
 
   const cloud = process.env.CLOUDINARY_CLOUD_NAME;

@@ -137,8 +137,15 @@ function withSeed(doc, tenantFolder) {
 const USE_MOCK = (import.meta.env.VITE_MEDIA_BACKEND || "mock") === "mock";
 const LS_KEY = (tenantFolder) => `cs-items-${tenantFolder}`;
 
-/** Load the tenant's item document. Never throws for "not created yet" — returns emptyDoc(). */
-export async function loadItems(tenantFolder) {
+/**
+ * Load the tenant's item document. Never throws for "not created yet" — returns emptyDoc().
+ * `tenantId` (2026-07-18 fix): the tenant's config id/subdomain (e.g. "montitrentini" — NOT the
+ * Cloudinary folder, which can differ, e.g. "monti-trentini"). Sent as an explicit `tenant` query
+ * param so a per-tenant admin passcode (PORTAL_ADMIN_PASSCODE_<TENANT>) can authenticate this
+ * read — the server previously tried to derive it from the folder path and never could (see
+ * netlify/functions/items-get.js for the full story).
+ */
+export async function loadItems(tenantFolder, tenantId = "") {
   if (USE_MOCK) {
     try { return withSeed(migrateDoc(JSON.parse(localStorage.getItem(LS_KEY(tenantFolder)) || "{}")), tenantFolder); }
     catch { return withSeed(emptyDoc(), tenantFolder); }
@@ -147,17 +154,23 @@ export async function loadItems(tenantFolder) {
   // A 401 (pre-update unlock, no stashed passcode) throws RELOGIN_MSG; buyer-facing callers
   // (use-items-doc.js, buyer-catalog) catch and fall back to catalog.json names, so a proposal
   // link never blanks — surfaces with error UI show the sign-out/sign-in fix instead.
-  const res = await fetch(`/.netlify/functions/items-get?folder=${encodeURIComponent(tenantFolder)}`, {
-    headers: { ...writeAuthHeader() },
-  });
+  const res = await fetch(
+    `/.netlify/functions/items-get?folder=${encodeURIComponent(tenantFolder)}&tenant=${encodeURIComponent(tenantId)}`,
+    { headers: { ...writeAuthHeader() } }
+  );
   if (res.status === 404) return withSeed(emptyDoc(), tenantFolder);
   if (res.status === 401) throw new Error(RELOGIN_MSG);
   if (!res.ok) throw new Error(`Items load failed (${res.status})`);
   return withSeed(migrateDoc(await res.json()), tenantFolder);
 }
 
-/** Save the WHOLE document (single-writer model — fine for a solo/small team tenant). */
-export async function saveItems(tenantFolder, doc) {
+/**
+ * Save the WHOLE document (single-writer model — fine for a solo/small team tenant).
+ * `tenantId` (2026-07-18 fix): see loadItems() above — same explicit tenant id, now sent in the
+ * POST body so a per-tenant admin passcode can authorize the write too (items-save.js used to
+ * call requireWriteAuth() with no tenant at all, so only the generic admin/house passcode worked).
+ */
+export async function saveItems(tenantFolder, doc, tenantId = "") {
   const out = { ...doc, version: 2, updatedAt: new Date().toISOString() };
   if (USE_MOCK) {
     try { localStorage.setItem(LS_KEY(tenantFolder), JSON.stringify(out)); } catch { /* quota */ }
@@ -166,7 +179,7 @@ export async function saveItems(tenantFolder, doc) {
   const res = await fetch("/.netlify/functions/items-save", {
     method: "POST",
     headers: { "content-type": "application/json", ...writeAuthHeader() },
-    body: JSON.stringify({ folder: tenantFolder, doc: out }),
+    body: JSON.stringify({ folder: tenantFolder, doc: out, tenant: tenantId }),
   });
   if (!res.ok) {
     if (res.status === 401) throw new Error(RELOGIN_MSG);

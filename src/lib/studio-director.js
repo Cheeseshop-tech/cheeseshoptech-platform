@@ -110,14 +110,14 @@ export async function directDraft({ resolved, user, opportunity } = {}) {
   const catalog = pricing?.catalog;
   let assets = [];
   try {
-    assets = await listAssets({ tenantFolder: resolved.cloudinaryFolder, legacyFolders: resolved.cloudinaryLegacyFolders, user });
+    assets = await listAssets({ tenantFolder: resolved.cloudinaryFolder, legacyFolders: resolved.cloudinaryLegacyFolders, user, tenantId: resolved.id });
   } catch { assets = []; }
   assets = assets.filter((a) => (a.format ? !["mp4", "mov"].includes(a.format) : true));
 
   // Canonical item copy (Media Hub items.js) — see pickProducts() below for how this joins
   // with catalog.json by SKU. Never throws: an empty/missing doc just falls back to catalog names.
   let itemsDoc = null;
-  try { itemsDoc = await loadItems(resolved.cloudinaryFolder); } catch { itemsDoc = null; }
+  try { itemsDoc = await loadItems(resolved.cloudinaryFolder, resolved.id); } catch { itemsDoc = null; }
 
   const hasVoice = !!(kit && ((kit.storyBlocks || []).length || (kit.voice?.readyPhrases || []).length || kit.voice?.motto));
   if (!hasVoice && !assets.length) return null;

@@ -12,8 +12,14 @@ import { logWrite, tenantFromPath } from "./_write-log.js";
 export const handler = async (event) => {
   if (event.httpMethod !== "POST") return json(405, { error: "Method not allowed" });
 
-  // Destructive — CST (house) or a client's admin only. See _write-guard.js.
-  const writeAuth = requireWriteAuth(event);
+  let body;
+  try { body = JSON.parse(event.body || "{}"); } catch { return json(400, { error: "Bad JSON" }); }
+
+  // Destructive — CST (house) or a client's admin only. See _write-guard.js. Tenant now read
+  // explicitly from the POST body (2026-07-18 fix, mirrors the items-get.js/media-list.js
+  // read-side fix) — this used to call requireWriteAuth(event) with NO tenant at all, so a
+  // per-tenant admin passcode could never delete an asset — only the generic admin/house passcode.
+  const writeAuth = requireWriteAuth(event, (body.tenant || "").replace(/[^a-z0-9-]/gi, ""));
   if (!writeAuth.ok) {
     await logWrite(event, { fn: "media-delete", ok: false, status: writeAuth.status });
     return jsonUnauthorized(writeAuth);
@@ -23,9 +29,6 @@ export const handler = async (event) => {
   const key = process.env.CLOUDINARY_API_KEY;
   const secret = process.env.CLOUDINARY_API_SECRET;
   if (!cloud || !key || !secret) return json(500, { error: "Cloudinary env vars not configured" });
-
-  let body;
-  try { body = JSON.parse(event.body || "{}"); } catch { return json(400, { error: "Bad JSON" }); }
 
   const publicId = (body.publicId || "").toString();
   if (!publicId) return json(400, { error: "Missing publicId" });

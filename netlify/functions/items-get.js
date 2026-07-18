@@ -6,13 +6,19 @@
 // GET ?folder=clients/montitrentini  ->  200 {version, updatedAt, items} | 404 if never saved
 
 import { requireReadAuth, jsonUnauthorized } from "./_write-guard.js";
-import { tenantFromPath } from "./_write-log.js";
 
 export const handler = async (event) => {
   // Any valid passcode tier (2026-07-16, wiring-audit P0 #1) — item identity/copy docs used to
-  // be readable from a bare URL with zero auth. Tenant derived from the folder path so a
-  // per-tenant admin passcode also validates.
-  const readAuth = requireReadAuth(event, tenantFromPath(event.queryStringParameters?.folder) || "");
+  // be readable from a bare URL with zero auth.
+  //
+  // 2026-07-18 fix: this used to derive the tenant via tenantFromPath(folder), which only ever
+  // matches a "clients/<slug>" style path — but `folder` here is a bare Cloudinary folder name
+  // (e.g. "monti-trentini"), so it NEVER matched and the per-tenant admin passcode
+  // (PORTAL_ADMIN_PASSCODE_<TENANT>) could never unlock this endpoint. crm-summary.js,
+  // crm-hubspot.js, inventory.js, and history.js all already take an explicit `tenant` query
+  // param instead — matching that pattern here (found live-testing the new Monti Trentini
+  // manager passcode: it unlocked the portal fine but every item/photo read still 401'd).
+  const readAuth = requireReadAuth(event, (event.queryStringParameters?.tenant || "").replace(/[^a-z0-9-]/gi, ""));
   if (!readAuth.ok) return jsonUnauthorized(readAuth);
 
   if (event.httpMethod !== "GET") return json(405, { error: "Method not allowed" });

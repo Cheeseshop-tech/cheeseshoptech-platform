@@ -76,6 +76,7 @@ function LoginLogPanel() {
               <TableRow>
                 <TableHead>When</TableHead>
                 <TableHead>IP</TableHead>
+                <TableHead>Location</TableHead>
                 <TableHead>Tenant</TableHead>
                 <TableHead>Tier</TableHead>
                 <TableHead>Result</TableHead>
@@ -86,6 +87,7 @@ function LoginLogPanel() {
                 <TableRow key={i}>
                   <TableCell className="whitespace-nowrap text-xs">{r.ts}</TableCell>
                   <TableCell className="font-mono text-xs">{r.ip || "—"}</TableCell>
+                  <TableCell className="text-xs">{[r.city, r.region].filter(Boolean).join(", ") || "—"}</TableCell>
                   <TableCell className="text-xs">{r.tenant || "—"}</TableCell>
                   <TableCell className="text-xs">{r.role || "—"}</TableCell>
                   <TableCell>

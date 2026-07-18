@@ -8,14 +8,17 @@ echo "Staging..."
 git add netlify/functions/_login-log.js netlify/functions/login-log.js netlify/functions/gate.js netlify/functions/_write-log.js src/components/home/agency-console.jsx docs/BUILD_LOG.md "COMMIT LOGIN ACCESS LOG.command"
 
 echo "Committing..."
-git commit -m "feat(auth): log every portal login attempt by IP, add House Console access-log view
+git commit -m "feat(auth): log every portal login attempt by IP + city/state, add House Console view
 
 gate.js recorded nothing about logins -- no IP, timestamp, or success/fail --
 while writes have been logged since 2026-07-06. Added _login-log.js (same
 Netlify Blobs audit pattern, its own store), wired into gate.js on every
 real attempt (health-check pings excluded), a house-admin-only login-log.js
 read endpoint, and an Access log panel in the Agency Console (last 25
-attempts: IP, tenant, tier, result)."
+attempts: IP, city/state, tenant, tier, result).
+
+City/state via ipwho.is (free, no key, HTTPS) since Netlify's own geo data
+only exists on its newer Functions API, which this codebase doesn't use yet."
 
 if [ $? -eq 0 ]; then
   echo "✅ Commit created."

@@ -12,6 +12,31 @@ import { callerIp } from "./_write-log.js";
 const STORE = "login-log";
 const KEY = "log";
 const MAX_ENTRIES = 500; // rolling window — bounded size, enough history for one operator
+const GEO_TIMEOUT_MS = 2500;
+
+// Best-effort city/state lookup (2026-07-18, Rick asked "can we see city or state"). Netlify's
+// OWN geo data (context.geo) only exists on the newer Functions API — this codebase's handlers
+// are all the classic Lambda-style `export const handler = async (event) => {}`, so migrating
+// just this one function's runtime style for one field would make it the odd one out. Cheaper
+// and lower-risk: ipwho.is (free, no API key, HTTPS, 1,000 lookups/day — plenty at pilot volume).
+// Skipped for missing/private/local IPs; NEVER allowed to slow down or break the login it's
+// describing beyond a short timeout — same "logging never breaks the real thing" contract as
+// the rest of this module.
+async function geoLookup(ip) {
+  if (!ip || /^(127\.|10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.|::1$|localhost)/.test(ip)) return null;
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), GEO_TIMEOUT_MS);
+    const res = await fetch(`https://ipwho.is/${encodeURIComponent(ip)}`, { signal: controller.signal });
+    clearTimeout(timer);
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!data || !data.success) return null;
+    return { city: data.city || null, region: data.region || null };
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Append one entry to the login-attempt log. Fire-and-forget from the caller — never throws.
@@ -24,7 +49,9 @@ export async function logLogin(event, entry) {
     const store = getStore(STORE);
     const raw = await store.get(KEY);
     const log = raw ? JSON.parse(raw) : [];
-    log.push({ ts: new Date().toISOString(), ip: callerIp(event), ...entry });
+    const ip = callerIp(event);
+    const geo = await geoLookup(ip);
+    log.push({ ts: new Date().toISOString(), ip, city: geo?.city || null, region: geo?.region || null, ...entry });
     while (log.length > MAX_ENTRIES) log.shift(); // drop oldest
     await store.set(KEY, JSON.stringify(log));
   } catch {

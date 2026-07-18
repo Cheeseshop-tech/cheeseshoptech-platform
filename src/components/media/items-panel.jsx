@@ -60,7 +60,7 @@ export function ItemsPanel({ resolved, assets, doc, setDoc, canManage }) {
     const prev = doc;
     setDoc(nextDoc); // optimistic
     try {
-      await saveItems(resolved.cloudinaryFolder, nextDoc);
+      await saveItems(resolved.cloudinaryFolder, nextDoc, resolved.id);
       toast({ title: okTitle, tone: "success" });
       return true;
     } catch (err) {

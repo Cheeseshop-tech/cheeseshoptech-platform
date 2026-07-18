@@ -8,6 +8,54 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-07-18 — FIX: per-tenant manager passcode couldn't read or write Media Hub / Product Catalog data
+
+**What (Rick reported "product catalog is not showing any images" right after the new Monti
+Trentini manager passcode started working for login):** logged into the live portal and used the
+browser's network tab to watch the actual failing request — `items-get?folder=monti-trentini`
+was returning 401 even though the STRAVECCHIO2026 manager passcode had just unlocked the portal.
+
+**Root cause.** Two different bugs, both dating to the 2026-07-16 read-guard rollout, only
+surfaced today because this was the first time a tenant-specific (non-generic) admin passcode
+was exercised end-to-end:
+
+1. **Reads** (`items-get.js`, `media-list.js`) derived the tenant via `tenantFromPath(folder)`, a
+   helper whose regex only matches a `clients/<slug>` style path. The real `folder` value passed
+   by the frontend is a bare Cloudinary folder name (e.g. `monti-trentini`), which never matched
+   — so `tenantFromPath` always returned nothing, and the per-tenant admin passcode
+   (`PORTAL_ADMIN_PASSCODE_<TENANT>`) could never authenticate against either endpoint. Only the
+   generic `PORTAL_ADMIN_PASSCODE`, the house passcode, or (for reads only) the base client
+   passcode ever worked here.
+2. **Writes** (`items-save.js`, `media-update.js`, `media-delete.js`) were worse — each called
+   `requireWriteAuth(event)` with **no tenant argument at all**, so a per-tenant admin passcode
+   could never save an item, edit a photo's tags, or delete an asset either, regardless of folder.
+
+**Fix.** Matched the pattern already used correctly by `crm-summary.js`, `crm-hubspot.js`,
+`inventory.js`, and `history.js`: an explicit `tenant` param (the tenant's config id/subdomain,
+e.g. `montitrentini` — distinct from the Cloudinary folder, e.g. `monti-trentini`) sent by the
+frontend on every call, read server-side instead of guessed from the folder/publicId path.
+
+- `netlify/functions/items-get.js`, `media-list.js` — read `?tenant=` from the query string.
+- `netlify/functions/items-save.js`, `media-update.js`, `media-delete.js` — read `tenant` from
+  the POST body (body is now parsed before the auth check, since the tenant lives there).
+- `src/lib/items.js` (`loadItems`, `saveItems`) and `src/lib/media.js` (`listAssets`,
+  `listAssetsPage`, `updateAsset`, `deleteAsset`) — each takes an explicit `tenantId` param and
+  sends it through.
+- Every call site updated to pass `resolved.id` through: `buyer-catalog.jsx`, `use-items-doc.js`,
+  `media-picker.jsx`, `studio-director.js`, `media-hub.jsx`, `items-panel.jsx`.
+
+**Verified:** `node --check` on all five edited Netlify functions, and a full `vite build` of the
+whole app, both clean.
+
+**Still needed (not code):** the deployed `images.json` manifest for Monti Trentini was generated
+2026-07-06, before today's dispatch-gate/`bg-removed` rules — re-run `sync-images.mjs --live`
+once this fix is deployed so the Catalog reflects the current qualifying-image rules. Separately,
+the base client/staff passcode (`PORTAL_PASSCODE` → `ASIAGOFRESCO2026`) is still returning 401 as
+of this writing — that's a Netlify environment-variable issue, not something this fix touches;
+still needs checking in the Netlify dashboard.
+
+---
+
 ## 2026-07-18 — Login/IP tracking: the passcode gate is now logged, with a House Console view
 
 **What (Rick asked "can I track logins from IP addresses?"):** answer was no — writes have been
@@ -22,11 +70,17 @@ nothing at all: no IP, no timestamp, not even success vs. failure. Built the mis
   dashboard load.
 - `netlify/functions/login-log.js` — house-admin-only read endpoint, mirrors `write-log.js`.
 - Agency Console (`agency-console.jsx`) gained an **Access log** panel — last 25 login attempts,
-  IP / tenant / tier / result, with a manual refresh. Same `RoleGate roles={["admin"]}` as the
-  rest of the console, so no new auth surface.
+  IP / location / tenant / tier / result, with a manual refresh. Same `RoleGate roles={["admin"]}`
+  as the rest of the console, so no new auth surface.
+- City/state lookup (Rick asked "can we see city or state"): `_login-log.js` now calls ipwho.is
+  (free, no API key, HTTPS, 1,000 lookups/day) for each logged IP. Netlify's own geo data only
+  exists on its newer Functions API, which none of this codebase's handlers use yet — this avoids
+  migrating just one function's runtime style for one field. Adds a little latency to each real
+  login (short 2.5s timeout, fails silently to blank city/state, never blocks the login itself);
+  sends the visitor's IP to that third-party lookup service.
 
-**Not yet built:** any alerting (e.g. "notify me on N failed attempts") or geo/IP-lookup — this is
-visibility only, same scope as the existing write-action log.
+**Not yet built:** any alerting (e.g. "notify me on N failed attempts") — this is visibility only,
+same scope as the existing write-action log.
 
 ---
 

@@ -46,7 +46,7 @@ function BuyerCatalog({ data, brandName, tenantId, itemsFolder }) {
   useEffect(() => {
     let on = true;
     if (!itemsFolder) return undefined;
-    loadItems(itemsFolder).then((doc) => { if (on) setItemsDoc(doc); }).catch(() => {});
+    loadItems(itemsFolder, tenantId).then((doc) => { if (on) setItemsDoc(doc); }).catch(() => {});
     return () => { on = false; };
   }, [itemsFolder]);
 
