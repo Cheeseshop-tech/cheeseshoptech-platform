@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { Users, PlugZap, Database, ExternalLink, RefreshCw, CheckCircle2, AlertTriangle, CircleDashed, ShieldCheck } from "lucide-react";
+import { Users, PlugZap, Database, ExternalLink, RefreshCw, CheckCircle2, AlertTriangle, CircleDashed, ShieldCheck, Maximize2 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
 import { Button } from "@/components/ui/button.jsx";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table.jsx";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog.jsx";
 import { listClients } from "@/lib/clientConfig.js";
 import { getPricingData, fetchInventory } from "@/lib/pricing.js";
 import { getBuyerCatalog } from "@/lib/catalog.js";
@@ -37,10 +38,14 @@ export function AgencyConsole({ onNavigate }) {
 
 // Reads netlify/functions/login-log.js — house-admin only, same tier as this whole console
 // (RoleGate roles={["admin"]} in home-hub.jsx), so no extra gate needed here. Every real gate.js
-// attempt is recorded (2026-07-18); health-check pings with an empty passcode are not.
+// attempt is recorded (2026-07-18); health-check pings with an empty passcode are not. The
+// server already returns newest-first (login-log.js reverses its append-only log before sending).
+const VISIBLE_ROWS = 10; // rows visible before the panel scrolls (2026-07-18, Rick asked for this)
+
 function LoginLogPanel() {
   const [state, setState] = useState("loading"); // "loading" | "error" | { entries, count }
   const [refreshKey, setRefreshKey] = useState(0);
+  const [expanded, setExpanded] = useState(false); // full-screen dialog toggle
 
   useEffect(() => {
     let alive = true;
@@ -52,7 +57,9 @@ function LoginLogPanel() {
   }, [refreshKey]);
 
   const ok = state && typeof state === "object";
-  const rows = ok ? state.entries.slice(0, 25) : [];
+  // Whole recorded window (server already caps at 500, its own rolling window) — the panel
+  // itself decides how much of that to SHOW via scrolling/expanding, not by truncating the data.
+  const rows = ok ? state.entries : [];
 
   return (
     <Card>
@@ -60,51 +67,86 @@ function LoginLogPanel() {
         <PanelIcon icon={ShieldCheck} />
         <div>
           <CardTitle>Access log <span className="text-xs font-normal text-fg-muted">· portal logins</span></CardTitle>
-          <CardDescription>Every passcode attempt — who (IP), when, which tier, success or failure. Last 25 shown.</CardDescription>
+          <CardDescription>Every passcode attempt — who (IP), when, which tier, success or failure. Newest first.</CardDescription>
         </div>
-        <Button size="sm" variant="outline" className="ml-auto" onClick={() => setRefreshKey((k) => k + 1)}>
-          <RefreshCw className="h-3.5 w-3.5" /> Refresh
-        </Button>
+        <div className="ml-auto flex items-center gap-2">
+          <Button size="sm" variant="outline" onClick={() => setExpanded(true)} disabled={!ok || rows.length === 0}>
+            <Maximize2 className="h-3.5 w-3.5" /> Expand
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => setRefreshKey((k) => k + 1)}>
+            <RefreshCw className="h-3.5 w-3.5" /> Refresh
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         {state === "loading" && <p className="text-sm text-fg-muted">Loading…</p>}
         {state === "error" && <p className="text-sm text-fg-muted">Unavailable — check you're signed in as house admin.</p>}
         {ok && rows.length === 0 && <p className="text-sm text-fg-muted">No login attempts recorded yet.</p>}
         {ok && rows.length > 0 && (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>When</TableHead>
-                <TableHead>IP</TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead>Tenant</TableHead>
-                <TableHead>Tier</TableHead>
-                <TableHead>Result</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {rows.map((r, i) => (
-                <TableRow key={i}>
-                  <TableCell className="whitespace-nowrap text-xs">{r.ts}</TableCell>
-                  <TableCell className="font-mono text-xs">{r.ip || "—"}</TableCell>
-                  <TableCell className="text-xs">{[r.city, r.region].filter(Boolean).join(", ") || "—"}</TableCell>
-                  <TableCell className="text-xs">{r.tenant || "—"}</TableCell>
-                  <TableCell className="text-xs">{r.role || "—"}</TableCell>
-                  <TableCell>
-                    {r.ok
-                      ? <Badge variant="success"><CheckCircle2 className="mr-1 h-3 w-3" />ok</Badge>
-                      : <Badge variant="error"><AlertTriangle className="mr-1 h-3 w-3" />failed</Badge>}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
-        {ok && state.count > rows.length && (
-          <p className="mt-2 text-xs text-fg-muted">Showing 25 of {state.count} recorded attempts (rolling window, last 500 kept).</p>
+          <>
+            {/* Scroll window sized to ~10 rows (VISIBLE_ROWS) — "Expand" above opens the same
+                table full-screen for scanning the whole recorded window at once. */}
+            <div className="max-h-[27rem] overflow-y-auto">
+              <LoginLogTable rows={rows} />
+            </div>
+            <p className="mt-2 text-xs text-fg-muted">
+              {rows.length} of {state.count} recorded attempt{state.count === 1 ? "" : "s"} (rolling window, last 500 kept)
+              {rows.length > VISIBLE_ROWS ? " — scroll for more, or Expand for full screen." : "."}
+            </p>
+          </>
         )}
       </CardContent>
+
+      <Dialog open={expanded} onOpenChange={setExpanded}>
+        <DialogContent className="flex h-[90vh] w-[95vw] max-w-[95vw] flex-col">
+          <DialogHeader>
+            <DialogTitle>Access log — full history</DialogTitle>
+            <DialogDescription>
+              Every passcode attempt recorded — who (IP), when, which tier, success or failure. Newest first.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            {ok && rows.length > 0 && <LoginLogTable rows={rows} />}
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
+  );
+}
+
+// Shared table body for both the compact (10-row scroll window) and expanded (full-screen)
+// views — one render path so the two can never visually drift apart. Header is sticky within
+// whichever scrolling ancestor wraps it (the compact scroll div, or the dialog's scroll div).
+function LoginLogTable({ rows }) {
+  return (
+    <Table>
+      <TableHeader className="sticky top-0 z-10 bg-bg">
+        <TableRow>
+          <TableHead>When</TableHead>
+          <TableHead>IP</TableHead>
+          <TableHead>Location</TableHead>
+          <TableHead>Tenant</TableHead>
+          <TableHead>Tier</TableHead>
+          <TableHead>Result</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {rows.map((r, i) => (
+          <TableRow key={i}>
+            <TableCell className="whitespace-nowrap text-xs">{r.ts}</TableCell>
+            <TableCell className="font-mono text-xs">{r.ip || "—"}</TableCell>
+            <TableCell className="text-xs">{[r.city, r.region].filter(Boolean).join(", ") || "—"}</TableCell>
+            <TableCell className="text-xs">{r.tenant || "—"}</TableCell>
+            <TableCell className="text-xs">{r.role || "—"}</TableCell>
+            <TableCell>
+              {r.ok
+                ? <Badge variant="success"><CheckCircle2 className="mr-1 h-3 w-3" />ok</Badge>
+                : <Badge variant="error"><AlertTriangle className="mr-1 h-3 w-3" />failed</Badge>}
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
   );
 }
 

@@ -8,6 +8,26 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-07-18 — Access log panel: scrollable 10-row window + full-screen expand
+
+**What (Rick asked for a scrollable 10-login view with a full-screen toggle):** the Access log
+panel in the Agency Console previously rendered a flat table of up to 25 rows with no scroll
+container, growing the whole console page taller as more logins came in.
+
+- Compact view now sits in a fixed-height (~10 rows) scrolling window — the panel's own footprint
+  stays constant regardless of how many attempts are recorded.
+- A new **Expand** button opens the same table in a near-full-screen dialog (95vw × 90vh) for
+  scanning the entire recorded window (up to the server's 500-entry rolling cap) at once.
+- Both views share one `LoginLogTable` render path so the compact and expanded table can never
+  drift apart visually; the header row is sticky within whichever view is scrolling.
+- Newest-first was already correct (`login-log.js` reverses the log before sending) — no backend
+  change needed, just made explicit in the panel's description text.
+
+**Verified:** a fresh clone at the current commit, edited, `vite build` clean; then the identical
+edit applied to the real repo and confirmed byte-identical (md5) to the verified copy.
+
+---
+
 ## 2026-07-18 — FIX: per-tenant manager passcode couldn't read or write Media Hub / Product Catalog data
 
 **What (Rick reported "product catalog is not showing any images" right after the new Monti
