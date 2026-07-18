@@ -68,7 +68,22 @@ if (!LIVE) {
 } else {
   const BASE = process.env.PLATFORM_BASE || "https://montitrentini.cheeseshoptech.com";
   const legacyParam = legacyFolders.length ? `&legacy=${encodeURIComponent(legacyFolders.join(","))}` : "";
-  const res = await fetch(`${BASE}/.netlify/functions/media-list?folder=${encodeURIComponent(folder)}${legacyParam}`);
+  // media-list.js has required a passcode on every read since the 2026-07-16 wiring-audit P0 #1
+  // fix (the full asset list, including drafts, used to be readable from a bare URL). Neither
+  // this script nor sync-images.mjs --live were updated to send it -- found 2026-07-18 while
+  // running this exact command. Same value you type in to open the client portal.
+  const passcode = process.env.PORTAL_PASSCODE;
+  if (!passcode) {
+    console.error(
+      "Missing PORTAL_PASSCODE env var. media-list.js now requires the portal passcode on every\n" +
+      "read (2026-07-16 security fix) -- run with:\n" +
+      "  PORTAL_PASSCODE=<your portal passcode> node scripts/validate-images.mjs --live"
+    );
+    process.exit(1);
+  }
+  const res = await fetch(`${BASE}/.netlify/functions/media-list?folder=${encodeURIComponent(folder)}${legacyParam}`, {
+    headers: { "x-portal-passcode": passcode },
+  });
   if (!res.ok) { console.error(`media-list ${res.status}: ${await res.text()}`); process.exit(1); }
   const data = await res.json();
   const assets = data.assets || data;

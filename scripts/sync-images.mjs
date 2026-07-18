@@ -162,8 +162,23 @@ if (!LIVE) {
   // 2026-07-18 fix: pass `legacy=` through — this call never did before, so the legacy folder
   // (config `cloudinaryLegacyFolders`) silently never reached the manifest via --live either.
   const legacyParam = legacyFolders.length ? `&legacy=${encodeURIComponent(legacyFolders.join(","))}` : "";
+  // 2026-07-18 fix (found while running validate-images.mjs): media-list.js has required a
+  // passcode on every read since the 2026-07-16 wiring-audit P0 #1 fix. This --live path never
+  // sent one, so `sync-images.mjs --live` has been silently broken (401) since that security fix
+  // landed — Admin API mode (real Cloudinary secrets, no --live) was unaffected.
+  const passcode = process.env.PORTAL_PASSCODE;
+  if (!passcode) {
+    console.error(
+      "Missing PORTAL_PASSCODE env var. media-list.js now requires the portal passcode on every\n" +
+      "read (2026-07-16 security fix) -- run with:\n" +
+      "  PORTAL_PASSCODE=<your portal passcode> node scripts/sync-images.mjs --live"
+    );
+    process.exit(1);
+  }
   console.log(`LIVE mode — reading ${BASE}/.netlify/functions/media-list?folder=${folder}${legacyParam}`);
-  const res = await fetch(`${BASE}/.netlify/functions/media-list?folder=${encodeURIComponent(folder)}${legacyParam}`);
+  const res = await fetch(`${BASE}/.netlify/functions/media-list?folder=${encodeURIComponent(folder)}${legacyParam}`, {
+    headers: { "x-portal-passcode": passcode },
+  });
   if (!res.ok) { console.error(`media-list ${res.status}: ${await res.text()}`); process.exit(1); }
   const data = await res.json();
   const assets = data.assets || data;

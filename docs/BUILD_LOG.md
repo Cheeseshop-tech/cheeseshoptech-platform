@@ -8,6 +8,31 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-07-18 — Fixed a silent 401 in the live image scripts; ran the first validate:images report
+
+**What:** `sync-images.mjs --live` and the new `validate-images.mjs` both called `media-list.js`
+with no auth header. That endpoint has required an `x-portal-passcode` header on every read since
+the 2026-07-16 wiring-audit P0 #1 fix (closing the "full asset list readable from a bare URL"
+hole) — nothing updated these two callers when that landed, so both have been silently returning
+401 for two days. Fixed: both now read `PORTAL_PASSCODE` from the environment and send it as
+`x-portal-passcode`; both fail with a clear message (not a stack trace) if it's missing.
+
+**First live validate:images run (312 assets scanned):**
+- 41 qualifying images (item# + product-catalog tag + approved) — **all 41 still missing the
+  `bg-removed` tag**, i.e. none are confirmed transparent yet.
+- 78 assets carry an item number but no `product-catalog` tag — exactly the class of leak the
+  2026-07-18 dispatch gate now blocks from reaching the manifest; worth a quick look to confirm
+  none of these were meant to be product shots.
+- 20 assets tagged `product-catalog` with no item number yet.
+- 8 duplicate item-number pairs (mostly `monti-trentini/...` vs. the legacy `monti/...` copy of
+  the same SKU) — needs a decision on which asset should own each code.
+- 1 tagged+numbered asset still in draft (won't reach customers until approved).
+
+**Not yet done:** actually applying the `bg-removed` tag to real assets, and resolving the 78/20/8
+lists above — those are manual Cloudinary tagging decisions, not code.
+
+---
+
 ## 2026-07-18 — Media Hub: tighten first paint to 12 tiles, 50 per "Load more"
 
 **Decision:** Rick asked to speed up initial load further — cap the FIRST render at 12 images
