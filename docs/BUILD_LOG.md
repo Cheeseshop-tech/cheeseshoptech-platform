@@ -8,6 +8,23 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-07-18 — Media Hub: tighten first paint to 12 tiles, 50 per "Load more"
+
+**Decision:** Rick asked to speed up initial load further — cap the FIRST render at 12 images
+instead of the 30 from the same-day pagination fix, then pull bigger batches (50) per "Load more"
+click after that (fewer round trips once the hub is already up and interactive).
+
+**Action:** `media-hub.jsx` — split the single `PAGE` constant into `INITIAL_PAGE = 12` (first
+reveal, and the tab/search reset target) and `PAGE = 50` (every "Load more" after that). The
+background fetch effect now passes `maxResults: 12` on its first `listAssetsPage()` call and
+`maxResults: 50` on every call after, so the network page size tracks the reveal size — "Load
+more" is never waiting on a fetch bigger than what it's about to show.
+
+**Status:** `vite build` clean (1688 modules). Diff is 3 small edits in one file; nothing else
+touched.
+
+---
+
 ## 2026-07-18 — Image dispatch audit + Media Hub load-time fix (not yet committed as of writing)
 
 **Decision:** audit whether Media Hub/Cloudinary is really the ONE dispatch source for every app,

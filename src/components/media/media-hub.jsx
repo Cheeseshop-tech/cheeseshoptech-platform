@@ -37,10 +37,14 @@ export function MediaHub({ resolved }) {
   const [recent, setRecent] = useState(() => {
     try { return JSON.parse(localStorage.getItem(RECENT_KEY) || "[]"); } catch { return []; }
   });
-  // Page the grid so we mount ~30 tiles, not the whole view at once (a 100+ image set floods the
-  // browser on load). Reset when the tab changes.
-  const PAGE = 30;
-  const [shown, setShown] = useState(PAGE);
+  // Page the grid so we mount a small batch of tiles, not the whole view at once (a 100+ image
+  // set floods the browser on load). Reset when the tab changes. 2026-07-18 (Rick): tighten the
+  // FIRST paint to 12 tiles for the fastest possible page-open, then reveal bigger batches (50)
+  // per "Load more" click after that — matches the network page sizes in the fetch effect below,
+  // so "Load more" never waits on a fetch it doesn't need to.
+  const INITIAL_PAGE = 12;
+  const PAGE = 50;
+  const [shown, setShown] = useState(INITIAL_PAGE);
   // Free-text search over the active tab's grid (title / SKU / alt / description). The Items tab
   // has its own search (ItemsPanel) — this is for the asset grid (All/Recent/usage tabs).
   const [query, setQuery] = useState("");
@@ -64,8 +68,12 @@ export function MediaHub({ resolved }) {
       let first = true;
       try {
         do {
+          // First network page matches the fast INITIAL_PAGE reveal (12); every page after that
+          // is a bigger batch (50) since round-trips matter more than payload size once the
+          // hub is already interactive.
           const { assets: page, nextCursor } = await listAssetsPage({
             tenantFolder: resolved.cloudinaryFolder, legacyFolders: resolved.cloudinaryLegacyFolders, user, cursor,
+            maxResults: first ? INITIAL_PAGE : PAGE,
           });
           if (!alive) return;
           setAssets((prev) => (first ? page : [...(prev || []), ...page]));
@@ -85,7 +93,7 @@ export function MediaHub({ resolved }) {
     return () => { alive = false; };
   }, [resolved.cloudinaryFolder, user]);
 
-  useEffect(() => { setShown(PAGE); }, [tab, query]);
+  useEffect(() => { setShown(INITIAL_PAGE); }, [tab, query]);
 
   // Load the items document once per tenant. Failure degrades to an empty doc (UI still works).
   useEffect(() => {
