@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Users, PlugZap, Database, ExternalLink, RefreshCw, CheckCircle2, AlertTriangle, CircleDashed, ShieldCheck, Maximize2 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
@@ -9,6 +9,7 @@ import { listClients } from "@/lib/clientConfig.js";
 import { getPricingData, fetchInventory } from "@/lib/pricing.js";
 import { getBuyerCatalog } from "@/lib/catalog.js";
 import { writeAuthHeader } from "@/lib/auth-context.jsx";
+import { cn } from "@/lib/utils.js";
 
 // Agency Console — the house dashboard's P0 panels (ADMIN_DASHBOARDS_SPEC §3, built per
 // Rick's v1 priorities): tenant management · integration health · data pipelines.
@@ -46,15 +47,45 @@ function LoginLogPanel() {
   const [state, setState] = useState("loading"); // "loading" | "error" | { entries, count }
   const [refreshKey, setRefreshKey] = useState(0);
   const [expanded, setExpanded] = useState(false); // full-screen dialog toggle
+  // Refresh button feedback (2026-07-18, Rick asked for it): spin the icon while the request is
+  // in flight, then flash the button green for a beat once fresh data lands — so a click reads
+  // as "working, then done" instead of silently swapping the table underneath you.
+  const [refreshing, setRefreshing] = useState(false);
+  const [justRefreshed, setJustRefreshed] = useState(false);
+  const isFirstLoad = useRef(true); // don't flash green on the initial page load, only on clicks
 
   useEffect(() => {
     let alive = true;
     fetch("/.netlify/functions/login-log", { headers: { ...writeAuthHeader() } })
       .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
-      .then((d) => { if (alive) setState(d?.entries ? d : "error"); })
-      .catch(() => { if (alive) setState("error"); });
+      .then((d) => {
+        if (!alive) return;
+        setState(d?.entries ? d : "error");
+        setRefreshing(false);
+        if (!isFirstLoad.current) setJustRefreshed(true);
+        isFirstLoad.current = false;
+      })
+      .catch(() => {
+        if (!alive) return;
+        setState("error");
+        setRefreshing(false);
+        isFirstLoad.current = false;
+      });
     return () => { alive = false; };
   }, [refreshKey]);
+
+  // Auto-revert the green "Updated" flash after a beat.
+  useEffect(() => {
+    if (!justRefreshed) return undefined;
+    const t = setTimeout(() => setJustRefreshed(false), 1400);
+    return () => clearTimeout(t);
+  }, [justRefreshed]);
+
+  function handleRefresh() {
+    setRefreshing(true);
+    setJustRefreshed(false);
+    setRefreshKey((k) => k + 1);
+  }
 
   const ok = state && typeof state === "object";
   // Whole recorded window (server already caps at 500, its own rolling window) — the panel
@@ -73,8 +104,18 @@ function LoginLogPanel() {
           <Button size="sm" variant="outline" onClick={() => setExpanded(true)} disabled={!ok || rows.length === 0}>
             <Maximize2 className="h-3.5 w-3.5" /> Expand
           </Button>
-          <Button size="sm" variant="outline" onClick={() => setRefreshKey((k) => k + 1)}>
-            <RefreshCw className="h-3.5 w-3.5" /> Refresh
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className={cn(
+              "transition-colors duration-300",
+              justRefreshed && "border-success bg-success text-white hover:bg-success"
+            )}
+          >
+            <RefreshCw className={cn("h-3.5 w-3.5", refreshing && "animate-spin")} />
+            {justRefreshed ? "Updated" : "Refresh"}
           </Button>
         </div>
       </CardHeader>

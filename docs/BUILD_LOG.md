@@ -8,6 +8,27 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-07-18 — Refresh button feedback + FIX: Access log city/state was always blank
+
+**Refresh button (Rick asked: "animate on click and turn green to signify refreshed"):** the
+Refresh button on the Access log panel now spins its icon while the request is in flight, then
+flips to a solid green "Updated" state for ~1.4s once fresh data lands, before reverting to its
+normal look. Doesn't fire on the initial page load — only on an actual click.
+
+**Bug found answering "why are locations not showing up?" (Rick's guess was browser location
+sharing — it's not that; this lookup is server-side, from the IP, never the browser):**
+`callerIp()` (`_write-log.js`, shared by the write log and the login/geo log) returned the raw
+`x-forwarded-for` header verbatim. That header is often a comma-separated PROXY CHAIN
+(`client-ip, proxy1-ip, proxy2-ip`) rather than a single IP — confirmed live that ipwho.is
+returns a flat 404 when handed a multi-IP string, which is exactly why city/region came back
+blank for every single logged attempt, not just Rick's. Fixed: take only the first IP in the
+chain (the client's own), which is the standard way to read this header.
+
+**Verified:** fresh clone at the current commit, edited, `vite build` clean, then the identical
+edits applied to the real repo and confirmed byte-identical (md5) to the verified copy.
+
+---
+
 ## 2026-07-18 — Access log panel: scrollable 10-row window + full-screen expand
 
 **What (Rick asked for a scrollable 10-login view with a full-screen toggle):** the Access log

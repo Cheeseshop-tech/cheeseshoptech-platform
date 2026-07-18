@@ -17,7 +17,13 @@ const MAX_ENTRIES = 500; // rolling window — bounded size, enough history for 
 
 export function callerIp(event) {
   const h = (event && event.headers) || {};
-  return h["x-nf-client-connection-ip"] || h["client-ip"] || h["x-forwarded-for"] || "";
+  const raw = h["x-nf-client-connection-ip"] || h["client-ip"] || h["x-forwarded-for"] || "";
+  // 2026-07-18 fix: `x-forwarded-for` can be a comma-separated proxy chain
+  // ("client-ip, proxy1-ip, proxy2-ip") — the CLIENT's own IP is always first. Passing the
+  // whole raw string straight into a geo lookup (see _login-log.js geoLookup()) isn't a valid
+  // single IP and fails outright (confirmed: ipwho.is returns a 404 for a multi-IP string) —
+  // this is why the Access log's city/state column was showing blank for every entry.
+  return raw.split(",")[0].trim();
 }
 
 /**
