@@ -255,7 +255,18 @@ export function SlideStudio({ resolved, onClose, onSave, opportunity }) {
         </div>
       ) : (
         <div>
-          <div className="mb-3 flex flex-wrap items-center gap-2">
+          {/* 2026-07-19 — mobile pass (Rick, from his phone: "can we get that button to be
+              mobile"). This was one dense flex-wrap row of 10 controls, which on a phone-width
+              screen wrapped unpredictably and pushed the actual slide down the page before you
+              could see it. Split into two purposeful rows — content/editing actions (what you
+              came here to do: template, Add slide, Auto-compose, AI Polish) always keep their
+              labels; the title field forces its own full-width line below `sm` instead of
+              wrapping wherever it happens to land. View/utility actions (Focus, Expand, Play,
+              Clear, Delete) move to a second row and go icon-only below `sm` for the two that
+              already have an icon (Focus, Delete) — tap target and `title` tooltip unchanged,
+              just less visual weight on a small screen. Pure Tailwind classes, no behavior
+              changes — every handler/prop is identical to before. */}
+          <div className="mb-2 flex flex-wrap items-center gap-2">
             <select value={cur.t} onChange={(e) => { const t = e.target.value; setTpl(t); setDeck((d) => d.map((sl, k) => (k === idx ? { t, slots: { ...sl.slots } } : sl))); }} title="Switch this slide's template (slots carry over where ids match)" className="h-9 rounded-base border border-border bg-bg px-2 text-sm text-fg">
               {SLIDE_TEMPLATES.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
             </select>
@@ -266,12 +277,12 @@ export function SlideStudio({ resolved, onClose, onSave, opportunity }) {
             <Button variant="outline" size="sm" disabled={polishing} onClick={aiPolish} title="AI pass (Stage 2) — tightens copy in brand voice; only re-picks images from the deterministic pass's own candidates, never invents one">
               <Sparkles className="h-4 w-4" /> {polishing ? "Polishing…" : "AI Polish"}
             </Button>
-            <span className="mx-1 hidden h-5 w-px bg-border sm:block" />
             <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={deck[0]?.slots?.slide_title || "Deck title (for the Library)"}
-              className="h-9 min-w-40 flex-1 rounded-base border border-border bg-bg px-2 text-sm text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand" />
-            <span className="mx-1 hidden h-5 w-px bg-border sm:block" />
+              className="h-9 min-w-40 flex-1 basis-full rounded-base border border-border bg-bg px-2 text-sm text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand sm:basis-auto" />
+          </div>
+          <div className="mb-3 flex flex-wrap items-center gap-2">
             <Button variant={focusMode ? "primary" : "outline"} size="sm" onClick={() => setFocusMode((f) => !f)} title={focusMode ? "Exit focus — show filmstrip + inspector" : "Focus — auto-expand the slide, hide panels"}>
-              {focusMode ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />} Focus
+              {focusMode ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />} <span className="hidden sm:inline">Focus</span>
             </Button>
             <Button variant="outline" size="sm" onClick={() => setPlayer({ start: idx, show: "slide" })} title="View this slide fullscreen">
               <Expand className="h-4 w-4" />
@@ -279,8 +290,9 @@ export function SlideStudio({ resolved, onClose, onSave, opportunity }) {
             <Button variant="outline" size="sm" onClick={() => setPlayer({ start: 0, show: "show" })} title="Play the deck fullscreen (slide show)">
               <Play className="h-4 w-4" />
             </Button>
+            <span className="mx-1 hidden h-5 w-px bg-border sm:block" />
             <Button variant="ghost" size="sm" onClick={clearSlide}>Clear slide</Button>
-            <Button variant="ghost" size="sm" onClick={() => removeSlide(idx)}><Trash2 className="h-4 w-4" /> Delete</Button>
+            <Button variant="ghost" size="sm" onClick={() => removeSlide(idx)}><Trash2 className="h-4 w-4" /> <span className="hidden sm:inline">Delete</span></Button>
           </div>
 
           {/* AI Polish steering (2026-07-19) — optional, guides tone/emphasis/order only; the
