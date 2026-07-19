@@ -102,6 +102,16 @@ const MOCK = {
 
 const USE_MOCK = (import.meta.env.VITE_MEDIA_BACKEND || "mock") === "mock";
 
+// Exported so the UI can warn instead of silently showing sample/empty data (2026-07-19 —
+// the Monti mock-key mismatch above went undetected for a while precisely because nothing told
+// Rick he was looking at mock mode at all). `npm run dev` never sees Netlify's env vars — only
+// `netlify dev` does — so mock mode is the DEFAULT for a plain local dev server with no `.env`.
+export const IS_MOCK_MODE = USE_MOCK;
+export const MOCK_MODE_MSG =
+  "Mock mode — VITE_MEDIA_BACKEND isn't set, so you're seeing sample placeholder images, not your " +
+  "real Cloudinary library (a plain `npm run dev` never sees Netlify's env vars). Run `netlify dev` " +
+  "instead, or use the live site, to browse real assets.";
+
 /**
  * List assets for a tenant folder, filtered to what the user's roles may see.
  * `legacyFolders` (config cloudinaryLegacyFolders): extra Cloudinary folders predating the

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Image as ImageIcon, Check, X } from "lucide-react";
 import { useAuth } from "@/lib/auth-context.jsx";
-import { listAssets, USAGE } from "@/lib/media.js";
+import { listAssets, USAGE, IS_MOCK_MODE, MOCK_MODE_MSG } from "@/lib/media.js";
 import { cldUrl } from "@/lib/cloudinary.js";
 
 // Tag-driven Media Hub picker (the "design element that reads the Media Hub tags").
@@ -77,6 +77,11 @@ export function MediaPicker({ resolved, value, onChange, defaultTag = "", label 
 
       {open && (
         <div className="absolute z-30 mt-1 w-[min(30rem,92vw)] rounded-base border border-border bg-surface p-2 shadow-lg">
+          {IS_MOCK_MODE && (
+            <p className="mb-2 rounded-base border border-amber-300 bg-amber-50 px-2 py-1 text-[11px] leading-snug text-amber-800">
+              {MOCK_MODE_MSG}
+            </p>
+          )}
           {/* Tag filter */}
           <select
             value={tag}

@@ -12,7 +12,7 @@ import {
 import { useToast } from "@/components/ui/toast.jsx";
 import { useAuth } from "@/lib/auth-context.jsx";
 import { cldUrl, uploadAsset, UPLOAD_PRESET, CLOUD_NAME } from "@/lib/cloudinary.js";
-import { listAssetsPage, updateAsset, deleteAsset, APPROVAL, USAGE, usageLabel, canUpload, canManageMedia, canDeleteMedia, PRODUCT_USAGE_ID } from "@/lib/media.js";
+import { listAssetsPage, updateAsset, deleteAsset, APPROVAL, USAGE, usageLabel, canUpload, canManageMedia, canDeleteMedia, PRODUCT_USAGE_ID, IS_MOCK_MODE, MOCK_MODE_MSG } from "@/lib/media.js";
 import { loadItems, emptyDoc, canManageItems, emptyItem, upsertItem, saveItems, getItem, specLine } from "@/lib/items.js";
 import { ItemsPanel } from "@/components/media/items-panel.jsx";
 
@@ -185,6 +185,11 @@ export function MediaHub({ resolved }) {
 
   return (
     <div>
+      {IS_MOCK_MODE && (
+        <p className="mb-4 rounded-base border border-amber-300 bg-amber-50 px-3 py-2 text-sm leading-snug text-amber-800">
+          {MOCK_MODE_MSG}
+        </p>
+      )}
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="font-heading text-3xl text-fg">Media hub</h1>

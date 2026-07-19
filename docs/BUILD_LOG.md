@@ -45,7 +45,17 @@ functions locally. Plain `npm run dev` can never reach `/.netlify/functions/medi
 functions runtime), so it will always be mock mode regardless of this fix. Testing directly on
 the live cheeseshoptech.com site also shows real images today — that path was never broken.
 
-**Verified:** `node --check` on the edited file.
+**Follow-up, same session — made mock mode visible instead of silent.** The reason this bug was
+confusing is that mock mode gives ZERO indication it's active — it just looks like a broken/empty
+Media Hub. Exported `IS_MOCK_MODE` + `MOCK_MODE_MSG` from `src/lib/media.js` and wired an amber
+warning banner into both `MediaPicker` (inside the dropdown panel) and the main `MediaHub` page
+(top of the page, always visible when mock mode is on) — text explains what's happening and how to
+fix it (`netlify dev` instead of `npm run dev`, or use the live site). Next time this class of bug
+happens (mock/live drift for a new tenant, or someone just forgets `netlify dev`), it'll be visibly
+labeled instead of silently looking broken.
+
+**Verified:** `node --check` on `media.js`; `esbuild` syntax-checked both edited `.jsx` files
+(JSX-aware, since `node --check` can't parse JSX).
 
 ---
 
