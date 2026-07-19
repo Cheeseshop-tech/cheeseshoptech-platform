@@ -22,9 +22,21 @@
 // call, and Rick's $25/mo spend cap set at the Anthropic account level (2026-07-19,
 // AGENT_A1_BUILD_SPEC.md Part C). A per-session/day call counter is the natural v2 guardrail —
 // deferred; not needed at solo-operator volume.
+//
+// 2026-07-19 fix — "the agent isn't wired to Media Hub in a meaningful way, it claims to add a
+// photo and nothing happens": `__candidates` was ONLY ever populated by Stage 0 Auto-compose, so
+// any manually-added slide or manually-swapped image had a SINGLETON candidate list (just the
+// current photo) — Claude had zero real alternatives, so every image edit it proposed got
+// silently dropped by mergeDeck(), even though its own "notes" could still claim success. Added
+// backfillImageCandidates() (below) — fetches a real, live candidate pool from the tenant's
+// actual Cloudinary library at request time for any thin/missing slot, best-effort and additive
+// (see _media-candidates.js). AI Polish can now genuinely act on images regardless of how the
+// slide/slot was created, not just ones that went through Auto-compose.
 
 import { requireReadAuth, jsonUnauthorized } from "./_write-guard.js";
 import { logWrite } from "./_write-log.js";
+import { fetchAssetPool, scoreCandidates } from "./_media-candidates.js";
+import { getSlideTemplate } from "../../src/lib/slide-templates.js";
 
 const MAX_SLIDES = 20;
 const MAX_BRIEF_CHARS = 24_000; // rough token-cost guard on the outbound prompt
@@ -62,7 +74,18 @@ export const handler = async (event) => {
   if (!deck || !deck.length) return json(400, { error: "Missing deck" });
   if (deck.length > MAX_SLIDES) return json(400, { error: `Deck too large (max ${MAX_SLIDES} slides)` });
 
-  const brief = deck.map((sl, i) => briefSlide(sl, i));
+  // Backfill real image candidates for any slot Stage 0/1 never touched — a slide added via
+  // "pick a template" (not Auto-compose), or a slot whose image was manually swapped afterward
+  // via the MediaPicker inspector, never gets `slots.__candidates` written. Without this,
+  // briefSlide() below hands Claude a SINGLETON candidate list (just the current image), so any
+  // image edit it proposes gets silently dropped by mergeDeck() — while Claude's own "notes" can
+  // still claim it changed the photo. See _media-candidates.js header for the full story. This
+  // is additive and best-effort: on any failure (missing Cloudinary env vars, no cloudinaryFolder
+  // sent, a network hiccup) it silently no-ops back to the prior singleton-candidate behavior —
+  // never blocks or fails the AI Polish request itself.
+  const workingDeck = await backfillImageCandidates(deck, body);
+
+  const brief = workingDeck.map((sl, i) => briefSlide(sl, i));
   const briefJson = JSON.stringify(brief);
   if (briefJson.length > MAX_BRIEF_CHARS) return json(413, { error: "Deck too large for an AI pass — trim slides first" });
 
@@ -132,7 +155,7 @@ export const handler = async (event) => {
     return json(502, { error: "Claude did not return a compose result" });
   }
 
-  const merged = mergeDeck(deck, toolBlock.input);
+  const merged = mergeDeck(workingDeck, toolBlock.input);
   await logWrite(event, {
     fn: "ai-compose", ok: true, status: 200, role: auth.role,
     action: `ai-polish ${merged.appliedSlides} slide(s), ${merged.appliedFields} field(s)${instruction ? " (custom instruction)" : ""}`,
@@ -176,6 +199,57 @@ function briefSlide(sl, i) {
     }
   }
   return { index: i, template: sl?.t || "", text, images };
+}
+
+// ---------------------------------------------------------------------------------------------
+// Live candidate backfill (2026-07-19 fix) — see the call site comment above and
+// _media-candidates.js's header for the full story. Returns a NEW deck array; never mutates the
+// original. Reuses slotKind() so "which slots count as image slots" can never drift from what
+// briefSlide()/mergeDeck() actually enforce below.
+async function backfillImageCandidates(deck, body) {
+  const needsBackfill = deck.some((sl) => {
+    const slots = sl?.slots || {};
+    const cand = slots.__candidates || {};
+    return Object.entries(slots).some(([k, v]) => {
+      if (slotKind(k, v) !== "image") return false;
+      const existing = cand[k];
+      return !Array.isArray(existing) || existing.length < 2;
+    });
+  });
+  if (!needsBackfill) return deck;
+
+  const cloudinaryFolder = typeof body.cloudinaryFolder === "string" ? body.cloudinaryFolder : "";
+  const cloudinaryLegacyFolders = Array.isArray(body.cloudinaryLegacyFolders)
+    ? body.cloudinaryLegacyFolders.filter((f) => typeof f === "string")
+    : [];
+  const pool = await fetchAssetPool({ cloudinaryFolder, cloudinaryLegacyFolders });
+  if (!pool.length) return deck; // nothing to backfill with (no config / fetch failed) — unchanged
+
+  // Every current image value across the deck, so a live suggestion doesn't repeat a photo
+  // that's already showing on a different slide (same hygiene as Stage 0/1's `used` set).
+  const allCurrentIds = deck.flatMap((sl) =>
+    Object.entries(sl?.slots || {})
+      .filter(([k, v]) => slotKind(k, v) === "image" && v)
+      .map(([, v]) => v)
+  );
+
+  return deck.map((sl) => {
+    const slots = { ...(sl?.slots || {}) };
+    const tpl = getSlideTemplate(sl?.t);
+    const cand = { ...(slots.__candidates || {}) };
+    let changed = false;
+    for (const [k, v] of Object.entries(slots)) {
+      if (slotKind(k, v) !== "image") continue;
+      const existing = Array.isArray(cand[k]) ? cand[k] : [];
+      if (existing.length >= 2) continue;
+      const tag = tpl?.slots?.find((s) => s.id === k)?.tag || "";
+      const exclude = allCurrentIds.filter((id) => id !== v);
+      const live = scoreCandidates({ pool, tag, exclude });
+      const merged = Array.from(new Set([...existing, ...(v ? [v] : []), ...live])).slice(0, 5);
+      if (merged.length) { cand[k] = merged; changed = true; }
+    }
+    return changed ? { t: sl?.t, slots: { ...slots, __candidates: cand } } : { t: sl?.t, slots };
+  });
 }
 
 function sanitizeVoice(v) {

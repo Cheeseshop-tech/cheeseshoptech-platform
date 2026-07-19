@@ -6,6 +6,58 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 > Format convention: `## YYYY-MM-DD — Title` · **Decision / Action / Status** ·
 > keep entries short and factual. This file is the project's memory.
 
+## 2026-07-19 — Fix: AI Polish wasn't actually wired to Media Hub for most real decks
+
+**What:** Rick: "its claiming to have processed a function like adding a photo and nothing
+happens. I dont think its wired to media hub or the other brand attributes and brand voice."
+
+**Root cause, confirmed:** `slots.__candidates` — the real, allowed image-id list Stage 2 may
+pick from — was ONLY EVER populated by Stage 0 Auto-compose (`studio-director.js`'s
+`directDraft()`). Any slide added the other way (clicking a template card instead of
+"Auto-compose"), or any slot whose photo was later swapped by hand via the MediaPicker inspector
+(`setSlot()` never touches `__candidates`), had either NO candidates or a stale/singleton list
+(just the current photo). `ai-compose.js`'s `briefSlide()` then handed Claude a candidate list of
+exactly one id — Claude had zero real alternatives, so `mergeDeck()` correctly (per the existing
+"only from real candidates" guardrail) silently dropped any image edit it proposed. Claude's own
+free-text `notes`, however, could still say something like "updated the hero photo" — hence
+"claims to have processed... and nothing happens." This was a real, meaningful Media Hub wiring
+gap for exactly the decks most people build by hand, not a misdiagnosis.
+
+**Brand voice/attributes, checked and confirmed NOT broken:** `getBrandKit(resolved)?.voice` for
+Monti Trentini is genuinely rich (`positioningHook`, `motto`, `mantra`, `heritage`, `mission`, 3
+`coreValues`, 5 `attributes`, 5 `avoid` terms, 7 `readyPhrases`) and reaches `ai-compose.js`
+correctly via `sanitizeVoice()` — confirmed by reading the actual bundled `brand-kit.json`. Text
+tightening driven by that voice data does apply correctly (see the dry-run test below). The image
+symptom above was almost certainly loud enough to make the whole feature *feel* disconnected.
+
+**Fix:** new `netlify/functions/_media-candidates.js` — a lightweight, best-effort server-side
+helper that fetches a representative pool of the tenant's live Cloudinary assets (one page per
+folder, capped at 100) and scores them against a slot's `tag`, mirroring `studio-director.js`'s
+`pickAsset()` scoring (tag match +4, approved +2, ≥2 threshold — "empty beats a wrong photo" still
+holds) minus the SKU bonus. `ai-compose.js` now calls this — via a new `backfillImageCandidates()`
+— for any image slot whose `__candidates` is missing or has fewer than 2 entries, BEFORE building
+the brief sent to Claude, so every image slot gets a real chance regardless of how the slide/slot
+was created. Slides that already have a rich candidate list from Stage 0/1 are left alone — no
+wasted Cloudinary call. `slide-studio.jsx`'s `aiPolish()` now also sends `cloudinaryFolder` /
+`cloudinaryLegacyFolders` (from `resolved`) so the function knows which tenant library to query.
+Fully additive and fail-soft: on any failure (missing Cloudinary env vars, no folder sent, a
+network hiccup) it silently no-ops back to the exact prior behavior — never blocks the request.
+
+**Verified — two dry-run tests against the real modules (network mocked, all other code paths
+real), 23/23 checks passed:**
+- Regression suite (the 17 checks from the earlier custom-instruction fix) — still all pass, no
+  behavior change for decks that already carry good candidates.
+- New backfill-specific suite (6 checks): a manually-added slide with NO `__candidates` at all
+  (exactly Rick's reported scenario) — confirms Cloudinary actually gets queried, the outbound
+  Anthropic brief carries real candidate ids (not just the singleton current photo), and — the
+  core fix — the image edit Claude proposes is now genuinely applied instead of silently dropped.
+  Also confirms a slide with an already-rich candidate list skips the Cloudinary call entirely
+  (no added latency for the common Auto-compose path).
+
+**Verified:** `node --check` on both `.js` files; `esbuild` syntax-check on `slide-studio.jsx`.
+
+---
+
 ## 2026-07-19 — Content Engine: AI Polish now takes an optional custom instruction
 
 **What:** Rick asked "can we prompt the agent from Content Engine?" — until now AI Polish was a

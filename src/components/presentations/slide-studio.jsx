@@ -135,6 +135,11 @@ export function SlideStudio({ resolved, onClose, onSave, opportunity }) {
           voice: kit?.voice || {},
           opportunity: opportunity || null,
           instruction: instruction.trim() || undefined,
+          // 2026-07-19 fix: lets ai-compose.js backfill real image candidates (live Cloudinary
+          // lookup) for any slide/slot that never went through Auto-compose — without these,
+          // AI Polish could silently no-op on image edits with no real alternatives to pick from.
+          cloudinaryFolder: resolved.cloudinaryFolder,
+          cloudinaryLegacyFolders: resolved.cloudinaryLegacyFolders,
         }),
       });
       if (res.status === 401) throw new Error(RELOGIN_MSG);
