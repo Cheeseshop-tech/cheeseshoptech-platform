@@ -66,6 +66,21 @@ function pickStory(kit, { storyKeys = [], audience } = {}) {
   );
 }
 
+// Best tasting note: SKU match first (when the seed carries SKUs), then audience, then first.
+// `kit.tastingNotes` is an OPTIONAL field (docs/HANDOFF_2026-07-19_luxury-dtc-design-research.md
+// — the "affineur's note" pattern, La Fromagerie reference). No invented content: a kit without
+// tasting notes simply never triggers the affineurs-note/v1 slide — see AGENT_A1_BUILD_SPEC.md
+// Part F.
+function pickTastingNote(kit, { skuCodes = [], audience } = {}) {
+  const notes = kit?.tastingNotes || [];
+  if (!notes.length) return null;
+  return (
+    notes.find((n) => n.sku && skuCodes.includes(n.sku)) ||
+    notes.find((n) => audience && (n.audience || []).includes(audience)) ||
+    notes[0]
+  );
+}
+
 /* ---------- product resolution ---------- */
 // Up to n products for range cards: opportunity SKUs first, then featured, then catalog order.
 // Name resolution follows DATA_OWNERSHIP_MAP.md: the canonical item record (Media Hub's
@@ -119,7 +134,7 @@ export async function directDraft({ resolved, user, opportunity } = {}) {
   let itemsDoc = null;
   try { itemsDoc = await loadItems(resolved.cloudinaryFolder, resolved.id); } catch { itemsDoc = null; }
 
-  const hasVoice = !!(kit && ((kit.storyBlocks || []).length || (kit.voice?.readyPhrases || []).length || kit.voice?.motto));
+  const hasVoice = !!(kit && ((kit.storyBlocks || []).length || (kit.voice?.readyPhrases || []).length || kit.voice?.motto || (kit.tastingNotes || []).length));
   if (!hasVoice && !assets.length) return null;
 
   const opp = opportunity || {};
@@ -129,6 +144,7 @@ export async function directDraft({ resolved, user, opportunity } = {}) {
   const secondStory = pickStory(kit, { storyKeys: [], audience: opp.audience }) === story
     ? (kit?.storyBlocks || []).filter((b) => b !== story)[0] || null
     : pickStory(kit, { audience: opp.audience });
+  const tastingNote = pickTastingNote(kit, opp);
   const products = pickProducts(catalog, itemsDoc, opp.skuCodes || [], 3);
   const brandName = kit?.brandName || resolved.brand?.name || "";
   const attribution = kit?.attribution || brandName;
@@ -165,6 +181,16 @@ export async function directDraft({ resolved, user, opportunity } = {}) {
     slide_title: story?.title,
     story_block: story ? { headline: (story.title || "").toUpperCase(), narrative: story.body } : null,
   });
+
+  // 3b · Affineur's Note — optional first-person tasting note, only when the kit carries one
+  // (see pickTastingNote() above). Prefers product photography linked to the note's own SKU.
+  if (tastingNote) {
+    slide("affineurs-note/v1", {
+      hero_image: pickAsset({ assets, tag: "product", skuCodes: tastingNote.sku ? [tastingNote.sku] : (opp.skuCodes || []), used }),
+      note_block: tastingNote.body,
+      attribution: tastingNote.attribution,
+    });
+  }
 
   // 4 · Second story as a full-bleed image beat, when the tenant has depth.
   if (secondStory && assets.length > 2) {

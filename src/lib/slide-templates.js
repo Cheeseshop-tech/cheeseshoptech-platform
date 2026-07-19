@@ -124,6 +124,28 @@ export const SLIDE_TEMPLATES = [
     ],
     sample: { slide_title: "From our buyers", quote_block: "The mountain origin you can actually taste.", attribution: "— Specialty buyer, New York" } },
 
+  // Affineur's Note — first-person expert tasting note, optionally SKU-linked. Pattern origin:
+  // docs/HANDOFF_2026-07-19_luxury-dtc-design-research.md (La Fromagerie reference — "the
+  // affineur's note... a first-person expert tasting note voice"). Fires only when a kit's
+  // (optional) tastingNotes carries content — see AGENT_A1_BUILD_SPEC.md Part F.
+  { id: "affineurs-note/v1", label: "Affineur's Note", tag: "tasting note",
+    canvas: { w: 960, h: 540 },
+    slots: [
+      { id: "bg", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 540, z: 1, fill: "$paper" },
+      { id: "hero_image", role: "var", kind: "image", fit: "cover", x: 0, y: 0, w: 384, h: 540, z: 2, tag: "product", label: "Product photo (optional)" },
+      { id: "top_accent_bar", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 8, z: 6, fill: "$accent" },
+      LOGO_TR,
+      { id: "slide_title", role: "var", as: "title", kind: "text", x: 424, y: 90, w: 480, h: 40, z: 5, fit: "shrink",
+        font: { font: "$ui", size: 14, uppercase: true, bold: true, color: "$accent", align: "left" }, label: "Eyebrow (e.g. Tasting Note)" },
+      { id: "note_block", role: "var", kind: "text", x: 424, y: 140, w: 480, h: 260, z: 5, fit: "shrink",
+        font: { font: "$display", size: 22, italic: true, color: "$primary", align: "left" }, label: "Note (first person)" },
+      { id: "attribution", role: "var", kind: "text", x: 424, y: 420, w: 480, h: 50, z: 5, fit: "shrink",
+        font: { font: "$ui", size: 16, color: "$charcoal", align: "left" }, label: "Attribution (who's speaking)" },
+    ],
+    sample: { slide_title: "Tasting Note",
+      note_block: "Nutty and lightly grassy at the rind, giving way to a firm, saline core — the alpine pasture is there if you slow down for it.",
+      attribution: "— Casaro, Casa Finco" } },
+
   { id: "product-range/v1", label: "Product range", tag: "catalog cards",
     canvas: { w: 960, h: 540 },
     slots: [

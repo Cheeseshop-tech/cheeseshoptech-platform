@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Palette, Type as TypeIcon, MessageSquareQuote, Images, FileText, Pencil, Eye, Download, Upload, Plus, X, ImagePlus } from "lucide-react";
+import { Palette, Type as TypeIcon, MessageSquareQuote, Images, FileText, Pencil, Eye, Download, Upload, Plus, X, ImagePlus, Quote } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
 import { Button } from "@/components/ui/button.jsx";
@@ -173,6 +173,40 @@ export function BrandManagement({ initialTenant }) {
               </div>
             ))}
           </CardContent>
+        </Card>
+
+        {/* Tasting notes — optional, first-person "affineur's note" voice.
+            docs/HANDOFF_2026-07-19_luxury-dtc-design-research.md + AGENT_A1_BUILD_SPEC.md Part F. */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <PanelIcon icon={Quote} />
+              <div><CardTitle>Tasting notes</CardTitle><CardDescription>Optional first-person expert notes, SKU-linked when possible — powers the Affineur's Note slide template.</CardDescription></div>
+            </div>
+            {editing && (
+              <Button size="sm" variant="outline" onClick={() => update("tastingNotes", [...(kit.tastingNotes || []), { key: `note-${Date.now()}`, sku: "", body: "", attribution: "" }])}>
+                <Plus className="h-4 w-4" /> Add note
+              </Button>
+            )}
+          </CardHeader>
+          {(editing || (kit.tastingNotes || []).length > 0) && (
+            <CardContent className="grid gap-4 md:grid-cols-2">
+              {(kit.tastingNotes || []).map((n, i) => (
+                <div key={n.key} className="rounded-base border border-border bg-bg p-4">
+                  <div className="mb-1 flex items-start justify-between gap-2">
+                    <EditText editing={editing} value={n.sku} onChange={(v) => update(`tastingNotes.${i}.sku`, v)}
+                      display={n.sku ? <p className="cs-eyebrow text-fg-muted">SKU {n.sku}</p> : null} label="SKU (optional)" />
+                    {editing && <button onClick={() => update("tastingNotes", kit.tastingNotes.filter((_, j) => j !== i))} className="text-fg-muted hover:text-error" aria-label="Remove note"><X className="h-4 w-4" /></button>}
+                  </div>
+                  <EditText editing={editing} area value={n.body} onChange={(v) => update(`tastingNotes.${i}.body`, v)}
+                    display={<p className="text-sm italic leading-relaxed text-fg-muted">{n.body}</p>} label="Note (first person)" />
+                  <EditText editing={editing} value={n.attribution} onChange={(v) => update(`tastingNotes.${i}.attribution`, v)}
+                    display={n.attribution ? <p className="mt-2 text-xs text-fg-muted">{n.attribution}</p> : null} label="Attribution" />
+                </div>
+              ))}
+              {editing && !(kit.tastingNotes || []).length && <p className="text-sm text-fg-muted">No tasting notes yet — add one to enable the Affineur's Note slide.</p>}
+            </CardContent>
+          )}
         </Card>
 
         <p className="text-xs text-fg-muted">Managed by CheeseShop TECH · last updated {kit.updatedAt}. Edits save to this browser; Export the kit to commit it to the source of truth.</p>

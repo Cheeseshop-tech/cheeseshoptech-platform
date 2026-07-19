@@ -94,7 +94,7 @@ build here; it now runs on the corrected data path from Part A automatically, no
 needed. The wiring-spec's gap list (§4, item 2) and the SDD's framing of A1 as "not yet exposed"
 are both stale and worth a quick correction pass themselves, outside this spec's scope.
 
-## 4. Part C — Stage 2, the AI pass — BLOCKED, needs Rick
+## 4. Part C — Stage 2, the AI pass — UNBLOCKED 2026-07-19, not yet built
 
 Per `CONTENT_ENGINE_WIRING_SPEC.md` §3 and `AI_TOOL_EMBED_SPEC.md`, Stage 2 is a Netlify function
 that holds `ANTHROPIC_API_KEY`, takes the Stage 0/1 resolved draft + brand voice rules, and returns
@@ -102,23 +102,28 @@ rewritten copy in voice + a slide-order suggestion + an image pick **from the ca
 (no image generation, ever — it selects real Media Hub photography). This is scoped, spec'd, and
 ready to build.
 
-**The blocker:** it explicitly needs **pay-as-you-go Anthropic API billing, set up as a separate
-account from your Claude subscription, with a console spend cap** (`AI_TOOL_EMBED_SPEC.md`,
-`CONTENT_ENGINE_WIRING_SPEC.md` §3, `BUILD_LOG.md`). This has been sitting parked since at least
-2026-07-02 per the build log. You confirmed you want Stage 2 in this ship, not deferred — so this
-is the one action item on you before I can build it:
+**Billing checklist — all done 2026-07-19:**
 
-- [ ] **Set up Anthropic pay-as-you-go API billing** (console.anthropic.com), separate from your
-      Claude Pro/Max subscription — same org, different billing surface.
-- [ ] **Set a console spend cap** — the doc suggests cents-per-compose economics, so even a small
-      cap ($20–50/mo) is plenty of headroom while this is new.
-- [ ] Drop the resulting `ANTHROPIC_API_KEY` into Netlify env vars (I can wire the function to read
-      it — I should not hold or transmit the key itself; that's a step you do directly in Netlify
-      or tell me to walk you through).
+- [x] **Anthropic pay-as-you-go API billing** live at console.anthropic.com (separate billing
+      surface from the Claude subscription, per `AI_TOOL_EMBED_SPEC.md`) — was already active
+      (Visa on file, $20 credit balance) when checked.
+- [x] **Console spend cap set to $25/mo** (Rick's number), with an email alert at $20 so there's
+      warning before the hard ceiling.
+- [x] `ANTHROPIC_API_KEY` created (key name `cst-content-engine`, no expiration) and dropped into
+      Netlify env vars for `cheeseshoptech-platform`, scoped to **Builds, Functions, Runtime only**
+      (same pattern as `CLOUDINARY_API_SECRET`) and marked as a secret value. Netlify confirms
+      "1 value in 1 deploy context" (Production).
 
-Once that's done, Part C is a scoped, spec'd build with no other open questions. I'll build Parts A
-and B now-ready regardless — Stage 0/1 auto-compose will work end-to-end on the correct data the
-moment it ships, and Stage 2 slots in without re-touching the UI once billing clears.
+Note on process: the first two attempts at creating the key lost the one-time-reveal value before
+it reached Netlify (copied but not pasted in time) — those orphaned keys were deleted in the
+Console before the third attempt succeeded. Nothing was ever exposed in chat; the key value itself
+was never captured in any screenshot or message.
+
+**Still to build — the Netlify function itself is not written yet:**
+`netlify/functions/ai-compose.js` (or a `studio-director-stage2` equivalent) reading
+`ANTHROPIC_API_KEY` server-side, taking the Stage 0/1 draft + kit voice rules, returning rewritten
+copy + slide order + an image pick from the existing candidate list. No other open questions —
+this is the next concrete build slice when Rick's ready for it.
 
 ## 5. Part D — New visual direction (CST platform, not tenant brand)
 

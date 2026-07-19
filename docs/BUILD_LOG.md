@@ -8,6 +8,33 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 
 ---
 
+## 2026-07-19 — Content Engine: Affineur's Note pattern (Part F, no AI)
+
+**What (Rick: "pick up at the DESIGN AGENT and content ENGINE development... adding earlier
+development foundational design direction to educate the design agent"):** ported one concrete,
+self-contained pattern from the luxury DTC design research handed off earlier the same day
+(`docs/HANDOFF_2026-07-19_luxury-dtc-design-research.md`) into the A1 Content Engine agent — La
+Fromagerie's "affineur's note": a first-person expert tasting-note voice. Everything else in that
+research (the Fortnum PDP layout, issue-based publishing, "follow," audio-everywhere, cheese
+flights) stays open research, not touched.
+
+**Built, all Stage 0/1 — no AI, no Anthropic billing dependency:**
+- New slide template `affineurs-note/v1` (`src/lib/slide-templates.js`).
+- `pickTastingNote()` + optional deck beat in `directDraft()` (`src/lib/studio-director.js`) —
+  mirrors the existing `pickStory()` pattern; only fires when a kit's `tastingNotes` has content.
+- `tastingNotesFor()` helper (`src/lib/brandKit.js`), SKU join per `DATA_OWNERSHIP_MAP.md`.
+- "Tasting notes" editor card in Brand Management (`src/components/brand/brand-management.jsx`),
+  same add/edit/remove UX as Story blocks.
+
+**No content invented.** `tastingNotes` ships empty for every tenant — the new slide never
+appears in any existing deck until someone actually writes a note via Brand Management. Doesn't
+touch `DESIGN_SYSTEM.md` or any tenant brand tokens; Part D (CST's own new visual direction /
+design-agent UI) is untouched and still gated on Rick.
+
+**Detail:** `docs/AGENT_A1_BUILD_SPEC.md` §9 (Part F).
+
+---
+
 ## 2026-07-18 — Product Catalog now loads alphabetically by product name
 
 **What (Rick asked to load the Product Catalog alphabetically):** the Catalog's row order came

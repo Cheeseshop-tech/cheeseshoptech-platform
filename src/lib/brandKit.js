@@ -35,6 +35,17 @@ export function storyBlocksFor(resolved, audience) {
   return blocks.filter((b) => (b.audience || []).includes(audience));
 }
 
+/** Tasting notes filtered to a SKU (or all). Optional, first-person "affineur's note" voice —
+ * see docs/HANDOFF_2026-07-19_luxury-dtc-design-research.md and AGENT_A1_BUILD_SPEC.md Part F.
+ * Join key = SKU, consistent with DATA_OWNERSHIP_MAP.md. Powers affineurs-note/v1 in the Studio
+ * Director (studio-director.js) and is available here for any future PDP/catalog surface. */
+export function tastingNotesFor(resolved, sku) {
+  const kit = getBrandKit(resolved);
+  const notes = kit?.tastingNotes || [];
+  if (!sku) return notes;
+  return notes.filter((n) => n.sku === sku);
+}
+
 // Worksheet descriptor — drives the Brand Management onboarding form for new clients:
 // which fields, input types (text/textarea/color/list/upload/select), and help text.
 export const KIT_SECTIONS = [

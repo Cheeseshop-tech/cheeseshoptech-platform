@@ -43,6 +43,21 @@ build (see `docs/IMAGE_PIPELINE_SPEC.md`, `docs/ASSET_LIBRARY_SPEC.md`, `docs/ME
   their codes and is the starting point for the catalog.
 - Rick will **request the missing images and replacements for the poor-quality photos.**
 
+**2026-07-19 — Luxury DTC design research ported in; this is where the template architecture
+came from.** A separate, non-CST Claude Project has been doing competitive design research for
+a luxury DTC cheese brand concept ("Posada & Co." / "the Super Site" — blog + test kitchen +
+classroom + podcast + influencer feel). Rick's own framing (2026-07-19): *"it boils down to the
+rotating brand ecom site working as a sales campaign engine for cheese brands... this is where
+the template architecture came from."* i.e. the Content Studio's slot/token/paint template
+engine (`TEMPLATE_ENGINE_SPEC.md`) traces back to this concept — one reskinnable storefront
+template per brand, run as a sales campaign engine — which also matches CST's own positioning
+(`POSITIONING.md`: sales-led growth via coordinated campaigns, storefront as deliverable not the
+business). **Still a live architectural option to build toward, not a locked feature or a
+committed tenant** — kept in play as CST builds. One confirmed decision so far: the **Fortnum &
+Mason Cave Aged Cheddar Wedge PDP** is the goal reference for product-page layout (sticky hero
+image, breathable info rail, accordion sections, no parallax). Detail:
+`docs/HANDOFF_2026-07-19_luxury-dtc-design-research.md`.
+
 ## Conventions
 - **Client-side data requests are routed by function, not by personal name** —
   Marketing (images/email), Sales Management (pricing), Inventory Manager (item master +
@@ -54,3 +69,4 @@ build (see `docs/IMAGE_PIPELINE_SPEC.md`, `docs/ASSET_LIBRARY_SPEC.md`, `docs/ME
 - Status / definition of done: `docs/PROJECT_STATUS.md` · backlog: `docs/BACKLOG.md`
 - Open client data to retrieve: `docs/CLIENT_DATA_REQUESTS_2026-07-09.md`
 - Marketing photo request: `docs/MARKETING_IMAGE_REQUEST_2026-07-13.md` (+ `.csv`)
+- Luxury DTC design research, external/not-a-tenant: `docs/HANDOFF_2026-07-19_luxury-dtc-design-research.md`

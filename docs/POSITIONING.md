@@ -4,6 +4,14 @@
 
 **Related:** competitive landscape & adjacencies (e.g. **Keychain** — "make it / sell it") → `COMPETITIVE_LANDSCAPE.md`.
 
+> **Origin note (2026-07-19).** The Content Studio's template architecture (slot + brand-kit
+> paint + binding — `TEMPLATE_ENGINE_SPEC.md`) traces back to a parallel design-research track
+> for a "rotating brand" luxury DTC concept ("Posada & Co." / the Super Site): one reskinnable
+> storefront template per cheese brand, run as a sales campaign engine. Rick: *"it boils down to
+> the rotating brand ecom site working as a sales campaign engine for cheese brands... this is
+> where the template architecture came from."* Still a live architectural option kept in play as
+> CST builds, not a locked feature. Detail: `docs/HANDOFF_2026-07-19_luxury-dtc-design-research.md`.
+
 ## What CheeseShop TECH is
 
 A **sales-led growth agency for specialty & perishable food brands.** The main focus is
