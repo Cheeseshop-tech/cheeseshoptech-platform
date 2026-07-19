@@ -6,6 +6,64 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 > Format convention: `## YYYY-MM-DD — Title` · **Decision / Action / Status** ·
 > keep entries short and factual. This file is the project's memory.
 
+## 2026-07-19 — Feature: real layout variety (6 new hand-designed templates + guardrailed AI layout-swap)
+
+**What:** Rick, after the earlier fixes this session: "The auto compose creates one deck the same
+every time and polish only moves framing by a few pixels. I want a real ai design tool in the app
+that uses the brand kit voice and design example for lay out and style... how do we get there and
+what will it cost." Confirmed the critique was accurate, not a misunderstanding: `directDraft()`
+always calls `slide("cover/v1", ...)`, `slide("product-feature/v1", ...)`, `slide("story/v1", ...)`
+— one fixed template id per slide type, no variation — and `mergeDeck()` in `ai-compose.js` starts
+every result slide from `{ t: sl?.t, ... }` with `t` copied straight through, never reassignable.
+AI Polish genuinely never had the ability to touch layout, only slot values within fixed geometry.
+
+**Decision (Rick):** true freeform generative layout (Claude inventing novel x/y/w/h positioning)
+is a much larger rebuild — different rendering approach, materially higher per-deck API cost, more
+risk of off-brand output. Rick chose the scoped path instead: real design variety comes from
+hand-designed layout alternates built directly in a Cowork/Claude session (free, one-time, uses
+the real brand kit) rather than generated live per-deck. AI Polish's job stays what it's good at —
+selecting and arranging from real, pre-built options — never inventing one. Rick's framing:
+"the agent... can just be the selector and the arranger" between hand-picking and asking it to
+"arrange it verbally."
+
+**What shipped:**
+- `src/lib/slide-templates.js` — every template now carries a `family` (groups real alternates for
+  the same slide type). Added 6 new hand-designed templates using Monti Trentini's real brand
+  tokens: `cover/v2` (Split — color panel + logo/title left, full-bleed photo right, no scrim
+  needed), `cover/v3` (Editorial — top-down scrim, centered upper-third title, cert-emblem badge),
+  `product-feature/v2` (Cream Card — product in a rounded card left, copy right), `product-feature/v3`
+  (Stacked — full-width photo band top, copy band bottom), `story/v2` (Mirrored — the photo/copy
+  flip of v1), `story/v3` (Card — full-bleed photo with a floating cream copy card). Every variant
+  in a family reuses v1's exact editable slot-id vocabulary (`hero_image`, `slide_title`,
+  `topic_label`, `story_block`, etc.) by design, so any value already resolved for one variant drops
+  into another with zero data loss. New `familyOf(id)` / `templateAlternates(id)` exports (return
+  `null`/`[]` for an unknown or legacy plain-string slide, never a false-positive fallback).
+- Slide Studio's existing "pick a template" grid and "switch this slide's template" dropdown
+  (`slide-studio.jsx`, both plain `SLIDE_TEMPLATES.map()`) needed ZERO code changes — the 6 new
+  layouts are live and hand-pickable the moment this file syncs. That's the "hand-pick" arm.
+- `netlify/functions/ai-compose.js` — the "verbal arrange" arm. `briefSlide()` now exposes each
+  slide's own `layoutOptions` (its real alternates only) to Claude. `RETURN_TOOL` gained an
+  optional per-slide `layout` field. `mergeDeck()` accepts it ONLY if the id is one of that exact
+  slide's own alternates, re-derived server-side from the ORIGINAL template id (never trusts the
+  model's echo) — a cross-family id, an invented id, or a same-id "swap" are silently dropped, same
+  "degrade to no-op" posture as every other guardrail in this file. New `SYSTEM_PROMPT` rule 10
+  documents the boundary; response now also returns `appliedLayouts`.
+
+**Verified:** two dry-run suites against the real modules in the real repo (real `node_modules`,
+Anthropic call mocked) — 17 structural checks (every template has a family; canvas bounds; family
+membership counts; slot-id vocabulary matches across variants; `familyOf`/`templateAlternates`
+edge cases) + 14 end-to-end handler checks (a legit same-family swap applies alongside a normal
+text edit; a cross-family id — even a real template elsewhere in the library — is rejected; an
+invented id is rejected; a slide with no designed alternates can never be swapped; the pre-existing
+text/image/instruction flow is unaffected when no `layout` field is sent at all). 31/31 passed.
+`node --check` clean on both files.
+
+**Honest scope note, told to Rick directly:** this is curated variety, not generative design — six
+real hand-built layouts across three slide types today, chosen by a human (in this session) using
+the brand kit, not invented per-deck by the model. Growing the library (more families, more
+variants per family) is the same pattern repeated; freeform generative layout remains a
+meaningfully larger, separate undertaking if ever wanted later.
+
 ## 2026-07-19 — Fix: AI Polish wasn't actually wired to Media Hub for most real decks
 
 **What:** Rick: "its claiming to have processed a function like adding a photo and nothing

@@ -32,11 +32,24 @@
 // actual Cloudinary library at request time for any thin/missing slot, best-effort and additive
 // (see _media-candidates.js). AI Polish can now genuinely act on images regardless of how the
 // slide/slot was created, not just ones that went through Auto-compose.
+//
+// 2026-07-19 — real layout control (Rick: "auto-compose creates one deck the same every time and
+// polish only moves framing by a few pixels — I want a real ai design tool that uses the brand kit
+// voice and design examples for layout and style"). True freeform generative layout is a much
+// larger rebuild (different rendering approach entirely); this is the scoped, guardrailed version
+// that ships today: slide-templates.js now groups real, hand-designed layout alternates into
+// `family`s (e.g. three cover layouts, three product-feature layouts, three story layouts, same
+// core slot vocabulary so no data is lost switching between them). AI Polish can now reassign a
+// slide's `t` (template id) via the new "layout" field on return_compose — but ONLY to one of that
+// exact slide's own `layoutOptions` (briefSlide(), below), which is re-derived and re-validated
+// server-side in mergeDeck() from the ORIGINAL template id, same "never trust the model's echo"
+// posture as every other field here. Same selector-and-arranger scope as always — Claude picks
+// among real, pre-built options, it never invents a layout.
 
 import { requireReadAuth, jsonUnauthorized } from "./_write-guard.js";
 import { logWrite } from "./_write-log.js";
 import { fetchAssetPool, scoreCandidates } from "./_media-candidates.js";
-import { getSlideTemplate } from "../../src/lib/slide-templates.js";
+import { getSlideTemplate, templateAlternates } from "../../src/lib/slide-templates.js";
 
 const MAX_SLIDES = 20;
 const MAX_BRIEF_CHARS = 24_000; // rough token-cost guard on the outbound prompt
@@ -158,7 +171,7 @@ export const handler = async (event) => {
   const merged = mergeDeck(workingDeck, toolBlock.input);
   await logWrite(event, {
     fn: "ai-compose", ok: true, status: 200, role: auth.role,
-    action: `ai-polish ${merged.appliedSlides} slide(s), ${merged.appliedFields} field(s)${instruction ? " (custom instruction)" : ""}`,
+    action: `ai-polish ${merged.appliedSlides} slide(s), ${merged.appliedFields} field(s), ${merged.appliedLayouts} layout(s)${instruction ? " (custom instruction)" : ""}`,
     tenant: tenant || null,
   });
 
@@ -169,6 +182,7 @@ export const handler = async (event) => {
     notes: merged.notes,
     appliedSlides: merged.appliedSlides,
     appliedFields: merged.appliedFields,
+    appliedLayouts: merged.appliedLayouts,
   });
 };
 
@@ -198,7 +212,13 @@ function briefSlide(sl, i) {
       images[k] = { current: v || null, candidates: list };
     }
   }
-  return { index: i, template: sl?.t || "", text, images };
+  // 2026-07-19 — real layout variety (Rick: "auto-compose creates one deck the same every time,
+  // polish only moves framing by a few pixels"). `layoutOptions` lists this slide's own real,
+  // already-designed alternate layouts (slide-templates.js's `family` grouping) — Claude may
+  // reassign the slide to one of these via the "layout" field, never to anything else. Empty when
+  // this slide's template has no designed alternates yet (most types still do).
+  const layoutOptions = templateAlternates(sl?.t);
+  return { index: i, template: sl?.t || "", layoutOptions, text, images };
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -298,7 +318,7 @@ function clean(s, max) {
 function mergeDeck(deck, aiResult) {
   const result = deck.map((sl) => ({ t: sl?.t, slots: { ...(sl?.slots || {}) } }));
   const notes = typeof aiResult.notes === "string" ? aiResult.notes.slice(0, 500) : "";
-  let appliedSlides = 0, appliedFields = 0;
+  let appliedSlides = 0, appliedFields = 0, appliedLayouts = 0;
 
   for (const edit of Array.isArray(aiResult.slides) ? aiResult.slides : []) {
     const i = edit?.index;
@@ -306,6 +326,22 @@ function mergeDeck(deck, aiResult) {
     const original = deck[i]?.slots || {};
     const target = result[i].slots;
     let touched = false;
+
+    // 2026-07-19 — layout re-arrangement: accepted ONLY if it's one of THIS slide's own real
+    // alternates (same family in slide-templates.js). Re-derived server-side from the original
+    // template id — never trust `layoutOptions` echoed back in the response, only what briefSlide()
+    // actually offered for deck[i]. An invented id, a cross-family id, or the current id itself is
+    // silently dropped, same "degrade to no-op" posture as every other field here. Slot values are
+    // left exactly as they are — safe because family variants share the same core slot-id
+    // vocabulary by design (see slide-templates.js's `family` doc comment).
+    const layoutEdit = edit?.layout;
+    if (typeof layoutEdit === "string" && layoutEdit) {
+      const alts = templateAlternates(deck[i]?.t).map((t) => t.id);
+      if (alts.includes(layoutEdit)) {
+        result[i].t = layoutEdit;
+        touched = true; appliedLayouts++;
+      }
+    }
 
     for (const [k, v] of Object.entries(edit?.text || {})) {
       const kind = slotKind(k, original[k]);
@@ -341,7 +377,7 @@ function mergeDeck(deck, aiResult) {
     if (valid) order = aiResult.order.slice();
   }
 
-  return { deck: result, order, notes, appliedSlides, appliedFields };
+  return { deck: result, order, notes, appliedSlides, appliedFields, appliedLayouts };
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -370,11 +406,21 @@ Hard rules — follow exactly, no exceptions:
    whether to reorder, etc.). Follow it for HOW you polish — it never expands WHAT you're allowed
    to touch or invent. Rules 1-3 above always win: no new facts/prices/claims, image picks still
    only from each slot's own candidates list, and slots outside "text"/"images" are still off
-   limits — even if the instruction asks for something that would require breaking one of those.`;
+   limits — even if the instruction asks for something that would require breaking one of those.
+10. Each slide lists its own "layoutOptions" — real, already-designed alternate layouts for that
+    exact slide (same content, different arrangement — e.g. photo on the other side, a card instead
+    of a split, a stacked composition instead of side-by-side). When the user's instruction calls
+    for a different visual feel ("make it feel more editorial", "flip the photo", "give me more
+    variety"), you may reassign a slide's layout via the "layout" field to ONE of the ids in that
+    slide's OWN "layoutOptions" — never an id from another slide's list, never an id you invent,
+    never the slide's current template. Most slides have no designed alternates yet (an empty
+    "layoutOptions" list) — leave those slides' layout alone. Changing a slide's layout does not
+    grant permission to touch any slot outside what's already listed under "text"/"images" for that
+    slide.`;
 
 const RETURN_TOOL = {
   name: "return_compose",
-  description: "Return the AI polish pass: rewritten copy per slide, an optional slide-order suggestion, and optional image re-picks (candidates only).",
+  description: "Return the AI polish pass: rewritten copy per slide, an optional slide-order suggestion, optional image re-picks (candidates only), and optional layout re-arrangement (each slide's own real alternates only).",
   input_schema: {
     type: "object",
     properties: {
@@ -399,6 +445,10 @@ const RETURN_TOOL = {
               type: "object",
               description: "Slot id → chosen publicId, which MUST be a member of that slot's provided candidates array. Omit a slot to leave its image unchanged.",
               additionalProperties: { type: "string" },
+            },
+            layout: {
+              type: "string",
+              description: "Optional: a new template id for this slide, which MUST be one of the ids in that slide's own 'layoutOptions' list. Omit to keep the current layout.",
             },
           },
           required: ["index"],

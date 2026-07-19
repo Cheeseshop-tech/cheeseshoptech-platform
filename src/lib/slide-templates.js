@@ -15,7 +15,7 @@ const LOGO_TR = { id: "brand_logo", role: "lock", kind: "image", fit: "contain",
 const LOGO_TL = { id: "brand_logo", role: "lock", kind: "image", fit: "contain", x: 48, y: 34, w: 180, h: 72, z: 9, asset: "$logo", toggle: true, tag: "logo", label: "Logo" };
 
 export const SLIDE_TEMPLATES = [
-  { id: "product-feature/v1", label: "Product Feature", tag: "flagship",
+  { id: "product-feature/v1", label: "Product Feature", tag: "flagship", family: "product-feature",
     canvas: { w: 960, h: 540 },
     slots: [
       ACCENT_BAR,
@@ -36,7 +36,59 @@ export const SLIDE_TEMPLATES = [
       story_block: { headline: "PRODUCED EXCLUSIVELY WITH ITALIAN COW'S MILK FROM A SHORT SUPPLY CHAIN.",
         narrative: "A compact, elastic texture, perfect for slicing — equally at home on panini, sandwiches or a burger." } } },
 
-  { id: "cover/v1", label: "Cover", tag: "opener",
+  // 2026-07-19 — "Product on Cream": inverted composition (image in a card, left; copy right) so a
+  // product beat doesn't always read the same as v1. Same slot ids as v1 (hero_image, slide_title,
+  // topic_label, story_block, emblem_overlay, brand_sprig) — Stage 0/1 and Stage 2 both already
+  // know how to fill this without any code change, only the geometry differs.
+  { id: "product-feature/v2", label: "Product Feature — Cream Card", tag: "product on cream", family: "product-feature",
+    canvas: { w: 960, h: 540 },
+    slots: [
+      { id: "bg", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 540, z: 1, fill: "$cream" },
+      { id: "image_card", role: "lock", kind: "shape", x: 40, y: 60, w: 400, h: 420, z: 2, fill: "$paper", radius: 18 },
+      { id: "hero_image", role: "var", kind: "image", fit: "contain", x: 70, y: 90, w: 340, h: 340, z: 4, required: true, tag: "product", label: "Product photo" },
+      { id: "emblem_overlay", role: "brand", kind: "image", fit: "contain", x: 350, y: 380, w: 90, h: 90, z: 6, asset: "$seal", tag: "seal", label: "Cert emblem" },
+      { id: "brand_sprig", role: "brand", kind: "image", fit: "contain", x: 60, y: 445, w: 150, h: 64, z: 5, asset: "$sprig", tag: "sprig", label: "Sprig accent" },
+      { id: "top_accent_bar", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 8, z: 6, fill: "$accent" },
+      { id: "topic_label", role: "var", kind: "text", x: 480, y: 70, w: 430, h: 44, z: 8, fit: "shrink",
+        font: { font: "$display", size: 18, bold: true, italic: true, color: "$primary", align: "left" }, label: "Topic" },
+      { id: "slide_title", role: "var", as: "title", kind: "text", x: 480, y: 118, w: 430, h: 100, z: 8, fit: "shrink",
+        font: { font: "$display", size: 26, bold: true, italic: true, color: "$accent", align: "left" }, label: "Title" },
+      { id: "story_block", role: "var", as: "story", kind: "text", x: 480, y: 228, w: 430, h: 230, z: 5, fit: "shrink",
+        parts: [
+          { id: "headline", font: { font: "$ui", size: 13, uppercase: true, bold: true, color: "$accent", align: "left" } },
+          { id: "narrative", font: { font: "$display", size: 15, italic: true, color: "$primary", align: "left" } },
+        ], label: "Story" },
+    ],
+    sample: { slide_title: "Italian Certified Excellence", topic_label: "Special squared format cheese",
+      story_block: { headline: "PRODUCED EXCLUSIVELY WITH ITALIAN COW'S MILK FROM A SHORT SUPPLY CHAIN.",
+        narrative: "A compact, elastic texture, perfect for slicing — equally at home on panini, sandwiches or a burger." } } },
+
+  // 2026-07-19 — "Stacked Product Story": full-width photo band on top, copy band below — a third
+  // real option distinct from both the left/right splits above, for when a product shot reads best
+  // as a wide banner rather than a portrait crop.
+  { id: "product-feature/v3", label: "Product Feature — Stacked", tag: "stacked product", family: "product-feature",
+    canvas: { w: 960, h: 540 },
+    slots: [
+      { id: "hero_image", role: "var", kind: "image", fit: "cover", x: 0, y: 0, w: 960, h: 300, z: 1, required: true, tag: "product", label: "Product photo" },
+      { id: "bg_lower", role: "lock", kind: "shape", x: 0, y: 300, w: 960, h: 240, z: 1, fill: "$cream" },
+      { id: "scrim", role: "lock", kind: "shape", x: 0, y: 220, w: 960, h: 80, z: 2, gradient: "linear-gradient(180deg, rgba(250,249,245,0), rgba(250,249,245,.95))" },
+      { id: "top_accent_bar", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 8, z: 6, fill: "$accent" },
+      { id: "brand_logo", role: "lock", kind: "image", fit: "contain", x: 806, y: 16, w: 130, h: 54, z: 9, asset: "$logo", toggle: true, tag: "logo", label: "Logo" },
+      { id: "topic_label", role: "var", kind: "text", x: 60, y: 330, w: 400, h: 40, z: 5, fit: "shrink",
+        font: { font: "$display", size: 16, bold: true, italic: true, color: "$accent", align: "left" }, label: "Topic" },
+      { id: "slide_title", role: "var", as: "title", kind: "text", x: 60, y: 368, w: 840, h: 60, z: 5, fit: "shrink",
+        font: { font: "$display", size: 28, bold: true, italic: true, color: "$primary", align: "left" }, label: "Title" },
+      { id: "story_block", role: "var", as: "story", kind: "text", x: 60, y: 432, w: 840, h: 96, z: 5, fit: "shrink",
+        parts: [
+          { id: "headline", font: { font: "$ui", size: 12, uppercase: true, bold: true, color: "$accent", align: "left" } },
+          { id: "narrative", font: { font: "$display", size: 14, italic: true, color: "$ink", align: "left" } },
+        ], label: "Story" },
+    ],
+    sample: { slide_title: "Italian Certified Excellence", topic_label: "Special squared format cheese",
+      story_block: { headline: "PRODUCED EXCLUSIVELY WITH ITALIAN COW'S MILK FROM A SHORT SUPPLY CHAIN.",
+        narrative: "A compact, elastic texture, perfect for slicing — equally at home on panini, sandwiches or a burger." } } },
+
+  { id: "cover/v1", label: "Cover", tag: "opener", family: "cover",
     canvas: { w: 960, h: 540 },
     slots: [
       { id: "hero_image", role: "var", kind: "image", fit: "cover", x: 0, y: 0, w: 960, h: 540, z: 1, required: true, tag: "hero", label: "Background photo" },
@@ -49,7 +101,42 @@ export const SLIDE_TEMPLATES = [
     ],
     sample: { slide_title: "Crafted for the Modern Table", topic_label: "Squared-format table cheese" } },
 
-  { id: "statement/v1", label: "Statement", tag: "big idea",
+  // 2026-07-19 — "Split Cover": color panel + logo/title on the left, full-bleed hero photo on the
+  // right. No scrim needed (text never sits on the photo), so it reads cleanly even with a busy or
+  // high-contrast photo that would fight a bottom-scrim treatment like v1.
+  { id: "cover/v2", label: "Cover — Split", tag: "split opener", family: "cover",
+    canvas: { w: 960, h: 540 },
+    slots: [
+      { id: "bg_panel", role: "lock", kind: "shape", x: 0, y: 0, w: 400, h: 540, z: 1, fill: "$primary" },
+      { id: "hero_image", role: "var", kind: "image", fit: "cover", x: 400, y: 0, w: 560, h: 540, z: 2, required: true, tag: "hero", label: "Background photo" },
+      { id: "top_accent_bar", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 8, z: 6, fill: "$accent" },
+      { id: "brand_logo", role: "lock", kind: "image", fit: "contain", x: 48, y: 34, w: 180, h: 72, z: 9, asset: "$logo", toggle: true, tag: "logo", label: "Logo" },
+      { id: "slide_title", role: "var", as: "title", kind: "text", x: 44, y: 220, w: 320, h: 130, z: 5, fit: "shrink",
+        font: { font: "$display", size: 30, italic: true, color: "$cream", align: "left" }, label: "Title" },
+      { id: "topic_label", role: "var", kind: "text", x: 44, y: 368, w: 320, h: 60, z: 5, fit: "shrink",
+        font: { font: "$display", size: 16, italic: true, color: "$mint", align: "left" }, label: "Subtitle" },
+    ],
+    sample: { slide_title: "Crafted for the Modern Table", topic_label: "Squared-format table cheese" } },
+
+  // 2026-07-19 — "Editorial Cover": top-down scrim (not bottom) with a centered upper-third title
+  // and a small cert-emblem badge, for photos where the bottom of the frame is the interesting part
+  // (can't be covered by v1's bottom scrim) — e.g. a table spread or a landscape shot.
+  { id: "cover/v3", label: "Cover — Editorial", tag: "editorial opener", family: "cover",
+    canvas: { w: 960, h: 540 },
+    slots: [
+      { id: "hero_image", role: "var", kind: "image", fit: "cover", x: 0, y: 0, w: 960, h: 540, z: 1, required: true, tag: "hero", label: "Background photo" },
+      { id: "scrim", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 260, z: 2, gradient: "linear-gradient(180deg,rgba(6,78,34,.85),rgba(6,78,34,0))" },
+      { id: "top_accent_bar", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 8, z: 6, fill: "$accent" },
+      { id: "brand_logo", role: "lock", kind: "image", fit: "contain", x: 360, y: 28, w: 240, h: 96, z: 9, asset: "$logo", toggle: true, tag: "logo", label: "Logo" },
+      { id: "slide_title", role: "var", as: "title", kind: "text", x: 70, y: 150, w: 820, h: 80, z: 5, fit: "shrink",
+        font: { font: "$display", size: 36, italic: true, color: "$cream", align: "center" }, label: "Title" },
+      { id: "topic_label", role: "var", kind: "text", x: 70, y: 220, w: 820, h: 44, z: 5, fit: "shrink",
+        font: { font: "$display", size: 18, italic: true, color: "$mint", align: "center" }, label: "Subtitle" },
+      { id: "emblem_overlay", role: "brand", kind: "image", fit: "contain", x: 790, y: 400, w: 130, h: 130, z: 4, asset: "$seal", tag: "seal", label: "Cert emblem" },
+    ],
+    sample: { slide_title: "Crafted for the Modern Table", topic_label: "Squared-format table cheese" } },
+
+  { id: "statement/v1", label: "Statement", tag: "big idea", family: "statement",
     canvas: { w: 960, h: 540 },
     slots: [
       { id: "bg", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 540, z: 1, fill: "$primary" },
@@ -61,7 +148,7 @@ export const SLIDE_TEMPLATES = [
     ],
     sample: { slide_title: "Made at altitude in the Trentino mountains.", topic_label: "Casa Finco — casari dal 1925." } },
 
-  { id: "story/v1", label: "Story", tag: "image + copy",
+  { id: "story/v1", label: "Story", tag: "image + copy", family: "story",
     canvas: { w: 960, h: 540 },
     slots: [
       { id: "bg_panel", role: "lock", kind: "shape", x: 0, y: 0, w: 480, h: 540, z: 1, fill: "$cream" },
@@ -79,7 +166,50 @@ export const SLIDE_TEMPLATES = [
       story_block: { headline: "FOUR GENERATIONS · ONE HUNDRED YEARS",
         narrative: "Milk from our neighborhood — within 90 km of our dairy in Grigno — processed, aged and packaged entirely in our own plants." } } },
 
-  { id: "three-up/v1", label: "Three-up (pillars)", tag: "3 columns",
+  // 2026-07-19 — "Mirrored Story": photo left / cream copy right — the flip of v1, so two story
+  // beats back-to-back in one deck don't read as the exact same slide with different words.
+  { id: "story/v2", label: "Story — Mirrored", tag: "mirrored image + copy", family: "story",
+    canvas: { w: 960, h: 540 },
+    slots: [
+      { id: "hero_image", role: "var", kind: "image", fit: "cover", x: 0, y: 0, w: 480, h: 540, z: 2, required: true, tag: "lifestyle", label: "Photo" },
+      { id: "bg_panel", role: "lock", kind: "shape", x: 480, y: 0, w: 480, h: 540, z: 1, fill: "$cream" },
+      { id: "top_accent_bar", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 8, z: 6, fill: "$accent" },
+      { id: "brand_logo", role: "lock", kind: "image", fit: "contain", x: 806, y: 16, w: 130, h: 54, z: 9, asset: "$logo", toggle: true, tag: "logo", label: "Logo" },
+      { id: "slide_title", role: "var", as: "title", kind: "text", x: 532, y: 140, w: 376, h: 110, z: 5, fit: "shrink",
+        font: { font: "$display", size: 34, italic: true, color: "$primary", align: "left" }, label: "Title" },
+      { id: "story_block", role: "var", as: "story", kind: "text", x: 532, y: 268, w: 376, h: 212, z: 5, fit: "shrink",
+        parts: [
+          { id: "headline", font: { font: "$ui", size: 13, uppercase: true, bold: true, color: "$accent", align: "left" } },
+          { id: "narrative", font: { font: "$display", size: 15, italic: true, color: "$ink", align: "left" } },
+        ], label: "Story" },
+    ],
+    sample: { slide_title: "A hundred-year story",
+      story_block: { headline: "FOUR GENERATIONS · ONE HUNDRED YEARS",
+        narrative: "Milk from our neighborhood — within 90 km of our dairy in Grigno — processed, aged and packaged entirely in our own plants." } } },
+
+  // 2026-07-19 — "Story Card": full-bleed photo with a floating cream card holding the copy —
+  // a more premium/editorial feel than the hard vertical split of v1/v2, for a standout photo that
+  // deserves the whole frame.
+  { id: "story/v3", label: "Story — Card", tag: "story card", family: "story",
+    canvas: { w: 960, h: 540 },
+    slots: [
+      { id: "hero_image", role: "var", kind: "image", fit: "cover", x: 0, y: 0, w: 960, h: 540, z: 1, required: true, tag: "lifestyle", label: "Photo" },
+      { id: "card_panel", role: "lock", kind: "shape", x: 560, y: 70, w: 340, h: 400, z: 2, fill: "$cream", radius: 20 },
+      { id: "top_accent_bar", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 8, z: 6, fill: "$accent" },
+      { id: "brand_logo", role: "lock", kind: "image", fit: "contain", x: 48, y: 34, w: 180, h: 72, z: 9, asset: "$logo", toggle: true, tag: "logo", label: "Logo" },
+      { id: "slide_title", role: "var", as: "title", kind: "text", x: 592, y: 110, w: 280, h: 100, z: 5, fit: "shrink",
+        font: { font: "$display", size: 26, italic: true, color: "$primary", align: "left" }, label: "Title" },
+      { id: "story_block", role: "var", as: "story", kind: "text", x: 592, y: 224, w: 280, h: 210, z: 5, fit: "shrink",
+        parts: [
+          { id: "headline", font: { font: "$ui", size: 12, uppercase: true, bold: true, color: "$accent", align: "left" } },
+          { id: "narrative", font: { font: "$display", size: 14, italic: true, color: "$ink", align: "left" } },
+        ], label: "Story" },
+    ],
+    sample: { slide_title: "A hundred-year story",
+      story_block: { headline: "FOUR GENERATIONS · ONE HUNDRED YEARS",
+        narrative: "Milk from our neighborhood — within 90 km of our dairy in Grigno — processed, aged and packaged entirely in our own plants." } } },
+
+  { id: "three-up/v1", label: "Three-up (pillars)", tag: "3 columns", family: "three-up",
     canvas: { w: 960, h: 540 },
     slots: [
       { id: "bg", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 540, z: 1, fill: "$cream" },
@@ -95,7 +225,7 @@ export const SLIDE_TEMPLATES = [
     ],
     sample: { slide_title: "Why Monti Trentini", cap1: "Alpine milk, within 90 km", cap2: "Family dairy since 1925", cap3: "Certified mountain origin" } },
 
-  { id: "big-stat/v1", label: "Big stat", tag: "one number",
+  { id: "big-stat/v1", label: "Big stat", tag: "one number", family: "big-stat",
     canvas: { w: 960, h: 540 },
     slots: [
       { id: "bg", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 540, z: 1, fill: "$primary" },
@@ -107,7 +237,7 @@ export const SLIDE_TEMPLATES = [
     ],
     sample: { stat_value: "100", slide_title: "years of family cheesemaking" } },
 
-  { id: "quote/v1", label: "Quote", tag: "testimonial",
+  { id: "quote/v1", label: "Quote", tag: "testimonial", family: "quote",
     canvas: { w: 960, h: 540 },
     slots: [
       { id: "bg", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 540, z: 1, fill: "$paper" },
@@ -124,29 +254,7 @@ export const SLIDE_TEMPLATES = [
     ],
     sample: { slide_title: "From our buyers", quote_block: "The mountain origin you can actually taste.", attribution: "— Specialty buyer, New York" } },
 
-  // Affineur's Note — first-person expert tasting note, optionally SKU-linked. Pattern origin:
-  // docs/HANDOFF_2026-07-19_luxury-dtc-design-research.md (La Fromagerie reference — "the
-  // affineur's note... a first-person expert tasting note voice"). Fires only when a kit's
-  // (optional) tastingNotes carries content — see AGENT_A1_BUILD_SPEC.md Part F.
-  { id: "affineurs-note/v1", label: "Affineur's Note", tag: "tasting note",
-    canvas: { w: 960, h: 540 },
-    slots: [
-      { id: "bg", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 540, z: 1, fill: "$paper" },
-      { id: "hero_image", role: "var", kind: "image", fit: "cover", x: 0, y: 0, w: 384, h: 540, z: 2, tag: "product", label: "Product photo (optional)" },
-      { id: "top_accent_bar", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 8, z: 6, fill: "$accent" },
-      LOGO_TR,
-      { id: "slide_title", role: "var", as: "title", kind: "text", x: 424, y: 90, w: 480, h: 40, z: 5, fit: "shrink",
-        font: { font: "$ui", size: 14, uppercase: true, bold: true, color: "$accent", align: "left" }, label: "Eyebrow (e.g. Tasting Note)" },
-      { id: "note_block", role: "var", kind: "text", x: 424, y: 140, w: 480, h: 260, z: 5, fit: "shrink",
-        font: { font: "$display", size: 22, italic: true, color: "$primary", align: "left" }, label: "Note (first person)" },
-      { id: "attribution", role: "var", kind: "text", x: 424, y: 420, w: 480, h: 50, z: 5, fit: "shrink",
-        font: { font: "$ui", size: 16, color: "$charcoal", align: "left" }, label: "Attribution (who's speaking)" },
-    ],
-    sample: { slide_title: "Tasting Note",
-      note_block: "Nutty and lightly grassy at the rind, giving way to a firm, saline core — the alpine pasture is there if you slow down for it.",
-      attribution: "— Casaro, Casa Finco" } },
-
-  { id: "product-range/v1", label: "Product range", tag: "catalog cards",
+  { id: "product-range/v1", label: "Product range", tag: "catalog cards", family: "product-range",
     canvas: { w: 960, h: 540 },
     slots: [
       { id: "bg", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 540, z: 1, fill: "$cream" },
@@ -165,7 +273,7 @@ export const SLIDE_TEMPLATES = [
     ],
     sample: { slide_title: "The Range", name1: "Asiago DOP", name2: "Squared Table", name3: "Alpine Classic" } },
 
-  { id: "closing/v1", label: "Closing / CTA", tag: "ender",
+  { id: "closing/v1", label: "Closing / CTA", tag: "ender", family: "closing",
     canvas: { w: 960, h: 540 },
     slots: [
       { id: "bg", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 540, z: 1, fill: "$primary" },
@@ -181,7 +289,7 @@ export const SLIDE_TEMPLATES = [
     ],
     sample: { slide_title: "Let's bring the mountains to your table.", cta: "Request samples", contact: "hello@montitrentini.us" } },
 
-  { id: "image/v1", label: "Image (full-bleed)", tag: "photo + caption",
+  { id: "image/v1", label: "Image (full-bleed)", tag: "photo + caption", family: "image",
     canvas: { w: 960, h: 540 },
     slots: [
       { id: "hero_image", role: "var", kind: "image", fit: "cover", x: 0, y: 0, w: 960, h: 540, z: 1, required: true, tag: "hero", label: "Photo" },
@@ -194,6 +302,27 @@ export const SLIDE_TEMPLATES = [
 ];
 
 export const getSlideTemplate = (id) => SLIDE_TEMPLATES.find((t) => t.id === id) || SLIDE_TEMPLATES[0];
+
+// 2026-07-19 — layout variety (Rick: "auto-compose creates one deck the same every time"). A
+// `family` groups templates that are real, hand-designed alternates for the same slide "type"
+// (same core slot-id vocabulary — hero_image/slide_title/topic_label/story_block, etc. — so any
+// value already resolved for one variant drops straight into another with zero data loss). Used
+// by (a) Slide Studio's "change layout" picker to group variants together, and (b) ai-compose.js
+// to let AI Polish reassign a slide's layout ONLY to one of its own real, already-designed
+// alternates — never an invented id, never a cross-family jump. `familyOf`/`templateAlternates`
+// return null/[] for an unknown or legacy (plain-string) slide rather than falling back to
+// SLIDE_TEMPLATES[0]'s family, since a legacy slide has no real alternates to offer.
+export const familyOf = (id) => {
+  if (!id) return null;
+  const t = SLIDE_TEMPLATES.find((t) => t.id === id);
+  return t?.family || null;
+};
+
+export const templateAlternates = (id) => {
+  const fam = familyOf(id);
+  if (!fam) return [];
+  return SLIDE_TEMPLATES.filter((t) => t.family === fam && t.id !== id).map((t) => ({ id: t.id, label: t.label }));
+};
 
 /** First filled var-image public_id in a structured slide (used for deck cover thumbnails). */
 export function firstImageId(slide) {
