@@ -77,9 +77,18 @@ export function canDeleteMedia(user) {
 
 // ---- MOCK backend ---------------------------------------------------------
 // public_ids point at Cloudinary's public "demo" cloud food samples so the gallery
-// renders real images in dev. Real assets keep the product SKU in the public_id (OM §6).
+// renders real images in dev. Real assets keep the product SKU in the product's cloudinaryFolder
+// (OM §6) — MOCK is keyed by that same value, so it must match config/clients/<id>.json exactly.
+//
+// Fix (2026-07-19): this key was "clients/montitrentini" — the OLD tenant-folder convention
+// (still used by config/clients/demo.json's "clients/demo"). Monti's config was migrated to the
+// flat "monti-trentini" folder name at some point without updating this key, so listAssets()'s
+// `MOCK[tenantFolder] || []` silently fell through to an empty array for Monti specifically —
+// mock mode (the DEFAULT when VITE_MEDIA_BACKEND isn't set, e.g. a plain `npm run dev` with no
+// local .env) showed zero images in every variable-slot MediaPicker with no error at all. Live
+// Cloudinary data was never affected — this only broke local dev without the live backend wired.
 const MOCK = {
-  "clients/montitrentini": [
+  "monti-trentini": [
     { publicId: "samples/food/spices", sku: "MT-ASIA-200", folder: "products", title: "Asiago DOP — hero", approvalState: "approved-for-press", format: "jpg", usage: ["product-catalog", "hero"] },
     { publicId: "samples/food/dessert", sku: "MT-GORG-150", folder: "products", title: "Gorgonzola Dolce", approvalState: "approved-for-influencers", format: "jpg", usage: ["product-catalog"] },
     { publicId: "samples/food/fish-vegetables", sku: "MT-GRAN-1K", folder: "products", title: "Grana Padano board", approvalState: "draft", format: "jpg", usage: ["product-catalog", "food-styling"] },

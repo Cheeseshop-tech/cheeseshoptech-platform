@@ -6,6 +6,49 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 > Format convention: `## YYYY-MM-DD — Title` · **Decision / Action / Status** ·
 > keep entries short and factual. This file is the project's memory.
 
+## 2026-07-19 — Fix: Monti Trentini MediaPicker showed zero images (mock-data key mismatch)
+
+**What:** Rick reported the Content Studio's variable-slot image dropdowns weren't offering any
+images for Monti Trentini. Root cause: `src/lib/media.js`'s MOCK dataset (the fallback used when
+`VITE_MEDIA_BACKEND` isn't set — the default on a plain `npm run dev` with no local `.env`, which
+this machine doesn't have) was keyed `"clients/montitrentini"`, the OLD tenant-folder convention
+(still correct for `config/clients/demo.json`'s `"clients/demo"`). Monti's own config was migrated
+to the flat `"monti-trentini"` folder name at some point without updating this key, so
+`listAssets()`'s `MOCK[tenantFolder] || []` silently fell through to an empty array for Monti
+specifically — no error, no console output, just an empty picker. Changed the MOCK key to
+`"monti-trentini"` to match `config/clients/montitrentini.json`'s real `cloudinaryFolder`.
+
+**Also confirmed clean (not the cause, ruled out during investigation):**
+- Cloudinary itself: `monti-trentini` (222 assets) and the legacy `monti` folder (70 assets) both
+  have real, correctly-tagged images — confirmed live via the Cloudinary MCP connector. An earlier
+  `folder:monti*` search returning 0 was a false alarm — Cloudinary's search API doesn't support
+  wildcards on the `folder` field, so that query was invalid, not evidence of a missing folder.
+- Netlify: `CLOUDINARY_CLOUD_NAME` / `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET` are all
+  correctly set for the Production deploy context. `VITE_MEDIA_BACKEND` is also set for every
+  deploy context including "Local development (Netlify CLI)" — but that only applies when running
+  `netlify dev`, not a plain `npm run dev`.
+- `netlify/functions/media-list.js` — the live function's logs show zero invocations at all on
+  2026-07-19, confirming the browser never even reached the server when Rick saw the empty picker
+  — consistent with local dev quietly running in mock mode rather than hitting the real backend.
+- The passcode-mode role system (`auth.js` `rolesOf()` / `media.js` `visibleStatesFor()`) already
+  handles `client-admin` correctly (it's injected as a superset of `client`), so it wasn't a
+  role-visibility bug either.
+
+**Why it happened:** the mock dataset was never updated when Monti's Cloudinary folder convention
+changed from `clients/<id>` to a flat tenant folder — a naming-convention drift between a
+dev-only fallback and the live tenant config that nothing catches automatically.
+
+**Recommendation for Rick:** if you want the MediaPicker to show *real* Monti images while
+developing locally (not just the mock samples), run `netlify dev` instead of `npm run dev` — it
+pulls the real Netlify env vars (including `VITE_MEDIA_BACKEND=cloudinary`) and runs the actual
+functions locally. Plain `npm run dev` can never reach `/.netlify/functions/media-list` (no
+functions runtime), so it will always be mock mode regardless of this fix. Testing directly on
+the live cheeseshoptech.com site also shows real images today — that path was never broken.
+
+**Verified:** `node --check` on the edited file.
+
+---
+
 ## 2026-07-19 — Fix: ai-compose.js model default 404'd on first live use
 
 **What:** Rick clicked "AI Polish" and got `404 not_found_error: model: claude-3-5-sonnet-20241022`
