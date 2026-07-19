@@ -6,6 +6,27 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 > Format convention: `## YYYY-MM-DD — Title` · **Decision / Action / Status** ·
 > keep entries short and factual. This file is the project's memory.
 
+## 2026-07-19 — Fix: ai-compose.js 400'd on `temperature` — claude-sonnet-5 rejects it
+
+**What:** Rick clicked "AI Polish" again (after the earlier 404 model-id fix) and got a new error:
+`400 invalid_request_error: \`temperature\` is deprecated for this model.` The Anthropic Messages
+API call in `netlify/functions/ai-compose.js` sent `temperature: 0.5` alongside the forced
+`return_compose` tool call — `claude-sonnet-5` rejects that parameter outright. Removed it; the
+call now runs at the model's own default with no other change.
+
+**Why it happened:** same root cause as the 2026-07-19 model-id 404 earlier today — a parameter
+picked from training-era API knowledge without checking it against the live model's current
+accepted request shape. Two live failures from the same underlying habit in one session is the
+signal to actually break it: **going forward, don't add ANY optional Anthropic API parameter
+(temperature, top_p, top_k, etc.) to a hardcoded value without confirming it's still supported for
+the exact model in use.** When a specific parameter is genuinely needed, check
+platform.claude.com/docs for that model's current accepted fields first, or find out via a real
+request instead of guessing.
+
+**Verified:** `node --check` on the edited file.
+
+---
+
 ## 2026-07-19 — Fix: Monti Trentini MediaPicker showed zero images (mock-data key mismatch)
 
 **What:** Rick reported the Content Studio's variable-slot image dropdowns weren't offering any

@@ -93,7 +93,12 @@ export const handler = async (event) => {
       body: JSON.stringify({
         model,
         max_tokens: 2000,
-        temperature: 0.5,
+        // No `temperature` field (fixed 2026-07-19): claude-sonnet-5 rejects it outright —
+        // "`temperature` is deprecated for this model" (400 invalid_request_error). This was a
+        // second training-knowledge guess that didn't hold up against the live API, same lesson
+        // as the earlier model-id 404 above. Left at the model's own default; if a specific
+        // sampling behavior is ever needed, check platform.claude.com/docs for this model's
+        // current supported parameters before adding one back.
         system: SYSTEM_PROMPT,
         tools: [RETURN_TOOL],
         tool_choice: { type: "tool", name: "return_compose" },
