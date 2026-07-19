@@ -82,6 +82,11 @@ export function SlideStudio({ resolved, onClose, onSave, opportunity }) {
   const [composing, setComposing] = useState(false);
   const [polishing, setPolishing] = useState(false);
   const [polishMsg, setPolishMsg] = useState("");
+  // Optional free-text steering for AI Polish (2026-07-19, Rick: "can we prompt the agent from
+  // Content Engine?"). Sent as `instruction` — ai-compose.js treats it as guidance on tone/
+  // emphasis/order ONLY; the hard rules (no invented facts, image picks from candidates only,
+  // no touching locked/contact fields) are enforced server-side regardless of what it says.
+  const [instruction, setInstruction] = useState("");
   const { user } = useAuth();
   const voice = voiceOptions(resolved);
   const paneRef = useRef(null);
@@ -129,6 +134,7 @@ export function SlideStudio({ resolved, onClose, onSave, opportunity }) {
           brandName: resolved.brand?.name || kit?.brandName || "",
           voice: kit?.voice || {},
           opportunity: opportunity || null,
+          instruction: instruction.trim() || undefined,
         }),
       });
       if (res.status === 401) throw new Error(RELOGIN_MSG);
@@ -270,6 +276,21 @@ export function SlideStudio({ resolved, onClose, onSave, opportunity }) {
             </Button>
             <Button variant="ghost" size="sm" onClick={clearSlide}>Clear slide</Button>
             <Button variant="ghost" size="sm" onClick={() => removeSlide(idx)}><Trash2 className="h-4 w-4" /> Delete</Button>
+          </div>
+
+          {/* AI Polish steering (2026-07-19) — optional, guides tone/emphasis/order only; the
+              hard content rules (no invented facts, image picks from real candidates only) hold
+              regardless of what's typed here — enforced server-side in ai-compose.js. */}
+          <div className="mb-3 flex items-center gap-2">
+            <Sparkles className="h-3.5 w-3.5 flex-none text-fg-muted" />
+            <input
+              value={instruction}
+              onChange={(e) => setInstruction(e.target.value)}
+              maxLength={400}
+              placeholder={'Optional — tell AI Polish what to focus on, e.g. "lean into the trade program" or "make slide 3 punchier"'}
+              title="Guides AI Polish's tone/emphasis/order only — it still can't invent facts or pick images outside the real candidate list"
+              className="h-8 flex-1 rounded-base border border-border bg-bg px-2 text-xs text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+            />
           </div>
 
           {polishMsg && <p className="mb-3 text-xs text-fg-muted">{polishMsg}</p>}

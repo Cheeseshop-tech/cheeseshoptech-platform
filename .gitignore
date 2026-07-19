@@ -21,3 +21,8 @@ vite.config.js.timestamp-*.mjs
 
 # MS Office temp-lock files
 ~$*
+
+# Scratch files staged for manual deletion (device_bash can't rm on the mounted folder — see
+# sandbox-git-lock-trap memory note) and one-off test harnesses that shouldn't ship
+_to_delete/
+_tmp_e2e_test*.mjs

@@ -6,6 +6,27 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 > Format convention: `## YYYY-MM-DD — Title` · **Decision / Action / Status** ·
 > keep entries short and factual. This file is the project's memory.
 
+## 2026-07-19 — Content Engine: AI Polish now takes an optional custom instruction
+
+**What:** Rick asked "can we prompt the agent from Content Engine?" — until now AI Polish was a
+fixed one-button pass with no way to steer it. Added a single deck-level "Optional — tell AI
+Polish what to focus on" text box in Slide Studio's toolbar (e.g. "lean into the trade program" or
+"make slide 3 punchier"). It's sent as `instruction` to `ai-compose.js`, capped at 400 chars.
+
+**Guardrails held, not loosened:** this is explicitly GUIDANCE ONLY, layered on top of everything
+already built (see the 2026-07-19 Stage 2 entry above). `SYSTEM_PROMPT` gained one new rule (#9)
+telling Claude the instruction may steer tone/emphasis/order but never expands what it's allowed
+to touch or invent — rules 1-3 (no invented facts, image picks only from each slot's own
+`__candidates`, out-of-scope slots stay out of scope) still win. Nothing changed in `mergeDeck()` —
+every returned field is still independently re-validated against the original deck server-side,
+so even an adversarial instruction typed into the box can't get more out of the model than the
+briefing already allows. `CONTENT_ENGINE_WIRING_SPEC.md`'s "Not a chatbot" framing still holds:
+this is one bounded instruction per pass, not an open conversation.
+
+**Verified:** `node --check` on `ai-compose.js`; `esbuild` syntax-check on `slide-studio.jsx`.
+
+---
+
 ## 2026-07-19 — Fix: ai-compose.js 400'd on `temperature` — claude-sonnet-5 rejects it
 
 **What:** Rick clicked "AI Polish" again (after the earlier 404 model-id fix) and got a new error:
