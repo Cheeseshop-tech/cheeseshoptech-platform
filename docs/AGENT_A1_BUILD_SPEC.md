@@ -132,8 +132,9 @@ was never captured in any screenshot or message.
   keys are image slots, plain strings are text, `{headline,narrative}` shapes are story blocks;
   `contact` and any `__`/`$`-prefixed key are never shown to the model at all). Calls the Anthropic
   Messages API with a forced tool call (`return_compose`) so the response is structured JSON, not
-  parsed prose. Model defaults to `claude-3-5-sonnet-20241022`, overridable via an `ANTHROPIC_MODEL`
-  Netlify env var without a code change. **Every field in the model's response is re-validated
+  parsed prose. Model defaults to `claude-sonnet-5` (fixed 2026-07-19 — the original default,
+  `claude-3-5-sonnet-20241022`, 404'd on first real use; that snapshot is no longer available on
+  Rick's account), overridable via an `ANTHROPIC_MODEL` Netlify env var without a code change. **Every field in the model's response is re-validated
   server-side against the ORIGINAL deck before merging** — an image edit is accepted only if it's a
   member of that exact slot's `__candidates` list (never a new/hallucinated id); a text edit is
   accepted only for a slot the briefing itself classified as editable. A slide-order suggestion is

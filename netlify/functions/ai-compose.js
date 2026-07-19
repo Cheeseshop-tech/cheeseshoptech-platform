@@ -72,7 +72,11 @@ export const handler = async (event) => {
     briefJson,
   ].filter(Boolean).join("\n\n");
 
-  const model = process.env.ANTHROPIC_MODEL || "claude-3-5-sonnet-20241022";
+  // Pinned default; override via the ANTHROPIC_MODEL Netlify env var (no code change/redeploy
+  // needed) if this snapshot is ever retired — check platform.claude.com/docs for the current
+  // list before changing this. Fixed 2026-07-19: the original default
+  // (claude-3-5-sonnet-20241022) 404'd — that snapshot is no longer available on Rick's account.
+  const model = process.env.ANTHROPIC_MODEL || "claude-sonnet-5";
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 25_000);
 

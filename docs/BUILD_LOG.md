@@ -6,6 +6,22 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 > Format convention: `## YYYY-MM-DD — Title` · **Decision / Action / Status** ·
 > keep entries short and factual. This file is the project's memory.
 
+## 2026-07-19 — Fix: ai-compose.js model default 404'd on first live use
+
+**What:** Rick clicked "AI Polish" and got `404 not_found_error: model: claude-3-5-sonnet-20241022`
+back from the Claude API — the pinned snapshot ai-compose.js defaulted to isn't available on his
+account. Changed the default to `claude-sonnet-5`. `ANTHROPIC_MODEL` env var override (already
+built) still works if this ever needs to change again without a redeploy.
+
+**Why it happened:** the model was picked from training-era knowledge of Anthropic's model catalog
+without checking current availability first — a live-account check (or reading
+platform.claude.com/docs before hardcoding a snapshot id) would have caught this before Rick had to
+report the error back.
+
+**Verified:** `node --check` on the edited file.
+
+---
+
 ## 2026-07-19 — Content Engine Part C (Stage 2 AI pass) built: ai-compose.js + "AI Polish"
 
 **What:** Built the Stage 2 AI pass per `CONTENT_ENGINE_WIRING_SPEC.md` §3 / `AI_TOOL_EMBED_SPEC.md`,
