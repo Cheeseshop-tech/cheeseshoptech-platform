@@ -1,9 +1,8 @@
 # Agent A1 Build Spec — solidify the wiring, ship the first Content Engine agent
 
 **Status:** Parts A and the doc fix are BUILT (2026-07-15). Part B turned out to already be built
-before this spec existed — see §3, corrected below. Part C (Stage 2 AI) is still blocked on Rick's
-billing prereqs (§4). Part D (visual direction) and Part E (pipeline-stage toggle, added this pass)
-are not started.
+before this spec existed — see §3, corrected below. Part C (Stage 2 AI) is **BUILT 2026-07-19** —
+see §4. Part D (visual direction) and Part E (pipeline-stage toggle, added this pass) are not started.
 **Reads with:** `DATA_OWNERSHIP_MAP.md` · `CONTENT_ENGINE_WIRING_SPEC.md` · `ONBOARDING_AND_AGENTS_SDD.md`
 (Part 3, A1) · `AI_TOOL_EMBED_SPEC.md` · `DESIGN_SYSTEM.md`.
 
@@ -94,13 +93,12 @@ build here; it now runs on the corrected data path from Part A automatically, no
 needed. The wiring-spec's gap list (§4, item 2) and the SDD's framing of A1 as "not yet exposed"
 are both stale and worth a quick correction pass themselves, outside this spec's scope.
 
-## 4. Part C — Stage 2, the AI pass — UNBLOCKED 2026-07-19, not yet built
+## 4. Part C — Stage 2, the AI pass — BUILT 2026-07-19
 
 Per `CONTENT_ENGINE_WIRING_SPEC.md` §3 and `AI_TOOL_EMBED_SPEC.md`, Stage 2 is a Netlify function
 that holds `ANTHROPIC_API_KEY`, takes the Stage 0/1 resolved draft + brand voice rules, and returns
 rewritten copy in voice + a slide-order suggestion + an image pick **from the candidate list only**
-(no image generation, ever — it selects real Media Hub photography). This is scoped, spec'd, and
-ready to build.
+(no image generation, ever — it selects real Media Hub photography).
 
 **Billing checklist — all done 2026-07-19:**
 
@@ -119,11 +117,45 @@ it reached Netlify (copied but not pasted in time) — those orphaned keys were 
 Console before the third attempt succeeded. Nothing was ever exposed in chat; the key value itself
 was never captured in any screenshot or message.
 
-**Still to build — the Netlify function itself is not written yet:**
-`netlify/functions/ai-compose.js` (or a `studio-director-stage2` equivalent) reading
-`ANTHROPIC_API_KEY` server-side, taking the Stage 0/1 draft + kit voice rules, returning rewritten
-copy + slide order + an image pick from the existing candidate list. No other open questions —
-this is the next concrete build slice when Rick's ready for it.
+**What was built (2026-07-19):**
+
+- **`src/lib/studio-director.js`** — additive change, no behavior change to Stage 0/1's picks.
+  `pickAsset()` now also collects up to 5 qualifying candidate publicIds (score ≥ 2, same bar as
+  the pick itself) into a `candidatesOut` array; the picked winner is always `candidatesOut[0]`.
+  Every image slot in the deck now carries `slots.__candidates[slotId] = [publicId, ...]` — same
+  convention as `__off`/`__img`, an extra key the renderer/inspector already ignore. This is what
+  lets Stage 2 offer a real alternate instead of inventing one, per the wiring spec's "from the
+  candidate list the deterministic pass supplies (IDs only)" requirement.
+- **`netlify/functions/ai-compose.js`** — the Stage 2 function. `requireReadAuth` (any unlocked
+  portal tier, same bar as browsing Media Hub — this doesn't write to Cloudinary, "Save to Library"
+  is separate). Reduces the deck to only what's editable (a `slotKind()` heuristic: `image`/`img\d*`
+  keys are image slots, plain strings are text, `{headline,narrative}` shapes are story blocks;
+  `contact` and any `__`/`$`-prefixed key are never shown to the model at all). Calls the Anthropic
+  Messages API with a forced tool call (`return_compose`) so the response is structured JSON, not
+  parsed prose. Model defaults to `claude-3-5-sonnet-20241022`, overridable via an `ANTHROPIC_MODEL`
+  Netlify env var without a code change. **Every field in the model's response is re-validated
+  server-side against the ORIGINAL deck before merging** — an image edit is accepted only if it's a
+  member of that exact slot's `__candidates` list (never a new/hallucinated id); a text edit is
+  accepted only for a slot the briefing itself classified as editable. A slide-order suggestion is
+  accepted only if it's a full, valid permutation of the deck's indices. This means the hard rules
+  (no image generation, never touch brand tokens/contact) hold even if the model ignores the system
+  prompt — defense in depth, not just prompting. Guardrails: deck capped at 20 slides, briefing
+  capped at 24k chars, `max_tokens: 2000`, 25s abort timeout, every call logged via `logWrite()`
+  (`fn: "ai-compose"`).
+- **`src/components/presentations/slide-studio.jsx`** — new "AI Polish" toolbar button (Sparkles
+  icon) next to "Auto-compose", enabled once a deck exists. Sends the current deck (already
+  carrying `__candidates`) + the tenant's `getBrandKit(resolved)?.voice` + the opportunity to the
+  function, merges the returned deck back in (applying the order suggestion if present), and shows
+  a one-line result/error message under the toolbar. Nothing else in the existing Stage 0/1 flow
+  changed — this is a second, optional pass a human can run (or not) after Auto-compose, review-and-
+  swap still applies exactly as before.
+
+**Scope note — image re-selection is real but conservative in v1.** The wiring spec's Stage 2
+description is fully implemented (copy rewrite + order + image pick from real candidates), but
+`pickAsset()` only ever surfaces up to 5 alternates per slot from assets already scored ≥ 2 — for
+thin tenants (few tagged photos) a slot may have zero or one candidate, in which case the model has
+nothing to swap to and the deterministic pick simply stands. That's the intended "empty/unchanged
+beats a wrong photo" behavior, not a bug.
 
 ## 5. Part D — New visual direction (CST platform, not tenant brand)
 
@@ -180,10 +212,10 @@ signal (a stage nobody updates is worse than no stage).
    **Done 2026-07-15.**
 2. ~~Part B — Auto-compose UI in Slide Studio.~~ **Already built before this spec existed — found,
    not built, 2026-07-15. First agent ships functionally as of Part A landing.**
-3. Part C — Stage 2 Netlify function, **once Rick's billing checklist above is done**.
+3. ~~Part C — Stage 2 Netlify function.~~ **Done 2026-07-19** — `ai-compose.js` built, wired into
+   Slide Studio as "AI Polish", billing/spend-cap live.
 4. Part D — visual direction concepts, scoped against the real Auto-compose/review screen.
 5. Part E — flagged pipeline stages, lowest priority of the five.
 
 ---
-*Parts A/B done this pass (2026-07-15). Next real blocker is Rick's Anthropic billing setup for
-Part C; Parts D and E are unstarted and unscheduled.*
+*Parts A/B/C done (2026-07-15, 2026-07-19). Parts D and E are unstarted and unscheduled.*

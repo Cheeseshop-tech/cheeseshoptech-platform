@@ -6,6 +6,51 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 > Format convention: `## YYYY-MM-DD — Title` · **Decision / Action / Status** ·
 > keep entries short and factual. This file is the project's memory.
 
+## 2026-07-19 — Content Engine Part C (Stage 2 AI pass) built: ai-compose.js + "AI Polish"
+
+**What:** Built the Stage 2 AI pass per `CONTENT_ENGINE_WIRING_SPEC.md` §3 / `AI_TOOL_EMBED_SPEC.md`,
+now that Rick's Anthropic billing + $25/mo spend cap + `ANTHROPIC_API_KEY` are live in Netlify
+(see the same-day billing entry below). Three pieces:
+
+1. `src/lib/studio-director.js` — additive: `pickAsset()` now also collects up to 5 qualifying
+   candidate publicIds per image slot (score >= 2, same bar as the pick) into
+   `slots.__candidates[slotId]`, same convention as `__off`/`__img`. Zero change to which asset
+   Stage 0/1 actually picks — this only exposes real alternates for Stage 2 to choose from, so it
+   never has to invent a photo id.
+2. `netlify/functions/ai-compose.js` (new) — POST, `requireReadAuth` (any unlocked portal tier,
+   matches the read bar on Media Hub browsing — this doesn't write to Cloudinary). Reduces the deck
+   to only the fields Claude is allowed to see/edit (image-shaped keys, plain-string text, story
+   `{headline,narrative}` blocks — `contact` and any `__`/`$`-prefixed key are never shown). Calls
+   the Anthropic Messages API with a forced tool call (`return_compose`) for structured JSON, model
+   `claude-3-5-sonnet-20241022` by default (overridable via `ANTHROPIC_MODEL` env var, no redeploy
+   needed). Critically: every field in the model's response is **re-validated server-side against
+   the original deck** before merging — an image edit only lands if it's a member of that slot's own
+   `__candidates` list, a text edit only lands for a slot the briefing itself classified as editable.
+   This means "never invent an image" and "never touch brand tokens/contact" hold even if the model
+   doesn't follow instructions — defense in depth, not just prompting. Guardrails: 20-slide deck cap,
+   24k-char briefing cap, `max_tokens: 2000`, 25s timeout, every call logged via `logWrite()`.
+3. `src/components/presentations/slide-studio.jsx` — new "AI Polish" toolbar button next to
+   Auto-compose. Sends the current deck + `getBrandKit(resolved)?.voice` + the opportunity to the
+   function, merges the result back (applies the order suggestion if present), shows a one-line
+   status message. Purely additive on top of Stage 0/1 — nothing about Auto-compose changed, this is
+   an optional second pass.
+
+**Why:** This is the last piece of the Studio Director pipeline described in
+`CONTENT_ENGINE_WIRING_SPEC.md` §3 (Stage 0 deterministic -> Stage 1 rules of taste -> Stage 2 AI).
+A1 (Content/Design Engine Agent) now ships with the AI pass included, per Rick's confirmed scope in
+`AGENT_A1_BUILD_SPEC.md` §0 ("ship with Stage 2 included, not Stage 0/1 alone").
+
+**What it unblocks:** `AGENT_A1_BUILD_SPEC.md` Part C is now fully built (was "unblocked, not yet
+built" as of the billing entry earlier today). Part D (new CST platform visual direction) is next in
+that spec's build order, not started.
+
+**Verified:** `node --check` on `ai-compose.js` and `studio-director.js`; `npx vite build` (alternate
+outDir, matching the established device_bash `.DS_Store`-deletion workaround) completed clean —
+"1688 modules transformed... built in 4.58s" — with the new imports (`getBrandKit`, `writeAuthHeader`,
+`RELOGIN_MSG`, `Sparkles`) resolving correctly in `slide-studio.jsx`.
+
+---
+
 ---
 
 ## 2026-07-19 — Content Engine: Affineur's Note pattern (Part F, no AI)

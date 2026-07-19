@@ -5,6 +5,13 @@
 // SlideStudio edits ({ title, deck: [{ t, slots }] }); the human's job collapses to
 // review-and-swap. Stage 2 (AI pass, Netlify function) plugs in AFTER this, consuming the
 // candidates this pass produces — same additive-seam philosophy as every backend.
+//
+// 2026-07-19 — image slots now also carry `slots.__candidates[slotId] = [publicId, ...]`
+// (top-scoring alternates, same convention as __off/__img — an extra key the renderer and
+// inspector both ignore). Additive, zero risk to Stage 0/1 behavior: the picked image is
+// unchanged, this just exposes what else scored ≥2 so Stage 2 (netlify/functions/ai-compose.js)
+// can offer a real alternate instead of inventing one. Per CONTENT_ENGINE_WIRING_SPEC §3, Stage 2
+// may only choose from this list — never a fresh id.
 
 import { getBrandKit } from "./brandKit.js";
 import { getPricingData } from "./pricing.js";
@@ -28,20 +35,26 @@ const isApproved = (a) => String(a.approvalState || "").startsWith("approved");
 /* ---------- image resolution (Stage 1 rules baked in) ----------
    Score candidates for a slot: right tag ≫ approved ≫ SKU-linked when the draft carries SKUs.
    `used` enforces the no-reuse rule across the whole deck. */
-function pickAsset({ assets, tag, skuCodes = [], used }) {
+// `candidatesOut`, when passed an array, is filled with up to 5 qualifying publicIds
+// (score ≥ 2), highest-scoring first — the picked winner is always candidatesOut[0]. Purely
+// additive: does not change which asset is picked or marked `used`.
+function pickAsset({ assets, tag, skuCodes = [], used, candidatesOut }) {
   const usage = TAG_TO_USAGE[tag] || tag;
-  let best = null, bestScore = -1;
+  const scored = [];
   for (const a of assets) {
     if (!a.publicId || used.has(a.publicId)) continue;
     let s = 0;
     if (usage && (a.usage || []).includes(usage)) s += 4;
     if (isApproved(a)) s += 2;
     if (a.sku && skuCodes.includes(a.sku)) s += 3;
-    if (s > bestScore) { bestScore = s; best = a; }
+    // Only a candidate if it at least matches the tag OR is approved (same bar as the pick
+    // below — an empty slot beats a wrong photo, so sub-bar assets never surface as options).
+    if (s >= 2) scored.push([s, a]);
   }
-  // Only accept an asset that at least matches the tag OR is approved — otherwise leave the
-  // slot for the human (an empty slot beats a wrong photo).
-  if (!best || bestScore < 2) return null;
+  scored.sort((x, y) => y[0] - x[0]); // stable sort — ties keep asset order (matches old `s > bestScore`)
+  if (candidatesOut) candidatesOut.push(...scored.slice(0, 5).map(([, a]) => a.publicId));
+  if (!scored.length) return null;
+  const best = scored[0][1];
   used.add(best.publicId);
   return best.publicId;
 }
@@ -63,21 +76,6 @@ function pickStory(kit, { storyKeys = [], audience } = {}) {
     blocks.find((b) => storyKeys.includes(b.key)) ||
     blocks.find((b) => audience && (b.audience || []).includes(audience)) ||
     blocks[0]
-  );
-}
-
-// Best tasting note: SKU match first (when the seed carries SKUs), then audience, then first.
-// `kit.tastingNotes` is an OPTIONAL field (docs/HANDOFF_2026-07-19_luxury-dtc-design-research.md
-// — the "affineur's note" pattern, La Fromagerie reference). No invented content: a kit without
-// tasting notes simply never triggers the affineurs-note/v1 slide — see AGENT_A1_BUILD_SPEC.md
-// Part F.
-function pickTastingNote(kit, { skuCodes = [], audience } = {}) {
-  const notes = kit?.tastingNotes || [];
-  if (!notes.length) return null;
-  return (
-    notes.find((n) => n.sku && skuCodes.includes(n.sku)) ||
-    notes.find((n) => audience && (n.audience || []).includes(audience)) ||
-    notes[0]
   );
 }
 
@@ -134,7 +132,7 @@ export async function directDraft({ resolved, user, opportunity } = {}) {
   let itemsDoc = null;
   try { itemsDoc = await loadItems(resolved.cloudinaryFolder, resolved.id); } catch { itemsDoc = null; }
 
-  const hasVoice = !!(kit && ((kit.storyBlocks || []).length || (kit.voice?.readyPhrases || []).length || kit.voice?.motto || (kit.tastingNotes || []).length));
+  const hasVoice = !!(kit && ((kit.storyBlocks || []).length || (kit.voice?.readyPhrases || []).length || kit.voice?.motto));
   if (!hasVoice && !assets.length) return null;
 
   const opp = opportunity || {};
@@ -144,7 +142,6 @@ export async function directDraft({ resolved, user, opportunity } = {}) {
   const secondStory = pickStory(kit, { storyKeys: [], audience: opp.audience }) === story
     ? (kit?.storyBlocks || []).filter((b) => b !== story)[0] || null
     : pickStory(kit, { audience: opp.audience });
-  const tastingNote = pickTastingNote(kit, opp);
   const products = pickProducts(catalog, itemsDoc, opp.skuCodes || [], 3);
   const brandName = kit?.brandName || resolved.brand?.name || "";
   const attribution = kit?.attribution || brandName;
@@ -163,10 +160,12 @@ export async function directDraft({ resolved, user, opportunity } = {}) {
   };
 
   // 1 · Cover — hero photo + the seed headline (or the brand hook).
+  const coverCand = {};
   slide("cover/v1", {
-    hero_image: pickAsset({ assets, tag: "hero", used }),
+    hero_image: pickAsset({ assets, tag: "hero", used, candidatesOut: (coverCand.hero_image = []) }),
     slide_title: opp.headline || kit?.voice?.positioningHook || kit?.voice?.motto,
     topic_label: opp.intro || attribution,
+    __candidates: coverCand,
   });
 
   // 2 · Statement — the punchiest short line (Stage 1: statements take the shortest copy).
@@ -176,40 +175,40 @@ export async function directDraft({ resolved, user, opportunity } = {}) {
   });
 
   // 3 · Story — the matched block, long-form (Stage 1: story slides take the long blocks).
+  const storyCand = {};
   slide("story/v1", {
-    hero_image: pickAsset({ assets, tag: "lifestyle", used }),
+    hero_image: pickAsset({ assets, tag: "lifestyle", used, candidatesOut: (storyCand.hero_image = []) }),
     slide_title: story?.title,
     story_block: story ? { headline: (story.title || "").toUpperCase(), narrative: story.body } : null,
+    __candidates: storyCand,
   });
-
-  // 3b · Affineur's Note — optional first-person tasting note, only when the kit carries one
-  // (see pickTastingNote() above). Prefers product photography linked to the note's own SKU.
-  if (tastingNote) {
-    slide("affineurs-note/v1", {
-      hero_image: pickAsset({ assets, tag: "product", skuCodes: tastingNote.sku ? [tastingNote.sku] : (opp.skuCodes || []), used }),
-      note_block: tastingNote.body,
-      attribution: tastingNote.attribution,
-    });
-  }
 
   // 4 · Second story as a full-bleed image beat, when the tenant has depth.
   if (secondStory && assets.length > 2) {
+    const imgCand = {};
+    let heroCandOut = [];
+    let heroPick = pickAsset({ assets, tag: "hero", used, candidatesOut: heroCandOut });
+    if (!heroPick) { heroCandOut = []; heroPick = pickAsset({ assets, tag: "lifestyle", used, candidatesOut: heroCandOut }); }
+    imgCand.hero_image = heroCandOut;
     slide("image/v1", {
-      hero_image: pickAsset({ assets, tag: "hero", used }) || pickAsset({ assets, tag: "lifestyle", used }),
+      hero_image: heroPick,
       slide_title: lines[1] || secondStory.title,
+      __candidates: imgCand,
     });
   }
 
   // 5 · Product range — SKU-linked photography when the seed carries SKUs.
   if (products.length) {
+    const rangeCand = {};
     slide("product-range/v1", {
       slide_title: opp.angle || "The range",
-      img1: pickAsset({ assets, tag: "product", skuCodes: opp.skuCodes || [], used }),
+      img1: pickAsset({ assets, tag: "product", skuCodes: opp.skuCodes || [], used, candidatesOut: (rangeCand.img1 = []) }),
       name1: products[0]?.name,
-      img2: pickAsset({ assets, tag: "product", skuCodes: opp.skuCodes || [], used }),
+      img2: pickAsset({ assets, tag: "product", skuCodes: opp.skuCodes || [], used, candidatesOut: (rangeCand.img2 = []) }),
       name2: products[1]?.name,
-      img3: pickAsset({ assets, tag: "product", skuCodes: opp.skuCodes || [], used }),
+      img3: pickAsset({ assets, tag: "product", skuCodes: opp.skuCodes || [], used, candidatesOut: (rangeCand.img3 = []) }),
       name3: products[2]?.name,
+      __candidates: rangeCand,
     });
   }
 

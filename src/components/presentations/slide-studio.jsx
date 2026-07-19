@@ -1,12 +1,14 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Plus, ArrowLeft, Trash2, Wand2, Maximize2, Minimize2, Expand, Play, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, ArrowLeft, Trash2, Wand2, Sparkles, Maximize2, Minimize2, Expand, Play, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button.jsx";
 import { MediaPicker } from "@/components/media/media-picker.jsx";
 import { SlideRenderer } from "./slide-renderer.jsx";
 import { SLIDE_TEMPLATES, getSlideTemplate, firstImageId } from "@/lib/slide-templates.js";
 import { voiceOptions } from "@/lib/brand-tokens.js";
 import { directDraft } from "@/lib/studio-director.js";
-import { useAuth } from "@/lib/auth-context.jsx";
+import { getBrandKit } from "@/lib/brandKit.js";
+import { useAuth, writeAuthHeader } from "@/lib/auth-context.jsx";
+import { RELOGIN_MSG } from "@/lib/media.js";
 import { cldUrl } from "@/lib/cloudinary.js";
 
 // Full-window Content Studio composer. A content-type switcher (slide deck live; others coming soon),
@@ -78,6 +80,8 @@ export function SlideStudio({ resolved, onClose, onSave, opportunity }) {
   const [title, setTitle] = useState("");
   const [tpl, setTpl] = useState(SLIDE_TEMPLATES[0].id);
   const [composing, setComposing] = useState(false);
+  const [polishing, setPolishing] = useState(false);
+  const [polishMsg, setPolishMsg] = useState("");
   const { user } = useAuth();
   const voice = voiceOptions(resolved);
   const paneRef = useRef(null);
@@ -101,6 +105,54 @@ export function SlideStudio({ resolved, onClose, onSave, opportunity }) {
         setIdx(0);
       }
     } finally { setComposing(false); }
+  }
+
+  // Studio Director Stage 2 (CONTENT_ENGINE_WIRING_SPEC §3, AGENT_A1_BUILD_SPEC.md Part C) —
+  // AI pass, optional and additive on top of Stage 0/1. Sends the current deck (already carrying
+  // each image slot's own `__candidates` from studio-director.js) + kit voice rules + the
+  // opportunity to netlify/functions/ai-compose.js, which returns ONLY rewritten copy and/or an
+  // image re-pick FROM those same candidates — never a new photo, never a touched brand token.
+  // Nothing is invented; the function re-validates every field server-side regardless of what the
+  // model returns. A human can still review-and-swap afterward exactly as with Stage 0/1.
+  async function aiPolish() {
+    if (!deck.length) return;
+    setPolishing(true);
+    setPolishMsg("");
+    try {
+      const kit = getBrandKit(resolved);
+      const res = await fetch("/.netlify/functions/ai-compose", {
+        method: "POST",
+        headers: { "content-type": "application/json", ...writeAuthHeader() },
+        body: JSON.stringify({
+          tenant: resolved.id,
+          deck,
+          brandName: resolved.brand?.name || kit?.brandName || "",
+          voice: kit?.voice || {},
+          opportunity: opportunity || null,
+        }),
+      });
+      if (res.status === 401) throw new Error(RELOGIN_MSG);
+      if (!res.ok) {
+        const msg = await res.text().catch(() => "");
+        throw new Error(`AI polish failed (${res.status}) ${msg}`);
+      }
+      const data = await res.json();
+      if (!data?.ok || !Array.isArray(data.deck)) throw new Error("AI polish returned nothing usable.");
+      let nextDeck = data.deck;
+      if (Array.isArray(data.order) && data.order.length === nextDeck.length) {
+        nextDeck = data.order.map((i) => nextDeck[i]);
+      }
+      setDeck(nextDeck);
+      setPolishMsg(
+        data.appliedFields > 0
+          ? (data.notes || `Polished ${data.appliedFields} field(s) across ${data.appliedSlides} slide(s).`)
+          : "Nothing to improve — the deck already reads well."
+      );
+    } catch (err) {
+      setPolishMsg(err?.message || "AI polish failed.");
+    } finally {
+      setPolishing(false);
+    }
   }
 
   const setSlot = (key, val) => setDeck((d) => d.map((sl, k) => (k === idx ? { ...sl, slots: { ...sl.slots, [key]: val } } : sl)));
@@ -200,6 +252,9 @@ export function SlideStudio({ resolved, onClose, onSave, opportunity }) {
             <Button variant="outline" size="sm" disabled={composing} onClick={autoCompose} title="Replace the deck with a Director auto-compose (Stage 0 — deterministic)">
               <Wand2 className="h-4 w-4" /> {composing ? "Composing…" : "Auto-compose"}
             </Button>
+            <Button variant="outline" size="sm" disabled={polishing} onClick={aiPolish} title="AI pass (Stage 2) — tightens copy in brand voice; only re-picks images from the deterministic pass's own candidates, never invents one">
+              <Sparkles className="h-4 w-4" /> {polishing ? "Polishing…" : "AI Polish"}
+            </Button>
             <span className="mx-1 hidden h-5 w-px bg-border sm:block" />
             <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={deck[0]?.slots?.slide_title || "Deck title (for the Library)"}
               className="h-9 min-w-40 flex-1 rounded-base border border-border bg-bg px-2 text-sm text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand" />
@@ -216,6 +271,8 @@ export function SlideStudio({ resolved, onClose, onSave, opportunity }) {
             <Button variant="ghost" size="sm" onClick={clearSlide}>Clear slide</Button>
             <Button variant="ghost" size="sm" onClick={() => removeSlide(idx)}><Trash2 className="h-4 w-4" /> Delete</Button>
           </div>
+
+          {polishMsg && <p className="mb-3 text-xs text-fg-muted">{polishMsg}</p>}
 
           {player && (
             <DeckPlayer deck={deck} resolved={resolved} start={player.start} slideshow={player.show === "show"}
