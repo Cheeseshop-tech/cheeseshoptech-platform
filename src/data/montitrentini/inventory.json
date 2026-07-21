@@ -2,8 +2,8 @@
   "schemaVersion": "1.2",
   "clientId": "monti-trentini",
   "lastUpdated": "2026-07-16",
-  "source": "availability_2026-07-17.csv",
-  "generatedAt": "2026-07-17T12:17:32.018Z",
+  "source": "availability_2026-07-21.csv",
+  "generatedAt": "2026-07-21T12:48:22.802Z",
   "generatedBy": "scripts/sync-inventory.mjs",
   "skus": {
     "20141": {
@@ -605,7 +605,7 @@
     "20423": {
       "code": "20423",
       "name": "CACIOTTA BLACK TRUFFLES 7 OZ EW",
-      "casesAvail": 288,
+      "casesAvail": 216,
       "casesInTransit": 288,
       "comment": "HEB 1 pallet + something small for Lettieri",
       "commentEn": "",
@@ -616,11 +616,11 @@
           "receiptDate": null,
           "eta": "2026-07-23",
           "cases": 144,
-          "reserved": 0,
+          "reserved": 72,
           "netAvailLb": 760.32,
           "expDate": null,
           "expMonth": "2027-02",
-          "comment": "HEB"
+          "comment": "72x HEB 57X331093"
         },
         {
           "lotNum": "269576617",
@@ -1721,7 +1721,7 @@
     "02073": {
       "code": "02073",
       "name": "ASIAGO FRESCO PDO 1/4 WHEEL NT",
-      "casesAvail": 665,
+      "casesAvail": 633,
       "casesInTransit": 240,
       "comment": "Cowbell monthly plan 50x, average purchase TONY 10x, ACE Endico sometimes, Baldor 108x",
       "commentEn": "",
@@ -1731,7 +1731,7 @@
           "status": "on_hand",
           "receiptDate": "2026-06-18",
           "eta": null,
-          "cases": 185,
+          "cases": 153,
           "reserved": 0,
           "netAvailLb": 1314.933,
           "expDate": "2027-01-09",
@@ -2109,7 +2109,7 @@
     "04176": {
       "code": "04176",
       "name": "DRUNKEN CHEESE 7 OZ EW (IMBRIAGO)",
-      "casesAvail": 288,
+      "casesAvail": 144,
       "casesInTransit": 288,
       "comment": "KeHE + Olio&Olive + HEB",
       "commentEn": "",
@@ -2120,11 +2120,11 @@
           "receiptDate": null,
           "eta": "2026-08-04",
           "cases": 144,
-          "reserved": 0,
+          "reserved": 144,
           "netAvailLb": 760.32,
           "expDate": null,
           "expMonth": null,
-          "comment": "HEB"
+          "comment": "HEB 57X331093"
         },
         {
           "lotNum": "269536814",
