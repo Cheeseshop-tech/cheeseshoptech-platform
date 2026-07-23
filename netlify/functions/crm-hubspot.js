@@ -32,12 +32,14 @@ export const handler = async (event) => {
   if (!token) return json(500, { error: "HUBSPOT_TOKEN not configured" });
 
   try {
-    const [companies, contactsRes, emailActivity] = await Promise.all([
-      fetchAllCompanies(token),
-      fetchAllContacts(token),
-      // Never let the activity feed break the core CRM payload — degrade to empty.
-      fetchEmailActivity(token).catch((e) => ({ activity: [], activityNote: `email fetch failed: ${e?.message || e}` })),
-    ]);
+    // HubSpot caps CRM *search* endpoints at ~4 req/s per token. The companies + contacts
+    // sweeps are up to 10 paginated searches EACH — run them SEQUENTIALLY (≈2-3 req/s) so a
+    // parallel burst can't 429 the whole payload into zeros. Email activity (3 non-search-heavy
+    // calls) still runs alongside. hsSearch() below adds a 429/5xx backoff retry on every page.
+    const emailActivityP = fetchEmailActivity(token).catch((e) => ({ activity: [], activityNote: `email fetch failed: ${e?.message || e}` }));
+    const companies = await fetchAllCompanies(token);
+    const contactsRes = await fetchAllContacts(token);
+    const emailActivity = await emailActivityP;
     const contactsTotal = contactsRes.total;
     // Join a PRIMARY CONTACT onto each company by normalized company name. The 2026-07-22
     // import stored each contact's company as free text (no HubSpot association records),
@@ -163,25 +165,37 @@ function relTime(ts) {
   return days === 1 ? "1d ago" : `${days}d ago`;
 }
 
+// One CRM-search POST with backoff retry on 429/5xx (429 = the 4-req/s search cap).
+// Returns the parsed JSON, or null after the retries are exhausted — callers degrade to
+// partial results instead of blanking the whole console.
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+async function hsSearch(token, url, body) {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "content-type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (res.ok) return res.json();
+    if (res.status === 429 || res.status >= 500) { await sleep(400 * (attempt + 1)); continue; }
+    return null; // 4xx other than 429: retrying won't help
+  }
+  return null;
+}
+
 async function fetchAllCompanies(token) {
   const out = [];
   let after;
   for (let page = 0; page < MAX_PAGES; page++) {
-    const body = {
+    const data = await hsSearch(token, HUBSPOT_SEARCH, {
       limit: PAGE_SIZE,
       // city/state/domain/phone: standard HubSpot company properties (populated by the
       // 2026-07-22 campaign import) — power the CRM outreach console's location column,
       // region filter, and site links. Absent values come back undefined → null below.
       properties: ["name", CHANNEL_PROPERTY, "city", "state", "domain", "phone"],
       ...(after ? { after } : {}),
-    };
-    const res = await fetch(HUBSPOT_SEARCH, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}`, "content-type": "application/json" },
-      body: JSON.stringify(body),
     });
-    if (!res.ok) throw new Error(`HubSpot companies search ${res.status}`);
-    const data = await res.json();
+    if (!data) break; // degrade: serve what we have rather than 502 the payload
     for (const r of data.results || []) {
       out.push({
         id: r.id,
@@ -206,17 +220,12 @@ async function fetchAllContacts(token) {
   let total = 0;
   let after;
   for (let page = 0; page < MAX_PAGES; page++) {
-    const res = await fetch("https://api.hubapi.com/crm/v3/objects/contacts/search", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}`, "content-type": "application/json" },
-      body: JSON.stringify({
-        limit: PAGE_SIZE,
-        properties: ["firstname", "lastname", "email", "phone", "company"],
-        ...(after ? { after } : {}),
-      }),
+    const data = await hsSearch(token, "https://api.hubapi.com/crm/v3/objects/contacts/search", {
+      limit: PAGE_SIZE,
+      properties: ["firstname", "lastname", "email", "phone", "company"],
+      ...(after ? { after } : {}),
     });
-    if (!res.ok) break; // degrade: whatever we joined so far still renders
-    const data = await res.json();
+    if (!data) break; // degrade: whatever we joined so far still renders
     if (page === 0 && typeof data.total === "number") total = data.total;
     for (const r of data.results || []) {
       const p = r.properties || {};
