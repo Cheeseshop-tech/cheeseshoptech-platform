@@ -1988,6 +1988,21 @@ watermark-free export tier, not the prompt. **Status.** Track A: longer correcte
 prompt ready → Rick to generate in Higgsfield, then AE. Track B: 8-wedge model +
 illustrated style v1 + clay previz done → refine look, add morph, labels.
 
+## 2026-07-23 — Outreach console VERIFIED LIVE (+ two wiring fixes)
+
+**Fixes after first deploy showed "0 accounts".** (1) HubSpot caps CRM *search* at ~4 req/s per token;
+the parallel companies+contacts sweeps could burst past it, and one failed page 502'd the whole payload.
+Now: `hsSearch()` with 429/5xx backoff, the two sweeps run **sequentially**, both degrade to partial
+results instead of throwing (`59b6f8e`). (2) Nameless HubSpot **auto-created companies** (spawned from
+contact email domains) sorted into a "(no name)" wall — they now display their **domain** (`5e3ea69`).
+**Verified on staging (Rick's session):** "HubSpot live ✓ 648 accounts" · 817 contacts · 64 sendable ·
+full artifact faceplate in tenant green — and the **contact join is live** (A&S Fine Foods → Anthony
+Nicolo + email + ✉/↗ actions; A Taste of Italy → Tommy Guarino, Southeast pill). Funnel reads 648 New —
+correct: outreach state starts empty (the artifact's localStorage history was never migrated).
+**Next candidates:** one-time seed of campaign statuses (8 Emailed / 2 Replied from the artifact's
+data + `crm_contacts.json`) · server-side Gmail line (sync + drafts) · CRM hygiene (2 dup-domain
+companies; associate contacts properly in HubSpot).
+
 ## 2026-07-22 — Outreach console v2: CLONE the artifact faceplate (Rick: port was sloppy)
 
 **What.** Rick's review of v1: the artifact's layout is cleaner — the shadcn translation dropped fields
