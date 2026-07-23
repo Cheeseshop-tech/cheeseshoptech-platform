@@ -19,10 +19,26 @@ export function canViewCrm(user) {
 export const PIPELINE_STAGES = ["Lead", "Qualified", "Sample sent", "Negotiation", "Won"];
 
 // Outreach pipeline (campaign console) — the stage model from the Gmail-native campaign CRM
-// artifact (Prospecting Phase 10: New→Emailed→Replied→Meeting→Won/Lost). Distinct from
+// artifact (Prospecting Phase 10: New→Emailed→Replied→Meeting→Won/Lost/Not a fit). Distinct from
 // PIPELINE_STAGES (deal stages, HubSpot-of-record): outreach state is the platform-owned
-// overlay stored in Netlify Blobs via crm-outreach.js, because HubSpot access is read-only.
-export const OUTREACH_STAGES = ["New", "Emailed", "Replied", "Meeting", "Won", "Lost"];
+// overlay wired through crm-outreach.js into Netlify Blobs, because HubSpot access is read-only.
+export const OUTREACH_STAGES = ["New", "Emailed", "Replied", "Meeting", "Won", "Lost", "Not a fit"];
+// The funnel bar shows the forward path only (Lost / Not a fit drop out, as in the artifact).
+export const FUNNEL_STAGES = ["New", "Emailed", "Replied", "Meeting", "Won"];
+
+// State → sales region (the artifact's four East Coast regions + graceful buckets for the rest).
+// Data-driven display grouping, not client config — any tenant's US accounts group the same way.
+const STATE_REGION = {
+  ME: "New England", NH: "New England", VT: "New England", MA: "New England", RI: "New England", CT: "New England",
+  NY: "NY Metro", NJ: "NY Metro",
+  PA: "Mid-Atlantic", MD: "Mid-Atlantic", DE: "Mid-Atlantic", VA: "Mid-Atlantic", DC: "Mid-Atlantic", WV: "Mid-Atlantic",
+  NC: "Southeast", SC: "Southeast", GA: "Southeast", FL: "Southeast", TN: "Southeast", AL: "Southeast", MS: "Southeast", KY: "Southeast", LA: "Southeast", AR: "Southeast",
+};
+export function regionOf(company) {
+  const st = String(company?.state || "").trim().toUpperCase();
+  if (!st) return "—";
+  return STATE_REGION[st] || (st.length === 2 ? "Other US" : company.state);
+}
 
 // HubSpot `Channel` (5 values) → brand-voice audience (3, from brandKit.AUDIENCES). The single
 // authoring home for the customer-profile → brand-voice join: once a buyer's channel is known,

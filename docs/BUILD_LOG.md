@@ -1988,6 +1988,24 @@ watermark-free export tier, not the prompt. **Status.** Track A: longer correcte
 prompt ready → Rick to generate in Higgsfield, then AE. Track B: 8-wedge model +
 illustrated style v1 + clay previz done → refine look, add morph, labels.
 
+## 2026-07-22 — Outreach console v2: CLONE the artifact faceplate (Rick: port was sloppy)
+
+**What.** Rick's review of v1: the artifact's layout is cleaner — the shadcn translation dropped fields
+(owner/contact, region, last-reply, per-row actions) and text broke out of cells. v2 **clones the
+artifact 1:1**: its stylesheet scoped under `.crmc` and remapped onto the tenant theme circuit
+(`--cs-color-*` — Monti green flows in, no hardcoded brand), its exact structure (header + acct chip ·
+6 KPIs incl. Sendable + Meetings/Won · 5 stage bars, clickable · search/region/status/has-email
+controls · responses panel · dense 8-col sortable table · footer), native selects/textareas
+(color-coded `.s-*` status tints), "Not a fit" stage restored (server whitelist widened).
+**New wiring to feed the missing fields:** `crm-hubspot.js` now pulls **all contacts** (paginated,
+name/email/phone/company) and joins a **primary contact per company** by normalized company-name —
+the import created no association records, so the name join is the honest key; contacts total now
+comes from the same sweep. `regionOf()` derives the artifact's four East Coast regions (+ graceful
+buckets) from company state — display grouping, not client config. **Frozen data fully gone** (Rick:
+"remove frozen data for live") — no embedded contact array; every row is the live HubSpot read.
+✉ action = `mailto:` until a server-side Gmail line lands. **Gates.** build + validate:clients pass.
+**Status.** Pushed to `phase-2-6-build` → staging; visual verify with Rick's session.
+
 ## 2026-07-22 — CRM page → OUTREACH CONSOLE (campaign-CRM artifact ported into the platform)
 
 **What.** Ported the Gmail-native campaign CRM's information design (Prospecting Phase 10 artifact,

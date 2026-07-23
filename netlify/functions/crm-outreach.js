@@ -17,7 +17,7 @@ import { requireReadAuth, requireWriteAuth, jsonUnauthorized } from "./_write-gu
 import { logWrite } from "./_write-log.js";
 
 const MAX_BYTES = 400_000; // plenty for thousands of {status,note} rows; guards runaway payloads
-const STAGES = ["New", "Emailed", "Replied", "Meeting", "Won", "Lost"];
+const STAGES = ["New", "Emailed", "Replied", "Meeting", "Won", "Lost", "Not a fit"];
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",

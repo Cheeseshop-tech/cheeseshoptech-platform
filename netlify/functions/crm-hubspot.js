@@ -32,12 +32,27 @@ export const handler = async (event) => {
   if (!token) return json(500, { error: "HUBSPOT_TOKEN not configured" });
 
   try {
-    const [companies, contactsTotal, emailActivity] = await Promise.all([
+    const [companies, contactsRes, emailActivity] = await Promise.all([
       fetchAllCompanies(token),
-      fetchContactsTotal(token),
+      fetchAllContacts(token),
       // Never let the activity feed break the core CRM payload — degrade to empty.
       fetchEmailActivity(token).catch((e) => ({ activity: [], activityNote: `email fetch failed: ${e?.message || e}` })),
     ]);
+    const contactsTotal = contactsRes.total;
+    // Join a PRIMARY CONTACT onto each company by normalized company name. The 2026-07-22
+    // import stored each contact's company as free text (no HubSpot association records),
+    // so a name join is the honest available key. Prefer a contact WITH an email.
+    const byCompany = {};
+    for (const p of contactsRes.people) {
+      const key = norm(p.company);
+      if (!key) continue;
+      if (!byCompany[key] || (!byCompany[key].email && p.email)) byCompany[key] = p;
+    }
+    for (const c of companies) {
+      const p = byCompany[norm(c.name)];
+      if (p) { c.owner = p.name || null; c.ownerEmail = p.email || null; c.ownerPhone = p.phone || null; }
+      else { c.owner = null; c.ownerEmail = null; c.ownerPhone = null; }
+    }
 
     return json(200, {
       contacts: contactsTotal,
@@ -184,15 +199,43 @@ async function fetchAllCompanies(token) {
   return out;
 }
 
-async function fetchContactsTotal(token) {
-  const res = await fetch("https://api.hubapi.com/crm/v3/objects/contacts/search", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${token}`, "content-type": "application/json" },
-    body: JSON.stringify({ limit: 1 }),
-  });
-  if (!res.ok) return 0;
-  const data = await res.json();
-  return typeof data.total === "number" ? data.total : 0;
+// All contacts (name/email/phone/company), paginated like companies — powers the per-company
+// primary-contact join for the outreach console. total comes from the first page's `total`.
+async function fetchAllContacts(token) {
+  const people = [];
+  let total = 0;
+  let after;
+  for (let page = 0; page < MAX_PAGES; page++) {
+    const res = await fetch("https://api.hubapi.com/crm/v3/objects/contacts/search", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "content-type": "application/json" },
+      body: JSON.stringify({
+        limit: PAGE_SIZE,
+        properties: ["firstname", "lastname", "email", "phone", "company"],
+        ...(after ? { after } : {}),
+      }),
+    });
+    if (!res.ok) break; // degrade: whatever we joined so far still renders
+    const data = await res.json();
+    if (page === 0 && typeof data.total === "number") total = data.total;
+    for (const r of data.results || []) {
+      const p = r.properties || {};
+      people.push({
+        name: [p.firstname, p.lastname].filter(Boolean).join(" ") || null,
+        email: p.email || null,
+        phone: p.phone || null,
+        company: p.company || null,
+      });
+    }
+    after = data.paging?.next?.after;
+    if (!after) break;
+  }
+  return { total: total || people.length, people };
+}
+
+// Normalized company-name key for the contact join (case/punctuation/whitespace-insensitive).
+function norm(s) {
+  return String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 }
 
 function json(statusCode, body) {

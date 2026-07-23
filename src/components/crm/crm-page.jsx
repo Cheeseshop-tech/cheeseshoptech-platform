@@ -1,32 +1,86 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card.jsx";
-import { Badge } from "@/components/ui/badge.jsx";
-import { Button } from "@/components/ui/button.jsx";
-import { Input } from "@/components/ui/input.jsx";
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table.jsx";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select.jsx";
-import { getCrmData, getOutreach, saveOutreach, OUTREACH_STAGES, crmIsSample } from "@/lib/crm.js";
-import { RELOGIN_MSG } from "@/lib/media.js";
+import { getCrmData, getOutreach, saveOutreach, OUTREACH_STAGES, FUNNEL_STAGES, regionOf, crmIsSample } from "@/lib/crm.js";
 
-// CRM page (tenant Operations portal) — the OUTREACH CONSOLE. Ports the campaign-CRM artifact's
-// information design (Prospecting Phase 10: KPI tiles → stage funnel → filters → account table
-// with editable status/notes → CSV export) onto the platform:
-//   · Accounts/contacts = live HubSpot, read-only (crm-hubspot.js — the CRM of record).
-//   · Outreach status + notes = platform-owned overlay in Netlify Blobs (crm-outreach.js),
-//     because the HubSpot private app is deliberately read-only.
-//   · Gmail sync / draft creation (artifact-runtime features) are NOT ported — they need a
-//     server-side Gmail integration; deferred (see BUILD_LOG 2026-07-22).
-// No per-client code: everything is driven by the tenant's resolved config.
-const ROW_CAP = 250; // render cap — filters/search narrow within the full set
+// CRM page — THE OUTREACH CONSOLE, cloned 1:1 from the campaign-CRM artifact
+// (Prospecting Phase 10, `MontiTrentini_Campaign_CRM.html`). The artifact's faceplate is kept
+// verbatim — its stylesheet (below, scoped under .crmc and remapped onto the tenant's --cs-*
+// theme vars) and its exact structure: header → 6 KPIs → stage bars → controls → responses →
+// dense 8-column table → footer. Only the wiring behind the panel changed:
+//   · Accounts + primary contacts: LIVE HubSpot, read-only (crm-hubspot.js — CRM of record).
+//   · Status / notes / last-reply: platform-owned circuit through crm-outreach.js → Netlify
+//     Blobs per tenant (replaces the artifact's localStorage — shared, survives any browser).
+//   · Artifact-runtime circuits NOT yet landed server-side: Gmail sync + Claude draft creation.
+//     The ✉ action is a plain mailto: until a server-side Gmail line exists.
+// No per-client code — brand color arrives via the tenant theme vars, data via the resolver.
+const ROW_CAP = 300;
+
+const CSS = `
+.crmc{max-width:1180px;margin:0 auto;font-size:14px;line-height:1.45;color:var(--cs-color-fg);}
+.crmc .hdr{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;border-bottom:2px solid var(--cs-color-brand-primary);padding-bottom:12px;}
+.crmc .hdr h1{font-size:18px;margin:0;color:var(--cs-color-brand-primary);font-weight:700;letter-spacing:.2px;}
+.crmc .hdr .sub{font-size:12px;color:var(--cs-color-fg-muted);}
+.crmc .acct{font-size:12px;color:var(--cs-color-fg-muted);background:var(--cs-color-bg);border:1px solid var(--cs-color-border);border-radius:6px;padding:5px 9px;}
+.crmc .acct.live{color:var(--cs-color-success);border-color:var(--cs-color-success);}
+.crmc .acct.warn{color:var(--cs-color-warning);}
+.crmc .kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin:16px 0;}
+.crmc .kpi{background:var(--cs-color-bg);border:1px solid var(--cs-color-border);border-radius:10px;padding:12px;}
+.crmc .kpi .n{font-size:24px;font-weight:700;color:var(--cs-color-brand-primary);}
+.crmc .kpi .l{font-size:11px;color:var(--cs-color-fg-muted);text-transform:uppercase;letter-spacing:.5px;margin-top:2px;}
+.crmc .kpi.gold .n{color:var(--cs-color-brand-accent);}
+.crmc .bar-wrap{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 16px;}
+.crmc .stage{flex:1;min-width:110px;background:var(--cs-color-surface);border:1px solid var(--cs-color-border);border-radius:8px;padding:8px 10px;cursor:pointer;text-align:left;}
+.crmc .stage.on{border-color:var(--cs-color-brand-primary);box-shadow:inset 0 0 0 1px var(--cs-color-brand-primary);}
+.crmc .stage .sn{font-size:18px;font-weight:700;}
+.crmc .stage .sl{font-size:11px;color:var(--cs-color-fg-muted);}
+.crmc .stage .track{height:5px;background:var(--cs-color-border);border-radius:3px;margin-top:6px;overflow:hidden;}
+.crmc .stage .fill{height:100%;background:var(--cs-color-brand-primary);}
+.crmc .controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0;}
+.crmc input,.crmc select,.crmc textarea{font-family:inherit;font-size:13px;border:1px solid var(--cs-color-border);border-radius:6px;padding:7px 9px;background:var(--cs-color-surface);color:var(--cs-color-fg);}
+.crmc input:focus,.crmc select:focus,.crmc textarea:focus{outline:none;border-color:var(--cs-color-brand-primary);}
+.crmc .btn{background:var(--cs-color-brand-primary);color:var(--cs-color-on-primary);border:none;border-radius:6px;padding:8px 14px;font-weight:600;cursor:pointer;font-size:13px;}
+.crmc .btn:hover{opacity:.9;}
+.crmc .btn.ghost{background:var(--cs-color-surface);color:var(--cs-color-brand-primary);border:1px solid var(--cs-color-brand-primary);}
+.crmc .search{flex:1;min-width:180px;}
+.crmc table{width:100%;border-collapse:collapse;margin-top:8px;}
+.crmc th,.crmc td{text-align:left;padding:8px 9px;border-bottom:1px solid var(--cs-color-border);vertical-align:top;font-size:13px;}
+.crmc th{font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--cs-color-fg-muted);cursor:pointer;white-space:nowrap;}
+.crmc tr:hover td{background:var(--cs-color-bg);}
+.crmc .shop{font-weight:600;color:var(--cs-color-brand-primary);}
+.crmc .muted{color:var(--cs-color-fg-muted);font-size:12px;}
+.crmc .pill{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;border:1px solid var(--cs-color-border);white-space:nowrap;}
+.crmc a{color:var(--cs-color-brand-primary);text-decoration:none;}
+.crmc a:hover{text-decoration:underline;}
+.crmc .status-sel{font-size:12px;padding:4px 6px;border-radius:6px;}
+.crmc .s-New{background:var(--cs-color-surface);}
+.crmc .s-Emailed{background:#eef3ff;border-color:#c3d4ff;}
+.crmc .s-Replied{background:#fff6e0;border-color:#f0d68a;}
+.crmc .s-Meeting{background:#e9f6ee;border-color:#bfe3cd;}
+.crmc .s-Won{background:#e3f6e9;border-color:#9ed8b3;color:var(--cs-color-success);font-weight:600;}
+.crmc .s-Lost,.crmc .s-Notafit{background:#fdecea;border-color:#f0c2b6;color:var(--cs-color-error);}
+.crmc .note{width:100%;min-height:30px;font-size:12px;resize:vertical;}
+.crmc .resp{background:var(--cs-color-bg);border:1px solid var(--cs-color-border);border-radius:10px;padding:12px;margin:14px 0;}
+.crmc .resp h3{margin:0 0 8px;font-size:14px;color:var(--cs-color-brand-primary);}
+.crmc .ritem{background:var(--cs-color-surface);border:1px solid var(--cs-color-border);border-radius:8px;padding:9px 11px;margin-bottom:8px;}
+.crmc .ritem .rf{font-weight:600;font-size:13px;}
+.crmc .ritem .rs{font-size:12px;color:var(--cs-color-fg-muted);margin-top:2px;}
+.crmc .tag{font-size:10px;padding:1px 6px;border-radius:10px;background:var(--cs-color-brand-accent);color:var(--cs-color-on-accent);margin-left:6px;}
+.crmc .foot{font-size:11px;color:var(--cs-color-fg-muted);margin-top:18px;border-top:1px solid var(--cs-color-border);padding-top:10px;}
+.crmc .cell-actions a{display:inline-block;margin-right:8px;font-size:12px;white-space:nowrap;}
+@media(max-width:820px){.crmc .kpis{grid-template-columns:repeat(3,1fr);}}
+`;
+
+const statusClass = (s) => "status-sel s-" + String(s).replace(/[^A-Za-z]/g, "").replace(/^Nota/, "Nota");
 
 export function CrmPage({ resolved }) {
-  const [state, setState] = useState("loading"); // "loading" | "error" | "relogin" | "ok"
-  const [data, setData] = useState(null);        // { contacts, companies[], activity[] }
-  const [entries, setEntries] = useState({});    // companyId -> { status, note, updatedAt }
-  const [saveState, setSaveState] = useState("idle"); // "idle" | "dirty" | "saving" | "saved" | "denied" | "failed"
+  const [state, setState] = useState("loading"); // "loading" | "error" | "ok"
+  const [data, setData] = useState(null);
+  const [entries, setEntries] = useState({});
+  const [saveState, setSaveState] = useState("idle");
   const [q, setQ] = useState("");
-  const [channel, setChannel] = useState("all");
-  const [stage, setStage] = useState("all");
+  const [fRegion, setFRegion] = useState("");
+  const [fStatus, setFStatus] = useState("");
+  const [fEmail, setFEmail] = useState("");
+  const [sort, setSort] = useState({ k: "name", dir: 1 });
   const timer = useRef(null);
   const entriesRef = useRef(entries);
   entriesRef.current = entries;
@@ -37,49 +91,59 @@ export function CrmPage({ resolved }) {
       .then(([crm, outreach]) => {
         if (!alive) return;
         if (!crm) { setState("error"); return; }
-        setData(crm);
-        setEntries(outreach.entries || {});
-        setState("ok");
+        setData(crm); setEntries(outreach.entries || {}); setState("ok");
       })
-      .catch(() => { if (alive) setState("error"); });
+      .catch(() => alive && setState("error"));
     return () => { alive = false; };
   }, [resolved.id]);
 
-  const companies = useMemo(
-    () => [...(data?.companies || [])].sort((a, b) => a.name.localeCompare(b.name)),
-    [data]
-  );
-  const channels = useMemo(
-    () => [...new Set(companies.map((c) => c.channel).filter(Boolean))].sort(),
-    [companies]
-  );
-  const statusOf = (c) => entries[c.id]?.status || "New";
+  const companies = data?.companies || [];
+  const entryOf = (id) => entries[id] || {};
+  const statusOf = (id) => entryOf(id).status || "New";
 
-  // Stage funnel + KPI aggregates (companies with no saved entry count as "New").
-  const funnel = useMemo(() => {
-    const counts = Object.fromEntries(OUTREACH_STAGES.map((s) => [s, 0]));
-    for (const c of companies) counts[statusOf(c)] += 1;
-    return counts;
+  const regions = useMemo(() => [...new Set(companies.map(regionOf))].filter((r) => r !== "—").sort(), [companies]);
+
+  // KPIs + funnel (artifact formulas: emailed = progressed past New incl. Lost/Not a fit;
+  // replied = Replied/Meeting/Won; funnel bars = forward path only, scaled to the max stage).
+  const kpi = useMemo(() => {
+    let emailed = 0, replied = 0, meeting = 0, won = 0;
+    const counts = Object.fromEntries(FUNNEL_STAGES.map((s) => [s, 0]));
+    for (const c of companies) {
+      const s = statusOf(c.id);
+      if (s !== "New") emailed++;
+      if (["Replied", "Meeting", "Won"].includes(s)) replied++;
+      if (s === "Meeting") meeting++;
+      if (s === "Won") won++;
+      if (counts[s] !== undefined) counts[s]++;
+    }
+    const sendable = companies.filter((c) => c.ownerEmail).length;
+    const rate = emailed ? Math.round((replied / emailed) * 100) : 0;
+    return { emailed, replied, meeting, won, sendable, rate, counts, max: Math.max(1, ...Object.values(counts)) };
   }, [companies, entries]);
-  const emailed = funnel.Emailed + funnel.Replied + funnel.Meeting + funnel.Won; // progressed past send
-  const replied = funnel.Replied + funnel.Meeting + funnel.Won;
-  const rate = emailed ? Math.round((replied / emailed) * 100) : 0;
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
-    return companies.filter((c) => {
-      if (channel !== "all" && c.channel !== channel) return false;
-      if (stage !== "all" && statusOf(c) !== stage) return false;
+    const list = companies.filter((c) => {
+      const s = statusOf(c.id);
+      if (fRegion && regionOf(c) !== fRegion) return false;
+      if (fStatus && s !== fStatus) return false;
+      if (fEmail === "y" && !c.ownerEmail) return false;
+      if (fEmail === "n" && c.ownerEmail) return false;
       if (!needle) return true;
-      return [c.name, c.city, c.state, c.domain, entries[c.id]?.note]
+      return [c.name, c.owner, c.city, c.state, c.ownerEmail, c.channel, entryOf(c.id).note]
         .some((v) => v && String(v).toLowerCase().includes(needle));
     });
-  }, [companies, entries, q, channel, stage]);
+    const { k, dir } = sort;
+    list.sort((a, b) => {
+      const x = k === "status" ? statusOf(a.id) : k === "region" ? regionOf(a) : (a[k] || "");
+      const y = k === "status" ? statusOf(b.id) : k === "region" ? regionOf(b) : (b[k] || "");
+      return (x > y ? 1 : x < y ? -1 : 0) * dir;
+    });
+    return list;
+  }, [companies, entries, q, fRegion, fStatus, fEmail, sort]);
 
-  // Debounced full-document save (last-writer-wins, mirrors items-save's trade-off).
   function scheduleSave(next) {
-    setEntries(next);
-    setSaveState("dirty");
+    setEntries(next); setSaveState("dirty");
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(async () => {
       setSaveState("saving");
@@ -87,198 +151,164 @@ export function CrmPage({ resolved }) {
       setSaveState(res.ok ? "saved" : res.status === 401 ? "denied" : "failed");
     }, 900);
   }
-  const setStatus = (id, status) => scheduleSave({ ...entriesRef.current, [id]: { ...entriesRef.current[id], status, updatedAt: new Date().toISOString() } });
-  const setNote = (id, note) => scheduleSave({ ...entriesRef.current, [id]: { ...entriesRef.current[id], note, updatedAt: new Date().toISOString() } });
+  const patch = (id, part) => scheduleSave({ ...entriesRef.current, [id]: { ...entriesRef.current[id], ...part, updatedAt: new Date().toISOString() } });
 
   function exportCsv() {
-    const cols = ["Company", "Domain", "City", "State", "Channel", "Phone", "Status", "Notes"];
+    const hdr = ["Company", "Channel", "Region", "City", "State", "Owner", "Email", "Phone", "Status", "LastReply", "Notes"];
     const esc = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
-    const rows = filtered.map((c) => [c.name, c.domain, c.city, c.state, c.channel, c.phone, statusOf(c), entries[c.id]?.note || ""]);
-    const csv = [cols, ...rows].map((r) => r.map(esc).join(",")).join("\n");
+    const rows = filtered.map((c) => {
+      const r = entryOf(c.id);
+      return [c.name, c.channel, regionOf(c), c.city, c.state, c.owner, c.ownerEmail, c.ownerPhone || c.phone, statusOf(c.id), r.lastReply || "", r.note || ""].map(esc).join(",");
+    });
     const a = document.createElement("a");
-    a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+    a.href = URL.createObjectURL(new Blob([[hdr.map(esc).join(","), ...rows].join("\n")], { type: "text/csv" }));
     a.download = `${resolved.id}-outreach-${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(a.href);
+    a.click(); URL.revokeObjectURL(a.href);
   }
 
-  const tiles = [
-    { label: "Contacts", value: data?.contacts },
-    { label: "Companies", value: companies.length },
-    { label: "Emailed", value: emailed },
-    { label: "Replied", value: replied },
-    { label: "Response rate", value: emailed ? `${rate}%` : "—" },
+  const th = (label, k) => (
+    <th onClick={k ? () => setSort((s) => ({ k, dir: s.k === k ? -s.dir : 1 })) : undefined}>
+      {label}{k && sort.k === k ? (sort.dir === 1 ? " ↑" : " ↓") : ""}
+    </th>
+  );
+
+  const acct = state === "loading" ? { cls: "", text: "Loading accounts…" }
+    : state === "error" ? { cls: "warn", text: "CRM unavailable" }
+    : crmIsSample ? { cls: "warn", text: "Sample data — set VITE_CRM_BACKEND=hubspot" }
+    : saveState === "dirty" || saveState === "saving" ? { cls: "", text: "Saving…" }
+    : saveState === "denied" ? { cls: "warn", text: "Read-only — admin passcode required to save" }
+    : saveState === "failed" ? { cls: "warn", text: "Save failed — retry an edit" }
+    : { cls: "live", text: `HubSpot live ✓ ${companies.length.toLocaleString()} accounts` };
+
+  const kpis = [
+    ["Contacts", data?.contacts ?? "—", ""],
+    ["Sendable (email)", kpi.sendable, ""],
+    ["Emailed", kpi.emailed, ""],
+    ["Replied", kpi.replied, "gold"],
+    ["Response rate", `${kpi.rate}%`, "gold"],
+    ["Meetings / Won", `${kpi.meeting} / ${kpi.won}`, ""],
   ];
-  const saveLabel = {
-    dirty: "Unsaved changes…", saving: "Saving…", saved: "Saved ✓",
-    denied: "Read-only — admin passcode required to save", failed: "Save failed — retry an edit",
-  }[saveState];
 
   return (
-    <div>
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+    <div className="crmc">
+      <style>{CSS}</style>
+      <div className="hdr">
         <div>
-          <h1 className="mb-1 font-heading text-3xl text-fg">CRM</h1>
-          <p className="text-fg-muted">
-            {resolved.brand.name}'s outreach console — accounts live from HubSpot (read-only), status owned here.
-          </p>
+          <h1>{resolved.brand.name} — Outreach CRM</h1>
+          <div className="sub">Accounts live from HubSpot (read-only) · status &amp; notes owned by the platform</div>
         </div>
-        <div className="flex items-center gap-2">
-          {saveLabel && <span className={`text-xs ${saveState === "denied" || saveState === "failed" ? "text-warning" : "text-fg-muted"}`}>{saveLabel}</span>}
-          {crmIsSample ? <Badge variant="muted">Sample</Badge> : state === "ok" ? <Badge variant="success">Live</Badge> : null}
-          {state === "error" && <Badge variant="muted">Unavailable</Badge>}
-          {state === "relogin" && <Badge variant="warning">Sign in again</Badge>}
-        </div>
+        <div className={`acct ${acct.cls}`}>{acct.text}</div>
       </div>
-      {state === "relogin" && (
-        <p className="mb-6 rounded-base border border-border bg-surface p-3 text-sm text-fg-muted">{RELOGIN_MSG}</p>
-      )}
 
-      {/* KPI tiles */}
-      <div className="mb-4 grid grid-cols-2 gap-4 md:grid-cols-5">
-        {tiles.map((t) => (
-          <div key={t.label} className="rounded-xl border border-border bg-surface p-4 text-center">
-            <div className="font-heading text-2xl text-brand-primary">
-              {state === "loading" ? "…" : (t.value ?? "—").toLocaleString?.() ?? t.value}
-            </div>
-            <div className="mt-1 text-xs uppercase tracking-wide text-fg-muted">{t.label}</div>
-          </div>
+      <div className="kpis">
+        {kpis.map(([l, n, g]) => (
+          <div key={l} className={`kpi ${g}`}><div className="n">{typeof n === "number" ? n.toLocaleString() : n}</div><div className="l">{l}</div></div>
         ))}
       </div>
 
-      {/* Stage funnel */}
-      <div className="mb-6 grid grid-cols-3 gap-3 md:grid-cols-6">
-        {OUTREACH_STAGES.map((s) => {
-          const n = funnel[s] || 0;
-          const pct = companies.length ? Math.max(2, Math.round((n / companies.length) * 100)) : 0;
-          return (
-            <button
-              key={s}
-              onClick={() => setStage(stage === s ? "all" : s)}
-              className={`rounded-base border p-3 text-left transition-colors ${stage === s ? "border-brand-primary bg-brand-primary/5" : "border-border bg-surface hover:border-brand-primary/40"}`}
-            >
-              <div className="flex items-baseline justify-between">
-                <span className="text-xs font-medium text-fg">{s}</span>
-                <span className="font-heading text-lg text-brand-primary">{n}</span>
-              </div>
-              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-border">
-                <div className="h-full rounded-full bg-brand-primary" style={{ width: `${pct}%` }} />
-              </div>
-            </button>
-          );
-        })}
+      <div className="bar-wrap">
+        {FUNNEL_STAGES.map((s) => (
+          <button key={s} className={`stage ${fStatus === s ? "on" : ""}`} onClick={() => setFStatus(fStatus === s ? "" : s)}>
+            <div className="sn">{kpi.counts[s]}</div>
+            <div className="sl">{s}</div>
+            <div className="track"><div className="fill" style={{ width: `${(kpi.counts[s] / kpi.max) * 100}%` }} /></div>
+          </button>
+        ))}
       </div>
 
-      {/* Email activity (needs sales-email-read scope; hides when empty) */}
+      <div className="controls">
+        <input className="search" placeholder="Search shop, owner, city, email…" value={q} onChange={(e) => setQ(e.target.value)} />
+        <select value={fRegion} onChange={(e) => setFRegion(e.target.value)}>
+          <option value="">All regions</option>
+          {regions.map((r) => <option key={r}>{r}</option>)}
+        </select>
+        <select value={fStatus} onChange={(e) => setFStatus(e.target.value)}>
+          <option value="">All statuses</option>
+          {OUTREACH_STAGES.map((s) => <option key={s}>{s}</option>)}
+        </select>
+        <select value={fEmail} onChange={(e) => setFEmail(e.target.value)}>
+          <option value="">All contacts</option>
+          <option value="y">Has email</option>
+          <option value="n">No email</option>
+        </select>
+        <button className="btn ghost" onClick={exportCsv} disabled={!filtered.length}>Export CSV</button>
+      </div>
+
       {(data?.activity?.length || 0) > 0 && (
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Email activity</CardTitle>
-            <CardDescription>Recent sends and replies on the connected inbox.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-2">
-              {data.activity.slice(0, 6).map((a, i) => (
-                <li key={i} className="flex items-baseline justify-between gap-3 text-sm">
-                  <span><span className="font-medium text-fg">{a.who}</span>{" "}<span className="text-fg-muted">{a.what}</span></span>
-                  <span className="shrink-0 text-xs text-fg-muted">{a.when}</span>
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
+        <div className="resp">
+          <h3>Email activity <span className="muted">({data.activity.length})</span></h3>
+          {data.activity.slice(0, 8).map((a, i) => (
+            <div key={i} className="ritem">
+              <div className="rf">{a.who}{/Reply/.test(a.what) && <span className="tag">reply</span>}</div>
+              <div className="rs">{a.what} · {a.when}</div>
+            </div>
+          ))}
+        </div>
       )}
 
-      {/* Accounts console */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Accounts</CardTitle>
-          <CardDescription>
-            Every company in the connected CRM, with its channel. Status and notes save to the platform — records themselves are managed in HubSpot.
-          </CardDescription>
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search company, city, note…" className="h-9 w-56" />
-            <Select value={channel} onValueChange={setChannel}>
-              <SelectTrigger className="h-9 w-48"><SelectValue placeholder="All channels" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All channels</SelectItem>
-                {channels.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <Select value={stage} onValueChange={setStage}>
-              <SelectTrigger className="h-9 w-40"><SelectValue placeholder="All statuses" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All statuses</SelectItem>
-                {OUTREACH_STAGES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <span className="ml-auto text-xs text-fg-muted">{filtered.length.toLocaleString()} of {companies.length.toLocaleString()}</span>
-            <Button variant="outline" size="sm" onClick={exportCsv} disabled={!filtered.length}>Export CSV</Button>
-          </div>
-        </CardHeader>
-        <CardContent>
+      <table>
+        <thead>
+          <tr>
+            {th("Shop", "name")}
+            {th("Location", "city")}
+            {th("Contact")}
+            {th("Region", "region")}
+            {th("Status", "status")}
+            {th("Last reply")}
+            {th("Notes")}
+            {th("")}
+          </tr>
+        </thead>
+        <tbody>
           {state === "loading" ? (
-            <p className="py-8 text-center text-sm text-fg-muted">Loading…</p>
-          ) : state === "error" ? (
-            <p className="py-8 text-center text-sm text-fg-muted">CRM unavailable — check the connection in the house dashboard's Integration health.</p>
-          ) : companies.length === 0 ? (
-            <p className="py-8 text-center text-sm text-fg-muted">
-              {crmIsSample ? "Sample backend has no account list — set VITE_CRM_BACKEND=hubspot for live accounts." : "No companies in the connected CRM."}
-            </p>
-          ) : (
-            <>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Company</TableHead>
-                    <TableHead>Location</TableHead>
-                    <TableHead>Channel</TableHead>
-                    <TableHead className="w-36">Status</TableHead>
-                    <TableHead className="w-64">Notes</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filtered.slice(0, ROW_CAP).map((c) => (
-                    <TableRow key={c.id}>
-                      <TableCell>
-                        <div className="font-medium text-fg">{c.name}</div>
-                        {c.domain && (
-                          <a href={`https://${c.domain}`} target="_blank" rel="noreferrer" className="text-xs text-brand-primary hover:underline">
-                            {c.domain}
-                          </a>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-fg-muted">{[c.city, c.state].filter(Boolean).join(", ") || "—"}</TableCell>
-                      <TableCell>{c.channel ? <Badge variant="muted">{c.channel}</Badge> : <span className="text-fg-muted">—</span>}</TableCell>
-                      <TableCell>
-                        <Select value={statusOf(c)} onValueChange={(v) => setStatus(c.id, v)}>
-                          <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            {OUTREACH_STAGES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          defaultValue={entries[c.id]?.note || ""}
-                          onChange={(e) => setNote(c.id, e.target.value)}
-                          placeholder="Add a note…"
-                          className="h-8 text-sm"
-                        />
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-              {filtered.length > ROW_CAP && (
-                <p className="mt-3 text-center text-xs text-fg-muted">
-                  Showing the first {ROW_CAP} of {filtered.length.toLocaleString()} — narrow with search or filters.
-                </p>
-              )}
-            </>
-          )}
-        </CardContent>
-      </Card>
+            <tr><td colSpan={8} className="muted" style={{ textAlign: "center", padding: 24 }}>Loading…</td></tr>
+          ) : filtered.length === 0 ? (
+            <tr><td colSpan={8} className="muted" style={{ textAlign: "center", padding: 24 }}>
+              {companies.length === 0 ? "No accounts in the connected CRM." : "No accounts match the filters."}
+            </td></tr>
+          ) : filtered.slice(0, ROW_CAP).map((c) => {
+            const r = entryOf(c.id);
+            const s = statusOf(c.id);
+            return (
+              <tr key={c.id}>
+                <td>
+                  <span className="shop">{c.name}</span>
+                  {c.channel && <><br /><span className="muted">{c.channel}</span></>}
+                </td>
+                <td>{[c.city, c.state].filter(Boolean).join(", ") || <span className="muted">—</span>}</td>
+                <td>
+                  {c.owner || <span className="muted">owner n/a</span>}<br />
+                  {c.ownerEmail ? <a href={`mailto:${c.ownerEmail}`}>{c.ownerEmail}</a> : <span className="muted">no email</span>}
+                  {(c.ownerPhone || c.phone) && <><br /><span className="muted">{c.ownerPhone || c.phone}</span></>}
+                </td>
+                <td><span className="pill">{regionOf(c)}</span></td>
+                <td>
+                  <select className={statusClass(s)} value={s} onChange={(e) => patch(c.id, { status: e.target.value })}>
+                    {OUTREACH_STAGES.map((o) => <option key={o}>{o}</option>)}
+                  </select>
+                </td>
+                <td className="muted">{r.lastReply ? <>{r.lastReply}{r.lastSubj && <><br />{r.lastSubj}</>}</> : "—"}</td>
+                <td><textarea className="note" placeholder="note…" defaultValue={r.note || ""} onChange={(e) => patch(c.id, { note: e.target.value })} /></td>
+                <td className="cell-actions">
+                  {c.ownerEmail && <a href={`mailto:${c.ownerEmail}`}>✉ Email</a>}
+                  {c.domain && <a href={`https://${c.domain}`} target="_blank" rel="noreferrer">↗ Site</a>}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+      {filtered.length > ROW_CAP && (
+        <div className="muted" style={{ textAlign: "center", marginTop: 10 }}>
+          Showing the first {ROW_CAP} of {filtered.length.toLocaleString()} — narrow with search or filters.
+        </div>
+      )}
+
+      <div className="foot">
+        Owned by CheeseShop TECH. Accounts &amp; contacts live in HubSpot (read-only of record); status &amp; notes
+        save to the platform (admin passcode). Gmail sync &amp; one-click drafts return once a server-side Gmail
+        line is wired in.
+      </div>
     </div>
   );
 }
