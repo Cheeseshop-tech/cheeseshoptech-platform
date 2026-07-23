@@ -1988,6 +1988,33 @@ watermark-free export tier, not the prompt. **Status.** Track A: longer correcte
 prompt ready → Rick to generate in Higgsfield, then AE. Track B: 8-wedge model +
 illustrated style v1 + clay previz done → refine look, add morph, labels.
 
+## 2026-07-22 — CRM page → OUTREACH CONSOLE (campaign-CRM artifact ported into the platform)
+
+**What.** Ported the Gmail-native campaign CRM's information design (Prospecting Phase 10 artifact,
+`MontiTrentini_Campaign_CRM.html`) into the platform CRM page as a proper module. The artifact's build
+existed but was tethered to Claude's artifact runtime (`sendPrompt`, Gmail connector calls) and
+browser `localStorage` — the port keeps the design, swaps the plumbing:
+- **`src/components/crm/crm-page.jsx`** rebuilt: KPI tiles (Contacts · Companies · Emailed · Replied ·
+  Response rate) → clickable **stage funnel** (New→Emailed→Replied→Meeting→Won/Lost, bars) → filters
+  (search · channel · status) → **accounts table** (company + site link · location · Channel badge ·
+  **editable Status** select · **Notes**) → **Export CSV**. Email-activity card renders when the
+  `sales-email-read` scope exists (hides today). Row cap 250 with refine note.
+- **`netlify/functions/crm-outreach.js`** (new): per-tenant outreach overlay `{companyId: {status,
+  note}}` in **Netlify Blobs** (store `crm-outreach`, key = tenant) — the localStorage replacement.
+  GET = any passcode tier; POST = house/client-admin (requireWriteAuth + logWrite), stages
+  whitelisted, notes capped 500 chars, doc capped 400KB, last-writer-wins (items-save trade-off).
+  Status CANNOT live in HubSpot — the private app is read-only by design.
+- **`netlify/functions/crm-hubspot.js`**: company properties extended with `city/state/domain/phone`
+  (populated by tonight's import) for the location column + site links.
+- **`src/lib/crm.js`**: `OUTREACH_STAGES` + `getOutreach()/saveOutreach()` (debounced full-doc save
+  in the page, 401 → "read-only" note).
+**Deliberately NOT ported** (need a server-side Gmail integration; artifact-runtime only): Sync
+Gmail reply detection · per-contact "Draft email". Next candidates once Gmail is wired server-side.
+**Gates.** `npm run build` + `validate:clients` pass. Local visual check stops at the auth gate
+(no mock auth; Identity only exists on the deployed site) → visual verify on staging post-push.
+This also closes the go-live's open item: **channel becomes visible in the UI** (badge per account).
+**Status.** Pushed to `phase-2-6-build` → staging.
+
 ## 2026-07-22 — Monti CRM LIVE: mock → real HubSpot verified (no code change needed)
 
 **What.** Completed the go-live from `MONTI_CRM_CLAUDE_CODE_HANDOFF.md` / `MONTI_CRM_GOLIVE_RUNBOOK.md`.

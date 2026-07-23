@@ -18,6 +18,12 @@ export function canViewCrm(user) {
 
 export const PIPELINE_STAGES = ["Lead", "Qualified", "Sample sent", "Negotiation", "Won"];
 
+// Outreach pipeline (campaign console) — the stage model from the Gmail-native campaign CRM
+// artifact (Prospecting Phase 10: New→Emailed→Replied→Meeting→Won/Lost). Distinct from
+// PIPELINE_STAGES (deal stages, HubSpot-of-record): outreach state is the platform-owned
+// overlay stored in Netlify Blobs via crm-outreach.js, because HubSpot access is read-only.
+export const OUTREACH_STAGES = ["New", "Emailed", "Replied", "Meeting", "Won", "Lost"];
+
 // HubSpot `Channel` (5 values) → brand-voice audience (3, from brandKit.AUDIENCES). The single
 // authoring home for the customer-profile → brand-voice join: once a buyer's channel is known,
 // audienceOf() selects the right story blocks + readyPhrases (they're already audience-tagged).
@@ -110,6 +116,37 @@ export async function getCrmData(resolved) {
 
 function emptyDataset() {
   return { contacts: 0, pipeline: [], orders: [], invoices: [], activity: [] };
+}
+
+// ---- Outreach overlay (status + notes per company, Netlify Blobs) -------------------------
+// Read: any signed-in tier. Write: house/client-admin passcode (server-enforced by
+// crm-outreach.js via requireWriteAuth — the UI only surfaces the 401).
+
+/** { entries: {companyId: {status, note, updatedAt}}, updatedAt } — {} when unset/unavailable. */
+export async function getOutreach(resolved) {
+  try {
+    const res = await fetch(`/.netlify/functions/crm-outreach?tenant=${encodeURIComponent(resolved.id)}`, {
+      headers: { ...writeAuthHeader() },
+    });
+    if (!res.ok) return { entries: {}, updatedAt: null };
+    return await res.json();
+  } catch {
+    return { entries: {}, updatedAt: null };
+  }
+}
+
+/** Save the FULL entries document (last-writer-wins). Resolves {ok, status}. */
+export async function saveOutreach(resolved, entries) {
+  try {
+    const res = await fetch("/.netlify/functions/crm-outreach", {
+      method: "POST",
+      headers: { "content-type": "application/json", ...writeAuthHeader() },
+      body: JSON.stringify({ tenant: resolved.id, entries }),
+    });
+    return { ok: res.ok, status: res.status };
+  } catch {
+    return { ok: false, status: 0 };
+  }
 }
 
 // Derived aggregates for the dashboard cards.

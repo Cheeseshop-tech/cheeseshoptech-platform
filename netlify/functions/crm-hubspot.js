@@ -154,7 +154,10 @@ async function fetchAllCompanies(token) {
   for (let page = 0; page < MAX_PAGES; page++) {
     const body = {
       limit: PAGE_SIZE,
-      properties: ["name", CHANNEL_PROPERTY],
+      // city/state/domain/phone: standard HubSpot company properties (populated by the
+      // 2026-07-22 campaign import) — power the CRM outreach console's location column,
+      // region filter, and site links. Absent values come back undefined → null below.
+      properties: ["name", CHANNEL_PROPERTY, "city", "state", "domain", "phone"],
       ...(after ? { after } : {}),
     };
     const res = await fetch(HUBSPOT_SEARCH, {
@@ -169,6 +172,10 @@ async function fetchAllCompanies(token) {
         id: r.id,
         name: r.properties?.name || "(no name)",
         channel: r.properties?.[CHANNEL_PROPERTY] || null,
+        city: r.properties?.city || null,
+        state: r.properties?.state || null,
+        domain: r.properties?.domain || null,
+        phone: r.properties?.phone || null,
       });
     }
     after = data.paging?.next?.after;
