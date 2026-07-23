@@ -1988,6 +1988,42 @@ watermark-free export tier, not the prompt. **Status.** Track A: longer correcte
 prompt ready → Rick to generate in Higgsfield, then AE. Track B: 8-wedge model +
 illustrated style v1 + clay previz done → refine look, add morph, labels.
 
+## 2026-07-22 — Monti CRM LIVE: mock → real HubSpot verified (no code change needed)
+
+**What.** Completed the go-live from `MONTI_CRM_CLAUDE_CODE_HANDOFF.md` / `MONTI_CRM_GOLIVE_RUNBOOK.md`.
+**No code change was required** — `CHANNEL_PROPERTY = "channel"` in `netlify/functions/crm-hubspot.js`
+was already correct.
+
+**Channel property (the handoff's open question).** Confirmed the Company property's **internal name is
+`channel`** ✅. Found it had been **relabeled "E-commerce"** (with an e-commerce description) — internal
+names are immutable in HubSpot, which is why a property *displaying* "E-commerce" still read as `channel`.
+Renamed the **label** back to **"Channel"** (cosmetic + makes CSV `Channel` columns auto-map). Its **12
+dropdown options and data were untouched**: Distributor 57 · Restaurant/Chef 40 · Specialty grocer 7 ·
+Retail chain 28 · Partner/Producer 14 · **Cheese shop/Boutique 247** · Independent Supermarket 40 ·
+Regional Supermarket Chain 24 · National Chains 0 · Manufacturers 0 (fill rate 70.52%, unchanged).
+
+**Data loaded (Rick, HubSpot UI).** Companies: 92 rows → **86 updated**; 6 errors (3 invalid domain,
+2 duplicate-domain ambiguity, 1 skipped because the run was update-only). Contacts: 89 rows → **63 new +
+26 updated, 0 errors**. The contacts file's `Channel` column was **not imported** — the *contact-level*
+Channel property has no matching options, and the platform reads channel from **companies only**.
+
+**Config was already in place** from 2026-07-01 (`HUBSPOT_TOKEN`, `VITE_CRM_BACKEND=hubspot`, private app
+`CheeseShop TECH-read-only` with `crm.objects.companies.read` + `crm.objects.contacts.read`). The live
+build (2026-07-20) already contained the flag, so **no redeploy was needed** — the gap was never config,
+it was data.
+
+**Verified live** on `cheeseshoptech-platform.netlify.app` → CRM: **817 contacts · 648 companies · 0 deals**,
+**LIVE** badge, no "Sample"; Recent contacts all dated 7/22/2026 (tonight's import), proving
+CSV → HubSpot → live API → UI end to end. Build gate on `phase-2-6-build`: `npm install` + `npm run build`
+(1688 modules) + `npm run validate:clients` (demo + montitrentini) all **pass**.
+
+**Open / next.** (1) `channel` non-null is **not yet visually verified** — the CRM page renders only stat
+tiles + recent contacts and never surfaces companies or their channel. (2) Deals stay mock (no HubSpot
+deals) — expected. (3) 2 duplicate-domain companies are a real CRM-hygiene item. (4) The **Campaign CRM
+artifact** (Gmail-native console: pipeline, funnel, Sync Gmail, drafts — Prospecting Phase 10) is **not**
+ported into the platform; the deployed CRM page is a read-only HubSpot mirror by comparison.
+**Status.** Live.
+
 ## 2026-06-19 — Wheel embedded as the flow landing HERO (code-slot)
 
 **Action (Rick: "the version you have now").** Built `prototypes/flow-landing-wheel-hero.html` — the
