@@ -199,7 +199,9 @@ async function fetchAllCompanies(token) {
     for (const r of data.results || []) {
       out.push({
         id: r.id,
-        name: r.properties?.name || "(no name)",
+        // Nameless companies are HubSpot auto-creates (from contact email domains) — show the
+        // domain instead of a "(no name)" wall at the top of the alphabetically-sorted console.
+        name: r.properties?.name || r.properties?.domain || "(no name)",
         channel: r.properties?.[CHANNEL_PROPERTY] || null,
         city: r.properties?.city || null,
         state: r.properties?.state || null,
