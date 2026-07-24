@@ -12,7 +12,9 @@ import { getCrmData, getOutreach, saveOutreach, OUTREACH_STAGES, FUNNEL_STAGES, 
 //   · Artifact-runtime circuits NOT yet landed server-side: Gmail sync + Claude draft creation.
 //     The ✉ action is a plain mailto: until a server-side Gmail line exists.
 // No per-client code — brand color arrives via the tenant theme vars, data via the resolver.
-const ROW_CAP = 300;
+// 25 rows per page (2026-07-24) — each row renders a select + textarea, so windowing the table
+// is what keeps paint fast; the full account book stays loaded for search/filters/KPIs.
+const PAGE_SIZE = 25;
 
 const CSS = `
 .crmc{max-width:1180px;margin:0 auto;font-size:14px;line-height:1.45;color:var(--cs-color-fg);}
@@ -66,6 +68,8 @@ const CSS = `
 .crmc .tag{font-size:10px;padding:1px 6px;border-radius:10px;background:var(--cs-color-brand-accent);color:var(--cs-color-on-accent);margin-left:6px;}
 .crmc .foot{font-size:11px;color:var(--cs-color-fg-muted);margin-top:18px;border-top:1px solid var(--cs-color-border);padding-top:10px;}
 .crmc .cell-actions a{display:inline-block;margin-right:8px;font-size:12px;white-space:nowrap;}
+.crmc .pager{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:12px;}
+.crmc .pager .btn:disabled{opacity:.4;cursor:default;}
 @media(max-width:820px){.crmc .kpis{grid-template-columns:repeat(3,1fr);}}
 `;
 
@@ -81,6 +85,7 @@ export function CrmPage({ resolved }) {
   const [fStatus, setFStatus] = useState("");
   const [fEmail, setFEmail] = useState("");
   const [sort, setSort] = useState({ k: "name", dir: 1 });
+  const [page, setPage] = useState(0);
   const timer = useRef(null);
   const entriesRef = useRef(entries);
   entriesRef.current = entries;
@@ -141,6 +146,12 @@ export function CrmPage({ resolved }) {
     });
     return list;
   }, [companies, entries, q, fRegion, fStatus, fEmail, sort]);
+
+  // Any change to search/filters/sort re-anchors to page 1 (also clamps if the list shrinks).
+  useEffect(() => { setPage(0); }, [q, fRegion, fStatus, fEmail, sort]);
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage = Math.min(page, pageCount - 1);
+  const pageRows = filtered.slice(safePage * PAGE_SIZE, (safePage + 1) * PAGE_SIZE);
 
   function scheduleSave(next) {
     setEntries(next); setSaveState("dirty");
@@ -266,7 +277,7 @@ export function CrmPage({ resolved }) {
             <tr><td colSpan={8} className="muted" style={{ textAlign: "center", padding: 24 }}>
               {companies.length === 0 ? "No accounts in the connected CRM." : "No accounts match the filters."}
             </td></tr>
-          ) : filtered.slice(0, ROW_CAP).map((c) => {
+          ) : pageRows.map((c) => {
             const r = entryOf(c.id);
             const s = statusOf(c.id);
             return (
@@ -298,9 +309,13 @@ export function CrmPage({ resolved }) {
           })}
         </tbody>
       </table>
-      {filtered.length > ROW_CAP && (
-        <div className="muted" style={{ textAlign: "center", marginTop: 10 }}>
-          Showing the first {ROW_CAP} of {filtered.length.toLocaleString()} — narrow with search or filters.
+      {filtered.length > PAGE_SIZE && (
+        <div className="pager">
+          <button className="btn ghost" onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={safePage === 0}>← Prev</button>
+          <span className="muted">
+            {(safePage * PAGE_SIZE + 1).toLocaleString()}–{Math.min(filtered.length, (safePage + 1) * PAGE_SIZE).toLocaleString()} of {filtered.length.toLocaleString()} · page {safePage + 1} / {pageCount}
+          </span>
+          <button className="btn ghost" onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))} disabled={safePage >= pageCount - 1}>Next →</button>
         </div>
       )}
 
