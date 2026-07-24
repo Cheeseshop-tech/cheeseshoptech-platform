@@ -1,9 +1,9 @@
 {
   "schemaVersion": "1.2",
   "clientId": "monti-trentini",
-  "lastUpdated": "2026-07-22",
-  "source": "availability_2026-07-23_v2.csv",
-  "generatedAt": "2026-07-23T23:04:47.355Z",
+  "lastUpdated": "2026-07-16",
+  "source": "availability_2026-07-21.csv",
+  "generatedAt": "2026-07-21T12:48:22.802Z",
   "generatedBy": "scripts/sync-inventory.mjs",
   "skus": {
     "20141": {
@@ -724,7 +724,7 @@
           "netAvailLb": 1074.16,
           "expDate": null,
           "expMonth": "2027-02",
-          "comment": "52x Veroni 16-26C, 20x Dekalb LSDELI126071070"
+          "comment": "52x Veroni 16-26C, 20x Dekalb?"
         },
         {
           "lotNum": "90726195",
@@ -907,7 +907,7 @@
     "20511": {
       "code": "20511",
       "name": "FONTAL 1/4 WHEEL",
-      "casesAvail": 235,
+      "casesAvail": 240,
       "casesInTransit": 0,
       "comment": "Lettieri",
       "commentEn": "",
@@ -918,18 +918,18 @@
           "receiptDate": "2026-04-24",
           "eta": null,
           "cases": 240,
-          "reserved": 5,
+          "reserved": 0,
           "netAvailLb": 1468.41,
           "expDate": "2026-11-22",
           "expMonth": null,
-          "comment": "Dekalb LSDELI126071070 / Lettieri?"
+          "comment": "Lettieri?"
         }
       ]
     },
     "20519": {
       "code": "20519",
       "name": "GORGONZOLA DOLCE PDO 1/8 WHEEL",
-      "casesAvail": 42,
+      "casesAvail": 52,
       "casesInTransit": 0,
       "comment": "<15?",
       "commentEn": "",
@@ -940,18 +940,18 @@
           "receiptDate": "2026-06-18",
           "eta": null,
           "cases": 52,
-          "reserved": 10,
+          "reserved": 0,
           "netAvailLb": 158.69,
           "expDate": "2027-07-15",
           "expMonth": null,
-          "comment": "Dekalb LSDELI126071070"
+          "comment": ""
         }
       ]
     },
     "20520": {
       "code": "20520",
       "name": "TALEGGIO CHEESE PDO WHOLE WHEEL",
-      "casesAvail": 38,
+      "casesAvail": 60,
       "casesInTransit": 60,
       "comment": "<10? Cheese importers wants stock consistent? (45)",
       "commentEn": "",
@@ -962,11 +962,11 @@
           "receiptDate": null,
           "eta": "2026-07-23",
           "cases": 60,
-          "reserved": 22,
+          "reserved": 0,
           "netAvailLb": 280.64,
           "expDate": null,
           "expMonth": "2027-07",
-          "comment": "2x Dekalb LSDELI126071070/ 20x Cheese Importers 85661"
+          "comment": ""
         }
       ]
     },
@@ -1260,7 +1260,7 @@
     "40103": {
       "code": "40103",
       "name": "PECORINO ROMANO PDO WHOLE WHEEL",
-      "casesAvail": 7,
+      "casesAvail": 27,
       "casesInTransit": 0,
       "comment": "keep 1-2 pallet in stock",
       "commentEn": "",
@@ -1271,11 +1271,11 @@
           "receiptDate": "2026-04-03",
           "eta": null,
           "cases": 27,
-          "reserved": 20,
+          "reserved": 0,
           "netAvailLb": 1514.54,
           "expDate": "2027-03-06",
           "expMonth": null,
-          "comment": "Dekalb LSDELI126071070"
+          "comment": ""
         }
       ]
     },
@@ -1360,7 +1360,7 @@
     "40109": {
       "code": "40109",
       "name": "PIAVE VECCHIO PDO > 6 MONTHS",
-      "casesAvail": 13,
+      "casesAvail": 18,
       "casesInTransit": 0,
       "comment": "",
       "commentEn": "",
@@ -1371,11 +1371,11 @@
           "receiptDate": "2025-12-05",
           "eta": null,
           "cases": 18,
-          "reserved": 5,
+          "reserved": 0,
           "netAvailLb": 242.5,
           "expDate": "2026-11-08",
           "expMonth": null,
-          "comment": "5x Cheese Importers 85661"
+          "comment": ""
         }
       ]
     },
@@ -1453,7 +1453,7 @@
     "40169": {
       "code": "40169",
       "name": "RICOTTA SALATA V.P.",
-      "casesAvail": 0,
+      "casesAvail": 8,
       "casesInTransit": 0,
       "comment": "Main customer DeKalb",
       "commentEn": "",
@@ -1464,11 +1464,11 @@
           "receiptDate": "2026-04-03",
           "eta": null,
           "cases": 8,
-          "reserved": 8,
+          "reserved": 0,
           "netAvailLb": 119.49,
           "expDate": "2026-12-06",
           "expMonth": null,
-          "comment": "Dekalb LSDELI126071070"
+          "comment": "Dekalb?"
         }
       ]
     },
@@ -1509,7 +1509,7 @@
     "40175": {
       "code": "40175",
       "name": "PECORINO TOSCANO PDO WW AGED",
-      "casesAvail": 0,
+      "casesAvail": 11,
       "casesInTransit": 0,
       "comment": "Selected",
       "commentEn": "",
@@ -1520,11 +1520,11 @@
           "receiptDate": "2026-04-03",
           "eta": null,
           "cases": 11,
-          "reserved": 11,
+          "reserved": 0,
           "netAvailLb": 88.29,
           "expDate": "2027-03-04",
           "expMonth": null,
-          "comment": "11x Cheese Importers 85661 / Selected"
+          "comment": "Selected"
         }
       ]
     },
@@ -1640,7 +1640,7 @@
           "netAvailLb": 1033.29,
           "expDate": "2027-02-03",
           "expMonth": null,
-          "comment": "52x Veroni 16-26C, 20x Dekalb LSDELI126071070"
+          "comment": "52x Veroni 16-26C, 20x Dekalb?"
         },
         {
           "lotNum": "70726196",
@@ -1668,7 +1668,7 @@
     "01269": {
       "code": "01269",
       "name": "PROVOLONE PICCANTE WITH TRICOLORE ROPE",
-      "casesAvail": 0,
+      "casesAvail": 10,
       "casesInTransit": 0,
       "comment": "only for Cheese Importers, was the first order good?  He needs more?",
       "commentEn": "",
@@ -1679,11 +1679,11 @@
           "receiptDate": "2026-06-18",
           "eta": null,
           "cases": 10,
-          "reserved": 10,
+          "reserved": 0,
           "netAvailLb": 204.285,
           "expDate": "2027-01-13",
           "expMonth": null,
-          "comment": "Dekalb LSDELI126071070"
+          "comment": ""
         }
       ]
     },
@@ -1699,7 +1699,7 @@
     "02005": {
       "code": "02005",
       "name": "ASIAGO FRESCO PDO WHOLE WHEEL",
-      "casesAvail": 16,
+      "casesAvail": 22,
       "casesInTransit": 0,
       "comment": "main customer Alma, do we have < 33?",
       "commentEn": "",
@@ -1710,11 +1710,11 @@
           "receiptDate": "2026-06-18",
           "eta": null,
           "cases": 22,
-          "reserved": 6,
+          "reserved": 0,
           "netAvailLb": 598.436,
           "expDate": "2027-05-07",
           "expMonth": null,
-          "comment": "Cheese Importers 85661"
+          "comment": ""
         }
       ]
     },
@@ -1801,7 +1801,7 @@
     "02206": {
       "code": "02206",
       "name": "MOUNTAIN ASIAGO FRESCO PDO WW",
-      "casesAvail": 55,
+      "casesAvail": 60,
       "casesInTransit": 0,
       "comment": "3x CowBell monthly plan?",
       "commentEn": "",
@@ -1812,11 +1812,11 @@
           "receiptDate": "2026-05-15",
           "eta": null,
           "cases": 12,
-          "reserved": 5,
+          "reserved": 0,
           "netAvailLb": 355.35,
           "expDate": "2026-12-16",
           "expMonth": null,
-          "comment": "Dekalb LSDELI126071070"
+          "comment": ""
         },
         {
           "lotNum": "1296191",
@@ -1856,7 +1856,7 @@
     "03003": {
       "code": "03003",
       "name": "ASIAGO VECCHIO PDO WHOLE WHEEL",
-      "casesAvail": 20,
+      "casesAvail": 30,
       "casesInTransit": 0,
       "comment": "De Kalb 30 per month, next container if we go down <30",
       "commentEn": "",
@@ -1867,11 +1867,11 @@
           "receiptDate": "2026-04-24",
           "eta": null,
           "cases": 30,
-          "reserved": 10,
+          "reserved": 0,
           "netAvailLb": 571.75,
           "expDate": "2027-03-22",
           "expMonth": null,
-          "comment": "Dekalb LSDELI126071070"
+          "comment": ""
         }
       ]
     },
@@ -2214,7 +2214,7 @@
     "05001": {
       "code": "05001",
       "name": "GRANA PADANO PDO WHOLE WHEEL",
-      "casesAvail": 49,
+      "casesAvail": 51,
       "casesInTransit": 30,
       "comment": "slow mover but keep some in stock",
       "commentEn": "",
@@ -2225,11 +2225,11 @@
           "receiptDate": "2026-06-18",
           "eta": null,
           "cases": 21,
-          "reserved": 2,
+          "reserved": 0,
           "netAvailLb": 1721.216,
           "expDate": "2027-05-07",
           "expMonth": null,
-          "comment": "Cheese Importers 85661"
+          "comment": ""
         },
         {
           "lotNum": "82025192",
@@ -2517,7 +2517,7 @@
     "05025": {
       "code": "05025",
       "name": "PARMIGIANO REGGIANO PDO 1/8 WHEEL",
-      "casesAvail": 117,
+      "casesAvail": 147,
       "casesInTransit": 99,
       "comment": "always have at least 1/2 pallet (check with Stefano)",
       "commentEn": "",
@@ -2528,11 +2528,11 @@
           "receiptDate": "2026-04-24",
           "eta": null,
           "cases": 48,
-          "reserved": 30,
+          "reserved": 0,
           "netAvailLb": 1107.112,
           "expDate": "2027-03-27",
           "expMonth": null,
-          "comment": "Cheese Importers 85661"
+          "comment": ""
         },
         {
           "lotNum": "94275",

@@ -2,8 +2,8 @@
   "schemaVersion": "1.2",
   "clientId": "monti-trentini",
   "lastUpdated": "2026-07-22",
-  "source": "availability_2026-07-23_v2.csv",
-  "generatedAt": "2026-07-23T23:04:47.355Z",
+  "source": "availability_2026-07-23.csv",
+  "generatedAt": "2026-07-23T12:17:41.066Z",
   "generatedBy": "scripts/sync-inventory.mjs",
   "skus": {
     "20141": {
@@ -1360,7 +1360,7 @@
     "40109": {
       "code": "40109",
       "name": "PIAVE VECCHIO PDO > 6 MONTHS",
-      "casesAvail": 13,
+      "casesAvail": 18,
       "casesInTransit": 0,
       "comment": "",
       "commentEn": "",
@@ -1371,11 +1371,11 @@
           "receiptDate": "2025-12-05",
           "eta": null,
           "cases": 18,
-          "reserved": 5,
+          "reserved": 0,
           "netAvailLb": 242.5,
           "expDate": "2026-11-08",
           "expMonth": null,
-          "comment": "5x Cheese Importers 85661"
+          "comment": "Cheese Importers?"
         }
       ]
     },
@@ -2517,7 +2517,7 @@
     "05025": {
       "code": "05025",
       "name": "PARMIGIANO REGGIANO PDO 1/8 WHEEL",
-      "casesAvail": 117,
+      "casesAvail": 147,
       "casesInTransit": 99,
       "comment": "always have at least 1/2 pallet (check with Stefano)",
       "commentEn": "",
@@ -2528,11 +2528,11 @@
           "receiptDate": "2026-04-24",
           "eta": null,
           "cases": 48,
-          "reserved": 30,
+          "reserved": 0,
           "netAvailLb": 1107.112,
           "expDate": "2027-03-27",
           "expMonth": null,
-          "comment": "Cheese Importers 85661"
+          "comment": ""
         },
         {
           "lotNum": "94275",
