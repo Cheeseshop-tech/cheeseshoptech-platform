@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { getCrmData, getOutreach, saveOutreach, OUTREACH_STAGES, FUNNEL_STAGES, regionOf, crmIsSample } from "@/lib/crm.js";
+import { getCrmData, getOutreach, saveOutreach, OUTREACH_STAGES, FUNNEL_STAGES, regionOf, stateOf, crmIsSample } from "@/lib/crm.js";
 
 // CRM page — THE OUTREACH CONSOLE, cloned 1:1 from the campaign-CRM artifact
 // (Prospecting Phase 10, `MontiTrentini_Campaign_CRM.html`). The artifact's faceplate is kept
@@ -82,6 +82,7 @@ export function CrmPage({ resolved }) {
   const [saveState, setSaveState] = useState("idle");
   const [q, setQ] = useState("");
   const [fRegion, setFRegion] = useState("");
+  const [fState, setFState] = useState("");
   const [fStatus, setFStatus] = useState("");
   const [fEmail, setFEmail] = useState("");
   const [sort, setSort] = useState({ k: "name", dir: 1 });
@@ -106,7 +107,18 @@ export function CrmPage({ resolved }) {
   const entryOf = (id) => entries[id] || {};
   const statusOf = (id) => entryOf(id).status || "New";
 
-  const regions = useMemo(() => [...new Set(companies.map(regionOf))].filter((r) => r !== "—").sort(), [companies]);
+  // Region + state option lists WITH account counts — every dropdown choice shows its total,
+  // so each query has its counter before you even run it (2026-07-24 request).
+  const regions = useMemo(() => {
+    const m = new Map();
+    for (const c of companies) { const r = regionOf(c); if (r !== "—") m.set(r, (m.get(r) || 0) + 1); }
+    return [...m.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+  }, [companies]);
+  const states = useMemo(() => {
+    const m = new Map();
+    for (const c of companies) { const s = stateOf(c); if (s.length === 2) m.set(s, (m.get(s) || 0) + 1); }
+    return [...m.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+  }, [companies]);
 
   // KPIs + funnel (artifact formulas: emailed = progressed past New incl. Lost/Not a fit;
   // replied = Replied/Meeting/Won; funnel bars = forward path only, scaled to the max stage).
@@ -131,6 +143,7 @@ export function CrmPage({ resolved }) {
     const list = companies.filter((c) => {
       const s = statusOf(c.id);
       if (fRegion && regionOf(c) !== fRegion) return false;
+      if (fState && stateOf(c) !== fState) return false;
       if (fStatus && s !== fStatus) return false;
       if (fEmail === "y" && !c.ownerEmail) return false;
       if (fEmail === "n" && c.ownerEmail) return false;
@@ -145,10 +158,10 @@ export function CrmPage({ resolved }) {
       return (x > y ? 1 : x < y ? -1 : 0) * dir;
     });
     return list;
-  }, [companies, entries, q, fRegion, fStatus, fEmail, sort]);
+  }, [companies, entries, q, fRegion, fState, fStatus, fEmail, sort]);
 
   // Any change to search/filters/sort re-anchors to page 1 (also clamps if the list shrinks).
-  useEffect(() => { setPage(0); }, [q, fRegion, fStatus, fEmail, sort]);
+  useEffect(() => { setPage(0); }, [q, fRegion, fState, fStatus, fEmail, sort]);
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage = Math.min(page, pageCount - 1);
   const pageRows = filtered.slice(safePage * PAGE_SIZE, (safePage + 1) * PAGE_SIZE);
@@ -230,8 +243,12 @@ export function CrmPage({ resolved }) {
       <div className="controls">
         <input className="search" placeholder="Search shop, owner, city, email…" value={q} onChange={(e) => setQ(e.target.value)} />
         <select value={fRegion} onChange={(e) => setFRegion(e.target.value)}>
-          <option value="">All regions</option>
-          {regions.map((r) => <option key={r}>{r}</option>)}
+          <option value="">All regions ({companies.length.toLocaleString()})</option>
+          {regions.map(([r, n]) => <option key={r} value={r}>{r} ({n})</option>)}
+        </select>
+        <select value={fState} onChange={(e) => setFState(e.target.value)}>
+          <option value="">All states ({companies.length.toLocaleString()})</option>
+          {states.map(([s, n]) => <option key={s} value={s}>{s} ({n})</option>)}
         </select>
         <select value={fStatus} onChange={(e) => setFStatus(e.target.value)}>
           <option value="">All statuses</option>
@@ -244,6 +261,15 @@ export function CrmPage({ resolved }) {
         </select>
         <button className="btn ghost" onClick={exportCsv} disabled={!filtered.length}>Export CSV</button>
       </div>
+
+      {/* Live result counter — every query (search, region, state, status, email) shows its total. */}
+      {state === "ok" && (
+        <div className="muted" style={{ margin: "2px 0 4px" }}>
+          <strong>{filtered.length.toLocaleString()}</strong> account{filtered.length === 1 ? "" : "s"} match
+          {(q || fRegion || fState || fStatus || fEmail) ? " this query" : ""} · {companies.length.toLocaleString()} total
+          {fRegion && ` · region: ${fRegion}`}{fState && ` · state: ${fState}`}
+        </div>
+      )}
 
       {(data?.activity?.length || 0) > 0 && (
         <div className="resp">

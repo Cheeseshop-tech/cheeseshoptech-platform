@@ -57,10 +57,17 @@ const STATE_ABBREV = {
   "DISTRICT OF COLUMBIA": "DC", "WASHINGTON DC": "DC", "WASHINGTON D.C.": "DC",
 };
 
+/** Normalized state code for a company: "NJ" for both "NJ" and "New Jersey"; "" when unset;
+ *  non-US provinces pass through verbatim (regionOf buckets those as International). */
+export function stateOf(company) {
+  const raw = String(company?.state || "").trim().toUpperCase();
+  if (!raw) return "";
+  return STATE_ABBREV[raw] || raw;
+}
+
 export function regionOf(company) {
-  let st = String(company?.state || "").trim().toUpperCase();
+  const st = stateOf(company);
   if (!st) return "—";
-  st = STATE_ABBREV[st] || st; // normalize "NEW JERSEY" → "NJ" etc.
   // Known US state → its region. Unknown 2-letter → Other US. Anything longer that isn't a US
   // state name is a non-US province ("Trentino-Alto Adige", "Piemonte") → International.
   return STATE_REGION[st] || (st.length === 2 ? "Other US" : "International");
