@@ -41,17 +41,31 @@ export const handler = async (event) => {
     const contactsRes = await fetchAllContacts(token);
     const emailActivity = await emailActivityP;
     const contactsTotal = contactsRes.total;
-    // Join a PRIMARY CONTACT onto each company by normalized company name. The 2026-07-22
-    // import stored each contact's company as free text (no HubSpot association records),
-    // so a name join is the honest available key. Prefer a contact WITH an email.
+    // Join a PRIMARY CONTACT onto each company. Two keys, tried in order:
+    //   1. Normalized company name — the 2026-07-22 import stored each contact's company as
+    //      free text (no HubSpot association records), so the name is the honest first key.
+    //   2. Email domain ↔ company website domain — the 2026-07-24 audit found 268 companies
+    //      whose contacts carry emails at the company's own domain but with blank/mismatched
+    //      company text; the name join alone left all of them showing "no email".
+    // Prefer a contact WITH an email; on the domain key, prefer a NAMED contact.
     const byCompany = {};
     for (const p of contactsRes.people) {
       const key = norm(p.company);
       if (!key) continue;
       if (!byCompany[key] || (!byCompany[key].email && p.email)) byCompany[key] = p;
     }
+    // Freemail domains carry no company signal — never join on them.
+    const FREEMAIL = new Set(["gmail.com","yahoo.com","hotmail.com","aol.com","outlook.com","icloud.com","me.com","msn.com","live.com","comcast.net","verizon.net","sbcglobal.net","att.net","earthlink.net","protonmail.com","ymail.com"]);
+    const byEmailDomain = {};
+    for (const p of contactsRes.people) {
+      const dom = String(p.email || "").split("@")[1]?.toLowerCase();
+      if (!dom || FREEMAIL.has(dom)) continue;
+      const cur = byEmailDomain[dom];
+      if (!cur || (!cur.name && p.name)) byEmailDomain[dom] = p;
+    }
     for (const c of companies) {
-      const p = byCompany[norm(c.name)];
+      const cdom = String(c.domain || "").toLowerCase().replace(/^www\./, "");
+      const p = byCompany[norm(c.name)] || (cdom ? byEmailDomain[cdom] : null);
       if (p) { c.owner = p.name || null; c.ownerEmail = p.email || null; c.ownerPhone = p.phone || null; }
       else { c.owner = null; c.ownerEmail = null; c.ownerPhone = null; }
     }
