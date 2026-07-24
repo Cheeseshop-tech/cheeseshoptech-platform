@@ -26,3 +26,7 @@ vite.config.js.timestamp-*.mjs
 # sandbox-git-lock-trap memory note) and one-off test harnesses that shouldn't ship
 _to_delete/
 _tmp_e2e_test*.mjs
+
+# Blender render frames — intermediate output, reproducible from the .blend (112 PNGs ≈ 103MB).
+# The rendered mp4 IS committed; the frame stack is not.
+design/asiago-wheel/chalk_hero_render/frame_*.png
