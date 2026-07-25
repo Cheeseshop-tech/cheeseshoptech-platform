@@ -6,6 +6,31 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 > Format convention: `## YYYY-MM-DD — Title` · **Decision / Action / Status** ·
 > keep entries short and factual. This file is the project's memory.
 
+## 2026-07-25 — Deployed + correction: the inventory "future date" is the supplier's own stamp
+
+**Deployed.** `19f3cd5` pushed to `phase-2-6-build`; Netlify auto-published. Live bundle
+`index-B-yom2GB.js` contains `c_limit,w_2400,f_png`. Production verified: `media-list` and
+`items-get` 200, worst-case PNG download 7.38MB / 200, Asiago master 2.63MB / 200.
+
+**Correction to the earlier flag.** `inventory.json` was held back on suspicion that
+`"lastUpdated": "2026-07-28"` — three days ahead of `generatedAt` — indicated a bug in
+`sync-inventory.mjs`. It does not. Row 1 of `availability_2026-07-25.csv` reads
+`Updated on:,28 July 2026 11:52`. The date is the **supplier's own header**, passed through
+faithfully. The sync script is correct and the availability swings (Caciotta Rustega 300 → 1740
+cases; many `reserved` → 0) are real supplier data, not corruption. It shipped in `19f3cd5` and
+that is fine.
+
+**Still worth confirming with the supplier:** the buyer catalog will display a "last updated" date
+in the future. Either their sheet is forward-dated deliberately (availability effective the 28th)
+or the header is mislabeled. Worth one question before a buyer asks it.
+
+**Process note.** `19f3cd5` carries a junk commit message — a shell command pasted into the push
+script's commit-message prompt. Left as-is deliberately: rewriting history on the branch Netlify
+builds from is not worth a cosmetic gain. The script has since been changed to offer
+push-only / commit-and-push / quit rather than assuming a dirty tree should be swept in.
+
+---
+
 ## 2026-07-25 — FIX: "Download PNG" 400'd on 31 assets (Cloudinary Free 10MB derived cap)
 
 **What:** Rick: "the media hub and product catalog are erroring at downloading." Chrome showed
