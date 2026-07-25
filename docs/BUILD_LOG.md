@@ -6,6 +6,85 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 > Format convention: `## YYYY-MM-DD — Title` · **Decision / Action / Status** ·
 > keep entries short and factual. This file is the project's memory.
 
+## 2026-07-25 — FIX: "Download PNG" 400'd on 31 assets (Cloudinary Free 10MB derived cap)
+
+**What:** Rick: "the media hub and product catalog are erroring at downloading." Chrome showed
+its generic `This page isn't working — HTTP ERROR 400`, with no app-side error and nothing in the
+logs. Initial suspicion was a repeat of the 07-24 Cloudinary env-var outage; ruled out first —
+production deploy live, `media-list`/`items-get` 200 with the passcode, credentials valid, Free
+plan at 10.28% of credits.
+
+**Root cause:** Both "Download PNG" buttons force-convert to PNG with no size guard —
+`fl_attachment:{name},f_png/{publicId}.png`. Cloudinary's Free plan refuses to deliver any
+**derived** image over 10,485,760 bytes. The browser uploader has always downscaled on upload
+(`maxEdge: 2560, triggerBytes: 8_000_000, quality: 0.85`), so anything that came in that way
+re-encodes to PNG comfortably under the cap. The 31 failing assets never went through it: they
+were bulk-loaded (sync-images / direct Cloudinary) at up to **6732×6732**, and re-encode to
+12–38MB as PNG. Cloudinary answers `400` with `x-cld-error: File size too large` **and an empty
+body**, which is exactly why the browser fell back to its own error page and the app never saw it.
+Rick called the cause correctly before the code was read — the size window was real, the bulk
+uploads just bypassed it.
+
+**Measured across all 386 assets:** "Download PNG" failed on 31/386 — every one of them over the
+2560 window (median long edge 6732px), all JPGs, all modified 2026-05-25 or 2026-06-15. The
+working group's median long edge is exactly 2560px — the guard's fingerprint. "Download original"
+and "View original" passed 386/386; thumbnails, cards and previews were never affected. A further
+**52 assets exceed 2560px and were passing only by luck**, sitting just under the cap.
+
+**Shipped (`8e04b43`):** `c_limit,w_2400` added to both download URLs —
+`src/components/catalog/buyer-catalog.jsx:356` and `src/components/media/media-hub.jsx:569` —
+with a comment at each site explaining the cap so it doesn't get stripped later.
+
+**Verified:** all 32 formerly-failing URLs return 200, largest output 7.4MB against the 10MB cap.
+`c_limit` is a no-op below 2400px, so the 211 in-window assets are byte-identical to before. The
+52 borderline assets are now covered too.
+
+**Decision — masters stay at full resolution.** Considered re-uploading the 31 bulk-loaded files
+through the 2560 downscaler instead. Rejected: those are print-resolution product shots, the 2560
+rule is a *web upload* convenience and not an archival policy, and downscaling masters destroys
+resolution that can't be recovered without re-shooting. Guard at delivery, keep the masters big.
+Cost accepted knowingly: "Download PNG" now yields 2400px, not full-res. Anyone needing the master
+uses "Download original," which works on all 386 and returns the untouched file.
+
+**Also found, not fixed:** two product titles have SKU/description text spliced into the middle of
+the name — `Asiago Stag03023 Asiago Stagionato Dop · Whole Wheel, 17-19 lbsionato DOP` and
+`Asiago Fresco PDM —Asiago Fresco Della Montagna · Whole Wheel, 28-30 lbs`. These flow into
+download filenames. Separately, a `.git/index.lock` had been stale since 07-24 23:08, silently
+blocking git writes.
+
+---
+
+## 2026-07-24 — INCIDENT: Media Hub images down — a Deploy Preview was published to production
+
+**What:** Media Hub on `montitrentini.cheeseshoptech.com` showed asset names and tags but no
+images; Items count 0; Product Catalog thumbnails blank. Logins kept working throughout.
+
+**Root cause (from the Netlify audit log, not inferred):** at 2:22 PM the push of `48f8721` built
+**two** deploys, because GitHub PR #1 was open against `phase-2-6-build` and every push also built
+a "Deploy Preview #1." At 2:26 PM the audit log records a roll-forward — a manual **Publish deploy**
+click on the *Deploy Preview* row, which sits **above** the Production row in the deploys list.
+Preview builds run in the Deploy Previews env context, where `CLOUDINARY_API_KEY` had no value, so
+`media-list` / `items-get` returned 500 "Cloudinary env vars not configured." Portal passcodes
+existed in every context, which is why auth kept working and masked the shape of the failure. The
+same roll-forward/roll-back pair appears on 07-18 at 1:26/1:40 PM — almost certainly the same
+mis-click behind that day's "base passcode 401 / Netlify env issue" note.
+
+**Fixed:** republished the Production deploy of `48f8721` (live check: 312 assets with thumbnails,
+`media-list`/`items-get` 200) · `CLOUDINARY_API_KEY` set to "same value in all deploy contexts" ·
+`ANTHROPIC_API_KEY` filled per-context in all 5 (the secret flag disables the same-value radio) ·
+junk env var `Root` (0 values) deleted · **GitHub PR #1 closed**, so `phase-2-6-build` no longer
+produces preview builds at all.
+
+**Prevention:** with PR #1 closed the mis-click hazard is structurally gone, not just avoided —
+and Netlify build minutes halve. Standing rule: **publish the Production row only, never a Deploy
+Preview row.**
+
+**Key facts for future sessions:** live passcode `IMBRIAGO2026` (resolves Client-Admin) · Media Hub
+is a non-nav page for admin roles at `/?page=media` · Netlify site `cheeseshoptech-platform`,
+production branch `phase-2-6-build`, auto-publish ON.
+
+---
+
 ## 2026-07-19 — Feature: real layout variety (6 new hand-designed templates + guardrailed AI layout-swap)
 
 **What:** Rick, after the earlier fixes this session: "The auto compose creates one deck the same

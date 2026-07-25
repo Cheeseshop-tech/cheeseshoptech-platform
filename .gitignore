@@ -30,3 +30,20 @@ _tmp_e2e_test*.mjs
 # Blender render frames — intermediate output, reproducible from the .blend (112 PNGs ≈ 103MB).
 # The rendered mp4 IS committed; the frame stack is not.
 design/asiago-wheel/chalk_hero_render/frame_*.png
+
+# Blender test/preview renders — same reasoning as frame_*.png above; these are
+# throwaway single-frame checks (test_f1, test2_f87, test_turn_f100, …).
+design/asiago-wheel/chalk_hero_render/test*.png
+
+# FUSE artifacts — the Cowork device bridge can't unlink, so in-place edits to a
+# mounted file leave a .fuse_hidden* copy behind. Never source.
+.fuse_hidden*
+
+# Base64 sidecars of source CSVs (transport artifact, not data)
+*.csv.b64
+
+# Inventory autosync backups — restore points, kept locally, not shipped
+src/archive/backup_*_inventory_autosync/
+
+# Local push helper — hardcodes a machine-specific repo path, not shared tooling
+PUSH ALL*.command
