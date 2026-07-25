@@ -120,6 +120,65 @@ if (banner) {
   }
 }
 
+// ---- authoritative "last updated": Google Drive modifiedTime --------------
+// The banner cell above is hand-typed on the weekly refresh, which fails twice:
+// it misses the intermittent mid-week corrections MT makes, and it carries
+// typos straight into the buyer catalog. On 2026-07-25 it read "28 July 2026"
+// — three days in the future — while Drive's modifiedTime for the sheet was
+// 2026-07-24T15:53:09Z. A future date also makes agency-console's stock-age
+// calculation go negative.
+//
+// Drive's timestamp is the source of truth. It reaches this script through a
+// sidecar written at export time, so the script stays runnable offline with no
+// Drive credentials:
+//     source/availability_<YYYY-MM-DD>.meta.json
+//     { "driveFileId": "1meZQQ…", "driveModifiedTime": "2026-07-24T15:53:09.134Z",
+//       "sheetOwner": "order@montitrentini-usa.com", "exportedAt": "…" }
+// Absent the sidecar it falls back to the banner and says so.
+//
+// NOTE: this Drive connector exposes modifiedTime and the file OWNER, but not
+// lastModifyingUser — so "when" is exact, "who" is the sheet owner, not the
+// individual editor. Wiring the Sheets revisions API would close that gap.
+const localDate = (iso) =>
+  new Date(iso).toLocaleDateString("en-CA", { timeZone: "America/New_York" });
+
+const sheetStatedUpdate = lastUpdated;          // whatever the banner claimed
+let lastUpdatedSource = "sheet-banner";
+let driveModifiedTime = null, driveFileId = null, sheetOwner = null;
+
+const META = IN.replace(/\.csv$/i, ".meta.json");
+if (fs.existsSync(META)) {
+  try {
+    const meta = JSON.parse(fs.readFileSync(META, "utf8"));
+    if (meta.driveModifiedTime) {
+      driveModifiedTime = meta.driveModifiedTime;
+      driveFileId = meta.driveFileId || null;
+      sheetOwner = meta.sheetOwner || null;
+      lastUpdated = localDate(driveModifiedTime);
+      lastUpdatedSource = "drive-modifiedTime";
+    }
+  } catch (e) {
+    console.warn(`! ${path.basename(META)} unreadable (${e.message}) — falling back to the sheet banner.`);
+  }
+} else {
+  console.warn(`! No ${path.basename(META)} beside the CSV — using the hand-typed banner (${sheetStatedUpdate}).`);
+  console.warn(`  Write the sidecar at export time so mid-week corrections aren't missed.`);
+}
+
+if (driveModifiedTime && sheetStatedUpdate !== lastUpdated) {
+  const future = sheetStatedUpdate > TODAY.toISOString().slice(0, 10);
+  const bar = "!".repeat(66);
+  console.warn("");
+  console.warn(bar);
+  console.warn("!  SHEET BANNER DISAGREES WITH GOOGLE DRIVE");
+  console.warn(`!    banner says : ${sheetStatedUpdate}${future ? "   <-- IN THE FUTURE, almost certainly a typo" : ""}`);
+  console.warn(`!    Drive says  : ${lastUpdated}   (${driveModifiedTime})`);
+  console.warn("!  Using Drive — the banner is typed by hand, Drive is the file's real mtime.");
+  console.warn("!  A large gap means the sheet was edited without the banner being updated.");
+  console.warn(bar);
+  console.warn("");
+}
+
 // find header row (the one starting with "Item")
 const hIdx = rows.findIndex((r) => clean(r[0]).toLowerCase() === "item");
 const dataRows = rows.slice(hIdx + 1);
@@ -192,6 +251,11 @@ const out = {
   schemaVersion: "1.2",
   clientId: "monti-trentini",
   lastUpdated,
+  lastUpdatedSource,
+  sheetStatedUpdate,
+  sheetModifiedAt: driveModifiedTime,
+  sheetFileId: driveFileId,
+  sheetOwner,
   source: path.basename(IN),
   generatedAt: TODAY.toISOString(),
   generatedBy: "scripts/sync-inventory.mjs",
@@ -308,4 +372,5 @@ if (args.includes("--promote") || args.includes("--check")) {
 
 fs.writeFileSync(OUT, JSON.stringify(out, null, 2) + "\n");
 log(`✓ ${path.basename(IN)} -> ${path.relative(process.cwd(), OUT)}`);
-log(`  SKUs: ${skuCount} | lots: ${lotCount} | sellable-now SKUs: ${withStock} | lastUpdated: ${lastUpdated}`);
+log(`  SKUs: ${skuCount} | lots: ${lotCount} | sellable-now SKUs: ${withStock}`);
+log(`  lastUpdated: ${lastUpdated}  (source: ${lastUpdatedSource}${driveModifiedTime ? `, sheet banner said ${sheetStatedUpdate}` : ""})`);

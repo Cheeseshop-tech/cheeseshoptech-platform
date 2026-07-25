@@ -1,9 +1,14 @@
 {
   "schemaVersion": "1.2",
   "clientId": "monti-trentini",
-  "lastUpdated": "2026-07-28",
+  "lastUpdated": "2026-07-24",
+  "lastUpdatedSource": "drive-modifiedTime",
+  "sheetStatedUpdate": "2026-07-28",
+  "sheetModifiedAt": "2026-07-24T15:53:09.134Z",
+  "sheetFileId": "1meZQQ_0dA1S1IR5xjVWzFvuqCJE6DLgVd-fOfSMGvCk",
+  "sheetOwner": "order@montitrentini-usa.com",
   "source": "availability_2026-07-25.csv",
-  "generatedAt": "2026-07-25T12:17:24.721Z",
+  "generatedAt": "2026-07-25T23:26:23.204Z",
   "generatedBy": "scripts/sync-inventory.mjs",
   "skus": {
     "20141": {

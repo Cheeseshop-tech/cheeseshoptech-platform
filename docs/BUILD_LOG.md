@@ -6,6 +6,55 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 > Format convention: `## YYYY-MM-DD — Title` · **Decision / Action / Status** ·
 > keep entries short and factual. This file is the project's memory.
 
+## 2026-07-25 — FIX: inventory "last updated" now comes from Google Drive, not a hand-typed cell
+
+**What:** Rick, on the 2026-07-28 date shipped in `inventory.json`: "I think the date mix up is an
+internal error. lets use the last updated notes in google sheets. the date that nots who and when
+it was updated. sometime intermitten corrections or updates are made before the weekly up date."
+
+**Confirmed via Drive.** The sheet — "Availability of items and pending orders", file
+`1meZQQ_0dA1S1IR5xjVWzFvuqCJE6DLgVd-fOfSMGvCk`, owner `order@montitrentini-usa.com` — has a real
+`modifiedTime` of **2026-07-24T15:53:09.134Z**. Row 1 of the exported CSV reads
+`Updated on:,28 July 2026 11:52`. The banner is a typo, three days into the future, and it had
+already shipped to the live buyer catalog. Secondary symptom: `agency-console.jsx` derives stock
+age as `Date.now() - lastUpdated`, so a future date renders a **negative** age.
+
+**Why the banner is the wrong source at all:** it's typed by hand on the weekly refresh. MT makes
+intermittent corrections between weeklies, and those never move the cell. Drive's `modifiedTime`
+catches them. The typo is the visible failure; the missed mid-week edits are the quiet one.
+
+**Shipped:** `scripts/sync-inventory.mjs` now resolves `lastUpdated` from Drive's `modifiedTime`,
+read from a sidecar written at export time — `source/availability_<date>.meta.json` carrying
+`driveFileId`, `driveModifiedTime`, `sheetOwner`, `exportedAt`. The sidecar keeps the script
+runnable offline with no Drive credentials; absent it, the script falls back to the banner and
+says so. Output gains `lastUpdatedSource`, `sheetStatedUpdate`, `sheetModifiedAt`, `sheetFileId`,
+`sheetOwner` — the banner is preserved as evidence rather than discarded. `schemaVersion` stays
+**1.2** deliberately: `netlify/functions/inventory-publish.js:22` hard-checks that string.
+
+**On divergence it warns loudly and continues** (Rick's call), naming both dates and flagging a
+future banner explicitly:
+
+```
+!  SHEET BANNER DISAGREES WITH GOOGLE DRIVE
+!    banner says : 2026-07-28   <-- IN THE FUTURE, almost certainly a typo
+!    Drive says  : 2026-07-24   (2026-07-24T15:53:09.134Z)
+```
+
+**Verified:** re-ran against `availability_2026-07-25.csv` → 111 SKUs, 129 lots, 45 sellable-now,
+`lastUpdated: 2026-07-24 (source: drive-modifiedTime)`. Diffed the regenerated `skus` tree against
+the shipped one: **identical**. Only the header changed — no availability numbers moved.
+`node --check` clean.
+
+**Known limit:** this Drive connector exposes `modifiedTime` and the file **owner**, not
+`lastModifyingUser`. "When" is exact; "who" is the sheet's owner, not the individual editor.
+Closing that needs the Sheets revisions API.
+
+**Also noticed:** `src/data/montitrentini/inventory.NEW.json` — a scratch output from June — is
+committed to the repo. It's the default `--out` target for dry runs, so it gets clobbered by any
+review run. Should be untracked and gitignored.
+
+---
+
 ## 2026-07-25 — Deployed + correction: the inventory "future date" is the supplier's own stamp
 
 **Deployed.** `19f3cd5` pushed to `phase-2-6-build`; Netlify auto-published. Live bundle
