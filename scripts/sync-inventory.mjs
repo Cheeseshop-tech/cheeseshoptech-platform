@@ -16,6 +16,9 @@
 
    Usage:
      node scripts/sync-inventory.mjs [--in <csv>] [--out <json>] [--quiet]
+                                     [--check | --promote] [--require-drive-meta]
+   --require-drive-meta: hard-fail (exit 4) if the Drive sidecar is missing, so an
+   unattended run can never publish the sheet's hand-typed date. Use it in cron.
    Defaults: newest source/availability_*.csv  ->  inventory.json
    Safe-by-default for review: pass --out inventory.NEW.json to avoid replacing.
 */
@@ -163,6 +166,24 @@ if (fs.existsSync(META)) {
 } else {
   console.warn(`! No ${path.basename(META)} beside the CSV — using the hand-typed banner (${sheetStatedUpdate}).`);
   console.warn(`  Write the sidecar at export time so mid-week corrections aren't missed.`);
+}
+
+// Unattended runs must never fall back to the banner in silence. The scheduled
+// "Monti inventory watch" runs at 08:00 with nobody reading stdout, and a fresh
+// session may not have the Google Drive connector available at all — in which
+// case no sidecar can be written. Pass --require-drive-meta there so the run
+// STOPS rather than publishing a hand-typed (possibly typo'd) date to the live
+// buyer catalog. Exit 4 = "Drive metadata required but unavailable".
+if (args.includes("--require-drive-meta") && lastUpdatedSource !== "drive-modifiedTime") {
+  console.error("");
+  console.error("x DRIVE METADATA REQUIRED BUT MISSING — refusing to continue.");
+  console.error(`x   expected sidecar: ${path.relative(process.cwd(), META)}`);
+  console.error("x   Without it lastUpdated falls back to the sheet's hand-typed banner,");
+  console.error("x   which is exactly the value this flag exists to keep off the live catalog.");
+  console.error("x   Write the sidecar at export time:");
+  console.error('x     { "driveFileId": "...", "driveModifiedTime": "<ISO>", "sheetOwner": "..." }');
+  console.error("");
+  process.exit(4);
 }
 
 if (driveModifiedTime && sheetStatedUpdate !== lastUpdated) {
