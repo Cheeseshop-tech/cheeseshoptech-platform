@@ -6,6 +6,53 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 > Format convention: `## YYYY-MM-DD — Title` · **Decision / Action / Status** ·
 > keep entries short and factual. This file is the project's memory.
 
+## 2026-07-25 — Session close: both fixes live, inventory watch rewired, and a log-coverage gap found
+
+**Live and verified.** `16827d8` pushed to `phase-2-6-build`. Live inventory now reports
+`lastUpdated 2026-07-24`, `lastUpdatedSource drive-modifiedTime`, `sheetStatedUpdate 2026-07-28`,
+111 SKUs — published via `publish-inventory.mjs` to Netlify Blobs, no rebuild. PNG downloads
+verified on production earlier in the session.
+
+**Scheduled task "Monti inventory watch" — instructions rewritten.** It now writes the Drive
+sidecar at export time, compares against the previous sidecar's `driveModifiedTime` (exact drop
+detection, instead of inferring change from a CSV filename), runs `--require-drive-meta`, treats
+exit 4 as a deliberate stop rather than a crash, reports `lastUpdatedSource` so a silent regression
+to the banner is visible in the morning report, and clears `.git/*.lock` around its commit. Run
+time moved off the peak-hours window.
+
+**The task was the source of the stale git locks.** It commits through the mounted folder every
+run, the mount cannot unlink, so each run leaves `.git/*.lock` behind — and a leftover `HEAD.lock`
+blocks the *next* git command with "Another git process seems to be running." The `index.lock`
+dated 07-24 23:08 that was silently blocking writes at the start of this session was almost
+certainly left by it. ~40 daily runs had been quietly littering `.git/`.
+
+**Dry-run check at handoff:** Drive `modifiedTime` == the newest sidecar's `driveModifiedTime`, so
+the next run correctly reports "No new drop" and stops. Note that this means the first run does
+**not** exercise the new export path — that happens only when MT next touches the sheet. The thing
+to check in that report is `lastUpdatedSource: drive-modifiedTime`.
+
+**Log-coverage gap found (worth fixing as a habit, not just today).** This session wrote only to
+`docs/BUILD_LOG.md`. The `Claude best Practice manual` folder — `LEARNING_LOG.md`,
+`LIMITATIONS.md`, `OPEN_ITEMS.md`, `case_studies/` — was not connected to the session and so was
+never consulted or updated, despite holding material this session directly bears on:
+`LIMITATIONS.md` documents cross-boundary constraints (the mount's inability to unlink and
+`device_bash`'s lack of network access both belong there), and `case_studies/` already contains
+`2026-05-26_folder_mount_limit.md` on adjacent ground. **Connect both folders at the start of a
+CheeseShop TECH session, not just the repo.**
+
+**Repo hygiene:** `.gitignore` gaps closed (test*.png renders — 103MB dir, `.fuse_hidden*`,
+`*.csv.b64`, inventory autosync backups, the local PUSH ALL helper). 148 orphaned `tmp_obj_*` files
+and all stale locks cleared; `git gc --prune=now` repacked 3559 objects. `_to_delete/` holds 424K
+of moved-aside junk for Rick to delete in Finder.
+
+**Still open:** two corrupted product titles (`Asiago Stag03023 …lbsionato DOP`,
+`Asiago Fresco PDM —…28-30 lbs`) · `inventory.NEW.json` is tracked but is the default `--out`
+target for dry runs, so any review run clobbers it · ask MT who typed 28 July · from 07-24: re-run
+`sync-images.mjs --live`, 41 images missing `bg-removed`, 78 assets with item# but no
+product-catalog tag, 8 duplicate item-number pairs.
+
+---
+
 ## 2026-07-25 — FIX: inventory "last updated" now comes from Google Drive, not a hand-typed cell
 
 **What:** Rick, on the 2026-07-28 date shipped in `inventory.json`: "I think the date mix up is an
@@ -55,19 +102,23 @@ review run. Should be untracked and gitignored.
 
 ---
 
-## 2026-07-25 — Deployed + correction: the inventory "future date" is the supplier's own stamp
+## 2026-07-25 — Deployed the PNG fix  ·  ⚠ SUPERSEDED: my "supplier's own stamp" call was WRONG
 
 **Deployed.** `19f3cd5` pushed to `phase-2-6-build`; Netlify auto-published. Live bundle
 `index-B-yom2GB.js` contains `c_limit,w_2400,f_png`. Production verified: `media-list` and
 `items-get` 200, worst-case PNG download 7.38MB / 200, Asiago master 2.63MB / 200.
 
-**Correction to the earlier flag.** `inventory.json` was held back on suspicion that
-`"lastUpdated": "2026-07-28"` — three days ahead of `generatedAt` — indicated a bug in
-`sync-inventory.mjs`. It does not. Row 1 of `availability_2026-07-25.csv` reads
-`Updated on:,28 July 2026 11:52`. The date is the **supplier's own header**, passed through
-faithfully. The sync script is correct and the availability swings (Caciotta Rustega 300 → 1740
-cases; many `reserved` → 0) are real supplier data, not corruption. It shipped in `19f3cd5` and
-that is fine.
+**⚠ SUPERSEDED — read the 2026-07-25 Drive entry above instead.** This entry originally
+concluded that `"lastUpdated": "2026-07-28"` was "the supplier's own header, passed through
+faithfully… that is fine." That reasoning was half right and the conclusion was wrong. The banner
+*is* the sheet's own header — row 1 of `availability_2026-07-25.csv` reads
+`Updated on:,28 July 2026 11:52` — but Rick identified it as an internal typo, and Google Drive
+confirmed him: the sheet's real `modifiedTime` is `2026-07-24T15:53:09.134Z`. A hand-typed cell was
+never a safe source of truth, and "it came from the supplier so it's correct" was the error in
+reasoning: provenance is not accuracy. Left in place rather than rewritten, because a log that
+quietly deletes its own wrong calls teaches nothing. The sync script itself was correct; only the
+input choice was wrong. The availability swings (Caciotta Rustega 300 → 1740 cases; many `reserved`
+→ 0) are real supplier data and did ship correctly in `19f3cd5`.
 
 **Still worth confirming with the supplier:** the buyer catalog will display a "last updated" date
 in the future. Either their sheet is forward-dated deliberately (availability effective the 28th)
