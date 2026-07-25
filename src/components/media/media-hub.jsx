@@ -564,9 +564,11 @@ function AssetDialog({ asset, onClose, canManage, canDelete, onCopy, onSave, onD
               <div className="flex flex-wrap items-center gap-2">
                 <Button size="sm" variant="outline" onClick={() => {
                   // fl_attachment forces a download; f_png guarantees PNG regardless of f_auto.
+                  // c_limit,w_2400 caps the PNG re-encode: Cloudinary Free rejects any derived image >10MB,
+                  // and bulk-loaded masters (up to 6732px) blow past that as PNG. c_limit is a no-op under 2400px.
                   const name = (asset.title || asset.publicId).replace(/[^a-zA-Z0-9_-]+/g, "-");
                   const a = document.createElement("a");
-                  a.href = `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/fl_attachment:${name},f_png/${asset.publicId}.png`;
+                  a.href = `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/fl_attachment:${name},c_limit,w_2400,f_png/${asset.publicId}.png`;
                   a.click();
                 }}>
                   <Download className="h-4 w-4" /> PNG

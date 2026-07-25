@@ -351,9 +351,11 @@ function BuyerCatalog({ data, brandName, tenantId, itemsFolder }) {
                     </Button>
                     <Button variant="secondary" onClick={() => {
                       // Same recipe as the Media Hub: fl_attachment forces download, f_png guarantees PNG.
+                      // c_limit,w_2400 caps the PNG re-encode: Cloudinary Free rejects any derived image >10MB,
+                      // and bulk-loaded masters (up to 6732px) blow past that as PNG. c_limit is a no-op under 2400px.
                       const name = (activeRow.it.name || activeRow.it.sku).replace(/[^a-zA-Z0-9_-]+/g, "-");
                       const a = document.createElement("a");
-                      a.href = `https://res.cloudinary.com/${cloud}/image/upload/fl_attachment:${name},f_png/${hero.cl_id}.png`;
+                      a.href = `https://res.cloudinary.com/${cloud}/image/upload/fl_attachment:${name},c_limit,w_2400,f_png/${hero.cl_id}.png`;
                       a.click();
                     }}>
                       <Download className="h-4 w-4" /> Download PNG
