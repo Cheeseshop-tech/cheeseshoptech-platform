@@ -108,7 +108,7 @@ review run. Should be untracked and gitignored.
 `index-B-yom2GB.js` contains `c_limit,w_2400,f_png`. Production verified: `media-list` and
 `items-get` 200, worst-case PNG download 7.38MB / 200, Asiago master 2.63MB / 200.
 
-**⚠ SUPERSEDED — read the 2026-07-25 Drive entry above instead.** This entry originally
+**SUPERSEDED — read the 2026-07-25 Drive entry above instead.** This entry originally
 concluded that `"lastUpdated": "2026-07-28"` was "the supplier's own header, passed through
 faithfully… that is fine." That reasoning was half right and the conclusion was wrong. The banner
 *is* the sheet's own header — row 1 of `availability_2026-07-25.csv` reads
