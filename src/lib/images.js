@@ -56,14 +56,14 @@ export function imageForCode(resolved, code) {
  * See docs/STEFANO_QUEUE_2026-07-09.md §D.
  */
 const PLACEHOLDER_CODES = new Set([
-  "01101", "01174", "01190", "02091", "03044", "03047", "04165", "04176", "05050",
-  "05099", "20423", "20424", "20480", "20481", "40086", "40162", "40163",
+  "01101", "01174", "01190", "02091", "03044", "03073", "04165", "04176", "05091",
+  "05600", "20423", "20424", "20480", "20481", "40086", "40184", "40163",
 ]);
 
 /** Per-code caveats, surfaced in the UI next to the placeholder. */
 const PLACEHOLDER_NOTES = {
-  "03044": "The assortment sheet prints one identical photo for 03044 and 03047. One of them is wrong.",
-  "03047": "The assortment sheet prints one identical photo for 03044 and 03047. One of them is wrong.",
+  "03044": "The assortment sheet prints one identical photo for 03044 and 03073 (formerly 03047). One of them is wrong.",
+  "03073": "The assortment sheet prints one identical photo for 03044 and 03073 (formerly 03047). One of them is wrong.",
   "01174": "The sheet shows a Wedge and a Disc under this one item number. This is the Wedge.",
 };
 

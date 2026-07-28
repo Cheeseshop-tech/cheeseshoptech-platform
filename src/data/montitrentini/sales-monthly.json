@@ -419,7 +419,7 @@
       "source": "erp_monthly_2021-2024"
     },
     {
-      "skuCode": "40162",
+      "skuCode": "40184",
       "period": "2021-07",
       "soldLb": 157.5,
       "soldCases": null,
@@ -1310,7 +1310,7 @@
       "source": "erp_monthly_2021-2024"
     },
     {
-      "skuCode": "03047",
+      "skuCode": "03073",
       "period": "2023-08",
       "soldLb": 6.41,
       "soldCases": null,

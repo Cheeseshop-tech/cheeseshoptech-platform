@@ -534,48 +534,48 @@
     "30014": {
       "sku": "30014",
       "name": "Apericheese Yellow",
-      "packSize": "",
-      "weight": "",
-      "upc": "",
-      "milkType": "",
+      "packSize": "8 × 5.3 oz Exact Weight/case",
+      "weight": "5.3 oz",
+      "upc": "857594000936",
+      "milkType": "Cow milk",
       "minAge": "",
-      "shortDescription": "",
+      "shortDescription": "Apericheese Yellow label — caciotta with chili pepper, mountain herbs, black truffle. 8 × 5.3 oz exact-weight per case.",
       "longDescription": "",
       "certification": ""
     },
     "30015": {
       "sku": "30015",
       "name": "Apericheese Red",
-      "packSize": "",
-      "weight": "",
-      "upc": "",
-      "milkType": "",
+      "packSize": "8 × 5.3 oz Exact Weight/case",
+      "weight": "5.3 oz",
+      "upc": "857594000943",
+      "milkType": "Cow milk",
       "minAge": "",
-      "shortDescription": "",
+      "shortDescription": "Apericheese Red label — aged drunken cheese, aged fioretto, aged truffle cheese. 8 × 5.3 oz exact-weight per case.",
       "longDescription": "",
       "certification": ""
     },
     "30016": {
       "sku": "30016",
-      "name": "Apreicheese Orange",
-      "packSize": "",
-      "weight": "",
-      "upc": "",
-      "milkType": "",
+      "name": "Apericheese Orange",
+      "packSize": "8 × 5.3 oz Exact Weight/case",
+      "weight": "5.3 oz",
+      "upc": "857594000905",
+      "milkType": "Cow milk",
       "minAge": "",
-      "shortDescription": "",
+      "shortDescription": "Apericheese Orange label — provolone mild, smoked and sharp. 8 × 5.3 oz exact-weight per case.",
       "longDescription": "",
       "certification": ""
     },
     "30017": {
       "sku": "30017",
       "name": "Apericheese White",
-      "packSize": "",
-      "weight": "",
-      "upc": "",
-      "milkType": "",
+      "packSize": "8 × 5.3 oz Exact Weight/case",
+      "weight": "5.3 oz",
+      "upc": "857595000929",
+      "milkType": "Cow milk",
       "minAge": "",
-      "shortDescription": "",
+      "shortDescription": "Apericheese White label — Asiago fresh, aged, and vecchio. 8 × 5.3 oz exact-weight per case.",
       "longDescription": "",
       "certification": ""
     },
@@ -699,8 +699,8 @@
       "longDescription": "",
       "certification": "DOP"
     },
-    "40162": {
-      "sku": "40162",
+    "40184": {
+      "sku": "40184",
       "name": "Pecorino Romano PDO 7 Oz EW",
       "packSize": "12 × 7 oz Exact Weight Wedges/case",
       "weight": "7 oz",
@@ -915,15 +915,15 @@
       "longDescription": "",
       "certification": "DOP"
     },
-    "03047": {
-      "sku": "03047",
-      "name": "Asiago Vecchio PDO 7 Oz EW",
-      "packSize": "12 × 7 oz Exact Weight Wedges/case",
+    "03073": {
+      "sku": "03073",
+      "name": "Aged Asiago (Vecchio) 9 Months 7 Oz EW",
+      "packSize": "12 × 7 oz Exact Weight Wedges (ATM)/case",
       "weight": "7 oz",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "min. 9 months",
-      "shortDescription": "Asiago Vecchio PDO, nine months in the cave — dense, savory, deeply crystalline. 7 oz exact-weight wedge in ATM.",
+      "minAge": "9 months",
+      "shortDescription": "Aged Asiago (Vecchio) PDO, aged 9 months. 7 oz exact-weight wedge, ATM pack.",
       "longDescription": "",
       "certification": "PDO"
     },
@@ -987,15 +987,15 @@
       "longDescription": "",
       "certification": ""
     },
-    "05050": {
-      "sku": "05050",
-      "name": "Grana Padano PDO 7 Oz EW",
+    "05091": {
+      "sku": "05091",
+      "name": "Grana Padano 7 Oz EW",
       "packSize": "12 × 7 oz Exact Weight Wedges/case",
       "weight": "7 oz",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "min. 12 months",
-      "shortDescription": "Grana Padano PDO aged a minimum of twelve months — granular, sweet, endlessly useful. 7 oz exact-weight wedge, vacuum packed.",
+      "minAge": "min 12 months",
+      "shortDescription": "Grana Padano PDO, aged min 12 months. 7 oz exact-weight wedge, vacuum packed.",
       "longDescription": "",
       "certification": "PDO"
     },
@@ -1251,17 +1251,17 @@
       "longDescription": "",
       "certification": "PDO"
     },
-    "05099": {
-      "sku": "05099",
-      "name": "Parmigiano Reggiano DOP 7 Oz EW",
+    "05600": {
+      "sku": "05600",
+      "name": "Parmigiano Reggiano DOP Aged 18 Months 7 Oz EW",
       "packSize": "12 × 7 oz Exact Weight Wedges/case",
       "weight": "7 oz",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "min. 18 months",
-      "shortDescription": "Parmigiano Reggiano DOP at eighteen months — crystalline, brothy, unmistakable. 7 oz exact-weight wedge, vacuum packed.",
+      "minAge": "18 months",
+      "shortDescription": "Parmigiano Reggiano DOP, aged 18 months. 7 oz exact-weight wedge, vacuum packed.",
       "longDescription": "",
-      "certification": "DOP"
+      "certification": "PDO"
     },
     "01032": {
       "sku": "01032",
@@ -1395,27 +1395,15 @@
       "longDescription": "",
       "certification": ""
     },
-    "03073": {
-      "sku": "03073",
-      "name": "Aged Asiago Vecchio 9 Mesi",
-      "packSize": "",
-      "weight": "7oz",
-      "upc": "",
-      "milkType": "",
-      "minAge": "",
-      "shortDescription": "",
-      "longDescription": "",
-      "certification": ""
-    },
     "04182": {
       "sku": "04182",
       "name": "Vezzena Cheese 7 Oz EW",
-      "packSize": "",
-      "weight": "",
-      "upc": "",
-      "milkType": "",
-      "minAge": "",
-      "shortDescription": "",
+      "packSize": "12 × 7 oz Exact Weight Wedges/case",
+      "weight": "7 oz",
+      "upc": "857594000189",
+      "milkType": "Cow milk",
+      "minAge": "min 5 months",
+      "shortDescription": "Vezzena — cow's milk mountain cheese from the Trentino Alps, aged min. 5 months (C&W sheet). 7 oz exact-weight wedge, vacuum packed.",
       "longDescription": "",
       "certification": ""
     },
@@ -1446,24 +1434,12 @@
     "04211": {
       "sku": "04211",
       "name": "Alpeggio Cheese 7 Oz EW",
-      "packSize": "",
-      "weight": "",
-      "upc": "",
-      "milkType": "",
-      "minAge": "",
-      "shortDescription": "",
-      "longDescription": "",
-      "certification": ""
-    },
-    "05091": {
-      "sku": "05091",
-      "name": "Grana Padano",
-      "packSize": "",
-      "weight": "7oz",
-      "upc": "",
-      "milkType": "",
-      "minAge": "",
-      "shortDescription": "",
+      "packSize": "12 × 7 oz Exact Weight Wedges/case",
+      "weight": "7 oz",
+      "upc": "857594000196",
+      "milkType": "Cow milk",
+      "minAge": "min 10 months",
+      "shortDescription": "Alpeggio — cow's milk from the Trentino Alps, aged min. 10 months. 7 oz exact-weight wedge, vacuum packed.",
       "longDescription": "",
       "certification": ""
     },
@@ -1491,17 +1467,17 @@
       "longDescription": "",
       "certification": ""
     },
-    "05600": {
-      "sku": "05600",
-      "name": "Parmigiano",
-      "packSize": "",
-      "weight": "7oz",
+    "tbd": {
+      "sku": "tbd",
+      "name": "Aged Black Truffle 7 Oz EW",
+      "packSize": "12 × 7 oz Exact Weight Wedges/case",
+      "weight": "7 oz",
       "upc": "",
-      "milkType": "",
+      "milkType": "Cow milk",
       "minAge": "",
-      "shortDescription": "",
-      "longDescription": "",
-      "certification": ""
+      "certification": "",
+      "shortDescription": "Aged caciotta with black summer truffle. 7 oz exact-weight wedge, vacuum packed. Item number pending from Inventory Manager.",
+      "longDescription": ""
     }
   }
 }

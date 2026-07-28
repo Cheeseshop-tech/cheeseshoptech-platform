@@ -54,7 +54,25 @@ Now:
 | 40163 | Ricotta Salata | 3.09 | 37.04 |
 | 40086 | Montasio PDO | 3.87 | 46.48 |
 
-## Item-number conflicts — queue for Inventory Manager (identity is never guessed)
+## Item-number conflicts — RESOLVED 2026-07-28 (Rick: feed numbering wins)
+
+Rick ruled the same day: **the price-list / warehouse-feed numbering wins.** The
+four catalog codes were renumbered (former code kept in each SKU's
+`_formerCode`); placeholder images, items-seed, sales-monthly and images.js were
+renumbered with them. The confirmed trigger: the warehouse feed carries stock
+under the feed codes, so the old catalog codes could never join to inventory.
+
+| Now (feed) | Former (catalog) | Product |
+|---|---|---|
+| 03073 | 03047 | Aged Asiago (Vecchio), aged 9 months — C&W 7 oz EW Wedges ATM, 12/cs |
+| 05091 | 05050 | Grana Padano, aged min 12 months — C&W 7 oz EW Wedges Vacuum Pack, 12/cs |
+| 05600 | 05099 | Parmigiano Reggiano 18 mo — C&W 7 oz EW Wedges Vacuum Pack, 12/cs |
+| 40184 | 40162 | Pecorino Romano PDO — C&W 7 oz EW Wedges Vacuum Pack, 12/cs |
+
+Note: 40184 is not in the warehouse feed yet (the other three are, at 0 cases).
+When the feed picks it up the join is ready.
+
+### Original queue entry (superseded, kept for the record)
 
 The price list prints **different item numbers** than the catalog for four
 products. Catalog codes were KEPT; the price-list code is recorded in each SKU's
@@ -82,10 +100,14 @@ packing; the Disc needs its own item number before it can be quoted.
 
 ## On the sheet but NOT in the catalog (not added — needs Rick's call)
 
-- **04211 Alpeggio** C&W wedge ($53.97/cs) and **04182 Vezzena** C&W wedge
-  ($53.14/cs) — products exist in the catalog but have no C&W wedge SKU.
-- **Aged Black Truffle** C&W ($59.15/cs) — still "tbd" item number, still
-  colliding with 03047's UPC.
-- **Apericheese 30014–30017** (8 × 5.3 oz, $29.28–$31.89/cs) — the other
-  exact-weight per-unit line from the principles doc; would slot straight into
-  `unit: "case"` once added.
+- ~~04211 Alpeggio~~ — **ADDED 2026-07-28 per Rick** at $53.97/cs (unit "case",
+  12 × 7 oz vacuum). It had 24 cases available + 24 in transit on the feed.
+- ~~04182 Vezzena~~ — **ADDED 2026-07-28 per Rick** at $53.14/cs (unit "case",
+  12 × 7 oz vacuum). 0 cases on the 2026-07-28 feed; joins as stock arrives.
+- ~~Aged Black Truffle~~ — **ADDED 2026-07-28 per Rick** at $59.15/cs with item
+  number "tbd" exactly as the sheet prints it. Still needs a real number from
+  the Inventory Manager (UPC collides with 03073, ex-03047).
+- ~~Apericheese 30014–30017~~ — **ADDED + PRICED 2026-07-28** from the re-uploaded
+  PDF: Yellow $29.58 · Red $31.89 · Orange $29.28 · White $31.39 per case of
+  8 × 5.3 oz (net 3.97 lb, 176/pallet, 120 days). UPCs captured in items-seed
+  (White prints prefix 857595…, the others 857594… — as printed).

@@ -39,6 +39,31 @@
             "shelfDays": 240
           },
           "availability": "in_stock"
+        },
+        {
+          "code": "04211",
+          "packing": "7 oz Exact Weight Wedges, vacuum packed",
+          "image": "04211",
+          "unit": "case",
+          "cost": {
+            "fob": null,
+            "fobPiece": 4.5,
+            "fobCase": 53.97
+          },
+          "list": {
+            "retail": null,
+            "wholesale": null
+          },
+          "pack": {
+            "piecesPerCase": 12,
+            "netLb": 5.25,
+            "grossLb": 6.0,
+            "palletTiHi": "20 x 5",
+            "casesPerPallet": 144,
+            "shelfDays": 150
+          },
+          "availability": "in_stock",
+          "_priceNote": "EXW Elizabeth NJ per-case pricing from 2026-03 C&W price list (AlmaCow/BDiPalo/Dekalb). Priced per case of 12 x 7 oz exact-weight pieces; $/lb intentionally not used. Added 2026-07-28 per Rick — was on the price list but had no catalog SKU while the warehouse held stock (24 avail + 24 in transit on the 2026-07-28 feed). fobPiece not printed in the extraction record; fobCase is authoritative."
         }
       ]
     },
@@ -407,9 +432,9 @@
           "availability": "in_stock"
         },
         {
-          "code": "03047",
+          "code": "03073",
           "packing": "7 oz Exact Weight Wedges, ATM",
-          "image": "03047",
+          "image": "03073",
           "unit": "case",
           "cost": {
             "fob": null,
@@ -429,7 +454,8 @@
             "shelfDays": 150
           },
           "availability": "unavailable",
-          "_priceNote": "EXW Elizabeth NJ per-case pricing from 2026-03 C&W price list (AlmaCow/BDiPalo/Dekalb). Priced per case of 12 x 7 oz exact-weight pieces; $/lb intentionally not used. NOTE: price list prints item 03073 for this product — catalog keeps 03047 pending Inventory Manager ruling."
+          "_priceNote": "EXW Elizabeth NJ per-case pricing from 2026-03 C&W price list (AlmaCow/BDiPalo/Dekalb). Priced per case of 12 x 7 oz exact-weight pieces; $/lb intentionally not used. Renumbered 03047 -> 03073 on 2026-07-28 per Rick: the price-list/warehouse-feed numbering wins; former catalog code kept in _formerCode.",
+          "_formerCode": "03047"
         }
       ]
     },
@@ -874,6 +900,31 @@
           },
           "availability": "in_stock",
           "_priceNote": "EXW Elizabeth NJ per-case pricing from 2026-03 C&W price list (AlmaCow/BDiPalo/Dekalb). Priced per case of 12 x 7 oz exact-weight pieces; $/lb intentionally not used."
+        },
+        {
+          "code": "tbd",
+          "packing": "Aged Black Truffle\n7 oz Exact Weight Wedges, vacuum packed",
+          "image": "tbd",
+          "unit": "case",
+          "cost": {
+            "fob": null,
+            "fobPiece": 4.93,
+            "fobCase": 59.15
+          },
+          "list": {
+            "retail": null,
+            "wholesale": null
+          },
+          "pack": {
+            "piecesPerCase": 12,
+            "netLb": 5.25,
+            "grossLb": 6.0,
+            "palletTiHi": "20 x 5",
+            "casesPerPallet": 144,
+            "shelfDays": 150
+          },
+          "availability": "unavailable",
+          "_priceNote": "EXW Elizabeth NJ per-case pricing from 2026-03 C&W price list (AlmaCow/BDiPalo/Dekalb). Priced per case of 12 x 7 oz exact-weight pieces. Item number printed as 'tbd' on the sheet — added as-is per Rick 2026-07-28. NEEDS a real item number from the Inventory Manager before it can hit the ERP/feed; sheet UPC 857594000158 collides with Asiago Vecchio (now 03073) — see CUT_AND_WRAP_ITEM_GAP_2026-07-09.md §3.1."
         }
       ]
     },
@@ -1296,9 +1347,9 @@
           "availability": "in_stock"
         },
         {
-          "code": "05050",
+          "code": "05091",
           "packing": "7 oz Exact Weight Wedges, vacuum packed",
-          "image": "05050",
+          "image": "05091",
           "unit": "case",
           "cost": {
             "fob": null,
@@ -1318,7 +1369,8 @@
             "shelfDays": 150
           },
           "availability": "unavailable",
-          "_priceNote": "EXW Elizabeth NJ per-case pricing from 2026-03 C&W price list (AlmaCow/BDiPalo/Dekalb). Priced per case of 12 x 7 oz exact-weight pieces; $/lb intentionally not used. NOTE: price list prints item 05091 for this product — catalog keeps 05050 pending Inventory Manager ruling."
+          "_priceNote": "EXW Elizabeth NJ per-case pricing from 2026-03 C&W price list (AlmaCow/BDiPalo/Dekalb). Priced per case of 12 x 7 oz exact-weight pieces; $/lb intentionally not used. Renumbered 05050 -> 05091 on 2026-07-28 per Rick: the price-list/warehouse-feed numbering wins; former catalog code kept in _formerCode.",
+          "_formerCode": "05050"
         },
         {
           "code": "05123",
@@ -1998,9 +2050,9 @@
           "availability": "in_stock"
         },
         {
-          "code": "05099",
-          "packing": "7 oz Exact Weight Wedges, vacuum packed",
-          "image": "05099",
+          "code": "05600",
+          "packing": "Aged 18 months\n7 oz Exact Weight Wedges, vacuum packed",
+          "image": "05600",
           "unit": "case",
           "cost": {
             "fob": null,
@@ -2020,7 +2072,8 @@
             "shelfDays": 150
           },
           "availability": "unavailable",
-          "_priceNote": "EXW Elizabeth NJ per-case pricing from 2026-03 C&W price list (AlmaCow/BDiPalo/Dekalb). Priced per case of 12 x 7 oz exact-weight pieces; $/lb intentionally not used. NOTE: price list prints item 05600 for this product — catalog keeps 05099 pending Inventory Manager ruling."
+          "_priceNote": "EXW Elizabeth NJ per-case pricing from 2026-03 C&W price list (AlmaCow/BDiPalo/Dekalb). Priced per case of 12 x 7 oz exact-weight pieces; $/lb intentionally not used. Renumbered 05099 -> 05600 on 2026-07-28 per Rick: the price-list/warehouse-feed numbering wins; former catalog code kept in _formerCode.",
+          "_formerCode": "05099"
         }
       ]
     },
@@ -2083,9 +2136,9 @@
           "availability": "in_stock"
         },
         {
-          "code": "40162",
+          "code": "40184",
           "packing": "7 oz Exact Weight Wedges, vacuum packed",
-          "image": "40162",
+          "image": "40184",
           "unit": "case",
           "cost": {
             "fob": null,
@@ -2105,7 +2158,8 @@
             "shelfDays": 150
           },
           "availability": "unavailable",
-          "_priceNote": "EXW Elizabeth NJ per-case pricing from 2026-03 C&W price list (AlmaCow/BDiPalo/Dekalb). Priced per case of 12 x 7 oz exact-weight pieces; $/lb intentionally not used. NOTE: price list prints item 40184 for this product — catalog keeps 40162 pending Inventory Manager ruling."
+          "_priceNote": "EXW Elizabeth NJ per-case pricing from 2026-03 C&W price list (AlmaCow/BDiPalo/Dekalb). Priced per case of 12 x 7 oz exact-weight pieces; $/lb intentionally not used. Renumbered 40162 -> 40184 on 2026-07-28 per Rick: the price-list/warehouse-feed numbering wins; former catalog code kept in _formerCode.",
+          "_formerCode": "40162"
         }
       ]
     },
@@ -2822,6 +2876,147 @@
             "shelfDays": 360
           },
           "availability": "in_stock"
+        },
+        {
+          "code": "04182",
+          "packing": "7 oz Exact Weight Wedges, vacuum packed",
+          "image": "04182",
+          "unit": "case",
+          "cost": {
+            "fob": null,
+            "fobPiece": 4.43,
+            "fobCase": 53.14
+          },
+          "list": {
+            "retail": null,
+            "wholesale": null
+          },
+          "pack": {
+            "piecesPerCase": 12,
+            "netLb": 5.25,
+            "grossLb": 6.0,
+            "palletTiHi": "20 x 5",
+            "casesPerPallet": 144,
+            "shelfDays": 150
+          },
+          "availability": "unavailable",
+          "_priceNote": "EXW Elizabeth NJ per-case pricing from 2026-03 C&W price list (AlmaCow/BDiPalo/Dekalb). Priced per case of 12 x 7 oz exact-weight pieces; $/lb intentionally not used. Added 2026-07-28 per Rick — was on the price list with no catalog SKU. 0 cases on the 2026-07-28 feed; joins the feed as stock arrives. fobPiece not printed in the extraction record; fobCase is authoritative."
+        }
+      ]
+    },
+    {
+      "id": "apericheese",
+      "name": "Apericheese",
+      "category": "Alpine & Specialty",
+      "marketing": {
+        "blurb": "Exact-weight snacking selection from the Trentino plants in Grigno — four colors, packed 8 × 5.3 oz per case.",
+        "badge": "Mountain",
+        "tags": [],
+        "age": "—",
+        "milk": "Cow milk",
+        "featured": false,
+        "grad": "linear-gradient(145deg, #FFFBDC, #009640)"
+      },
+      "skus": [
+        {
+          "code": "30014",
+          "packing": "Yellow\n8 x 5.3 oz Exact Weight, vacuum packed",
+          "image": "30014",
+          "unit": "case",
+          "cost": {
+            "fob": null,
+            "fobPiece": 3.7,
+            "fobCase": 29.58
+          },
+          "list": {
+            "retail": null,
+            "wholesale": null
+          },
+          "pack": {
+            "piecesPerCase": 8,
+            "netLb": 3.97,
+            "grossLb": 6.0,
+            "palletTiHi": "16 x 11",
+            "casesPerPallet": 176,
+            "shelfDays": 120
+          },
+          "availability": "unavailable",
+          "_priceNote": "EXW Elizabeth NJ per-case pricing from 2026-03 C&W price list (AlmaCow/BDiPalo/Dekalb), transcribed from the PDF 2026-07-28: 8 x 5.3 oz exact-weight pieces per case; fobCase is the printed per-case number, fobPiece the printed per-piece. Sheet net 3.97 lb/cs, 176 cs/pallet (16x11), 120 days shelf."
+        },
+        {
+          "code": "30015",
+          "packing": "Red\n8 x 5.3 oz Exact Weight, vacuum packed",
+          "image": "30015",
+          "unit": "case",
+          "cost": {
+            "fob": null,
+            "fobPiece": 3.99,
+            "fobCase": 31.89
+          },
+          "list": {
+            "retail": null,
+            "wholesale": null
+          },
+          "pack": {
+            "piecesPerCase": 8,
+            "netLb": 3.97,
+            "grossLb": 6.0,
+            "palletTiHi": "16 x 11",
+            "casesPerPallet": 176,
+            "shelfDays": 120
+          },
+          "availability": "unavailable",
+          "_priceNote": "EXW Elizabeth NJ per-case pricing from 2026-03 C&W price list (AlmaCow/BDiPalo/Dekalb), transcribed from the PDF 2026-07-28: 8 x 5.3 oz exact-weight pieces per case; fobCase is the printed per-case number, fobPiece the printed per-piece. Sheet net 3.97 lb/cs, 176 cs/pallet (16x11), 120 days shelf."
+        },
+        {
+          "code": "30016",
+          "packing": "Orange\n8 x 5.3 oz Exact Weight, vacuum packed",
+          "image": "30016",
+          "unit": "case",
+          "cost": {
+            "fob": null,
+            "fobPiece": 3.66,
+            "fobCase": 29.28
+          },
+          "list": {
+            "retail": null,
+            "wholesale": null
+          },
+          "pack": {
+            "piecesPerCase": 8,
+            "netLb": 3.97,
+            "grossLb": 6.0,
+            "palletTiHi": "16 x 11",
+            "casesPerPallet": 176,
+            "shelfDays": 120
+          },
+          "availability": "unavailable",
+          "_priceNote": "EXW Elizabeth NJ per-case pricing from 2026-03 C&W price list (AlmaCow/BDiPalo/Dekalb), transcribed from the PDF 2026-07-28: 8 x 5.3 oz exact-weight pieces per case; fobCase is the printed per-case number, fobPiece the printed per-piece. Sheet net 3.97 lb/cs, 176 cs/pallet (16x11), 120 days shelf."
+        },
+        {
+          "code": "30017",
+          "packing": "White\n8 x 5.3 oz Exact Weight, vacuum packed",
+          "image": "30017",
+          "unit": "case",
+          "cost": {
+            "fob": null,
+            "fobPiece": 3.92,
+            "fobCase": 31.39
+          },
+          "list": {
+            "retail": null,
+            "wholesale": null
+          },
+          "pack": {
+            "piecesPerCase": 8,
+            "netLb": 3.97,
+            "grossLb": 6.0,
+            "palletTiHi": "16 x 11",
+            "casesPerPallet": 176,
+            "shelfDays": 120
+          },
+          "availability": "unavailable",
+          "_priceNote": "EXW Elizabeth NJ per-case pricing from 2026-03 C&W price list (AlmaCow/BDiPalo/Dekalb), transcribed from the PDF 2026-07-28: 8 x 5.3 oz exact-weight pieces per case; fobCase is the printed per-case number, fobPiece the printed per-piece. Sheet net 3.97 lb/cs, 176 cs/pallet (16x11), 120 days shelf."
         }
       ]
     }
