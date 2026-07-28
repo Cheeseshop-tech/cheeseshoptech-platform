@@ -1,14 +1,14 @@
 {
   "schemaVersion": "1.2",
   "clientId": "monti-trentini",
-  "lastUpdated": "2026-07-24",
+  "lastUpdated": "2026-07-27",
   "lastUpdatedSource": "drive-modifiedTime",
   "sheetStatedUpdate": "2026-07-28",
-  "sheetModifiedAt": "2026-07-24T15:53:09.134Z",
+  "sheetModifiedAt": "2026-07-27T16:05:43.983Z",
   "sheetFileId": "1meZQQ_0dA1S1IR5xjVWzFvuqCJE6DLgVd-fOfSMGvCk",
   "sheetOwner": "order@montitrentini-usa.com",
-  "source": "availability_2026-07-25.csv",
-  "generatedAt": "2026-07-25T23:26:23.204Z",
+  "source": "availability_2026-07-28.csv",
+  "generatedAt": "2026-07-28T11:18:09.161Z",
   "generatedBy": "scripts/sync-inventory.mjs",
   "skus": {
     "20141": {
@@ -133,7 +133,7 @@
           "netAvailLb": 1680,
           "expDate": "2027-05-05",
           "expMonth": null,
-          "comment": ""
+          "comment": "8/10"
         },
         {
           "lotNum": "1308177",
@@ -145,7 +145,7 @@
           "netAvailLb": 1680,
           "expDate": "2027-05-05",
           "expMonth": null,
-          "comment": ""
+          "comment": "8/10"
         },
         {
           "lotNum": "1308178",
@@ -157,7 +157,7 @@
           "netAvailLb": 1680,
           "expDate": "2027-05-05",
           "expMonth": null,
-          "comment": ""
+          "comment": "8/12"
         },
         {
           "lotNum": "1308179",
@@ -169,7 +169,7 @@
           "netAvailLb": 1680,
           "expDate": "2027-05-05",
           "expMonth": null,
-          "comment": ""
+          "comment": "8/12"
         },
         {
           "lotNum": "1312763",
@@ -181,7 +181,7 @@
           "netAvailLb": 1680,
           "expDate": "2027-06-18",
           "expMonth": null,
-          "comment": ""
+          "comment": "8/12"
         },
         {
           "lotNum": "1312768",
@@ -193,7 +193,7 @@
           "netAvailLb": 1680,
           "expDate": "2027-06-18",
           "expMonth": null,
-          "comment": ""
+          "comment": "8/13"
         },
         {
           "lotNum": "1312782",
@@ -205,7 +205,7 @@
           "netAvailLb": 1680,
           "expDate": "2027-06-18",
           "expMonth": null,
-          "comment": ""
+          "comment": "8/17"
         },
         {
           "lotNum": "1312789",
@@ -217,7 +217,7 @@
           "netAvailLb": 1680,
           "expDate": "2027-06-18",
           "expMonth": null,
-          "comment": ""
+          "comment": "8/19"
         },
         {
           "lotNum": "1312790",
@@ -229,7 +229,7 @@
           "netAvailLb": 1680,
           "expDate": "2027-06-18",
           "expMonth": null,
-          "comment": ""
+          "comment": "8/20"
         },
         {
           "lotNum": "1312796",
@@ -241,7 +241,7 @@
           "netAvailLb": 1680,
           "expDate": "2027-06-18",
           "expMonth": null,
-          "comment": ""
+          "comment": "8/24"
         },
         {
           "lotNum": "1312780",
@@ -253,7 +253,7 @@
           "netAvailLb": 1680,
           "expDate": "2027-06-19",
           "expMonth": null,
-          "comment": ""
+          "comment": "8/26"
         },
         {
           "lotNum": "1312784",
@@ -265,7 +265,7 @@
           "netAvailLb": 1680,
           "expDate": "2027-06-19",
           "expMonth": null,
-          "comment": ""
+          "comment": "8/27"
         },
         {
           "lotNum": "1312785",
@@ -277,7 +277,7 @@
           "netAvailLb": 1680,
           "expDate": "2027-06-19",
           "expMonth": null,
-          "comment": ""
+          "comment": "8/31"
         },
         {
           "lotNum": "1312781",
@@ -289,7 +289,7 @@
           "netAvailLb": 1680,
           "expDate": "2027-06-20",
           "expMonth": null,
-          "comment": ""
+          "comment": "8/31"
         },
         {
           "lotNum": "269536801",
@@ -301,7 +301,7 @@
           "netAvailLb": 1404.87,
           "expDate": null,
           "expMonth": "2027-06",
-          "comment": ""
+          "comment": "9/2"
         },
         {
           "lotNum": "269536801",
@@ -313,7 +313,7 @@
           "netAvailLb": 1506.43,
           "expDate": null,
           "expMonth": "2027-06",
-          "comment": ""
+          "comment": "9/2"
         },
         {
           "lotNum": "269536801",
@@ -325,7 +325,7 @@
           "netAvailLb": 1481.37,
           "expDate": null,
           "expMonth": "2027-06",
-          "comment": ""
+          "comment": "9/2"
         },
         {
           "lotNum": "269536801",
@@ -337,7 +337,7 @@
           "netAvailLb": 1446.22,
           "expDate": null,
           "expMonth": "2027-07",
-          "comment": ""
+          "comment": "9/7"
         },
         {
           "lotNum": "269536801",
@@ -349,7 +349,7 @@
           "netAvailLb": 1472.62,
           "expDate": null,
           "expMonth": "2027-07",
-          "comment": ""
+          "comment": "9/9"
         },
         {
           "lotNum": "269536803",
@@ -361,7 +361,7 @@
           "netAvailLb": 1380.81,
           "expDate": null,
           "expMonth": "2027-07",
-          "comment": ""
+          "comment": "9/16"
         },
         {
           "lotNum": "269536803",
@@ -373,7 +373,7 @@
           "netAvailLb": 1470.94,
           "expDate": null,
           "expMonth": "2027-07",
-          "comment": ""
+          "comment": "9/16"
         },
         {
           "lotNum": "269536803",
@@ -385,7 +385,7 @@
           "netAvailLb": 1394.08,
           "expDate": null,
           "expMonth": "2027-07",
-          "comment": ""
+          "comment": "9/16"
         },
         {
           "lotNum": "269536803",
@@ -397,7 +397,7 @@
           "netAvailLb": 1524.31,
           "expDate": null,
           "expMonth": "2027-07",
-          "comment": ""
+          "comment": "9/16"
         },
         {
           "lotNum": "269536803",
@@ -409,7 +409,7 @@
           "netAvailLb": 1527.07,
           "expDate": null,
           "expMonth": "2027-07",
-          "comment": ""
+          "comment": "9/23"
         },
         {
           "lotNum": "269536802",
@@ -421,7 +421,7 @@
           "netAvailLb": 1471.43,
           "expDate": null,
           "expMonth": "2027-07",
-          "comment": ""
+          "comment": "9/23"
         },
         {
           "lotNum": "269536802",
@@ -433,7 +433,7 @@
           "netAvailLb": 1584.54,
           "expDate": null,
           "expMonth": "2027-07",
-          "comment": ""
+          "comment": "9/30"
         },
         {
           "lotNum": "269536802",
@@ -445,7 +445,7 @@
           "netAvailLb": 1506.39,
           "expDate": null,
           "expMonth": "2027-07",
-          "comment": ""
+          "comment": "9/30"
         },
         {
           "lotNum": "269536802",
@@ -457,7 +457,7 @@
           "netAvailLb": 1518.9,
           "expDate": null,
           "expMonth": "2027-07",
-          "comment": ""
+          "comment": "9/30"
         },
         {
           "lotNum": "269536802",
@@ -634,18 +634,6 @@
           "expDate": "2026-01-15",
           "expMonth": null,
           "comment": "exp"
-        },
-        {
-          "lotNum": "1312766",
-          "status": "on_hand",
-          "receiptDate": "2026-07-23",
-          "eta": null,
-          "cases": 20,
-          "reserved": 20,
-          "netAvailLb": 1074.16,
-          "expDate": "2027-02-19",
-          "expMonth": null,
-          "comment": "20x Dekalb LSDELI126071070"
         },
         {
           "lotNum": "90726195",
@@ -838,12 +826,12 @@
           "status": "on_hand",
           "receiptDate": "2026-04-24",
           "eta": null,
-          "cases": 240,
-          "reserved": 5,
+          "cases": 235,
+          "reserved": 0,
           "netAvailLb": 1468.41,
           "expDate": "2026-11-22",
           "expMonth": null,
-          "comment": "Dekalb LSDELI126071070 / Lettieri?"
+          "comment": "Lettieri?"
         }
       ]
     },
@@ -882,12 +870,12 @@
           "status": "on_hand",
           "receiptDate": "2026-07-23",
           "eta": null,
-          "cases": 40,
-          "reserved": 2,
+          "cases": 38,
+          "reserved": 0,
           "netAvailLb": 280.64,
           "expDate": "2027-07-02",
           "expMonth": null,
-          "comment": "2x Dekalb LSDELI126071070"
+          "comment": ""
         }
       ]
     },
@@ -1182,12 +1170,12 @@
           "status": "on_hand",
           "receiptDate": "2026-04-03",
           "eta": null,
-          "cases": 27,
-          "reserved": 20,
+          "cases": 7,
+          "reserved": 0,
           "netAvailLb": 1514.54,
           "expDate": "2027-03-06",
           "expMonth": null,
-          "comment": "Dekalb LSDELI126071070"
+          "comment": ""
         }
       ]
     },
@@ -1369,20 +1357,7 @@
       "casesInTransit": 0,
       "comment": "Main customer DeKalb",
       "commentEn": "",
-      "lots": [
-        {
-          "lotNum": "1285659",
-          "status": "on_hand",
-          "receiptDate": "2026-04-03",
-          "eta": null,
-          "cases": 8,
-          "reserved": 8,
-          "netAvailLb": 119.488,
-          "expDate": "2026-12-06",
-          "expMonth": null,
-          "comment": "Dekalb LSDELI126071070"
-        }
-      ]
+      "lots": []
     },
     "40174": {
       "code": "40174",
@@ -1524,23 +1499,11 @@
     "01186": {
       "code": "01186",
       "name": "SMOKED PROVOLONE CYLINDER",
-      "casesAvail": 92,
+      "casesAvail": 72,
       "casesInTransit": 72,
       "comment": "we try to have 1 pallet available in stock. Veroni-Creminelli preorder",
       "commentEn": "",
       "lots": [
-        {
-          "lotNum": "1308185",
-          "status": "on_hand",
-          "receiptDate": "2026-07-03",
-          "eta": null,
-          "cases": 20,
-          "reserved": 0,
-          "netAvailLb": 1033.29,
-          "expDate": "2027-02-03",
-          "expMonth": null,
-          "comment": "20x Dekalb LSDELI126071070"
-        },
         {
           "lotNum": "70726196",
           "status": "in_transit",
@@ -1569,22 +1532,9 @@
       "name": "PROVOLONE PICCANTE WITH TRICOLORE ROPE",
       "casesAvail": 0,
       "casesInTransit": 0,
-      "comment": "only for Cheese Importers, was the first order good?  He needs more?",
+      "comment": "Cheese Importers and Dekalb01269",
       "commentEn": "",
-      "lots": [
-        {
-          "lotNum": "1304218",
-          "status": "on_hand",
-          "receiptDate": "2026-06-18",
-          "eta": null,
-          "cases": 10,
-          "reserved": 10,
-          "netAvailLb": 204.285,
-          "expDate": "2027-01-13",
-          "expMonth": null,
-          "comment": "Dekalb LSDELI126071070"
-        }
-      ]
+      "lots": []
     },
     "01299": {
       "code": "01299",
@@ -1710,12 +1660,12 @@
           "status": "on_hand",
           "receiptDate": "2026-05-15",
           "eta": null,
-          "cases": 12,
-          "reserved": 5,
+          "cases": 7,
+          "reserved": 0,
           "netAvailLb": 355.35,
           "expDate": "2026-12-16",
           "expMonth": null,
-          "comment": "Dekalb LSDELI126071070"
+          "comment": ""
         },
         {
           "lotNum": "1296191",
@@ -1765,12 +1715,12 @@
           "status": "on_hand",
           "receiptDate": "2026-04-24",
           "eta": null,
-          "cases": 30,
-          "reserved": 10,
+          "cases": 20,
+          "reserved": 0,
           "netAvailLb": 571.75,
           "expDate": "2027-03-22",
           "expMonth": null,
-          "comment": "Dekalb LSDELI126071070"
+          "comment": ""
         }
       ]
     },
