@@ -262,13 +262,21 @@ function Proforma({ data, brand, resolved, onNavigate, itemsDoc }) {
   // valid-until date — the price snapshot at generation time (wholesale Phase 1).
   function printProforma() {
     if (!items.length) { toast({ title: "Nothing to print", description: "Enter case quantities first.", tone: "warning" }); return; }
+    // Hard stop on unpriced SKUs: the engine returns null for them but quoteLineTotal
+    // degrades null to $0 — a proforma must never leave here quoting free cheese.
+    if (order.unpricedCodes && order.unpricedCodes.length) {
+      toast({ title: "Unpriced item on this quote", description: `No cost on file for ${order.unpricedCodes.join(", ")} — remove the line(s) or get pricing before printing.`, tone: "warning" });
+      return;
+    }
     if (!validUntil) { toast({ title: "Set a quote valid-until date", description: "Every proforma carries a rep-set validity date — no default window.", tone: "warning" }); return; }
     const brandColor = (brand && brand.colors && brand.colors.primary) || "#064E22";
     const b = (config.brand) || {};
     const rows = order.lines.map((l) => {
       const a = PC.allocate(l.code, l.cases, inventory);
       const lots = a.allocated.map((x) => `${x.cases}cs lot ${x.lotNum}${x.expDate ? " (exp " + fmtDate(x.expDate) + ")" : ""}`).join("; ");
-      return `<tr><td>${esc(l.code)}</td><td>${esc(l.name)}</td><td class="r">${l.cases}</td><td class="r">${lbsFmt(l.lbs)}</td><td class="r">${money(l.unitPrice)}</td><td class="r">${money(l.lineTotal)}</td></tr>`
+      // Per-line price basis: catch-weight bulk shows $/lb, exact-weight precuts show $/case.
+      const per = l.unit === "case" ? "cs" : "lb";
+      return `<tr><td>${esc(l.code)}</td><td>${esc(l.name)}</td><td class="r">${l.cases}</td><td class="r">${lbsFmt(l.lbs)}</td><td class="r">${money(l.unitPrice)}<span style="color:#666">/${per}</span></td><td class="r">${money(l.lineTotal)}</td></tr>`
         + (lots ? `<tr class="lot"><td></td><td colspan="5">↳ ${esc(lots)}${a.shortfall > 0 ? ` · <b>${a.shortfall} cs short</b>` : ""}</td></tr>` : "");
     }).join("");
     const fees = effFreight.map((f) => `<tr class="fee"><td colspan="5" class="r">${esc(f.label)}</td><td class="r">${money(f.amount)}</td></tr>`).join("");
@@ -285,13 +293,14 @@ function Proforma({ data, brand, resolved, onNavigate, itemsDoc }) {
     </style></head><body>
       <div class="hd"><div><h1>${esc(b.name || "Monti Trentini")}</h1><div class="sub">${esc(b.tagline || "")}</div></div><div><div class="pf">PROFORMA</div><div class="sub">${TODAY}</div></div></div>
       <div class="meta"><div><b>Bill to</b>${esc(customer || "—")}</div><div><b>Basis</b>${basis === "pickup" ? "Pickup (EXW)" : "Delivered"}</div><div><b>Class of trade</b>${esc(tier.label || "")}</div>${customPct ? `<div><b>Custom</b>${customPct > 0 ? "+" : ""}${customPct}%</div>` : ""}<div><b>Quote valid until</b><span style="font-weight:700;color:${brandColor}">${esc(fmtDate(validUntil))}</span></div></div>
-      <table><thead><tr><th>Item</th><th>Product</th><th class="r">Cases</th><th class="r">Lbs (est.)</th><th class="r">$/lb (firm)</th><th class="r">Line total (est.)</th></tr></thead>
+      <table><thead><tr><th>Item</th><th>Product</th><th class="r">Cases</th><th class="r">Lbs</th><th class="r">Unit price (firm)</th><th class="r">Line total</th></tr></thead>
       <tbody>${rows}</tbody>
       <tfoot><tr><td colspan="5" class="r">Merchandise (${order.lines.length} lines · ${lbsFmt(order.totalLbs)} lb)</td><td class="r">${money(order.merchSubtotal)}</td></tr>${fees}<tr class="grand"><td colspan="5" class="r">GRAND TOTAL (estimate)</td><td class="r">${money(grand)}</td></tr></tfoot></table>
       <div class="ft" style="text-align:left;line-height:1.5;max-width:760px;margin-left:auto;margin-right:auto">
-        Prices are quoted <b>per pound (firm)</b>. Bulk cheese is sold by <b>catch weight</b> — line and order totals are
-        <b>estimates based on average weights</b>; the actual weight of each item will vary and is confirmed when the order
-        is weighed at our warehouse. The trucking fee shown is an <b>estimate pending confirmation with the logistics
+        Bulk cheese is quoted <b>per pound (firm $/lb)</b> and sold by <b>catch weight</b> — those line totals are
+        <b>estimates based on average weights</b>, confirmed when the order is weighed at our warehouse.
+        Exact-weight precuts (7 oz wedges, 12 pieces per case) are quoted <b>per case (firm $/cs)</b> — those line
+        totals are firm. The trucking fee shown is an <b>estimate pending confirmation with the logistics
         provider</b>. Processing and logistics are billed as separate line items. <b>Quote valid until ${esc(fmtDate(validUntil))}</b> — request updated pricing after this date. &nbsp;·&nbsp; Casa Finco · casari dal 1925.
       </div>
       <script>window.onload=function(){window.print();}<\/script></body></html>`;
@@ -428,7 +437,7 @@ function Proforma({ data, brand, resolved, onNavigate, itemsDoc }) {
               <TableRow>
                 <TableHead>Product</TableHead>
                 <TableHead>Inventory &amp; lots</TableHead>
-                <TableHead className="text-right">$/lb</TableHead>
+                <TableHead className="text-right">Price</TableHead>
                 <TableHead className="text-right">Cases</TableHead>
                 <TableHead className="text-right">Line total</TableHead>
               </TableRow>
@@ -464,7 +473,7 @@ function Proforma({ data, brand, resolved, onNavigate, itemsDoc }) {
                         <div className="min-w-0">
                           <span className="font-mono text-xs font-semibold text-brand-primary">{s.code}</span>
                           <div className="font-medium text-fg">{s.name}</div>
-                          <div className="text-xs text-fg-muted">{s.category} · {s.pack.netLb} lb/cs</div>
+                          <div className="text-xs text-fg-muted">{s.category} · {s.unit === "case" && s.pack.piecesPerCase ? `${s.pack.piecesPerCase} pc · ` : ""}{s.pack.netLb} lb/cs</div>
                           {c && <div className="mt-1 text-[11px] font-semibold text-brand-primary">{c.customer} {c.casesPerPeriod}/mo</div>}
                         </div>
                       </div>
@@ -501,13 +510,21 @@ function Proforma({ data, brand, resolved, onNavigate, itemsDoc }) {
                         </div>
                       ) : <span className="text-fg-muted">—</span>}
                     </TableCell>
-                    <TableCell className="text-right font-mono">{money(unit)}</TableCell>
+                    <TableCell className="text-right font-mono">
+                      {unit == null
+                        ? <span className="rounded-base border border-warning/50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-warning" title="No cost on file — price on request">POR</span>
+                        : <>{money(unit)}<span className="text-xs text-fg-muted">/{s.unit === "case" ? "cs" : "lb"}</span></>}
+                    </TableCell>
                     <TableCell className="text-right">
                       <input type="number" min="0" value={cases || ""} onChange={(e) => setCases(s.code, e.target.value)} placeholder="0"
                         className="w-16 rounded-base border border-border bg-bg px-2 py-1.5 text-right font-mono text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand" />
                     </TableCell>
                     <TableCell className="text-right font-mono font-semibold">
-                      {cases ? money(PC.quoteLineTotal(s, cases, opts, config)) : <span className="text-fg-muted">—</span>}
+                      {cases
+                        ? (unit == null
+                          ? <span className="text-[11px] font-semibold text-warning">price on request</span>
+                          : money(PC.quoteLineTotal(s, cases, opts, config)))
+                        : <span className="text-fg-muted">—</span>}
                       {alloc && alloc.shortfall > 0 && <div className="text-[11px] font-semibold text-warning">⚠ {alloc.shortfall} short</div>}
                     </TableCell>
                   </TableRow>
@@ -613,8 +630,17 @@ function ProductDetailDialog({ sku, onClose, imgUrl, imgIsPlaceholder = false, i
             )}
 
             <div className="mt-4 flex items-baseline gap-2">
-              <span className="font-heading text-2xl text-fg">{money(unit)}</span>
-              <span className="text-sm text-fg-muted">/{sku.unit} · {tierLabel}</span>
+              {unit == null ? (
+                <>
+                  <span className="font-heading text-2xl text-warning">Price on request</span>
+                  <span className="text-sm text-fg-muted">no cost on file</span>
+                </>
+              ) : (
+                <>
+                  <span className="font-heading text-2xl text-fg">{money(unit)}</span>
+                  <span className="text-sm text-fg-muted">/{sku.unit === "case" ? "case" : sku.unit} · {tierLabel}</span>
+                </>
+              )}
             </div>
             {inv && (
               <p className="mt-1 text-sm text-fg-muted">

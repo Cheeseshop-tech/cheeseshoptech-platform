@@ -180,11 +180,12 @@
           "code": "02091",
           "packing": "7 oz Exact Weight Wedges, ATM",
           "image": "02091",
-          "unit": "lb",
+          "unit": "case",
           "cost": {
-            "fob": null
+            "fob": null,
+            "fobPiece": 3.4,
+            "fobCase": 40.81
           },
-          "priceOnRequest": true,
           "list": {
             "retail": null,
             "wholesale": null
@@ -197,7 +198,8 @@
             "casesPerPallet": 144,
             "shelfDays": 150
           },
-          "availability": "unavailable"
+          "availability": "unavailable",
+          "_priceNote": "EXW Elizabeth NJ per-case pricing from 2026-03 C&W price list (AlmaCow/BDiPalo/Dekalb). Priced per case of 12 x 7 oz exact-weight pieces; $/lb intentionally not used."
         },
         {
           "code": "02302",
@@ -323,11 +325,12 @@
           "code": "03044",
           "packing": "7 oz Exact Weight Wedges, ATM",
           "image": "03044",
-          "unit": "lb",
+          "unit": "case",
           "cost": {
-            "fob": null
+            "fob": null,
+            "fobPiece": 4.05,
+            "fobCase": 48.58
           },
-          "priceOnRequest": true,
           "list": {
             "retail": null,
             "wholesale": null
@@ -340,7 +343,8 @@
             "casesPerPallet": 144,
             "shelfDays": 150
           },
-          "availability": "unavailable"
+          "availability": "unavailable",
+          "_priceNote": "EXW Elizabeth NJ per-case pricing from 2026-03 C&W price list (AlmaCow/BDiPalo/Dekalb). Priced per case of 12 x 7 oz exact-weight pieces; $/lb intentionally not used."
         }
       ]
     },
@@ -406,11 +410,12 @@
           "code": "03047",
           "packing": "7 oz Exact Weight Wedges, ATM",
           "image": "03047",
-          "unit": "lb",
+          "unit": "case",
           "cost": {
-            "fob": null
+            "fob": null,
+            "fobPiece": 4.7,
+            "fobCase": 56.44
           },
-          "priceOnRequest": true,
           "list": {
             "retail": null,
             "wholesale": null
@@ -423,7 +428,8 @@
             "casesPerPallet": 144,
             "shelfDays": 150
           },
-          "availability": "unavailable"
+          "availability": "unavailable",
+          "_priceNote": "EXW Elizabeth NJ per-case pricing from 2026-03 C&W price list (AlmaCow/BDiPalo/Dekalb). Priced per case of 12 x 7 oz exact-weight pieces; $/lb intentionally not used. NOTE: price list prints item 03073 for this product — catalog keeps 03047 pending Inventory Manager ruling."
         }
       ]
     },
@@ -773,11 +779,12 @@
           "code": "20423",
           "packing": "7 oz Exact Weight Wedges, vacuum packed",
           "image": "20423",
-          "unit": "lb",
+          "unit": "case",
           "cost": {
-            "fob": null
+            "fob": null,
+            "fobPiece": 3.6,
+            "fobCase": 43.14
           },
-          "priceOnRequest": true,
           "list": {
             "retail": null,
             "wholesale": null
@@ -790,17 +797,19 @@
             "casesPerPallet": 144,
             "shelfDays": 150
           },
-          "availability": "in_stock"
+          "availability": "in_stock",
+          "_priceNote": "EXW Elizabeth NJ per-case pricing from 2026-03 C&W price list (AlmaCow/BDiPalo/Dekalb). Priced per case of 12 x 7 oz exact-weight pieces; $/lb intentionally not used."
         },
         {
           "code": "20424",
           "packing": "7 oz Exact Weight Wedges, vacuum packed",
           "image": "20424",
-          "unit": "lb",
+          "unit": "case",
           "cost": {
-            "fob": null
+            "fob": null,
+            "fobPiece": 3.39,
+            "fobCase": 40.66
           },
-          "priceOnRequest": true,
           "list": {
             "retail": null,
             "wholesale": null
@@ -813,17 +822,19 @@
             "casesPerPallet": 144,
             "shelfDays": 150
           },
-          "availability": "in_stock"
+          "availability": "in_stock",
+          "_priceNote": "EXW Elizabeth NJ per-case pricing from 2026-03 C&W price list (AlmaCow/BDiPalo/Dekalb). Priced per case of 12 x 7 oz exact-weight pieces; $/lb intentionally not used."
         },
         {
           "code": "20480",
           "packing": "7 oz Exact Weight Wedges, vacuum packed",
           "image": "20480",
-          "unit": "lb",
+          "unit": "case",
           "cost": {
-            "fob": null
+            "fob": null,
+            "fobPiece": 3.39,
+            "fobCase": 40.66
           },
-          "priceOnRequest": true,
           "list": {
             "retail": null,
             "wholesale": null
@@ -836,17 +847,19 @@
             "casesPerPallet": 144,
             "shelfDays": 150
           },
-          "availability": "in_stock"
+          "availability": "in_stock",
+          "_priceNote": "EXW Elizabeth NJ per-case pricing from 2026-03 C&W price list (AlmaCow/BDiPalo/Dekalb). Priced per case of 12 x 7 oz exact-weight pieces; $/lb intentionally not used."
         },
         {
           "code": "20481",
           "packing": "7 oz Exact Weight Wedges, vacuum packed",
           "image": "20481",
-          "unit": "lb",
+          "unit": "case",
           "cost": {
-            "fob": null
+            "fob": null,
+            "fobPiece": 3.39,
+            "fobCase": 40.66
           },
-          "priceOnRequest": true,
           "list": {
             "retail": null,
             "wholesale": null
@@ -859,7 +872,8 @@
             "casesPerPallet": 144,
             "shelfDays": 150
           },
-          "availability": "in_stock"
+          "availability": "in_stock",
+          "_priceNote": "EXW Elizabeth NJ per-case pricing from 2026-03 C&W price list (AlmaCow/BDiPalo/Dekalb). Priced per case of 12 x 7 oz exact-weight pieces; $/lb intentionally not used."
         }
       ]
     },
@@ -1285,11 +1299,12 @@
           "code": "05050",
           "packing": "7 oz Exact Weight Wedges, vacuum packed",
           "image": "05050",
-          "unit": "lb",
+          "unit": "case",
           "cost": {
-            "fob": null
+            "fob": null,
+            "fobPiece": 5.09,
+            "fobCase": 61.03
           },
-          "priceOnRequest": true,
           "list": {
             "retail": null,
             "wholesale": null
@@ -1302,7 +1317,8 @@
             "casesPerPallet": 144,
             "shelfDays": 150
           },
-          "availability": "unavailable"
+          "availability": "unavailable",
+          "_priceNote": "EXW Elizabeth NJ per-case pricing from 2026-03 C&W price list (AlmaCow/BDiPalo/Dekalb). Priced per case of 12 x 7 oz exact-weight pieces; $/lb intentionally not used. NOTE: price list prints item 05091 for this product — catalog keeps 05050 pending Inventory Manager ruling."
         },
         {
           "code": "05123",
@@ -1538,11 +1554,12 @@
           "code": "04176",
           "packing": "7 oz Exact Weight Wedges, vacuum packed",
           "image": "04176",
-          "unit": "lb",
+          "unit": "case",
           "cost": {
-            "fob": null
+            "fob": null,
+            "fobPiece": 4.32,
+            "fobCase": 51.9
           },
-          "priceOnRequest": true,
           "list": {
             "retail": null,
             "wholesale": null
@@ -1555,7 +1572,8 @@
             "casesPerPallet": 144,
             "shelfDays": 150
           },
-          "availability": "unavailable"
+          "availability": "unavailable",
+          "_priceNote": "EXW Elizabeth NJ per-case pricing from 2026-03 C&W price list (AlmaCow/BDiPalo/Dekalb). Priced per case of 12 x 7 oz exact-weight pieces; $/lb intentionally not used."
         }
       ]
     },
@@ -1621,11 +1639,12 @@
           "code": "04165",
           "packing": "7 oz Exact Weight Wedges, ATM",
           "image": "04165",
-          "unit": "lb",
+          "unit": "case",
           "cost": {
-            "fob": null
+            "fob": null,
+            "fobPiece": 3.63,
+            "fobCase": 43.57
           },
-          "priceOnRequest": true,
           "list": {
             "retail": null,
             "wholesale": null
@@ -1638,7 +1657,8 @@
             "casesPerPallet": 144,
             "shelfDays": 150
           },
-          "availability": "unavailable"
+          "availability": "unavailable",
+          "_priceNote": "EXW Elizabeth NJ per-case pricing from 2026-03 C&W price list (AlmaCow/BDiPalo/Dekalb). Priced per case of 12 x 7 oz exact-weight pieces; $/lb intentionally not used."
         }
       ]
     },
@@ -1660,11 +1680,12 @@
           "code": "01190",
           "packing": "7 oz Exact Weight Wedges, ATM",
           "image": "01190",
-          "unit": "lb",
+          "unit": "case",
           "cost": {
-            "fob": null
+            "fob": null,
+            "fobPiece": 3.38,
+            "fobCase": 40.59
           },
-          "priceOnRequest": true,
           "list": {
             "retail": null,
             "wholesale": null
@@ -1677,7 +1698,8 @@
             "casesPerPallet": 144,
             "shelfDays": 150
           },
-          "availability": "unavailable"
+          "availability": "unavailable",
+          "_priceNote": "EXW Elizabeth NJ per-case pricing from 2026-03 C&W price list (AlmaCow/BDiPalo/Dekalb). Priced per case of 12 x 7 oz exact-weight pieces; $/lb intentionally not used."
         },
         {
           "code": "20438",
@@ -1743,11 +1765,12 @@
           "code": "40086",
           "packing": "7 oz Exact Weight Wedges, vacuum packed",
           "image": "40086",
-          "unit": "lb",
+          "unit": "case",
           "cost": {
-            "fob": null
+            "fob": null,
+            "fobPiece": 3.87,
+            "fobCase": 46.48
           },
-          "priceOnRequest": true,
           "list": {
             "retail": null,
             "wholesale": null
@@ -1760,7 +1783,8 @@
             "casesPerPallet": 144,
             "shelfDays": 150
           },
-          "availability": "unavailable"
+          "availability": "unavailable",
+          "_priceNote": "EXW Elizabeth NJ per-case pricing from 2026-03 C&W price list (AlmaCow/BDiPalo/Dekalb). Priced per case of 12 x 7 oz exact-weight pieces; $/lb intentionally not used."
         },
         {
           "code": "40130",
@@ -1848,11 +1872,12 @@
           "code": "01174",
           "packing": "7 oz Exact Weight Wedges, vacuum packed",
           "image": "01174",
-          "unit": "lb",
+          "unit": "case",
           "cost": {
-            "fob": null
+            "fob": null,
+            "fobPiece": 3.79,
+            "fobCase": 45.46
           },
-          "priceOnRequest": true,
           "list": {
             "retail": null,
             "wholesale": null
@@ -1865,7 +1890,8 @@
             "casesPerPallet": 144,
             "shelfDays": 150
           },
-          "availability": "unavailable"
+          "availability": "unavailable",
+          "_priceNote": "EXW Elizabeth NJ per-case pricing from 2026-03 C&W price list (AlmaCow/BDiPalo/Dekalb). Priced per case of 12 x 7 oz exact-weight pieces; $/lb intentionally not used. NOTE: price list prints 01174 twice (Wedge $45.46/cs, Disc $42.25/cs, same UPC) — Wedge price applied per catalog packing; Disc needs its own item number."
         },
         {
           "code": "01186",
@@ -1975,11 +2001,12 @@
           "code": "05099",
           "packing": "7 oz Exact Weight Wedges, vacuum packed",
           "image": "05099",
-          "unit": "lb",
+          "unit": "case",
           "cost": {
-            "fob": null
+            "fob": null,
+            "fobPiece": 7.6,
+            "fobCase": 91.19
           },
-          "priceOnRequest": true,
           "list": {
             "retail": null,
             "wholesale": null
@@ -1992,7 +2019,8 @@
             "casesPerPallet": 144,
             "shelfDays": 150
           },
-          "availability": "unavailable"
+          "availability": "unavailable",
+          "_priceNote": "EXW Elizabeth NJ per-case pricing from 2026-03 C&W price list (AlmaCow/BDiPalo/Dekalb). Priced per case of 12 x 7 oz exact-weight pieces; $/lb intentionally not used. NOTE: price list prints item 05600 for this product — catalog keeps 05099 pending Inventory Manager ruling."
         }
       ]
     },
@@ -2058,11 +2086,12 @@
           "code": "40162",
           "packing": "7 oz Exact Weight Wedges, vacuum packed",
           "image": "40162",
-          "unit": "lb",
+          "unit": "case",
           "cost": {
-            "fob": null
+            "fob": null,
+            "fobPiece": 4.95,
+            "fobCase": 59.43
           },
-          "priceOnRequest": true,
           "list": {
             "retail": null,
             "wholesale": null
@@ -2075,7 +2104,8 @@
             "casesPerPallet": 144,
             "shelfDays": 150
           },
-          "availability": "unavailable"
+          "availability": "unavailable",
+          "_priceNote": "EXW Elizabeth NJ per-case pricing from 2026-03 C&W price list (AlmaCow/BDiPalo/Dekalb). Priced per case of 12 x 7 oz exact-weight pieces; $/lb intentionally not used. NOTE: price list prints item 40184 for this product — catalog keeps 40162 pending Inventory Manager ruling."
         }
       ]
     },
@@ -2447,11 +2477,12 @@
           "code": "40163",
           "packing": "7 oz Exact Weight Wedges, vacuum packed",
           "image": "40163",
-          "unit": "lb",
+          "unit": "case",
           "cost": {
-            "fob": null
+            "fob": null,
+            "fobPiece": 3.09,
+            "fobCase": 37.04
           },
-          "priceOnRequest": true,
           "list": {
             "retail": null,
             "wholesale": null
@@ -2464,7 +2495,8 @@
             "casesPerPallet": 144,
             "shelfDays": 150
           },
-          "availability": "unavailable"
+          "availability": "unavailable",
+          "_priceNote": "EXW Elizabeth NJ per-case pricing from 2026-03 C&W price list (AlmaCow/BDiPalo/Dekalb). Priced per case of 12 x 7 oz exact-weight pieces; $/lb intentionally not used."
         }
       ]
     },
@@ -2508,11 +2540,12 @@
           "code": "01101",
           "packing": "7 oz Exact Weight Wedges, ATM",
           "image": "01101",
-          "unit": "lb",
+          "unit": "case",
           "cost": {
-            "fob": null
+            "fob": null,
+            "fobPiece": 3.67,
+            "fobCase": 44.07
           },
-          "priceOnRequest": true,
           "list": {
             "retail": null,
             "wholesale": null
@@ -2525,7 +2558,8 @@
             "casesPerPallet": 144,
             "shelfDays": 150
           },
-          "availability": "unavailable"
+          "availability": "unavailable",
+          "_priceNote": "EXW Elizabeth NJ per-case pricing from 2026-03 C&W price list (AlmaCow/BDiPalo/Dekalb). Priced per case of 12 x 7 oz exact-weight pieces; $/lb intentionally not used."
         },
         {
           "code": "01126",

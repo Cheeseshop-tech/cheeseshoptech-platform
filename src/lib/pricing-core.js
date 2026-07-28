@@ -8,18 +8,35 @@ const pctOf = (arr, id, key) => {
   return hit && typeof hit[key] === "number" ? hit[key] : 0;
 };
 
+/* Two pricing bases (one mind, one body — see docs/QUOTING_TOOL_PRINCIPLES.md):
+   unit "lb"   → catch-weight bulk, cost.fob is $/lb (merchandise only).
+   unit "case" → exact-weight precuts (12 × 7 oz wedges), cost.fobCase is $/CASE.
+                 cost.fobPiece (per 7 oz piece) is kept for reference; fobCase is
+                 authoritative because it is the printed number on the price list.
+   Returns null when no cost is on file — callers must treat null as PRICE ON
+   REQUEST, never as $0. */
 export function quoteUnitPrice(sku, opts, config) {
-  const fob = sku && sku.cost && sku.cost.fob;
-  if (typeof fob !== "number") return null;
+  const cost = (sku && sku.cost) || {};
+  let base = null;
+  if (sku && sku.unit === "case") {
+    if (typeof cost.fobCase === "number") base = cost.fobCase;
+    else if (typeof cost.fobPiece === "number" && sku.pack && sku.pack.piecesPerCase)
+      base = cost.fobPiece * sku.pack.piecesPerCase;
+  } else if (typeof cost.fob === "number") {
+    base = cost.fob;
+  }
+  if (typeof base !== "number") return null;
   const p = config.pricing;
   const tier = pctOf(p.tiers, opts.tierId, "adjustPct");
   const vol = pctOf(p.volumeBreaks, opts.volumeId, "adjustPct");
   const extra = Number(opts.customPct) || 0;
-  return round2(fob * (1 + (tier + vol + extra) / 100));
+  return round2(base * (1 + (tier + vol + extra) / 100));
 }
 
+/* Physical weight of a line — feeds freight math and the Lbs column. Counts EVERY
+   unit type: a case-priced precut still rides the truck at its net case weight. */
 export function lineLbs(sku, qty) {
-  return sku.unit === "lb" ? (Number(qty) || 0) * ((sku.pack && sku.pack.netLb) || 0) : 0;
+  return (Number(qty) || 0) * ((sku.pack && sku.pack.netLb) || 0);
 }
 
 export function quoteLineTotal(sku, qty, opts, config) {
@@ -61,7 +78,8 @@ export function quoteOrder(items, opts, config) {
     const total = quoteLineTotal(it.sku, it.cases, opts, config);
     totalLbs += lbs; merchSubtotal += total;
     return { code: it.sku.code, name: it.sku.name || it.sku.packing || it.sku.code,
-      cases: it.cases, lbs: round2(lbs), unitPrice: unit, lineTotal: total };
+      cases: it.cases, lbs: round2(lbs), unitPrice: unit, lineTotal: total,
+      unit: it.sku.unit || "lb", unpriced: unit == null };
   });
   merchSubtotal = round2(merchSubtotal);
   const freight = freightLines(totalLbs, opts, config);
@@ -71,6 +89,9 @@ export function quoteOrder(items, opts, config) {
     freight, freightTotal, grandTotal: round2(merchSubtotal + freightTotal),
     basis: opts.basis || "pickup", tierId: opts.tierId, volumeId: opts.volumeId,
     customPct: Number(opts.customPct) || 0,
+    // Codes with no cost on file. A proforma must NOT print while this is non-empty —
+    // quoteLineTotal degrades null to $0, which would gift a customer free cheese.
+    unpricedCodes: lines.filter((l) => l.unpriced).map((l) => l.code),
   };
 }
 
