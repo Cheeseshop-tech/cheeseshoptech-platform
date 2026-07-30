@@ -1,14 +1,14 @@
 {
   "schemaVersion": "1.2",
   "clientId": "monti-trentini",
-  "lastUpdated": "2026-07-27",
+  "lastUpdated": "2026-07-28",
   "lastUpdatedSource": "drive-modifiedTime",
   "sheetStatedUpdate": "2026-07-28",
-  "sheetModifiedAt": "2026-07-27T16:05:43.983Z",
+  "sheetModifiedAt": "2026-07-28T20:11:40.842Z",
   "sheetFileId": "1meZQQ_0dA1S1IR5xjVWzFvuqCJE6DLgVd-fOfSMGvCk",
   "sheetOwner": "order@montitrentini-usa.com",
-  "source": "availability_2026-07-28.csv",
-  "generatedAt": "2026-07-28T11:18:09.161Z",
+  "source": "availability_2026-07-30.csv",
+  "generatedAt": "2026-07-30T11:34:23.337Z",
   "generatedBy": "scripts/sync-inventory.mjs",
   "skus": {
     "20141": {
@@ -550,7 +550,7 @@
     "20423": {
       "code": "20423",
       "name": "CACIOTTA BLACK TRUFFLES 7 OZ EW",
-      "casesAvail": 216,
+      "casesAvail": 72,
       "casesInTransit": 0,
       "comment": "HEB 1 pallet + something small for Lettieri",
       "commentEn": "",
@@ -573,11 +573,11 @@
           "receiptDate": "2026-07-23",
           "eta": null,
           "cases": 144,
-          "reserved": 0,
+          "reserved": 144,
           "netAvailLb": 760.32,
           "expDate": "2027-02-24",
           "expMonth": null,
-          "comment": "HEB"
+          "comment": "HEB 57X340372"
         }
       ]
     },
@@ -848,12 +848,12 @@
           "status": "on_hand",
           "receiptDate": "2026-06-18",
           "eta": null,
-          "cases": 52,
-          "reserved": 10,
+          "cases": 42,
+          "reserved": 0,
           "netAvailLb": 158.69,
           "expDate": "2027-07-15",
           "expMonth": null,
-          "comment": "Dekalb LSDELI126071070"
+          "comment": ""
         }
       ]
     },
@@ -882,7 +882,7 @@
     "20533": {
       "code": "20533",
       "name": "AGED TRUFFLE CHEESE BLACK",
-      "casesAvail": 210,
+      "casesAvail": 204,
       "casesInTransit": 120,
       "comment": "News about production? Baldor",
       "commentEn": "",
@@ -892,12 +892,12 @@
           "status": "on_hand",
           "receiptDate": "2026-05-15",
           "eta": null,
-          "cases": 90,
+          "cases": 84,
           "reserved": 0,
           "netAvailLb": 427.78,
           "expDate": "2026-12-16",
           "expMonth": null,
-          "comment": "Baldor"
+          "comment": ""
         },
         {
           "lotNum": "269536815",
@@ -1570,7 +1570,7 @@
     "02073": {
       "code": "02073",
       "name": "ASIAGO FRESCO PDO 1/4 WHEEL NT",
-      "casesAvail": 633,
+      "casesAvail": 603,
       "casesInTransit": 120,
       "comment": "Cowbell monthly plan 50x, average purchase TONY 10x, ACE Endico sometimes, Baldor 108x",
       "commentEn": "",
@@ -1585,19 +1585,19 @@
           "netAvailLb": 827.17,
           "expDate": "2027-02-20",
           "expMonth": null,
-          "comment": "40x Cowbell monthly plan August"
+          "comment": ""
         },
         {
           "lotNum": "1304244",
           "status": "on_hand",
           "receiptDate": "2026-06-18",
           "eta": null,
-          "cases": 153,
+          "cases": 123,
           "reserved": 0,
           "netAvailLb": 1087.743,
           "expDate": "2027-01-09",
           "expMonth": null,
-          "comment": ""
+          "comment": "Cowbell monthly plan August"
         },
         {
           "lotNum": "1308183",
@@ -1958,7 +1958,7 @@
     "04176": {
       "code": "04176",
       "name": "DRUNKEN CHEESE 7 OZ EW (IMBRIAGO)",
-      "casesAvail": 144,
+      "casesAvail": 72,
       "casesInTransit": 288,
       "comment": "KeHE + Olio&Olive + HEB",
       "commentEn": "",
@@ -1981,11 +1981,11 @@
           "receiptDate": null,
           "eta": "2026-08-04",
           "cases": 144,
-          "reserved": 0,
+          "reserved": 72,
           "netAvailLb": 760.32,
           "expDate": null,
           "expMonth": "2027-03",
-          "comment": "HEB"
+          "comment": "HEB 57X340372"
         }
       ]
     },
@@ -2056,7 +2056,7 @@
           "netAvailLb": 126.72,
           "expDate": null,
           "expMonth": "2027-03",
-          "comment": ""
+          "comment": "Lettieri"
         }
       ]
     },
