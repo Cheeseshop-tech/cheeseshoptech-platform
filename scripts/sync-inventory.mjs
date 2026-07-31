@@ -110,16 +110,51 @@ const intOr0 = (s) => { const n = num(s); return n == null ? 0 : Math.trunc(n); 
 const raw = fs.readFileSync(IN, "utf8");
 const rows = parseCsv(raw);
 
-// capture "Updated on: 18 June 2026 16:47" from the banner row
+// capture "Updated on: 18 June 2026 16:47" from the banner row.
+// The banner shows up in two formats depending on how MT typed it that week:
+//   written-out, day-first  : "28 July 2026"      (European style)
+//   numeric, month-first    : "7/30/2026 12:00 PM" (American style, M/D/YYYY)
+// Both must resolve to the SAME ISO date convention (YYYY-MM-DD) before this
+// value is ever compared against anything else. Get the numeric case wrong —
+// e.g. read "7/30" as day=7/month=30 the European way — and it either throws
+// (no month 30) or silently produces a bogus date that then falsely disagrees
+// with Drive's real mtime. So: numeric banner dates are ALWAYS interpreted
+// American (first number = month), matching how Monti Trentini's team writes
+// them. This translation must happen right here, before lastUpdated is used
+// for any downstream comparison ("date authentication").
 let lastUpdated = TODAY.toISOString().slice(0, 10);
+let bannerParsed = false;
 const banner = rows.find((r) => r.some((c) => /updated on/i.test(c)));
 if (banner) {
   const idx = banner.findIndex((c) => /updated on/i.test(c));
   const val = clean(banner[idx + 1]);
-  const m = val.match(/(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})/);
-  if (m) {
-    const mo = MONTHS[m[2].slice(0, 3).toLowerCase()];
-    if (mo) lastUpdated = `${m[3]}-${mo}-${m[1].padStart(2, "0")}`;
+
+  // 1) written-out day-first form: "28 July 2026"
+  const written = val.match(/(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})/);
+  if (written) {
+    const mo = MONTHS[written[2].slice(0, 3).toLowerCase()];
+    if (mo) {
+      lastUpdated = `${written[3]}-${mo}-${written[1].padStart(2, "0")}`;
+      bannerParsed = true;
+    }
+  }
+
+  // 2) numeric American form: "7/30/2026" or "7/30/2026 12:00 PM"
+  //    First number is the MONTH, not the day — do not swap these.
+  if (!bannerParsed) {
+    const numeric = val.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    if (numeric) {
+      const [, moStr, dStr, yStr] = numeric;
+      const mo = Number(moStr), d = Number(dStr);
+      if (mo >= 1 && mo <= 12 && d >= 1 && d <= 31) {
+        lastUpdated = `${yStr}-${String(mo).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+        bannerParsed = true;
+      }
+    }
+  }
+
+  if (!bannerParsed) {
+    console.warn(`! Banner text "${val}" didn't match a known date format — lastUpdated defaulted to today (${lastUpdated}). Add a case for this format instead of trusting the default.`);
   }
 }
 
