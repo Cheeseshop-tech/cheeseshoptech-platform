@@ -11,17 +11,9 @@ import { useAuth, writeAuthHeader } from "@/lib/auth-context.jsx";
 import { RELOGIN_MSG } from "@/lib/media.js";
 import { cldUrl } from "@/lib/cloudinary.js";
 
-// Full-window Content Studio composer. A content-type switcher (slide deck live; others coming soon),
-// a slide filmstrip, a per-slide template dropdown, and a slot inspector beside the live brand-painted
-// preview. Saves a link-based deck to the Content Library via onSave.
-const CONTENT_TYPES = [
-  { id: "slide-deck", label: "Slide deck" },
-  { id: "blog", label: "Blog" },
-  { id: "email", label: "Email" },
-  { id: "social-post", label: "Social post" },
-  { id: "social-carousel", label: "Social carousel" },
-  { id: "sales-sheet", label: "Sales sheet" },
-];
+// Full-window slide-deck composer — the Slide deck tab of Compose (content-studio.jsx owns the
+// content-type switcher). A slide filmstrip, a per-slide template dropdown, and a slot inspector
+// beside the live brand-painted preview. Saves a link-based deck to the Content Library via onSave.
 
 function L({ label, children }) {
   return <label className="block"><span className="mb-1 block text-xs font-medium text-fg">{label}</span>{children}</label>;
@@ -74,7 +66,6 @@ function useFitWidth(ref, active = true) {
 }
 
 export function SlideStudio({ resolved, onClose, onSave, opportunity }) {
-  const [ctype, setCtype] = useState("slide-deck");
   const [deck, setDeck] = useState([]);   // [{ t, slots }]
   const [idx, setIdx] = useState(0);
   const [title, setTitle] = useState("");
@@ -94,7 +85,7 @@ export function SlideStudio({ resolved, onClose, onSave, opportunity }) {
   // rail + inspector); player = fullscreen overlay ({ start, show: "slide" | "show" }).
   const [focusMode, setFocusMode] = useState(false);
   const [player, setPlayer] = useState(null);
-  const fitW = useFitWidth(paneRef, ctype === "slide-deck" && deck.length > 0);
+  const fitW = useFitWidth(paneRef, deck.length > 0);
 
   // Studio Director Stage 0/1 (CONTENT_ENGINE_WIRING_SPEC §3): deterministic auto-fill —
   // kit voice → text slots, Media Hub → image slots, catalog → product slots, optional
@@ -208,27 +199,11 @@ export function SlideStudio({ resolved, onClose, onSave, opportunity }) {
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         {onClose
           ? <Button variant="ghost" size="sm" onClick={onClose}><ArrowLeft className="h-4 w-4" /> Back</Button>
-          : <div><h1 className="font-heading text-3xl text-fg">Content Studio</h1><p className="text-sm text-fg-muted">Pick a template, fill it from your Media Hub + brand voice, save to the Library.</p></div>}
+          : <div><h1 className="font-heading text-3xl text-fg">Slide deck</h1><p className="text-sm text-fg-muted">Pick a template, fill it from your Media Hub + brand voice, save to the Library.</p></div>}
         <Button variant="primary" size="sm" disabled={!valid} onClick={save}>Save to Library</Button>
       </div>
 
-      <div className="mb-3 flex flex-wrap gap-2 border-b border-border pb-2">
-        {CONTENT_TYPES.map((t) => (
-          <button key={t.id} onClick={() => setCtype(t.id)}
-            className={"rounded-full border px-4 py-1.5 text-sm transition " + (t.id === ctype ? "border-brand-primary bg-brand-primary text-brand-on-primary" : "border-border bg-bg text-fg hover:bg-fg/5")}>
-            {t.label}
-          </button>
-        ))}
-      </div>
-
-      {ctype !== "slide-deck" ? (
-        <div className="rounded-base border border-dashed border-border bg-bg p-12 text-center">
-          <h2 className="font-heading text-2xl text-brand-primary">{CONTENT_TYPES.find((t) => t.id === ctype)?.label} templates</h2>
-          <p className="mx-auto mt-2 max-w-xl text-sm text-fg-muted">
-            Coming soon — built on the same engine: slots + Brand-Kit paint + Media Hub / Cloudinary bindings, sized for {CONTENT_TYPES.find((t) => t.id === ctype)?.label.toLowerCase()}. The slide-deck builder proves the model; each type ships as manifests wired to the image selector.
-          </p>
-        </div>
-      ) : deck.length === 0 ? (
+      {deck.length === 0 ? (
         <div>
           <div className="mb-4 flex flex-wrap items-center gap-3 rounded-base border border-border bg-surface p-4">
             <Wand2 className="h-5 w-5 flex-none text-brand-primary" />

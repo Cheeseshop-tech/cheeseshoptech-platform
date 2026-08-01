@@ -7,12 +7,12 @@ import { rolesOf } from "@/lib/auth.js";
 // Engine). Platform-shared app registry (NOT per-tenant config — these are the engine's own
 // rooms, identical for every tenant; per-client launch tiles live on the Dashboard instead).
 // Mental model, left to right: Brand Systems feeds kits/voice → Media Hub holds ingredients →
-// Content Studio composes → Content Library holds the finished pieces.
+// Compose makes the piece → Content Library holds the finished pieces.
 // (BSE is INTEGRATED as of 2026-07-02 — internal route "brand-systems", behind the gate.)
 const APPS = [
   {
     key: "content-studio",
-    label: "Content Studio",
+    label: "Compose",
     icon: FileText,
     type: "internal",
     route: "proposals",
@@ -87,7 +87,7 @@ export function ContentEnginePage({ resolved, onNavigate }) {
       <h1 className="cs-display mb-1 text-3xl text-brand-primary">Content Engine</h1>
       <p className="mb-6 max-w-2xl text-fg-muted">
         {resolved.brand.name}'s assembly line — Brand Systems sets the truth, the Media Hub holds the
-        ingredients, Content Studio composes, the Content Library holds the finished work.
+        ingredients, Compose makes the piece, the Content Library holds the finished work.
       </p>
 
       <div className="grid gap-4 sm:grid-cols-2">
@@ -122,7 +122,7 @@ export function ContentEnginePage({ resolved, onNavigate }) {
       </div>
 
       <p className="cs-eyebrow mt-8 text-fg-muted">
-        Brand Systems → Media Hub → Content Studio → Content Library
+        Brand Systems → Media Hub → Compose → Content Library
       </p>
     </div>
   );

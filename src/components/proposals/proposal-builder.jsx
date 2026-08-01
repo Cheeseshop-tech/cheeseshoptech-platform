@@ -55,7 +55,7 @@ export function ProposalBuilder({ resolved }) {
   if (!pricing) {
     return (
       <div>
-        <h1 className="mb-1 font-heading text-3xl text-fg">Content Studio</h1>
+        <h1 className="mb-1 font-heading text-3xl text-fg">Compose</h1>
         <EmptyState
           icon={FileX}
           title="No canonical data for this tenant"
@@ -160,7 +160,7 @@ export function ProposalBuilder({ resolved }) {
     <div>
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="font-heading text-3xl text-fg">Content Studio</h1>
+          <h1 className="font-heading text-3xl text-fg">Compose</h1>
           <p className="mt-1 text-fg-muted">
             Compose branded proposals and slide decks from your live catalog, brand voice, and Media Hub — then save to the Content Library.
           </p>

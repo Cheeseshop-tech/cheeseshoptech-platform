@@ -16,7 +16,6 @@ import { MediaHub } from "@/components/media/media-hub.jsx";
 import { CatalogPage } from "@/components/catalog/buyer-catalog.jsx";
 import { PresentationsPage } from "@/components/presentations/presentations-page.jsx";
 import { ContentStudio } from "@/components/proposals/content-studio.jsx";
-import { ProposalBuilder } from "@/components/proposals/proposal-builder.jsx";
 import { ProposalView } from "@/components/proposals/proposal-view.jsx";
 import { BrandManagement } from "@/components/brand/brand-management.jsx";
 import { BrandSystemsPage } from "@/components/brand/brand-systems-page.jsx";
@@ -71,7 +70,7 @@ const NON_NAV_LABELS = {
   proposal: "Proposal",
   compose: "Compose",
   media: "Media Hub",
-  proposals: "Content Studio",
+  proposals: "Compose",
   presentations: "Content Library",
   brand: "Brand Kits",
   catalog: "Product Catalog",
@@ -203,10 +202,8 @@ export default function App({ initialResolved }) {
         <RoleGate roles={["admin", "client"]} fallback={<AccessNotice need={`a ${resolved.brand.name} portal`} />}>
           <PresentationsPage resolved={resolved} />
         </RoleGate>
-      ) : effectivePage === "proposals" ? (
+      ) : effectivePage === "proposals" || effectivePage === "compose" ? (
         <ContentStudio resolved={resolved} />
-      ) : effectivePage === "compose" ? (
-        <ProposalBuilder resolved={resolved} />
       ) : effectivePage === "proposal" ? (
         <ProposalView resolved={resolved} />
       ) : effectivePage === "brand" ? (
