@@ -47,3 +47,8 @@ src/archive/backup_*_inventory_autosync/
 
 # Local push helper — hardcodes a machine-specific repo path, not shared tooling
 PUSH ALL*.command
+
+# Personal / non-project files — never belong in the client repo
+Richard_Posada_Resume.docx
+*_Resume.docx
+*Cover_Letter*.docx

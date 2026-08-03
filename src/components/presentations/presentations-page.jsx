@@ -531,7 +531,12 @@ export function DeckViewer({ deck, showBack, onBack, resolved }) {
 //     file to store, and round-tripping copy through a CDN would just give it a second home.
 //   · BINARY (pdf/images) is an ARTIFACT. It uploads to Cloudinary via the same uploadFileAuto()
 //     the Load dialog uses, and the catalog keeps the link + thumbnail.
-const TEXT_EXT = /\.(md|markdown|html?|txt)$/i;
+// HTML is stored as a BODY (self-contained markup referencing Cloudinary images), not uploaded.
+// Everything else here is a file and goes to Cloudinary.
+// Markdown / .txt are excluded from staging for now (Rick, 2026-08-03) — the pieces worth
+// reviewing are the visual ones: PDFs, HTML sell sheets and social posts. Text bodies are still
+// fully supported in the catalog, because campaign call scripts are authored as text.
+const TEXT_EXT = /\.(html?)$/i;
 
 // Category from the filename — a guess the reviewer can correct, not a claim.
 function guessCategory(name) {
@@ -610,14 +615,15 @@ function StageDialog({ open, onClose, onStaged, tenantFolder, room }) {
           <DialogTitle>Stage files for review</DialogTitle>
           <DialogDescription>
             Everything lands as <strong>Submitted</strong> — review each piece, then Post or delete it.
-            Text is read in your browser and stored as copy; PDFs and images upload to Cloudinary.
+            HTML is read in your browser and kept as markup (its images stay in the Media Hub);
+            PDFs and images upload to Cloudinary.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-3">
           <input
             type="file" multiple
-            accept=".md,.markdown,.html,.htm,.txt,.pdf,.png,.jpg,.jpeg,.webp"
+            accept=".html,.htm,.pdf,.png,.jpg,.jpeg,.webp"
             onChange={(e) => pick(e.target.files)}
             className="block w-full text-sm text-fg file:mr-3 file:rounded-base file:border file:border-border file:bg-surface file:px-3 file:py-1.5 file:text-sm"
           />
