@@ -279,15 +279,33 @@ export function ProgressBar({ done, total, tone = "brand" }) {
   );
 }
 
+// Save STATUS — not a control. There is no Save button: edits autosave ~1s after you stop
+// typing, the same as the outreach console. Rick went looking for a Save button (2026-08-03),
+// which was fair — the old chip was a bordered pill in the top-right and read like one. So:
+//   · "Auto-saves" shows even when idle, so the behaviour is stated BEFORE you edit anything
+//     rather than only being inferable from a chip that appears after the fact.
+//   · Status states are borderless and cursor-default so nothing invites a click.
+//   · Failure states KEEP the border and colour — those genuinely need attention, and a
+//     read-only/failed save is the one thing you must not miss.
+// role="status" + aria-live so the transition is announced rather than purely visual.
 function SaveChip({ state }) {
-  if (state === "idle") return null;
   const map = {
-    dirty: ["Saving…", "text-fg-muted border-border"],
-    saving: ["Saving…", "text-fg-muted border-border"],
-    saved: ["Saved ✓", "text-success border-success"],
-    denied: ["Read-only — admin passcode required to save", "text-warning border-warning"],
-    failed: ["Save failed — retry an edit", "text-warning border-warning"],
+    idle:   ["Auto-saves", "text-fg-muted", false],
+    dirty:  ["Auto-saves · Saving…", "text-fg-muted", false],
+    saving: ["Auto-saves · Saving…", "text-fg-muted", false],
+    saved:  ["Auto-saves · Saved ✓", "text-success", false],
+    denied: ["Read-only — admin passcode required to save", "text-warning border border-warning", true],
+    failed: ["Save failed — retry an edit", "text-warning border border-warning", true],
   };
-  const [text, cls] = map[state] || map.saving;
-  return <span className={`rounded-base border px-2.5 py-1 text-xs ${cls}`}>{text}</span>;
+  const [text, cls, boxed] = map[state] || map.saving;
+  return (
+    <span
+      role="status"
+      aria-live="polite"
+      title={boxed ? undefined : "Changes save automatically — there's no save button"}
+      className={`cursor-default select-none rounded-base px-2.5 py-1 text-xs ${boxed ? "" : "border border-transparent"} ${cls}`}
+    >
+      {text}
+    </span>
+  );
 }
