@@ -13,7 +13,7 @@ import {
 import { useToast } from "@/components/ui/toast.jsx";
 import { useAuth } from "@/lib/auth-context.jsx";
 import { rolesOf } from "@/lib/auth.js";
-import { cldUrl, uploadFileAuto, pdfThumbUrl } from "@/lib/cloudinary.js";
+import { cldUrl } from "@/lib/cloudinary.js";
 import { loadCatalog, fetchCatalog, subscribeSaveState, addEntry, removeEntry, updateEntry, coverUrl, CONTENT_CATEGORIES, categoryLabel, entryCategory, entryStatus, duplicateKeys, DEFAULT_QUOTA, downloadHref } from "@/lib/presentations-store.js";
 import { MediaPicker } from "@/components/media/media-picker.jsx";
 import { SlideRenderer } from "./slide-renderer.jsx";
@@ -251,7 +251,6 @@ export function PresentationsPage({ resolved }) {
       <StageDialog
         open={stageOpen}
         onClose={() => setStageOpen(false)}
-        tenantFolder={resolved.cloudinaryFolder}
         room={quota - saved.length}
         onStaged={(entries) => {
           let next = saved;
@@ -265,7 +264,7 @@ export function PresentationsPage({ resolved }) {
       <LoadDialog
         open={loadOpen}
         onClose={() => setLoadOpen(false)}
-        tenantFolder={resolved.cloudinaryFolder}
+        resolved={resolved}
         onSave={(entry) => {
           if (saved.length >= quota) { toast({ title: `Content Library full (${quota}/${quota})`, description: "Delete or download an item to add more.", tone: "error" }); return; }
           // Review gate OFF by default; per-client opt-in via resolved.reviewRequired.
@@ -279,45 +278,37 @@ export function PresentationsPage({ resolved }) {
   );
 }
 
-// Dialog to load a finished proposal into the catalog. Three ways in: paste a URL, browse files,
-// or drag & drop. Files (PDF / image) upload to Cloudinary and become the proposal link.
+// Dialog to catalog a finished piece. Two ways in: pick an asset that is ALREADY IN THE MEDIA
+// HUB, or paste a public link.
+//
+// NO UPLOAD HERE, deliberately (Rick, 2026-08-03: "direct uploading in the content library is a
+// mistake"). CONTENT_ORCHESTRATION_SPEC §1-2: one physical store (Cloudinary), ONE front door
+// (the Media Hub). Uploading from this dialog went straight to Cloudinary via uploadFileAuto,
+// which skips the Asset details step — so the file landed with no usage tags and no caption, and
+// the Media Hub's views are tag-driven, meaning the asset appeared under NONE of them. A real
+// file, owned by nothing. Assets are uploaded, tagged and captioned in the Media Hub; the Library
+// REFERENCES them (spec §11: "never duplicate").
 // (PowerPoint is intentionally NOT supported in-app — export to PDF first; PPTX is handled outside.)
-function LoadDialog({ open, onClose, onSave, tenantFolder }) {
+function LoadDialog({ open, onClose, onSave, resolved }) {
   const empty = { title: "", eyebrow: "", description: "", url: "", cover: "", kind: "link", category: "presentation" };
   const [form, setForm] = useState(empty);
-  const [uploading, setUploading] = useState(false);
-  const [dragOver, setDragOver] = useState(false);
-  const [fileName, setFileName] = useState("");
-  const fileRef = useRef(null);
   const { toast } = useToast();
-  useEffect(() => { if (open) { setForm(empty); setFileName(""); } }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (open) setForm(empty); }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
   const valid = form.title.trim() && form.url.trim();
 
-  async function handleFile(file) {
-    if (!file) return;
-    setUploading(true);
-    try {
-      const up = await uploadFileAuto({ file, tenantFolder });
-      const fmt = up.format;
-      const kind = fmt === "pdf" ? "pdf"
-        : (up.resourceType === "image" ? "image" : "link");
-      // Auto cover: a PDF gets its FIRST PAGE rendered to a thumbnail; a plain image is its own cover.
-      const autoCover = fmt === "pdf"
-        ? pdfThumbUrl(up.publicId)
-        : (up.resourceType === "image" && fmt !== "pdf" ? up.secureUrl : "");
-      setForm((f) => ({
-        ...f,
-        url: up.secureUrl,
-        kind,
-        cover: autoCover || f.cover,
-        title: f.title || file.name.replace(/\.[^.]+$/, ""),
-      }));
-      setFileName(file.name);
-      toast({ title: "File uploaded", tone: "success" });
-    } catch (err) {
-      toast({ title: "Upload failed", description: String(err?.message || err), tone: "error" });
-    } finally { setUploading(false); }
+  /** Picking a Media Hub asset points the entry at it — no copy, no second upload. */
+  function pickAsset(publicId) {
+    if (!publicId) return;
+    setForm((f) => ({
+      ...f,
+      cover: publicId,
+      // Delivery URL at the `original` preset: full resolution, format/quality negotiated by
+      // Cloudinary at view time. The master itself is never re-uploaded or resized.
+      url: cldUrl(publicId, "original"),
+      kind: "link",
+      title: f.title || publicId.split("/").pop().replace(/[-_]+/g, " "),
+    }));
   }
 
   return (
@@ -325,7 +316,7 @@ function LoadDialog({ open, onClose, onSave, tenantFolder }) {
       <DialogContent className="max-w-lg max-h-[88vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Load content</DialogTitle>
-          <DialogDescription>Catalog a finished proposal so you can browse and share it. Paste a link, or upload a PDF or image.</DialogDescription>
+          <DialogDescription>Catalog a finished piece so you can browse and share it. Choose an asset from the Media Hub, or paste a public link.</DialogDescription>
         </DialogHeader>
         <div className="mt-2 space-y-3">
           <L label="Title *"><I value={form.title} onChange={set("title")} placeholder="e.g. Monti Trentini — Asiago Program" /></L>
@@ -335,26 +326,18 @@ function LoadDialog({ open, onClose, onSave, tenantFolder }) {
             </select>
           </L>
 
-          {/* Upload zone: browse + drag & drop */}
-          <div
-            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-            onDragLeave={() => setDragOver(false)}
-            onDrop={(e) => { e.preventDefault(); setDragOver(false); handleFile(e.dataTransfer.files?.[0]); }}
-            className={"flex flex-col items-center gap-2 rounded-base border-2 border-dashed p-5 text-center text-sm " + (dragOver ? "border-brand bg-surface" : "border-border")}
-          >
-            <input ref={fileRef} type="file" hidden onChange={(e) => handleFile(e.target.files?.[0])}
-              accept=".pdf,image/*,application/pdf" />
-            {uploading ? (
-              <span className="flex items-center gap-2 text-fg-muted"><Upload className="h-4 w-4 animate-pulse" /> Uploading…</span>
-            ) : fileName ? (
-              <span className="flex items-center gap-2 text-fg"><FileText className="h-4 w-4 text-brand" /> {fileName}</span>
-            ) : (
-              <>
-                <Upload className="h-6 w-6 text-fg-muted" />
-                <span className="text-fg-muted">Drag &amp; drop a PDF or image — or <button type="button" className="font-medium text-brand underline" onClick={() => fileRef.current?.click()}>browse files</button></span>
-              </>
-            )}
-          </div>
+          <L label="Choose from the Media Hub">
+            <MediaPicker
+              resolved={resolved}
+              value={form.cover}
+              label="Pick an asset"
+              onChange={pickAsset}
+            />
+          </L>
+          <p className="text-xs text-fg-muted">
+            Assets are uploaded, tagged and captioned in the <b>Media Hub</b> — that is the source of truth for
+            all media. The Library points at them; it never holds its own copy.
+          </p>
 
           <div className="flex items-center gap-3 text-xs text-fg-muted"><span className="h-px flex-1 bg-border" />or paste a link<span className="h-px flex-1 bg-border" /></div>
 
@@ -366,11 +349,11 @@ function LoadDialog({ open, onClose, onSave, tenantFolder }) {
             <L label="Cover image"><I value={form.cover} onChange={set("cover")} placeholder="Auto for PDF / image — or paste one" /></L>
           </div>
           <L label="Description"><I value={form.description} onChange={set("description")} placeholder="One line for the card" /></L>
-          <p className="text-xs text-fg-muted">Upload a <b>PDF</b> and its first page becomes the cover automatically; PDFs &amp; images preview and open from the link. (PowerPoint? Export it to a PDF first — PPTX is handled outside the app.)</p>
+          <p className="text-xs text-fg-muted">Need an asset that isn't in the hub yet? Upload it in the <b>Media Hub</b> first, give it a name and usage tags, then come back and pick it. (PowerPoint? Export to PDF — PPTX is handled outside the app.)</p>
         </div>
         <DialogFooter>
-          <DialogClose asChild><Button variant="ghost" disabled={uploading}>Cancel</Button></DialogClose>
-          <Button variant="primary" disabled={!valid || uploading} onClick={() => onSave({ ...form, title: form.title.trim(), url: form.url.trim() })}>Add to catalog</Button>
+          <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
+          <Button variant="primary" disabled={!valid} onClick={() => onSave({ ...form, title: form.title.trim(), url: form.url.trim() })}>Add to catalog</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -529,8 +512,6 @@ export function DeckViewer({ deck, showBack, onBack, resolved }) {
 // Split per CONTENT_ORCHESTRATION_SPEC §4 (composition vs artifact):
 //   · TEXT (.md/.html/.txt) is COPY. It becomes the entry's `body`. No Cloudinary — there is no
 //     file to store, and round-tripping copy through a CDN would just give it a second home.
-//   · BINARY (pdf/images) is an ARTIFACT. It uploads to Cloudinary via the same uploadFileAuto()
-//     the Load dialog uses, and the catalog keeps the link + thumbnail.
 // HTML is stored as a BODY (self-contained markup referencing Cloudinary images), not uploaded.
 // Everything else here is a file and goes to Cloudinary.
 // Markdown / .txt are excluded from staging for now (Rick, 2026-08-03) — the pieces worth
@@ -553,7 +534,7 @@ function prettyTitle(name) {
     .replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim();
 }
 
-function StageDialog({ open, onClose, onStaged, tenantFolder, room }) {
+function StageDialog({ open, onClose, onStaged, room }) {
   const [rows, setRows] = useState([]);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
@@ -568,7 +549,6 @@ function StageDialog({ open, onClose, onStaged, tenantFolder, room }) {
         name: f.name,
         title: prettyTitle(f.name),
         category: guessCategory(f.name),
-        isText: TEXT_EXT.test(f.name),
         include: true,
       });
     }
@@ -582,19 +562,8 @@ function StageDialog({ open, onClose, onStaged, tenantFolder, room }) {
       if (chosen.length > room) throw new Error(`Only ${room} slot${room === 1 ? "" : "s"} left in the library — deselect ${chosen.length - room} or raise the quota.`);
       const entries = [];
       for (const r of chosen) {
-        if (r.isText) {
-          const body = await r.file.text();
-          entries.push({ title: r.title, category: r.category, kind: "text", body, status: "submitted" });
-        } else {
-          const up = await uploadFileAuto({ file: r.file, tenantFolder, subfolder: "library" });
-          entries.push({
-            title: r.title, category: r.category,
-            kind: up.format === "pdf" ? "pdf" : "link",
-            url: up.secureUrl,
-            cover: up.format === "pdf" ? pdfThumbUrl(up.publicId) : up.publicId,
-            status: "submitted",
-          });
-        }
+        const body = await r.file.text();
+        entries.push({ title: r.title, category: r.category, kind: "text", body, status: "submitted" });
       }
       onStaged(entries);
       setRows([]);
@@ -606,7 +575,6 @@ function StageDialog({ open, onClose, onStaged, tenantFolder, room }) {
   }
 
   const chosen = rows.filter((r) => r.include).length;
-  const uploads = rows.filter((r) => r.include && !r.isText).length;
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
@@ -615,15 +583,15 @@ function StageDialog({ open, onClose, onStaged, tenantFolder, room }) {
           <DialogTitle>Stage files for review</DialogTitle>
           <DialogDescription>
             Everything lands as <strong>Submitted</strong> — review each piece, then Post or delete it.
-            HTML is read in your browser and kept as markup (its images stay in the Media Hub);
-            PDFs and images upload to Cloudinary.
+            HTML only — read in your browser and kept as markup, with its images still owned by the
+            Media Hub. For a PDF or image, upload it in the Media Hub first, then add it with Load content.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-3">
           <input
             type="file" multiple
-            accept=".html,.htm,.pdf,.png,.jpg,.jpeg,.webp"
+            accept=".html,.htm"
             onChange={(e) => pick(e.target.files)}
             className="block w-full text-sm text-fg file:mr-3 file:rounded-base file:border file:border-border file:bg-surface file:px-3 file:py-1.5 file:text-sm"
           />
@@ -649,13 +617,11 @@ function StageDialog({ open, onClose, onStaged, tenantFolder, room }) {
                     >
                       {CONTENT_CATEGORIES.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
                     </select>
-                    <Badge variant="muted">{r.isText ? "Text" : "Upload"}</Badge>
                   </div>
                 ))}
               </div>
               <p className="text-xs text-fg-muted">
                 {chosen} of {rows.length} selected · {room} slot{room === 1 ? "" : "s"} left
-                {uploads > 0 && <> · {uploads} will upload to Cloudinary</>}
               </p>
             </>
           )}
