@@ -184,11 +184,7 @@ export function PresentationsPage({ resolved }) {
           {filtered.map((d) => (
             <Card key={d.key} className="group overflow-hidden p-0 transition-colors hover:border-brand-primary">
               <button onClick={() => open(d)} className="block w-full text-left" aria-label={`Open ${d.title}`}>
-                <div className="aspect-video w-full overflow-hidden bg-bg">
-                  {d.cover
-                    ? <img src={coverUrl(d.cover, cldUrl)} alt="" loading="lazy" className="h-full w-full object-cover" />
-                    : <div className="flex h-full w-full items-center justify-center text-fg-muted"><MonitorPlay className="h-8 w-8" /></div>}
-                </div>
+                <CardThumb entry={d} />
               </button>
               <div className="p-4">
                 {d.eyebrow && <p className="text-xs uppercase tracking-wide text-fg-muted">{d.eyebrow}</p>}
@@ -715,5 +711,90 @@ function PreviewDialog({ entry, onClose }) {
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+// Card thumbnail. Order of preference:
+//   1. A real cover image (Cloudinary) — config decks and uploaded PDFs already have one.
+//   2. For an HTML body, a LIVE scaled render of the document itself. No image generation, no
+//      second asset to keep in sync, and it can never go stale against the copy it represents.
+//   3. For markdown / plain text, the opening lines set small — a document-looking preview.
+//   4. Otherwise the placeholder icon.
+//
+// The render is the same hard sandbox as the full preview (no scripts, no same-origin) plus
+// pointer-events:none, so the card stays one click target rather than a live page you can poke.
+// The document is rendered at a page-shaped design size and scaled to FIT ENTIRELY inside the
+// card — both dimensions, not cropped to the top (Rick, 2026-08-03: "the whole doc shrunk to
+// fit"). THUMB_HEIGHT is an assumption: a sandboxed iframe cannot be measured from outside
+// (no allow-same-origin, deliberately), so the real document height is unknowable here. A long
+// page is assumed; anything shorter simply leaves whitespace at the bottom of its thumbnail.
+const THUMB_WIDTH = 1280;
+const THUMB_HEIGHT = 1760;
+
+function CardThumb({ entry }) {
+  const boxRef = useRef(null);
+  const [scale, setScale] = useState(0);
+  const html = entry.kind === "text" && isHtml(entry.body);
+
+  // Scale is measured, not assumed — the grid is 1/2/3 columns depending on viewport, so a
+  // hardcoded factor would be wrong at two of the three breakpoints.
+  useEffect(() => {
+    if (!html || !boxRef.current) return;
+    const el = boxRef.current;
+    // Fit, not fill: the smaller of the two ratios, so the whole page lands inside the box.
+    const set = () => setScale(Math.min(el.clientWidth / THUMB_WIDTH, el.clientHeight / THUMB_HEIGHT));
+    set();
+    const ro = new ResizeObserver(set);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [html]);
+
+  if (entry.cover) {
+    return (
+      <div className="aspect-[4/3] w-full overflow-hidden bg-bg">
+        <img src={coverUrl(entry.cover, cldUrl)} alt="" loading="lazy" className="h-full w-full object-cover" />
+      </div>
+    );
+  }
+
+  if (html) {
+    return (
+      <div ref={boxRef} className="relative flex aspect-[4/3] w-full items-start justify-center overflow-hidden bg-neutral-100">
+        {scale > 0 && (
+          <div style={{ width: THUMB_WIDTH * scale, height: THUMB_HEIGHT * scale }} className="shadow-sm">
+            <iframe
+              title=""
+              aria-hidden="true"
+              tabIndex={-1}
+              sandbox=""
+              loading="lazy"
+              srcDoc={entry.body}
+              style={{
+                border: 0, background: "#fff",
+                width: `${THUMB_WIDTH}px`, height: `${THUMB_HEIGHT}px`,
+                transform: `scale(${scale})`, transformOrigin: "top left",
+                pointerEvents: "none",
+              }}
+            />
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (entry.kind === "text" && entry.body) {
+    return (
+      <div className="aspect-[4/3] w-full overflow-hidden bg-white p-3">
+        <pre className="whitespace-pre-wrap font-mono text-[5px] leading-[1.5] text-neutral-600">
+          {entry.body.slice(0, 1400)}
+        </pre>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex aspect-[4/3] w-full items-center justify-center bg-bg text-fg-muted">
+      <MonitorPlay className="h-8 w-8" />
+    </div>
   );
 }
