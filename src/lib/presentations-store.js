@@ -1,7 +1,12 @@
-// Presentations catalog store (same localStorage-overlay model as brand-kit-edits.js).
-// Presentations = a CATALOG of finished proposals (built in the Proposals tool) that the
-// brand team saves here to organize and SHARE. Entries persist per-tenant in localStorage and
-// merge with any config-defined decks. A real save backend drops in behind these same seams later.
+// Content Library catalog store. The Library is the organized catalog of finished work
+// (CONTENT_ORCHESTRATION_SPEC §2) — links + thumbnails that REFERENCE Media Hub assets, never
+// copies. Entries persist per-tenant in Netlify Blobs via netlify/functions/content-library.js
+// and merge with any config-defined decks.
+//
+// 2026-08-03: connected to a real backend. This was localStorage-only, which made the catalog
+// browser-local — see the "Backing store" note below for why that had to change.
+//
+import { writeAuthHeader } from "./auth-context.jsx";
 //
 // Entry shape:
 //   { key, title, eyebrow?, description?, cover, kind, category, url?, slides?, savedAt }
@@ -40,14 +45,105 @@ export function downloadHref(url) {
     : url;
 }
 
-const KEY = (tenantId) => `cs-presentations-${tenantId}`;
+// ---- Backing store ---------------------------------------------------------------------------
+// CONNECTED to Netlify Blobs (Rick, 2026-08-03: "let's connect it"). It was localStorage, which
+// meant a piece saved from Compose existed only in the browser that saved it — invisible to the
+// team, lost on a cache clear, and impossible for CST to review, which breaks the spec's own
+// Compose → Submit → Review → Post flow. It also can't be "the source for content approval"
+// while it's browser-local. Same move, same reason, as crm-outreach.js.
+//
+// The sync API is kept EXACTLY as it was, because Compose and the proposal builder call
+// loadCatalog()/addEntry() synchronously mid-render (quota checks). So: an in-memory cache is
+// the synchronous source of truth, hydrated once by fetchCatalog(), and every mutation writes
+// through to Blobs on a short debounce. localStorage stays as a one-time migration source and
+// as an offline mirror, never as the system of record.
 
-export function loadCatalog(tenantId) {
-  try { return JSON.parse(localStorage.getItem(KEY(tenantId))) || []; } catch { return []; }
+const KEY = (tenantId) => `cs-presentations-${tenantId}`;
+const cache = new Map();      // tenantId -> entries[]
+const hydrated = new Set();   // tenants whose Blobs catalog has been loaded
+let saveTimer = null;
+let pendingTenant = null;
+const saveListeners = new Set();
+function setSaveState(s) { for (const fn of saveListeners) fn(s); }
+
+/** Subscribe to catalog save status ("saving" | "saved" | "denied" | "failed"). */
+export function subscribeSaveState(fn) {
+  saveListeners.add(fn);
+  return () => saveListeners.delete(fn);
 }
 
-function saveCatalog(tenantId, list) {
+function localRead(tenantId) {
+  try { return JSON.parse(localStorage.getItem(KEY(tenantId))) || []; } catch { return []; }
+}
+function localWrite(tenantId, list) {
   try { localStorage.setItem(KEY(tenantId), JSON.stringify(list)); } catch { /* quota */ }
+}
+
+/**
+ * Hydrate the catalog for a tenant from Blobs. Call once per tenant before rendering the Library.
+ * If the remote catalog is empty but this browser still holds localStorage entries, those are
+ * MIGRATED up on first load — so nothing anyone saved before this change is silently orphaned.
+ */
+export async function fetchCatalog(tenantId) {
+  try {
+    const res = await fetch(`/.netlify/functions/content-library?tenant=${encodeURIComponent(tenantId)}`, {
+      headers: { ...writeAuthHeader() },
+    });
+    const data = res.ok ? await res.json() : { entries: [] };
+    let entries = Array.isArray(data.entries) ? data.entries : [];
+
+    const legacy = localRead(tenantId);
+    if (entries.length === 0 && legacy.length > 0) {
+      entries = legacy;
+      cache.set(tenantId, entries);
+      hydrated.add(tenantId);
+      scheduleSave(tenantId);        // push the migration up
+      return entries;
+    }
+    cache.set(tenantId, entries);
+    hydrated.add(tenantId);
+    localWrite(tenantId, entries);   // offline mirror only
+    return entries;
+  } catch {
+    // Network/function unavailable: fall back to whatever this browser has, read-only in effect.
+    const legacy = localRead(tenantId);
+    cache.set(tenantId, legacy);
+    return legacy;
+  }
+}
+
+/** Synchronous read of the hydrated catalog. Falls back to localStorage before hydration. */
+export function loadCatalog(tenantId) {
+  if (cache.has(tenantId)) return cache.get(tenantId);
+  const legacy = localRead(tenantId);
+  cache.set(tenantId, legacy);
+  return legacy;
+}
+
+function scheduleSave(tenantId) {
+  pendingTenant = tenantId;
+  setSaveState("saving");
+  if (saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(async () => {
+    const t = pendingTenant;
+    try {
+      const res = await fetch("/.netlify/functions/content-library", {
+        method: "POST",
+        headers: { "content-type": "application/json", ...writeAuthHeader() },
+        body: JSON.stringify({ tenant: t, entries: cache.get(t) || [] }),
+      });
+      setSaveState(res.ok ? "saved" : res.status === 401 ? "denied" : "failed");
+    } catch {
+      setSaveState("failed");
+    }
+  }, 700);
+}
+
+/** Write through: update the sync cache + the offline mirror, then push to Blobs. */
+function saveCatalog(tenantId, list) {
+  cache.set(tenantId, list);
+  localWrite(tenantId, list);
+  scheduleSave(tenantId);
   return list;
 }
 

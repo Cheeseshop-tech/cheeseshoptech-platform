@@ -14,14 +14,16 @@ import { useToast } from "@/components/ui/toast.jsx";
 import { useAuth } from "@/lib/auth-context.jsx";
 import { rolesOf } from "@/lib/auth.js";
 import { cldUrl, uploadFileAuto, pdfThumbUrl } from "@/lib/cloudinary.js";
-import { loadCatalog, addEntry, removeEntry, updateEntry, coverUrl, CONTENT_CATEGORIES, categoryLabel, entryCategory, entryStatus, duplicateKeys, DEFAULT_QUOTA, downloadHref } from "@/lib/presentations-store.js";
+import { loadCatalog, fetchCatalog, subscribeSaveState, addEntry, removeEntry, updateEntry, coverUrl, CONTENT_CATEGORIES, categoryLabel, entryCategory, entryStatus, duplicateKeys, DEFAULT_QUOTA, downloadHref } from "@/lib/presentations-store.js";
 import { MediaPicker } from "@/components/media/media-picker.jsx";
 import { SlideRenderer } from "./slide-renderer.jsx";
 
-// Presentations = a CATALOG of finished proposals (built in the Proposals tool) to organize and SHARE.
+// Content Library = the organized CATALOG of finished work (CONTENT_ORCHESTRATION_SPEC §2).
 // Config decks (image slide decks) still render in the built-in viewer; saved entries link out to the
-// finished proposal (a public PDF/page) so buyers can open them. Catalog persists per-tenant in
-// localStorage (same overlay model as the brand kit); a save backend drops in behind the same seam.
+// finished piece (a public PDF/page) so buyers can open them.
+// 2026-08-03: the catalog is now per-tenant in Netlify Blobs (netlify/functions/content-library.js),
+// not localStorage — so a piece saved from Compose is visible to the whole team and can actually be
+// reviewed, which the spec's Compose → Submit → Review → Post flow requires.
 export function PresentationsPage({ resolved }) {
   const { user } = useAuth();
   const roles = rolesOf(user);
@@ -36,7 +38,18 @@ export function PresentationsPage({ resolved }) {
     [resolved.presentations]
   );
   const [saved, setSaved] = useState([]);
-  useEffect(() => { setSaved(loadCatalog(tenant)); }, [tenant]);
+  const [loading, setLoading] = useState(true);
+  const [saveState, setSaveState] = useState("idle");
+  useEffect(() => {
+    let alive = true;
+    setLoading(true);
+    // Show whatever this browser already has immediately, then replace it with the shared
+    // catalog once Blobs answers — so the Library never flashes empty for a returning user.
+    setSaved(loadCatalog(tenant));
+    fetchCatalog(tenant).then((list) => { if (alive) { setSaved(list); setLoading(false); } });
+    return () => { alive = false; };
+  }, [tenant]);
+  useEffect(() => subscribeSaveState(setSaveState), []);
 
   const entries = useMemo(() => [...saved, ...configDecks], [saved, configDecks]);
 
@@ -107,6 +120,16 @@ export function PresentationsPage({ resolved }) {
         <div>
           <h1 className="mb-1 font-heading text-3xl text-fg">Content Library</h1>
           <p className="text-fg-muted">{resolved.brand.name}'s finished content — organized by type, shareable.</p>
+          {/* Catalog status. The catalog is shared now, so a failed write is a real event and
+              must never pass silently the way a localStorage quota error used to. */}
+          <p className="mt-1 text-xs" role="status" aria-live="polite">
+            {loading ? <span className="text-fg-muted">Loading the shared catalog…</span>
+              : saveState === "saving" ? <span className="text-fg-muted">Auto-saves · Saving…</span>
+              : saveState === "saved" ? <span className="text-success">Auto-saves · Saved ✓</span>
+              : saveState === "denied" ? <span className="text-warning">Read-only — admin passcode required to save</span>
+              : saveState === "failed" ? <span className="text-warning">Save failed — the catalog may be out of sync</span>
+              : <span className="text-fg-muted">Shared across the team · auto-saves</span>}
+          </p>
         </div>
         {canManage && (
           <div className="flex flex-col items-end gap-1">
