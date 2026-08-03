@@ -92,19 +92,46 @@ export function clientFolder(resolved) {
 export const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || "";
 
 /**
- * Client-side downscale so oversized photos actually upload. Unsigned uploads cap around
- * ~10 MB and a full-res phone/DSLR master (15–40 MB) stalls the browser POST — the hub shows
- * "uploading" forever. This shrinks the longest edge to `maxEdge` and re-encodes BEFORE upload.
- * Delivery transforms (see TRANSFORMS) resize further at view time, so nothing visible is lost.
- * Safe by design: non-images, SVG/GIF, and already-small files pass through untouched; any
- * failure falls back to the original file so an upload is never blocked by this step.
+ * Fit an image under the unsigned-upload ceiling while KEEPING AS MUCH RESOLUTION AS POSSIBLE.
+ *
+ * 2026-08-03 (Rick): Cloudinary stores the hi-res master; compression is a DELIVERY concern.
+ * Every surface already renders through TRANSFORMS above (thumb 160 / card 360 / preview 1200 /
+ * hero 1600, all `f_auto,q_auto`), so previews are compressed and format-negotiated at view time.
+ * The master therefore has no reason to be shrunk to a fixed size on the way in.
+ *
+ * WHAT THIS REPLACED, AND WHY IT MATTERED. This used to cap the LONG edge at 2560px on every
+ * upload. But `IMAGE_HEALTH_2026-07-09.md` sets the standard on the SHORT edge — 2000px minimum,
+ * "print needs it" — and capping the long edge decides the short edge by aspect ratio:
+ *   1:1 → 2560 ✓ · 5:4 → 2048 ✓ · 4:3 → 1920 ✗ · 3:2 → 1707 ✗ · 16:9 → 1440 ✗
+ * So every standard camera ratio landed under spec, and a 3000×2000 master that arrived exactly
+ * AT spec was rewritten to 2560×1707 — the guard broke the very rule it sat next to. Measured
+ * across the 222 live Monti assets: 97 sit under the 2000px minimum, and 45 of those carry the
+ * guard's fingerprint (long edge exactly 2560), i.e. it caused nearly half of them.
+ *
+ * The 2560 cap was also doing a second, unstated job: keeping PNG re-encodes under Cloudinary
+ * Free's 10MB DERIVED-image limit (the 2026-07-25 "Download PNG" incident). That job now belongs
+ * to `c_limit,w_2400` on the download URLs (buyer-catalog.jsx, media-hub.jsx), so this function
+ * no longer has to compromise the master for it.
+ *
+ * What remains is the one real constraint: an unsigned upload caps around 10MB, and a 15–40MB
+ * DSLR master stalls the browser POST. So this now only intervenes when a file would NOT upload,
+ * and then gives up the least it can — quality first (invisible at print sizes), dimensions only
+ * if quality alone can't get there.
+ *
+ * Safe by design, unchanged: non-images, SVG/GIF and anything already under the ceiling pass
+ * through UNTOUCHED at full resolution; any failure falls back to the original file so an upload
+ * is never blocked by this step.
  */
 export async function downscaleForUpload(
   file,
-  { maxEdge = 2560, triggerBytes = 8_000_000, quality = 0.85 } = {}
+  { ceilingBytes = 9_500_000 } = {}
 ) {
   if (typeof document === "undefined" || !file || !file.type || !file.type.startsWith("image/")) return file;
   if (file.type === "image/svg+xml" || file.type === "image/gif") return file; // don't rasterize
+
+  // The common case now: the master already uploads, so it is stored at full resolution.
+  if (file.size <= ceilingBytes) return file;
+
   let bitmap;
   try {
     bitmap = await createImageBitmap(file);
@@ -112,27 +139,42 @@ export async function downscaleForUpload(
     return file; // can't decode in this browser — let the server handle it
   }
   const { width, height } = bitmap;
-  const longest = Math.max(width, height);
-  if (longest <= maxEdge && file.size <= triggerBytes) {
+  // PNG ignores the quality argument, so transparency-bearing masters can only be reduced by
+  // dimension. JPEG gets to try quality first, which costs no pixels at all.
+  const isPng = file.type === "image/png";
+  const outType = isPng ? "image/png" : "image/jpeg";
+
+  // Least-destructive first: full dimensions at falling quality, then progressively fewer pixels.
+  const attempts = isPng
+    ? [[1, 1], [0.85, 1], [0.7, 1], [0.55, 1]]
+    : [[1, 0.85], [1, 0.75], [1, 0.65], [0.8, 0.8], [0.65, 0.8], [0.5, 0.78]];
+
+  const render = async (scale, quality) => {
+    const w = Math.max(1, Math.round(width * scale));
+    const h = Math.max(1, Math.round(height * scale));
+    const canvas = document.createElement("canvas");
+    canvas.width = w; canvas.height = h;
+    canvas.getContext("2d").drawImage(bitmap, 0, 0, w, h);
+    return new Promise((res) => canvas.toBlob(res, outType, quality));
+  };
+
+  let best = null;
+  try {
+    for (const [scale, quality] of attempts) {
+      const blob = await render(scale, quality);
+      if (!blob) continue;
+      best = blob; // keep the smallest produced so far as a floor
+      if (blob.size <= ceilingBytes) break;
+    }
+  } finally {
     bitmap.close && bitmap.close();
-    return file; // already web-sized
   }
-  const scale = Math.min(1, maxEdge / longest);
-  const w = Math.round(width * scale);
-  const h = Math.round(height * scale);
-  const canvas = document.createElement("canvas");
-  canvas.width = w;
-  canvas.height = h;
-  const ctx = canvas.getContext("2d");
-  ctx.drawImage(bitmap, 0, 0, w, h);
-  bitmap.close && bitmap.close();
-  // Keep PNG (transparency) as PNG; re-encode everything else to JPEG for size.
-  const outType = file.type === "image/png" ? "image/png" : "image/jpeg";
-  const blob = await new Promise((res) => canvas.toBlob(res, outType, quality));
-  if (!blob || blob.size >= file.size) return file; // no win — keep original
+
+  // Nothing usable, or the original was already smaller than anything we made — keep the original
+  // and let the upload attempt speak for itself rather than shipping a worse file.
+  if (!best || best.size >= file.size) return file;
   const base = (file.name || "upload").replace(/\.[^.]+$/, "");
-  const ext = outType === "image/png" ? "png" : "jpg";
-  return new File([blob], `${base}.${ext}`, { type: outType, lastModified: Date.now() });
+  return new File([best], `${base}.${isPng ? "png" : "jpg"}`, { type: outType, lastModified: Date.now() });
 }
 
 /**
@@ -148,8 +190,9 @@ export async function downscaleForUpload(
 export async function uploadAsset({ file, tenantFolder, subfolder = "raw", cloud = CLOUD_NAME, displayName, usage = [] }) {
   if (!UPLOAD_PRESET) throw new Error("No upload preset configured");
   const folder = `${tenantFolder}/${subfolder}`;
-  // Shrink oversized masters in the browser first so big phone/DSLR shots don't exceed the
-  // unsigned ~10 MB cap and stall the POST. Non-images / already-small files pass through.
+  // Only intervenes if the file would not upload at all (unsigned ~10MB cap). Everything under
+  // that ceiling is stored at FULL resolution — Cloudinary is the hi-res master and previews are
+  // compressed at delivery via TRANSFORMS.
   const uploadFile = await downscaleForUpload(file);
   const title = (displayName || "").trim() || file.name;
   // draft (approval) + usage tags travel with the asset in Cloudinary.
@@ -187,12 +230,13 @@ export async function uploadAsset({ file, tenantFolder, subfolder = "raw", cloud
  * Upload ANY file type (PDF, PPTX, images) to Cloudinary via the unsigned preset, using the
  * `auto` endpoint so Cloudinary picks the right resource_type (image vs raw). Used by the
  * Presentations "Load" flow so a finished proposal can be a browsed/dropped file, not just a URL.
- * Images get downscaled first (reuses downscaleForUpload); PDF/PPTX pass through untouched.
+ * Oversized images are fitted under the upload ceiling first (downscaleForUpload); anything
+ * already under it, and all non-images (PDF etc.), pass through untouched at full resolution.
  * Returns the delivery URL + format/resource_type so callers can label and route it.
  */
 export async function uploadFileAuto({ file, tenantFolder, subfolder = "presentations", cloud = CLOUD_NAME }) {
   if (!UPLOAD_PRESET) throw new Error("No upload preset configured");
-  const toSend = await downscaleForUpload(file); // shrinks big images; pdf/pptx/etc. unchanged
+  const toSend = await downscaleForUpload(file); // only if over the upload ceiling; pdf/etc. unchanged
   const folder = `${tenantFolder}/${subfolder}`;
   const form = new FormData();
   form.append("file", toSend);
