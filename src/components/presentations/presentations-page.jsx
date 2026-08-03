@@ -56,6 +56,7 @@ export function PresentationsPage({ resolved }) {
   const [activeKey, setActiveKey] = useState(null);
   const [loadOpen, setLoadOpen] = useState(false);
   const [stageOpen, setStageOpen] = useState(false);
+  const [preview, setPreview] = useState(null); // entry being previewed
   const [activeCategory, setActiveCategory] = useState("all");
   const active = entries.find((d) => d.key === activeKey && d.kind === "deck");
 
@@ -214,9 +215,9 @@ export function PresentationsPage({ resolved }) {
                   {/* A text piece has a body, not a destination — Open would be a button that
                       does nothing, which is worse than no button. Show its length instead. */}
                   {d.kind === "text" && !d.url ? (
-                    <span className="text-xs text-fg-muted">
-                      {(d.body || "").length.toLocaleString()} characters · read it on the campaign
-                    </span>
+                    <Button size="sm" variant="outline" onClick={() => setPreview(d)}>
+                      <FileText className="h-4 w-4" /> {isHtml(d.body) ? "Preview" : "Read"}
+                    </Button>
                   ) : (
                     <Button size="sm" variant="outline" onClick={() => open(d)}>
                       {d.kind === "deck" ? <MonitorPlay className="h-4 w-4" /> : <ExternalLink className="h-4 w-4" />} Open
@@ -248,6 +249,8 @@ export function PresentationsPage({ resolved }) {
           ))}
         </div>
       )}
+
+      <PreviewDialog entry={preview} onClose={() => setPreview(null)} />
 
       <StageDialog
         open={stageOpen}
@@ -663,6 +666,52 @@ function StageDialog({ open, onClose, onStaged, tenantFolder, room }) {
           <Button variant="primary" onClick={stage} disabled={busy || chosen === 0}>
             {busy ? "Staging…" : `Stage ${chosen} for review`}
           </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/** A body that is a full HTML document / fragment rather than markdown or plain text. */
+function isHtml(body) {
+  const b = (body || "").trim().slice(0, 2000).toLowerCase();
+  return b.startsWith("<!doctype html") || b.startsWith("<html") || /<(div|table|body|section|img|p)\b/.test(b);
+}
+
+// Read a staged piece without leaving the Library. HTML sell sheets and social posts are the
+// point of this (Rick, 2026-08-03: "PDF, PowerPoint and HTML with images — sell sheets and
+// social media posts") — those reference their images as absolute Cloudinary URLs, so the
+// markup is self-contained and renders as the finished piece.
+//
+// SANDBOXED deliberately: srcdoc in an iframe with no allow-scripts and no allow-same-origin.
+// Staged files are arbitrary documents from disk; they get to draw, not to run or to reach the
+// session. Images still load, which is all a sell sheet needs.
+function PreviewDialog({ entry, onClose }) {
+  if (!entry) return null;
+  const html = isHtml(entry.body);
+  return (
+    <Dialog open={!!entry} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="max-w-4xl">
+        <DialogHeader>
+          <DialogTitle>{entry.title}</DialogTitle>
+          <DialogDescription>
+            {categoryLabel(entryCategory(entry))} · {html ? "rendered preview" : "plain text"} · not published until Posted
+          </DialogDescription>
+        </DialogHeader>
+        {html ? (
+          <iframe
+            title={entry.title}
+            sandbox=""
+            srcDoc={entry.body}
+            className="h-[65vh] w-full rounded-base border border-border bg-white"
+          />
+        ) : (
+          <pre className="max-h-[65vh] overflow-auto whitespace-pre-wrap rounded-base border border-border bg-bg p-3 font-mono text-xs leading-relaxed text-fg">
+            {entry.body}
+          </pre>
+        )}
+        <DialogFooter>
+          <DialogClose asChild><Button variant="ghost">Close</Button></DialogClose>
         </DialogFooter>
       </DialogContent>
     </Dialog>
