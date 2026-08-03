@@ -84,12 +84,12 @@
     {
       "key": "campaigns",
       "label": "Campaigns",
-      "description": "Active campaigns across channels — reach, revenue and status at a glance.",
+      "description": "Email, social and enrichment campaigns — launch readiness, audience and results.",
       "icon": "megaphone",
       "type": "internal",
       "route": "campaigns",
       "status": "live",
-      "tag": "Active campaigns",
+      "tag": "Campaign lifecycle",
       "allowed": ["admin"]
     },
     {

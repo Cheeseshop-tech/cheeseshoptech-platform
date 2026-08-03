@@ -8,6 +8,13 @@ See `docs/CONTINUAL_IMPROVEMENT.md` for the loop. Updated 2026-06-18.
   exact-weight "firm" in the on-screen proforma; carry proforma → weighed → final-invoice states.
 
 ## Next
+- [med/med] **Create a campaign from the UI** — campaign definitions are seeded in `src/lib/campaigns.js`;
+  lifecycle state (status/checklist/results) already round-trips through Blobs. Needs a write path for
+  definitions too. See `docs/HANDOFF_2026-08-03_campaign-pill-nav-and-email-lifecycle.md`.
+- [med/med] **Campaign results from the ESP** — results are hand-entered today; wire opens/clicks from
+  whichever ESP the Fall Tasting send lands on (Brevo, per the launch runbook).
+- [low/low] **Widen the HubSpot company read** — add company size + a proven-customer flag to
+  `crm-hubspot.js` so enrichment call priority can sort the way the prototype did (channel tier only today).
 - [med/high] **Forecasting view** — now that shared history accrues (central store shipped), surface
   monthly run-rate + YoY in the Movement tab as it fills.
 - [med/low] **Shelf-life → action** — from the Shelf Life tab, one-click "build a clear-out list / draft"
@@ -25,6 +32,8 @@ See `docs/CONTINUAL_IMPROVEMENT.md` for the loop. Updated 2026-06-18.
   live availability + shelf life.
 
 ## Done (log)
+- ✅ 2026-08-03 Campaigns pill sub-nav (email / social / enrichment) + per-campaign lifecycle dashboard with a
+  real launch-readiness gate; state in Netlify Blobs via `campaign-state.js`
 - ✅ 2026-06-18 Live inventory feed (Netlify Blobs, weekly sync, no rebuild) — `e31086a`, `cc7229a`, `04ba2e4`
 - ✅ 2026-06-18 $300 local trucking floor + proforma firm/estimate labels & liner notes — `c63348b`
 - ✅ 2026-06-18 Shelf Life monitoring tab — `a618253`

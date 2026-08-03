@@ -43,6 +43,24 @@ build (see `docs/IMAGE_PIPELINE_SPEC.md`, `docs/ASSET_LIBRARY_SPEC.md`, `docs/ME
   their codes and is the starting point for the catalog.
 - Rick will **request the missing images and replacements for the poor-quality photos.**
 
+**2026-08-03 — Campaign pill-nav + campaign lifecycle dashboard, BUILT.**
+The Campaigns tab is now a pill sub-nav by campaign type, driven by `CAMPAIGN_TYPES` in
+`src/lib/campaigns.js` (add an entry there and the nav grows). Each campaign opens a lifecycle
+dashboard: launch-readiness checklist, strategy, content, target prospects, results.
+**The checklist is a real gate** — `canAdvanceTo()` blocks every status at or past `ready` until
+all required tasks are done, so status is a fact rather than a label.
+**The architectural split to preserve:** campaign *definitions* are seeded in `src/lib/campaigns.js`
+and versioned with the code; campaign *state* (status, checklist ticks, custom/hidden tasks,
+results) lives in Netlify Blobs via `netlify/functions/campaign-state.js`. That mirrors the CRM
+tab's accounts-from-HubSpot vs outreach-state-from-Blobs split, for the same reason: these ticks
+are the real send gate, so they must be shared and survive any browser. Never localStorage.
+Rick's four decisions: Enrichment is **its own pill with its own lifecycle** (the Fall Tasting
+runbook scopes the 94-contact phone pass out of that campaign as "a separate initiative"; email
+campaigns reference it via `dependsOn`) · checklist **template seeds, then editable per campaign** ·
+writes take the **same admin passcode gate** as CRM writes · strategy docs are **linked, not pasted**
+(one source of truth in the client project folder).
+Detail, seeded campaigns, and known limits: `docs/HANDOFF_2026-08-03_campaign-pill-nav-and-email-lifecycle.md`.
+
 **2026-07-19 — Luxury DTC design research ported in; this is where the template architecture
 came from.** A separate, non-CST Claude Project has been doing competitive design research for
 a luxury DTC cheese brand concept ("Posada & Co." / "the Super Site" — blog + test kitchen +
@@ -70,3 +88,4 @@ image, breathable info rail, accordion sections, no parallax). Detail:
 - Open client data to retrieve: `docs/CLIENT_DATA_REQUESTS_2026-07-09.md`
 - Marketing photo request: `docs/MARKETING_IMAGE_REQUEST_2026-07-13.md` (+ `.csv`)
 - Luxury DTC design research, external/not-a-tenant: `docs/HANDOFF_2026-07-19_luxury-dtc-design-research.md`
+- Campaign pill-nav + campaign lifecycle dashboard (built 2026-08-03): `docs/HANDOFF_2026-08-03_campaign-pill-nav-and-email-lifecycle.md`

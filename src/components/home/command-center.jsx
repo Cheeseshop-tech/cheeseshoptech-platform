@@ -5,7 +5,10 @@ import { Button } from "@/components/ui/button.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
 import { Skeleton } from "@/components/ui/skeleton.jsx";
 import { getCrmData, hasCrm, money, PIPELINE_STAGES, crmIsSample } from "@/lib/crm.js";
-import { getCampaigns, CHANNELS, compact, campaignsAreSample } from "@/lib/campaigns.js";
+import {
+  getCampaigns, getCampaignState, mergeCampaign, readinessOf, isLive,
+  CHANNELS, STATUS_TONE, STATUS_LABEL, campaignsAreSample,
+} from "@/lib/campaigns.js";
 import { getSignals, signalsAreSample } from "@/lib/signals.js";
 import { rankOpportunities } from "@/lib/opportunities.js";
 import { getBrandKit } from "@/lib/brandKit.js";
@@ -35,13 +38,17 @@ export function CommandCenter({ resolved, onNavigate }) {
   useEffect(() => {
     let alive = true;
     if (signalsVersion === 0) setData(undefined); // keep the strip stable on re-rank
-    Promise.all([getCrmData(resolved), getCampaigns(resolved), getSignals(resolved)]).then(([crm, campaigns, signals]) => {
-      if (!alive) return;
-      const brandKit = getBrandKit(resolved);
-      const catalog = getPricingData(resolved)?.catalog;
-      const opportunities = rankOpportunities({ crm, signals, brandKit, catalog });
-      setData({ crm, campaigns, opportunities });
-    });
+    // Campaign definitions AND their state overlay — the same merge the Campaigns tab does, so
+    // the hub can never disagree with it about what's launched or how close a campaign is.
+    Promise.all([getCrmData(resolved), getCampaigns(resolved), getSignals(resolved), getCampaignState(resolved)])
+      .then(([crm, defs, signals, state]) => {
+        if (!alive) return;
+        const brandKit = getBrandKit(resolved);
+        const catalog = getPricingData(resolved)?.catalog;
+        const opportunities = rankOpportunities({ crm, signals, brandKit, catalog });
+        const campaigns = (defs || []).map((d) => mergeCampaign(d, state.entries?.[d.id] || {}));
+        setData({ crm, campaigns, opportunities });
+      });
     return () => { alive = false; };
   }, [resolved, signalsVersion]);
 
@@ -55,7 +62,10 @@ export function CommandCenter({ resolved, onNavigate }) {
   }
 
   const { crm, campaigns, opportunities } = data;
-  const activeCampaigns = (campaigns || []).filter((c) => c.status === "active");
+  // "In flight" = actually in market, else the ones being worked on. Showing only `launched`
+  // would leave the card empty for most of a campaign's life, which is when it needs watching.
+  const live = (campaigns || []).filter(isLive);
+  const inFlight = (live.length ? live : (campaigns || []).filter((c) => c.status === "ready" || c.status === "building")).slice(0, 4);
   const overdue = crm?.invoices?.filter((i) => i.status === "Overdue") || [];
   const maxStage = crm ? Math.max(...crm.pipeline.map((p) => p.value), 1) : 1;
 
@@ -116,24 +126,29 @@ export function CommandCenter({ resolved, onNavigate }) {
           then the rest. */}
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
-          <CardHeader><CardTitle>Active campaigns<SampleTag show={campaignsAreSample} /></CardTitle></CardHeader>
+          <CardHeader><CardTitle>{live.length ? "Active campaigns" : "Campaigns in flight"}<SampleTag show={campaignsAreSample} /></CardTitle></CardHeader>
           <CardContent className="space-y-3">
-            {activeCampaigns.length === 0 ? (
-              <p className="text-sm text-fg-muted">No active campaigns right now.</p>
-            ) : activeCampaigns.map((c) => (
-              <div key={c.id} className="flex items-start justify-between gap-3 border-b border-border pb-3 last:border-0 last:pb-0">
-                <div>
-                  <p className="text-sm font-medium text-fg">{c.name}</p>
-                  <div className="mt-1 flex flex-wrap gap-1.5">
-                    {c.channels.map((ch) => <span key={ch} className="rounded-full border border-border px-2 py-0.5 text-xs text-fg-muted">{CHANNELS[ch] || ch}</span>)}
+            {inFlight.length === 0 ? (
+              <p className="text-sm text-fg-muted">No campaigns in flight right now.</p>
+            ) : inFlight.map((c) => {
+              const r = readinessOf(c);
+              return (
+                <div key={c.id} className="flex items-start justify-between gap-3 border-b border-border pb-3 last:border-0 last:pb-0">
+                  <div>
+                    <p className="text-sm font-medium text-fg">{c.name}</p>
+                    <div className="mt-1 flex flex-wrap gap-1.5">
+                      {(c.channels || []).map((ch) => <span key={ch} className="rounded-full border border-border px-2 py-0.5 text-xs text-fg-muted">{CHANNELS[ch] || ch}</span>)}
+                    </div>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <Badge variant={STATUS_TONE[c.status] || "muted"}>{STATUS_LABEL[c.status] || c.status}</Badge>
+                    {r.requiredTotal > 0 && (
+                      <p className="mt-1.5 text-xs text-fg-muted">{r.requiredDone}/{r.requiredTotal} required done</p>
+                    )}
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="font-heading text-lg text-fg">{money(c.kpis.revenue)}</p>
-                  <p className="text-xs text-fg-muted">{compact(c.kpis.reach)} reach</p>
-                </div>
-              </div>
-            ))}
+              );
+            })}
             <Button variant="ghost" size="sm" onClick={() => onNavigate?.("campaigns")}>All campaigns <ArrowRight className="h-4 w-4" /></Button>
           </CardContent>
         </Card>
