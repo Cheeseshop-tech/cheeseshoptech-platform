@@ -30,6 +30,7 @@
     "footer": "A hundred-year-long story does not happen by chance."
   },
   "presentations": [],
+  "contentQuota": 100,
   "tools": [
     {
       "key": "price-list",

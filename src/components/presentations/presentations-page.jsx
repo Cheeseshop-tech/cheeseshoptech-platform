@@ -55,6 +55,7 @@ export function PresentationsPage({ resolved }) {
 
   const [activeKey, setActiveKey] = useState(null);
   const [loadOpen, setLoadOpen] = useState(false);
+  const [stageOpen, setStageOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState("all");
   const active = entries.find((d) => d.key === activeKey && d.kind === "deck");
 
@@ -133,9 +134,14 @@ export function PresentationsPage({ resolved }) {
         </div>
         {canManage && (
           <div className="flex flex-col items-end gap-1">
-            <Button variant="primary" disabled={saved.length >= quota} onClick={() => setLoadOpen(true)}>
-              <Plus className="h-4 w-4" /> Load content
-            </Button>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button variant="outline" disabled={saved.length >= quota} onClick={() => setStageOpen(true)}>
+                <Upload className="h-4 w-4" /> Stage files
+              </Button>
+              <Button variant="primary" disabled={saved.length >= quota} onClick={() => setLoadOpen(true)}>
+                <Plus className="h-4 w-4" /> Load content
+              </Button>
+            </div>
             <span className={"text-xs " + (saved.length >= quota ? "font-medium text-red-600" : "text-fg-muted")}>
               {saved.length}/{quota} stored{saved.length >= quota ? " — delete or download to add" : ""}
             </span>
@@ -242,6 +248,20 @@ export function PresentationsPage({ resolved }) {
           ))}
         </div>
       )}
+
+      <StageDialog
+        open={stageOpen}
+        onClose={() => setStageOpen(false)}
+        tenantFolder={resolved.cloudinaryFolder}
+        room={quota - saved.length}
+        onStaged={(entries) => {
+          let next = saved;
+          for (const e of entries) next = addEntry(tenant, e);
+          setSaved(next);
+          setStageOpen(false);
+          toast({ title: `${entries.length} piece${entries.length === 1 ? "" : "s"} staged for review`, tone: "success" });
+        }}
+      />
 
       <LoadDialog
         open={loadOpen}
@@ -498,5 +518,153 @@ export function DeckViewer({ deck, showBack, onBack, resolved }) {
         ))}
       </div>
     </div>
+  );
+}
+
+// Bulk-stage finished work into the review queue (Rick, 2026-08-03: "stage all content that has
+// been created for review"). Everything lands as SUBMITTED — staging is not publishing.
+//
+// Files are read IN THE BROWSER. Nothing is copied into the repo and nothing is written to
+// public/, which is served publicly — client copy must not become world-readable at a URL.
+//
+// Split per CONTENT_ORCHESTRATION_SPEC §4 (composition vs artifact):
+//   · TEXT (.md/.html/.txt) is COPY. It becomes the entry's `body`. No Cloudinary — there is no
+//     file to store, and round-tripping copy through a CDN would just give it a second home.
+//   · BINARY (pdf/images) is an ARTIFACT. It uploads to Cloudinary via the same uploadFileAuto()
+//     the Load dialog uses, and the catalog keeps the link + thumbnail.
+const TEXT_EXT = /\.(md|markdown|html?|txt)$/i;
+
+// Category from the filename — a guess the reviewer can correct, not a claim.
+function guessCategory(name) {
+  const n = name.toLowerCase();
+  if (/script/.test(n)) return "call-script";
+  if (/social|instagram|post/.test(n)) return "social-post";
+  if (/blog|article|story/.test(n)) return "blog-post";
+  if (/sell.?sheet|flyer|one.?sheet|sheet/.test(n)) return "presentation";
+  if (/email|sequence|outreach|newsletter|nurture/.test(n)) return "email-campaign";
+  return "presentation";
+}
+function prettyTitle(name) {
+  return name.replace(/\.[^.]+$/, "").replace(/^\d+[_-]/, "")
+    .replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function StageDialog({ open, onClose, onStaged, tenantFolder, room }) {
+  const [rows, setRows] = useState([]);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+
+  async function pick(fileList) {
+    setErr("");
+    const files = [...fileList];
+    const out = [];
+    for (const f of files) {
+      out.push({
+        file: f,
+        name: f.name,
+        title: prettyTitle(f.name),
+        category: guessCategory(f.name),
+        isText: TEXT_EXT.test(f.name),
+        include: true,
+      });
+    }
+    setRows(out);
+  }
+
+  async function stage() {
+    setBusy(true); setErr("");
+    try {
+      const chosen = rows.filter((r) => r.include);
+      if (chosen.length > room) throw new Error(`Only ${room} slot${room === 1 ? "" : "s"} left in the library — deselect ${chosen.length - room} or raise the quota.`);
+      const entries = [];
+      for (const r of chosen) {
+        if (r.isText) {
+          const body = await r.file.text();
+          entries.push({ title: r.title, category: r.category, kind: "text", body, status: "submitted" });
+        } else {
+          const up = await uploadFileAuto({ file: r.file, tenantFolder, subfolder: "library" });
+          entries.push({
+            title: r.title, category: r.category,
+            kind: up.format === "pdf" ? "pdf" : "link",
+            url: up.secureUrl,
+            cover: up.format === "pdf" ? pdfThumbUrl(up.publicId) : up.publicId,
+            status: "submitted",
+          });
+        }
+      }
+      onStaged(entries);
+      setRows([]);
+    } catch (e) {
+      setErr(String(e?.message || e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const chosen = rows.filter((r) => r.include).length;
+  const uploads = rows.filter((r) => r.include && !r.isText).length;
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Stage files for review</DialogTitle>
+          <DialogDescription>
+            Everything lands as <strong>Submitted</strong> — review each piece, then Post or delete it.
+            Text is read in your browser and stored as copy; PDFs and images upload to Cloudinary.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-3">
+          <input
+            type="file" multiple
+            accept=".md,.markdown,.html,.htm,.txt,.pdf,.png,.jpg,.jpeg,.webp"
+            onChange={(e) => pick(e.target.files)}
+            className="block w-full text-sm text-fg file:mr-3 file:rounded-base file:border file:border-border file:bg-surface file:px-3 file:py-1.5 file:text-sm"
+          />
+
+          {rows.length > 0 && (
+            <>
+              <div className="max-h-80 overflow-y-auto rounded-base border border-border">
+                {rows.map((r, i) => (
+                  <div key={i} className="flex flex-wrap items-center gap-2 border-b border-border p-2 last:border-0">
+                    <input
+                      type="checkbox" checked={r.include}
+                      onChange={() => setRows((rs) => rs.map((x, j) => (j === i ? { ...x, include: !x.include } : x)))}
+                    />
+                    <input
+                      className="min-w-[12rem] flex-1 rounded-base border border-border bg-surface px-2 py-1 text-sm"
+                      value={r.title}
+                      onChange={(e) => setRows((rs) => rs.map((x, j) => (j === i ? { ...x, title: e.target.value } : x)))}
+                    />
+                    <select
+                      className="rounded-base border border-border bg-surface px-2 py-1 text-xs"
+                      value={r.category}
+                      onChange={(e) => setRows((rs) => rs.map((x, j) => (j === i ? { ...x, category: e.target.value } : x)))}
+                    >
+                      {CONTENT_CATEGORIES.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
+                    </select>
+                    <Badge variant="muted">{r.isText ? "Text" : "Upload"}</Badge>
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-fg-muted">
+                {chosen} of {rows.length} selected · {room} slot{room === 1 ? "" : "s"} left
+                {uploads > 0 && <> · {uploads} will upload to Cloudinary</>}
+              </p>
+            </>
+          )}
+
+          {err && <p className="text-sm text-error">{err}</p>}
+        </div>
+
+        <DialogFooter>
+          <DialogClose asChild><Button variant="ghost">Cancel</Button></DialogClose>
+          <Button variant="primary" onClick={stage} disabled={busy || chosen === 0}>
+            {busy ? "Staging…" : `Stage ${chosen} for review`}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

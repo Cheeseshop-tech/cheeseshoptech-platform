@@ -5,9 +5,15 @@
   "description": "Per-client white-label config. Missing optional values fall back to the CheeseShop TECH house defaults (see docs/DESIGN_SYSTEM.md B2).",
   "type": "object",
   "additionalProperties": false,
-  "required": ["id", "subdomain", "brand"],
+  "required": [
+    "id",
+    "subdomain",
+    "brand"
+  ],
   "properties": {
-    "$schema": { "type": "string" },
+    "$schema": {
+      "type": "string"
+    },
     "id": {
       "type": "string",
       "pattern": "^[a-z0-9-]+$",
@@ -21,9 +27,15 @@
     "brand": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["name", "colors"],
+      "required": [
+        "name",
+        "colors"
+      ],
       "properties": {
-        "name": { "type": "string", "minLength": 1 },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
         "logo": {
           "type": "string",
           "description": "Logo URL. Falls back to the house wordmark if omitted."
@@ -31,7 +43,9 @@
         "colors": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["primary"],
+          "required": [
+            "primary"
+          ],
           "properties": {
             "primary": {
               "type": "string",
@@ -51,19 +65,45 @@
           "properties": {
             "heading": {
               "type": "string",
-              "enum": ["Inter", "Fraunces", "Playfair Display", "Lora", "Source Sans 3", "Work Sans", "Libre Franklin", "Merriweather", "JetBrains Mono"],
+              "enum": [
+                "Inter",
+                "Fraunces",
+                "Playfair Display",
+                "Lora",
+                "Source Sans 3",
+                "Work Sans",
+                "Libre Franklin",
+                "Merriweather",
+                "JetBrains Mono"
+              ],
               "description": "From the font allowlist. Falls back to house Fraunces."
             },
             "body": {
               "type": "string",
-              "enum": ["Inter", "Fraunces", "Playfair Display", "Lora", "Source Sans 3", "Work Sans", "Libre Franklin", "Merriweather", "JetBrains Mono"],
+              "enum": [
+                "Inter",
+                "Fraunces",
+                "Playfair Display",
+                "Lora",
+                "Source Sans 3",
+                "Work Sans",
+                "Libre Franklin",
+                "Merriweather",
+                "JetBrains Mono"
+              ],
               "description": "From the font allowlist. Falls back to house Inter."
             }
           }
         },
         "radius": {
           "type": "string",
-          "enum": ["none", "sm", "md", "lg", "xl"],
+          "enum": [
+            "none",
+            "sm",
+            "md",
+            "lg",
+            "xl"
+          ],
           "description": "Named radius step. Falls back to md."
         }
       }
@@ -74,17 +114,31 @@
     },
     "cloudinaryLegacyFolders": {
       "type": "array",
-      "items": { "type": "string" },
+      "items": {
+        "type": "string"
+      },
       "description": "Extra Cloudinary folders predating cloudinaryFolder (e.g. Monti's monti/<itemcode> packshots). Media Hub lists them too; SKU is derived from the filename server-side. Assets are NOT moved — delivery URLs stay valid."
     },
     "crm": {
       "type": "string",
-      "enum": ["hubspot", "none"],
+      "enum": [
+        "hubspot",
+        "none"
+      ],
       "default": "none"
     },
     "modules": {
       "type": "array",
-      "items": { "type": "string", "enum": ["catalog", "orders", "crm", "media", "campaigns"] },
+      "items": {
+        "type": "string",
+        "enum": [
+          "catalog",
+          "orders",
+          "crm",
+          "media",
+          "campaigns"
+        ]
+      },
       "uniqueItems": true,
       "default": []
     },
@@ -93,22 +147,56 @@
       "additionalProperties": false,
       "description": "Landing-page (home hub) content: masthead + footer. The stat row is computed from the tenant's canonical data unless an explicit `stats` array is given.",
       "properties": {
-        "eyebrow": { "type": "string", "description": "Small italic motto, top-right of the masthead." },
-        "title": { "type": "string", "description": "Masthead display title (e.g. 'Operations Portal')." },
-        "tagline": { "type": "string" },
-        "footer": { "type": "string", "description": "Italic tagline in the footer." },
-        "footerNote": { "type": "string" },
+        "eyebrow": {
+          "type": "string",
+          "description": "Small italic motto, top-right of the masthead."
+        },
+        "title": {
+          "type": "string",
+          "description": "Masthead display title (e.g. 'Operations Portal')."
+        },
+        "tagline": {
+          "type": "string"
+        },
+        "footer": {
+          "type": "string",
+          "description": "Italic tagline in the footer."
+        },
+        "footerNote": {
+          "type": "string"
+        },
         "stats": {
           "type": "array",
           "description": "Optional explicit stat tiles. Omit to compute from data.",
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["value", "label"],
+            "required": [
+              "value",
+              "label"
+            ],
             "properties": {
-              "value": { "type": ["string", "number"] },
-              "label": { "type": "string" },
-              "accent": { "type": "string", "enum": ["brand", "accent", "info", "warning", "success", "error", "fg"] }
+              "value": {
+                "type": [
+                  "string",
+                  "number"
+                ]
+              },
+              "label": {
+                "type": "string"
+              },
+              "accent": {
+                "type": "string",
+                "enum": [
+                  "brand",
+                  "accent",
+                  "info",
+                  "warning",
+                  "success",
+                  "error",
+                  "fg"
+                ]
+              }
             }
           }
         }
@@ -120,16 +208,33 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["key", "title", "slides"],
+        "required": [
+          "key",
+          "title",
+          "slides"
+        ],
         "properties": {
-          "key": { "type": "string", "pattern": "^[a-z0-9-]+$" },
-          "title": { "type": "string", "minLength": 1 },
-          "eyebrow": { "type": "string", "description": "Small label above the deck title (e.g. 'Trade program · 2026')." },
-          "description": { "type": "string" },
+          "key": {
+            "type": "string",
+            "pattern": "^[a-z0-9-]+$"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "eyebrow": {
+            "type": "string",
+            "description": "Small label above the deck title (e.g. 'Trade program · 2026')."
+          },
+          "description": {
+            "type": "string"
+          },
           "slides": {
             "type": "array",
             "minItems": 1,
-            "items": { "type": "string" },
+            "items": {
+              "type": "string"
+            },
             "description": "Ordered slide image URLs."
           }
         }
@@ -142,28 +247,92 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["key", "label", "type"],
+        "required": [
+          "key",
+          "label",
+          "type"
+        ],
         "properties": {
-          "key": { "type": "string", "pattern": "^[a-z0-9-]+$" },
-          "label": { "type": "string", "minLength": 1 },
-          "description": { "type": "string" },
-          "icon": { "type": "string", "description": "lucide-react icon name (e.g. shopping-bag)" },
-          "type": { "type": "string", "enum": ["external", "internal"] },
-          "url": { "type": "string", "description": "Required for type=external (opens in a new tab)." },
-          "route": { "type": "string", "description": "Internal nav key for type=internal (e.g. media)." },
-          "status": { "type": "string", "enum": ["live", "coming-soon"], "default": "live" },
-          "tag": { "type": "string", "description": "Optional status eyebrow shown on the home-hub tool card (e.g. 'Quoting · priority #1')." },
-          "featured": { "type": "boolean", "description": "Promote to its own top-level nav tab with a full page.", "default": false },
-          "embed": { "type": "boolean", "description": "If featured + external, embed the tool in an iframe (only for framing-friendly sites).", "default": false },
-          "admin": { "type": "boolean", "description": "If true, the featured page adds a Live/Admin toggle with a store back-office (admin/client only).", "default": false },
+          "key": {
+            "type": "string",
+            "pattern": "^[a-z0-9-]+$"
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string",
+            "description": "lucide-react icon name (e.g. shopping-bag)"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "external",
+              "internal"
+            ]
+          },
+          "url": {
+            "type": "string",
+            "description": "Required for type=external (opens in a new tab)."
+          },
+          "route": {
+            "type": "string",
+            "description": "Internal nav key for type=internal (e.g. media)."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "live",
+              "coming-soon"
+            ],
+            "default": "live"
+          },
+          "tag": {
+            "type": "string",
+            "description": "Optional status eyebrow shown on the home-hub tool card (e.g. 'Quoting · priority #1')."
+          },
+          "featured": {
+            "type": "boolean",
+            "description": "Promote to its own top-level nav tab with a full page.",
+            "default": false
+          },
+          "embed": {
+            "type": "boolean",
+            "description": "If featured + external, embed the tool in an iframe (only for framing-friendly sites).",
+            "default": false
+          },
+          "admin": {
+            "type": "boolean",
+            "description": "If true, the featured page adds a Live/Admin toggle with a store back-office (admin/client only).",
+            "default": false
+          },
           "allowed": {
             "type": "array",
             "description": "Roles that may see this tool's launch card (home hub) and, if featured, its nav tab. Omit for the default (admin + client, i.e. open to every signed-in portal user). 2026-07-06.",
-            "items": { "type": "string", "enum": ["admin", "client-admin", "client", "pr", "influencer", "creator"] }
+            "items": {
+              "type": "string",
+              "enum": [
+                "admin",
+                "client-admin",
+                "client",
+                "pr",
+                "influencer",
+                "creator"
+              ]
+            }
           }
         }
       },
       "default": []
+    },
+    "contentQuota": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Content Library storage cap for this tenant (CONTENT_ORCHESTRATION_SPEC §9). Omit to use DEFAULT_QUOTA."
     }
   }
 }

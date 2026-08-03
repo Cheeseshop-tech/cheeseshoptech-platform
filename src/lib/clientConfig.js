@@ -76,6 +76,10 @@ export function resolveClient(explicitSubdomain) {
     tools: client?.tools ?? [],
     presentations: client?.presentations ?? [],
     home: client?.home ?? HOUSE.home ?? null,
+    // Content Library storage cap (CONTENT_ORCHESTRATION_SPEC §9). presentations-page.jsx has
+    // always read `resolved.contentQuota`, but the resolver never passed it through — so a
+    // per-client quota in config was silently ignored and every tenant got DEFAULT_QUOTA.
+    contentQuota: client?.contentQuota ?? null,
     cloudinaryFolder: client?.cloudinaryFolder || `clients/${id}`,
     cloudinaryLegacyFolders: client?.cloudinaryLegacyFolders ?? [],
     onPrimary: resolveOnColor(brand.colors.primary),
