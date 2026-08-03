@@ -29,26 +29,7 @@
     "tagline": "One source of truth — catalog, inventory, pricing and commitments — feeding every Monti Trentini tool. Wholesale-first.",
     "footer": "A hundred-year-long story does not happen by chance."
   },
-  "presentations": [
-    {
-      "key": "trade-portal",
-      "title": "Trade Portal",
-      "eyebrow": "Casari dal 1925 · Trade program 2026",
-      "description": "Brand story, range, and the wholesale program — the deck presented to MT ownership.",
-      "slides": [
-        "/presentations/montitrentini/slide-01.webp",
-        "/presentations/montitrentini/slide-02.webp",
-        "/presentations/montitrentini/slide-03.webp",
-        "/presentations/montitrentini/slide-04.webp",
-        "/presentations/montitrentini/slide-05.webp",
-        "/presentations/montitrentini/slide-06.webp",
-        "/presentations/montitrentini/slide-07.webp",
-        "/presentations/montitrentini/slide-08.webp",
-        "/presentations/montitrentini/slide-09.webp",
-        "/presentations/montitrentini/slide-10.webp"
-      ]
-    }
-  ],
+  "presentations": [],
   "tools": [
     {
       "key": "price-list",
