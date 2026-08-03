@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Mail, Share2, PhoneCall, Megaphone, Rocket, ListChecks, Users, MessageSquare, Lock } from "lucide-react";
+import { Mail, Share2, PhoneCall, Megaphone, Rocket, ListChecks, Users, MessageSquare, Lock, Link2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
 import { Stat } from "@/components/ui/stat.jsx";
@@ -157,6 +157,7 @@ export function CampaignsPage({ resolved }) {
               <TypePanel
                 type={t}
                 campaigns={campaigns.filter((c) => c.type === t.id)}
+                allCampaigns={campaigns}
                 onOpen={setOpenId}
               />
             </TabsContent>
@@ -172,7 +173,7 @@ export function CampaignsPage({ resolved }) {
   );
 }
 
-function TypePanel({ type, campaigns, onOpen }) {
+function TypePanel({ type, campaigns, allCampaigns = [], onOpen }) {
   const s = summarize(campaigns);
   const Icon = TYPE_ICON[type.id] || Megaphone;
 
@@ -190,13 +191,21 @@ function TypePanel({ type, campaigns, onOpen }) {
       </div>
 
       <div className="space-y-4">
-        {campaigns.map((c) => <CampaignCard key={c.id} c={c} onOpen={() => onOpen(c.id)} />)}
+        {campaigns.map((c) => (
+          <CampaignCard
+            key={c.id}
+            c={c}
+            serves={c.serves ? allCampaigns.find((x) => x.id === c.serves) : null}
+            servedBy={allCampaigns.find((x) => x.serves === c.id) || null}
+            onOpen={() => onOpen(c.id)}
+          />
+        ))}
       </div>
     </div>
   );
 }
 
-function CampaignCard({ c, onOpen }) {
+function CampaignCard({ c, serves, servedBy, onOpen }) {
   const r = readinessOf(c);
   const gate = r.total > 0;
   return (
@@ -218,6 +227,17 @@ function CampaignCard({ c, onOpen }) {
               )}
             </div>
             <p className="mt-1 text-sm text-fg-muted">{c.goal}</p>
+            {/* The campaign relationship, legible from the list — an enrichment pass reads as
+                the pass for its send, and a send shows the pass that unblocks it. Without this
+                the link only appeared after opening the card. */}
+            {(serves || servedBy) && (
+              <p className="mt-1.5 inline-flex items-center gap-1.5 text-xs text-fg-muted">
+                <Link2 className="h-3.5 w-3.5 shrink-0" />
+                {serves
+                  ? <>Clears contacts for <span className="font-medium text-fg">{serves.name}</span></>
+                  : <>Contact gaps worked in <span className="font-medium text-fg">{servedBy.name}</span></>}
+              </p>
+            )}
             <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-fg-muted">
               {(c.channels || []).map((ch) => (
                 <span key={ch} className="rounded-full border border-border px-2.5 py-0.5">{CHANNELS[ch] || ch}</span>

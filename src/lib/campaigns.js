@@ -193,9 +193,11 @@ const SEEDS = {
       seedDone: ["offer", "audience", "copy", "approval", "dmarc", "esp", "suppression", "test", "date", "schedule", "form", "fulfillment"],
     },
     {
+      // id stays `ne-contact-enrichment` — campaign state in Blobs is keyed by id, so renaming
+      // is safe but re-keying would orphan every tick already saved against it.
       id: "ne-contact-enrichment",
       type: "enrichment",
-      name: "NE Contact Enrichment — phone pass",
+      name: "Fall Tasting — contact enrichment (phone pass)",
       goal: "Clear the contact gaps inside the Fall Tasting target list, so those accounts can receive the send at all.",
       // Scoped to the campaign it unblocks, not to the whole account book — the call list is
       // Fall Tasting's own segment. Its own lifecycle, someone else's target list.
