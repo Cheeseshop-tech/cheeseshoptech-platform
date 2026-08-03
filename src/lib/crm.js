@@ -161,17 +161,51 @@ const USE_MOCK = CRM_BACKEND === "mock";
 // UI uses this to mark mock-backed sections "Sample" so they're never mistaken for live numbers.
 export const crmIsSample = USE_MOCK;
 
+// Session cache for the HubSpot read (2026-08-03). crm-hubspot.js paginates companies AND
+// contacts SEQUENTIALLY on purpose — HubSpot caps search endpoints at ~4 req/s, so a parallel
+// burst 429s the whole payload into zeros — which makes a full read of a 600+ account book take
+// seconds. Three surfaces now want that same dataset in one session (home command-center, the
+// outreach console, and the campaign call console), and each was firing its own copy.
+//
+// Cached BY TENANT, storing the in-flight promise so concurrent callers share one request rather
+// than racing three. Module-level, so a browser reload always refetches — the cache only ever
+// spans in-app navigation within a single page load, which is exactly the duplicate-fetch case
+// and carries no staleness risk across reloads. TTL is a guard for very long-lived sessions.
+const CRM_TTL_MS = 5 * 60 * 1000;
+const crmCache = new Map(); // tenantId -> { at, promise }
+
+/** Drop cached CRM reads (all tenants, or one). For a future explicit refresh control. */
+export function invalidateCrmCache(tenantId) {
+  if (tenantId) crmCache.delete(tenantId);
+  else crmCache.clear();
+}
+
 /** Fetch the CRM dataset for a tenant. Returns null if no CRM configured. */
-export async function getCrmData(resolved) {
+export async function getCrmData(resolved, { force = false } = {}) {
   if (!hasCrm(resolved)) return null;
   if (USE_MOCK) return MOCK[resolved.id] || emptyDataset();
+
+  const key = resolved.id;
+  const hit = crmCache.get(key);
+  if (!force && hit && Date.now() - hit.at < CRM_TTL_MS) return hit.promise;
+
   // Reads now require the passcode header server-side (2026-07-16) — replay the unlock passcode.
   // Any failure (incl. 401 from a pre-update unlock with no stashed passcode) degrades to the
   // empty dataset — dashboard cards hide rather than crash; sign out/in restores the header.
-  const res = await fetch(`/.netlify/functions/crm-hubspot?tenant=${encodeURIComponent(resolved.id)}`, {
-    headers: { ...writeAuthHeader() },
-  });
-  return res.ok ? await res.json() : emptyDataset();
+  // Never cache a failure — a 401/5xx must not pin every surface to an empty account book for
+  // the next five minutes. Note a failed read RESOLVES (with emptyDataset) rather than rejecting,
+  // so the cache entry has to be dropped inside the success path too, not just on .catch().
+  const promise = (async () => {
+    const res = await fetch(`/.netlify/functions/crm-hubspot?tenant=${encodeURIComponent(key)}`, {
+      headers: { ...writeAuthHeader() },
+    });
+    if (!res.ok) { crmCache.delete(key); return emptyDataset(); }
+    return await res.json();
+  })();
+
+  crmCache.set(key, { at: Date.now(), promise });
+  promise.catch(() => crmCache.delete(key));
+  return promise;
 }
 
 function emptyDataset() {

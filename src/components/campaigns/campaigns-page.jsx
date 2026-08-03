@@ -9,6 +9,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs.j
 import { useAuth } from "@/lib/auth-context.jsx";
 import {
   getCampaigns, getCampaignState, saveCampaignState, mergeCampaign, readinessOf, summarize,
+  getCampaignContent, saveCampaignContent, getEnrichment, saveEnrichment,
   canViewCampaigns, CAMPAIGN_TYPES, STATUS_TONE, STATUS_LABEL, CHANNELS, campaignsAreSample, compact,
 } from "@/lib/campaigns.js";
 import { CampaignDetail } from "./campaign-detail.jsx";
@@ -27,37 +28,64 @@ export function CampaignsPage({ resolved }) {
   const { user } = useAuth();
   const [defs, setDefs] = useState(undefined);
   const [entries, setEntries] = useState({});
+  const [content, setContent] = useState({});
+  const [enrich, setEnrich] = useState({});
   const [saveState, setSaveState] = useState("idle"); // idle | dirty | saving | saved | denied | failed
   const [type, setType] = useState(CAMPAIGN_TYPES[0].id);
   const [openId, setOpenId] = useState(null);
   const timer = useRef(null);
-  const entriesRef = useRef(entries);
-  entriesRef.current = entries;
+  // One ref per store so a debounced flush always writes the latest of each, never a stale copy.
+  const refs = useRef({ entries, content, enrich });
+  refs.current = { entries, content, enrich };
 
   useEffect(() => {
     let alive = true;
     setDefs(undefined); setOpenId(null);
-    Promise.all([getCampaigns(resolved), getCampaignState(resolved)]).then(([list, state]) => {
+    Promise.all([
+      getCampaigns(resolved), getCampaignState(resolved), getCampaignContent(resolved), getEnrichment(resolved),
+    ]).then(([list, state, c, e]) => {
       if (!alive) return;
-      setDefs(list); setEntries(state.entries || {});
+      setDefs(list); setEntries(state.entries || {}); setContent(c.entries || {}); setEnrich(e.entries || {});
     });
     return () => { alive = false; };
   }, [resolved.id]);
 
-  // Debounced full-document save, identical in shape to the outreach console's (crm-page.jsx).
-  function scheduleSave(next) {
-    setEntries(next); setSaveState("dirty");
+  // One debounced flush for all three stores — the same shape as the outreach console's
+  // (crm-page.jsx), extended so a single "Saving…/Saved" chip covers the whole tab. Only the
+  // stores that actually changed are written; `which` is a Set of store names.
+  const dirty = useRef(new Set());
+  function scheduleSave(store, next) {
+    if (store === "entries") setEntries(next);
+    else if (store === "content") setContent(next);
+    else setEnrich(next);
+    refs.current = { ...refs.current, [store]: next };
+    dirty.current.add(store);
+    setSaveState("dirty");
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(async () => {
       setSaveState("saving");
-      const res = await saveCampaignState(resolved, entriesRef.current);
-      setSaveState(res.ok ? "saved" : res.status === 401 ? "denied" : "failed");
+      const todo = [...dirty.current];
+      dirty.current = new Set();
+      const results = await Promise.all(todo.map((s) =>
+        s === "entries" ? saveCampaignState(resolved, refs.current.entries)
+          : s === "content" ? saveCampaignContent(resolved, refs.current.content)
+            : saveEnrichment(resolved, refs.current.enrich)
+      ));
+      const bad = results.find((r) => !r.ok);
+      setSaveState(!bad ? "saved" : bad.status === 401 ? "denied" : "failed");
     }, 900);
   }
   /** Merge a partial state patch into one campaign's entry. */
-  const patch = (id, part) => scheduleSave({
-    ...entriesRef.current,
-    [id]: { ...entriesRef.current[id], ...part, updatedAt: new Date().toISOString() },
+  const patch = (id, part) => scheduleSave("entries", {
+    ...refs.current.entries,
+    [id]: { ...refs.current.entries[id], ...part, updatedAt: new Date().toISOString() },
+  });
+  /** Replace one campaign's authored content items. */
+  const patchContent = (id, items) => scheduleSave("content", { ...refs.current.content, [id]: { items } });
+  /** Merge a capture patch into one company's enrichment row. */
+  const patchEnrich = (companyId, part) => scheduleSave("enrich", {
+    ...refs.current.enrich,
+    [companyId]: { ...refs.current.enrich[companyId], ...part, calledAt: new Date().toISOString() },
   });
 
   const campaigns = useMemo(
@@ -103,6 +131,11 @@ export function CampaignsPage({ resolved }) {
           onBack={() => setOpenId(null)}
           onPatch={(part) => patch(open.id, part)}
           entry={entries[open.id] || {}}
+          contentItems={content[open.id]?.items ?? open.seedContent ?? []}
+          onContent={(items) => patchContent(open.id, items)}
+          enrichment={enrich}
+          onEnrich={patchEnrich}
+          allCampaigns={campaigns}
           canWrite={saveState !== "denied"}
         />
       ) : (

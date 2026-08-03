@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft, ListChecks, BookOpen, FileText, Users, BarChart3, Plus, X, AlertTriangle,
-  CheckCircle2, Copy, Check, ExternalLink, Link2, PhoneCall,
+  CheckCircle2, Copy, Check, ExternalLink, Link2, PhoneCall, ChevronDown, ChevronRight,
+  ScrollText, Download,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card.jsx";
 import { Button } from "@/components/ui/button.jsx";
@@ -13,8 +14,11 @@ import { EmptyState } from "@/components/ui/empty-state.jsx";
 import { ProgressBar } from "./campaigns-page.jsx";
 import {
   LIFECYCLE, STATUS_TONE, STATUS_LABEL, CHANNELS, readinessOf, canAdvanceTo, groupChecklist, pct, typeLabel,
+  CONTENT_KINDS, APPROVAL_STATES, APPROVAL_TONE, APPROVAL_LABEL, kindLabel,
+  CALL_OUTCOMES, OUTCOME_TONE, OUTCOME_LABEL, isCleared, enrichmentCsv, downloadCsv,
+  scopeOf, segmentEnrichment, geoBreakdown, cityKeyOf,
 } from "@/lib/campaigns.js";
-import { getCrmData, CHANNEL_TO_AUDIENCE } from "@/lib/crm.js";
+import { getCrmData, CHANNEL_TO_AUDIENCE, regionOf, stateOf } from "@/lib/crm.js";
 
 // One campaign's lifecycle dashboard — the five surfaces the handoff asked for, in the order it
 // asked for them: launch-readiness checklist (the actual send gate), strategy, content, target
@@ -27,7 +31,10 @@ import { getCrmData, CHANNEL_TO_AUDIENCE } from "@/lib/crm.js";
 
 const SECTION_ICON = { checklist: ListChecks, strategy: BookOpen, content: FileText, prospects: Users, results: BarChart3 };
 
-export function CampaignDetail({ campaign: c, resolved, onBack, onPatch, entry, canWrite }) {
+export function CampaignDetail({
+  campaign: c, resolved, onBack, onPatch, entry, canWrite,
+  contentItems = [], onContent, enrichment = {}, onEnrich, allCampaigns = [],
+}) {
   const r = readinessOf(c);
 
   function toggleItem(item) {
@@ -93,12 +100,18 @@ export function CampaignDetail({ campaign: c, resolved, onBack, onPatch, entry, 
         <StrategyPanel strategy={c.strategy} />
       </Section>
 
-      <Section id="content" title="Content" description="The copy and assets this campaign sends.">
-        <ContentPanel content={c.content} sequence={c.sequence} />
+      <Section id="content" title="Content & approvals" description="Copy and scripts are written and approved here; files live in the Media Hub and are linked.">
+        <ContentPanel
+          linked={c.content} sequence={c.sequence}
+          items={contentItems} onChange={onContent} canWrite={canWrite}
+        />
       </Section>
 
-      <Section id="prospects" title="Target prospects" description="Who this campaign reaches — live from the same HubSpot data as the CRM console.">
-        <ProspectPanel c={c} resolved={resolved} />
+      <Section id="prospects" title={c.type === "enrichment" ? "Call console" : "Target prospects"} description={c.type === "enrichment" ? "Work the gap list — the approved script, the number, and what the call produced." : "Who this campaign reaches — live from the same HubSpot data as the CRM console."}>
+        <ProspectPanel
+          c={c} resolved={resolved} scripts={contentItems} allCampaigns={allCampaigns}
+          enrichment={enrichment} onEnrich={onEnrich} canWrite={canWrite}
+        />
       </Section>
 
       <Section id="results" title="Results" description={c.status === "launched" || c.status === "complete" ? "Performance since launch." : "Fills in once the campaign launches."}>
@@ -333,32 +346,95 @@ function PathRef({ label, path }) {
   );
 }
 
-// ---- Content -------------------------------------------------------------------------------
-function ContentPanel({ content, sequence }) {
-  const has = (content || []).length > 0;
+// ---- Content & approvals ---------------------------------------------------------------------
+// Two shelves, deliberately separate:
+//   · AUTHORED — email copy and call scripts written here, each carrying an approvalState. Text
+//     belongs in the platform because the approved working copy has to be one click from the
+//     campaign (and, for a script, from the call console) — not in a doc somebody has to find.
+//   · LINKED — one-sheets, PDFs, packshots. Those stay in the Media Hub / project folder; this
+//     shelf points at them. The platform is not a file store and shouldn't pretend to be.
+// approvalState reuses the Media Hub's vocabulary rather than inventing a second one.
+function ContentPanel({ linked, sequence, items, onChange, canWrite }) {
+  const [editing, setEditing] = useState(null); // item id being edited, or "new"
+
+  const upsert = (item) => {
+    const next = items.some((i) => i.id === item.id)
+      ? items.map((i) => (i.id === item.id ? { ...item, updatedAt: new Date().toISOString() } : i))
+      : [...items, { ...item, updatedAt: new Date().toISOString() }];
+    onChange(next);
+    setEditing(null);
+  };
+  const remove = (id) => onChange(items.filter((i) => i.id !== id));
+  const setApproval = (item, approvalState) => upsert({
+    ...item,
+    approvalState,
+    ...(approvalState === "approved" ? { approvedAt: new Date().toISOString() } : {}),
+  });
+
   return (
     <div className="space-y-6">
-      {has ? (
-        <ul className="divide-y divide-border rounded-base border border-border">
-          {content.map((a, i) => (
-            <li key={i} className="flex items-center justify-between gap-3 p-3">
-              <div className="flex min-w-0 items-center gap-2">
-                <FileText className="h-4 w-4 shrink-0 text-fg-muted" />
-                <span className="truncate text-sm text-fg">{a.label}</span>
-              </div>
-              <div className="flex shrink-0 items-center gap-2">
-                {a.kind && <Badge variant="muted">{a.kind}</Badge>}
-                {a.url && (
-                  <a href={a.url} target="_blank" rel="noreferrer" className="text-fg-muted hover:text-brand-primary" title="Open">
-                    <ExternalLink className="h-4 w-4" />
-                  </a>
-                )}
-              </div>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="text-sm text-fg-muted">No assets linked yet.</p>
+      <div>
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+          <p className="cs-eyebrow text-fg-muted">Written here</p>
+          {editing !== "new" && (
+            <Button variant="outline" size="sm" onClick={() => setEditing("new")} disabled={!canWrite}>
+              <Plus className="h-4 w-4" /> New piece
+            </Button>
+          )}
+        </div>
+
+        {editing === "new" && (
+          <ContentEditor onSave={upsert} onCancel={() => setEditing(null)} />
+        )}
+
+        {items.length === 0 && editing !== "new" ? (
+          <p className="text-sm text-fg-muted">
+            Nothing written yet. Email copy and call scripts you write here get an approval state,
+            and an approved script becomes the working script on the call console.
+          </p>
+        ) : (
+          <ul className="space-y-2">
+            {items.map((it) => (
+              editing === it.id ? (
+                <li key={it.id}><ContentEditor item={it} onSave={upsert} onCancel={() => setEditing(null)} /></li>
+              ) : (
+                <li key={it.id}>
+                  <ContentRow
+                    item={it} canWrite={canWrite}
+                    onEdit={() => setEditing(it.id)} onRemove={() => remove(it.id)} onApproval={(s) => setApproval(it, s)}
+                  />
+                </li>
+              )
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {(linked || []).length > 0 && (
+        <div>
+          <p className="cs-eyebrow mb-2 text-fg-muted">Linked assets</p>
+          <ul className="divide-y divide-border rounded-base border border-border">
+            {linked.map((a, i) => (
+              <li key={i} className="flex items-center justify-between gap-3 p-3">
+                <div className="flex min-w-0 items-center gap-2">
+                  <FileText className="h-4 w-4 shrink-0 text-fg-muted" />
+                  <span className="truncate text-sm text-fg">{a.label}</span>
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  {a.kind && <Badge variant="muted">{a.kind}</Badge>}
+                  {a.url && (
+                    <a href={a.url} target="_blank" rel="noreferrer" className="text-fg-muted hover:text-brand-primary" title="Open">
+                      <ExternalLink className="h-4 w-4" />
+                    </a>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-2 text-xs text-fg-muted">
+            Files (one-sheets, PDFs, packshots) live in the Media Hub — link them here rather than uploading a second copy.
+          </p>
+        </div>
       )}
 
       {(sequence || []).length > 0 && (
@@ -378,6 +454,107 @@ function ContentPanel({ content, sequence }) {
   );
 }
 
+function ContentRow({ item, canWrite, onEdit, onRemove, onApproval }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="rounded-base border border-border">
+      <div className="flex flex-wrap items-center justify-between gap-2 p-3">
+        <button type="button" onClick={() => setOpen((v) => !v)} className="flex min-w-0 items-center gap-2 text-left">
+          {open ? <ChevronDown className="h-4 w-4 shrink-0 text-fg-muted" /> : <ChevronRight className="h-4 w-4 shrink-0 text-fg-muted" />}
+          <span className="truncate text-sm text-fg">{item.title}</span>
+        </button>
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          <Badge variant="muted">{kindLabel(item.kind)}</Badge>
+          <Badge variant={APPROVAL_TONE[item.approvalState] || "muted"}>{APPROVAL_LABEL[item.approvalState] || item.approvalState}</Badge>
+          <select
+            className="rounded-base border border-border bg-surface px-2 py-1 text-xs text-fg disabled:opacity-40"
+            value={item.approvalState} disabled={!canWrite}
+            onChange={(e) => onApproval(e.target.value)}
+            aria-label={`Approval state for ${item.title}`}
+          >
+            {APPROVAL_STATES.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
+          </select>
+          <Button variant="ghost" size="sm" onClick={onEdit} disabled={!canWrite}>Edit</Button>
+          <button
+            type="button" onClick={onRemove} disabled={!canWrite} title="Delete this piece"
+            className="rounded p-1 text-fg-muted transition-colors hover:text-error disabled:opacity-40"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+      {open && (
+        <div className="border-t border-border p-3">
+          {item.body
+            ? <pre className="max-h-96 overflow-auto whitespace-pre-wrap font-mono text-xs leading-relaxed text-fg">{item.body}</pre>
+            : <p className="text-sm text-fg-muted">No body — this piece is a link only.</p>}
+          {item.url && (
+            <a href={item.url} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1.5 text-xs text-brand-primary hover:underline">
+              <ExternalLink className="h-3.5 w-3.5" /> {item.url}
+            </a>
+          )}
+          {item.approvalState === "approved" && item.approvedAt && (
+            <p className="mt-2 text-xs text-fg-muted">Approved {item.approvedAt.slice(0, 10)}</p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ContentEditor({ item, onSave, onCancel }) {
+  const [title, setTitle] = useState(item?.title || "");
+  const [kind, setKind] = useState(item?.kind || "email");
+  const [url, setUrl] = useState(item?.url || "");
+  const [body, setBody] = useState(item?.body || "");
+
+  const submit = () => {
+    const t = title.trim();
+    if (!t) return;
+    onSave({
+      id: item?.id || `c-${slug(t)}-${Math.abs(hash(t + kind)) % 9973}`,
+      kind, title: t, url: url.trim(), body,
+      approvalState: item?.approvalState || "draft",
+      ...(item?.approvedAt ? { approvedAt: item.approvedAt } : {}),
+    });
+  };
+
+  return (
+    <div className="space-y-3 rounded-base border border-brand-primary p-3">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-1.5">
+          <Label htmlFor="ct">Title</Label>
+          <Input id="ct" autoFocus value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Enrichment call script" />
+        </div>
+        <div className="grid gap-1.5">
+          <Label htmlFor="ck">Kind</Label>
+          <select
+            id="ck" value={kind} onChange={(e) => setKind(e.target.value)}
+            className="h-10 rounded-base border border-border bg-surface px-3 text-sm text-fg"
+          >
+            {CONTENT_KINDS.map((k) => <option key={k.id} value={k.id}>{k.label}</option>)}
+          </select>
+        </div>
+      </div>
+      <div className="grid gap-1.5">
+        <Label htmlFor="cu">Link (optional — for a file in the Media Hub or a doc)</Label>
+        <Input id="cu" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://…" />
+      </div>
+      <div className="grid gap-1.5">
+        <Label htmlFor="cb">Body</Label>
+        <Textarea id="cb" className="min-h-[14rem] font-mono text-xs" value={body} onChange={(e) => setBody(e.target.value)} placeholder="Paste or write the copy / script here…" />
+      </div>
+      <div className="flex justify-end gap-2">
+        <Button variant="ghost" size="sm" onClick={onCancel}>Cancel</Button>
+        <Button size="sm" onClick={submit} disabled={!title.trim()}>Save piece</Button>
+      </div>
+      <p className="text-xs text-fg-muted">New pieces save as <strong>Draft</strong>. Set them to Approved when they're signed off — an approved call script becomes the working script on the call console.</p>
+    </div>
+  );
+}
+
+const hash = (s) => { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return h; };
+
 // ---- Target prospects ----------------------------------------------------------------------
 // Reuses getCrmData() — the SAME read-only HubSpot line the CRM console uses (crm-hubspot.js).
 // No second fetcher, per the handoff. For an enrichment campaign this panel is the working
@@ -387,9 +564,10 @@ function ContentPanel({ content, sequence }) {
 const CHANNEL_TIER = { distributor: 0, retail: 1, foodservice: 2 };
 const tierOf = (co) => CHANNEL_TIER[CHANNEL_TO_AUDIENCE[co?.channel]] ?? 3;
 
-function ProspectPanel({ c, resolved }) {
+function ProspectPanel({ c, resolved, scripts = [], enrichment = {}, onEnrich, canWrite, allCampaigns = [] }) {
   const [crm, setCrm] = useState(undefined);
-  const enrichment = c.type === "enrichment";
+  const [pick, setPick] = useState(null); // {level:'region'|'state'|'city', key, state?}
+  const isEnrichment = c.type === "enrichment";
 
   useEffect(() => {
     let alive = true;
@@ -399,83 +577,171 @@ function ProspectPanel({ c, resolved }) {
   }, [resolved.id]);
 
   const companies = crm?.companies || [];
+  // Scope comes from the campaign this one SERVES when it's an enrichment pass, else from its own
+  // audience — so the call list is always "the gaps in this send's target list", never the whole
+  // account book. A row leaves the list only once its record is actually cleared, so it stays put
+  // through "left message" / "no answer" and disappears when the buyer and email are captured.
+  const scope = scopeOf(c, allCampaigns);
+  const seg = useMemo(
+    () => segmentEnrichment(c, companies, enrichment, allCampaigns),
+    [c, companies, enrichment, allCampaigns]
+  );
+  // Breakdown is computed over the whole segment (so the numbers describe the segment, not the
+  // current filter), while `pick` narrows only the call list below it.
+  const tree = useMemo(() => geoBreakdown(seg.segment, enrichment), [seg, enrichment]);
+  const matchesPick = (co) => {
+    if (!pick) return true;
+    if (pick.level === "region") return regionOf(co) === pick.key;
+    if (pick.level === "state") return (stateOf(co) || "—") === pick.key;
+    // Must use the SAME normalization the breakdown buckets with, or clicking "Boston" would
+    // miss every "boston (north end)" row that the count above it includes.
+    return (cityKeyOf(co) || "—") === pick.key && (!pick.state || (stateOf(co) || "—") === pick.state);
+  };
   const gaps = useMemo(() => {
-    const list = companies.filter((co) => !co.ownerEmail || !co.owner);
+    const list = seg.remaining.filter(matchesPick);
     list.sort((a, b) => tierOf(a) - tierOf(b) || String(a.name).localeCompare(String(b.name)));
     return list;
-  }, [companies]);
-  const sendable = companies.filter((co) => co.ownerEmail).length;
+  }, [seg, pick]);
+  const clearedRows = useMemo(
+    () => seg.segment.filter((co) => isCleared(enrichment[co.id])),
+    [seg, enrichment]
+  );
+  const servesOther = scope.id !== c.id;
+  const enrichmentFor = allCampaigns.find((x) => x.type === "enrichment" && x.serves === c.id);
+
+  function exportForHubspot() {
+    const rows = clearedRows.map((co) => ({ ...enrichment[co.id], companyName: co.name, companyId: co.id }));
+    downloadCsv(`${resolved.id}-enrichment-${new Date().toISOString().slice(0, 10)}.csv`, enrichmentCsv(rows));
+  }
 
   return (
     <div className="space-y-5">
-      {c.audience ? (
+      {isEnrichment && <ScriptWindow scripts={scripts} />}
+
+      {servesOther && (
+        <div className="flex flex-wrap items-center gap-2 rounded-base border border-border bg-bg p-3 text-sm">
+          <Link2 className="h-4 w-4 shrink-0 text-fg-muted" />
+          <span className="text-fg-muted">Working the target list of</span>
+          <span className="font-medium text-fg">{scope.name}</span>
+          <span className="text-fg-muted">— this pass exists to unblock that send.</span>
+        </div>
+      )}
+
+      {/* Live segment numbers, not the headline from a spreadsheet — this is what the send can
+          actually reach today, and what still stands between it and going out. */}
+      {crm !== undefined && companies.length > 0 ? (
+        <div className="grid gap-4 sm:grid-cols-4">
+          <Figure label="In segment" value={seg.total.toLocaleString()} />
+          <Figure label="Reachable now" value={seg.sendable.toLocaleString()} />
+          <Figure label="Need a call" value={seg.remaining.length.toLocaleString()} />
+          <Figure label={isEnrichment ? "Cleared this pass" : (c.capTarget ? `Cap (${c.capTarget})` : "Cleared")} value={clearedRows.length.toLocaleString()} />
+        </div>
+      ) : scope.audience ? (
+        // Fallback while the CRM read is unavailable: the audience's own stated figures. Read
+        // from `scope`, not `c`, so an enrichment pass shows the list it actually works rather
+        // than mixing its own headline count with the served campaign's source file.
         <div className="grid gap-4 sm:grid-cols-3">
-          <Figure label="List size" value={(c.audience.size ?? 0).toLocaleString()} />
-          <Figure label={enrichment ? "Companies" : "With email"} value={(enrichment ? c.audience.companies : c.audience.emails ?? c.audience.size)?.toLocaleString() ?? "—"} />
-          <Figure label="Cap / target" value={c.capTarget ? c.capTarget.toLocaleString() : "—"} />
+          <Figure label="List size" value={(scope.audience.size ?? 0).toLocaleString()} />
+          <Figure label="With email" value={(scope.audience.emails ?? scope.audience.size)?.toLocaleString() ?? "—"} />
+          <Figure label="Cap / target" value={scope.capTarget ? scope.capTarget.toLocaleString() : "—"} />
         </div>
       ) : (
         <p className="text-sm text-fg-muted">No audience defined for this campaign yet.</p>
       )}
 
-      {c.audience?.source && (
+      {scope.audience?.source && (
         <p className="text-xs text-fg-muted">
-          Source: <code className="rounded bg-bg px-1.5 py-0.5 font-mono text-[11px]">{c.audience.source}</code>
-          {c.audience.note && <> · {c.audience.note}</>}
+          Source: <code className="rounded bg-bg px-1.5 py-0.5 font-mono text-[11px]">{scope.audience.source}</code>
+          {scope.audience.note && <> · {scope.audience.note}</>}
+        </p>
+      )}
+
+      {/* An approximated segment must say so — a filter that tracks the CRM is not the same thing
+          as a hand-qualified list, and quietly conflating them would misreport the gate. */}
+      {scope.audience?.filter && scope.audience?.exact === false && (
+        <p className="flex items-start gap-1.5 rounded-base border border-warning/40 bg-warning/5 p-2.5 text-xs text-fg-muted">
+          <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warning" />
+          <span>
+            Segment is a <strong>filter</strong>, not the qualified list — {[
+              scope.audience.filter.regions?.length && `${scope.audience.filter.regions.join(" / ")}`,
+              scope.audience.filter.channels?.length && `${scope.audience.filter.channels.length} channels`,
+            ].filter(Boolean).join(" · ")}. It tracks the CRM as it changes. Import the HubSpot IDs from{" "}
+            <code className="rounded bg-bg px-1 py-0.5 font-mono">{scope.audience.source}</code> into{" "}
+            <code className="rounded bg-bg px-1 py-0.5 font-mono">companyIds</code> to make the scope exact.
+          </span>
         </p>
       )}
 
       <div className="rounded-base border border-border p-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="text-sm font-medium text-fg">
-            {enrichment ? "Accounts missing an email or a named buyer" : "Live CRM coverage"}
+            {isEnrichment ? "Accounts missing an email or a named buyer" : "Segment coverage"}
           </p>
-          {crm === undefined
-            ? <span className="text-xs text-fg-muted">Loading accounts…</span>
-            : <span className="text-xs text-fg-muted">{companies.length.toLocaleString()} accounts in the CRM · {sendable.toLocaleString()} sendable</span>}
+          <div className="flex flex-wrap items-center gap-3">
+            {crm === undefined
+              ? <span className="text-xs text-fg-muted">Loading accounts…</span>
+              : <span className="text-xs text-fg-muted">{seg.total.toLocaleString()} in segment · {companies.length.toLocaleString()} in the CRM</span>}
+            {isEnrichment && clearedRows.length > 0 && (
+              <Button variant="outline" size="sm" onClick={exportForHubspot}>
+                <Download className="h-4 w-4" /> Export {clearedRows.length} for HubSpot
+              </Button>
+            )}
+          </div>
         </div>
+
+        {crm !== undefined && seg.total > 0 && (
+          <div className="mt-3">
+            <GeoBreakdown tree={tree} pick={pick} onPick={setPick} />
+          </div>
+        )}
 
         {crm === undefined ? null : companies.length === 0 ? (
           <p className="mt-3 text-sm text-fg-muted">No accounts returned — the CRM console will show why.</p>
-        ) : enrichment ? (
+        ) : isEnrichment ? (
           gaps.length === 0 ? (
-            <EmptyState icon={CheckCircle2} title="No gaps left" description="Every account has an email and a named buyer." />
+            <EmptyState icon={CheckCircle2} title="No gaps left" description="Every account on this list now has an email and a named buyer." />
           ) : (
             <>
               <p className="mt-1 text-xs text-fg-muted">
-                {gaps.length.toLocaleString()} to call, ordered by channel tier. Log the call outcome per account in the
-                CRM console — this campaign tracks the pass, the console tracks each conversation.
+                {gaps.length.toLocaleString()} still to clear{pick ? <> in <strong>{pick.key}</strong></> : null}, ordered by channel tier.
+                A row leaves this list once the outcome is <em>Reached</em> and both the buyer and email are filled in.
               </p>
-              <ul className="mt-3 max-h-96 divide-y divide-border overflow-y-auto rounded-base border border-border">
+              <ul className="mt-3 max-h-[36rem] space-y-2 overflow-y-auto pr-1">
                 {gaps.slice(0, 200).map((co) => (
-                  <li key={co.id} className="flex flex-wrap items-center justify-between gap-2 p-2.5">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm text-fg">{co.name}</p>
-                      <p className="text-xs text-fg-muted">
-                        {[co.channel, [co.city, co.state].filter(Boolean).join(", ")].filter(Boolean).join(" · ") || "—"}
-                      </p>
-                    </div>
-                    <div className="flex shrink-0 items-center gap-1.5">
-                      {!co.owner && <Badge variant="warning">No buyer</Badge>}
-                      {!co.ownerEmail && <Badge variant="muted">No email</Badge>}
-                      {(co.ownerPhone || co.phone) && (
-                        <a href={`tel:${co.ownerPhone || co.phone}`} className="inline-flex items-center gap-1 text-xs text-brand-primary hover:underline">
-                          <PhoneCall className="h-3.5 w-3.5" /> Call
-                        </a>
-                      )}
-                    </div>
-                  </li>
+                  <CallRow
+                    key={co.id} co={co} rec={enrichment[co.id] || {}} canWrite={canWrite}
+                    onPatch={(part) => onEnrich(co.id, { campaignId: c.id, ...part })}
+                  />
                 ))}
               </ul>
               {gaps.length > 200 && (
-                <p className="mt-2 text-xs text-fg-muted">Showing the first 200 of {gaps.length.toLocaleString()} — full list in the CRM console.</p>
+                <p className="mt-2 text-xs text-fg-muted">Showing the first 200 of {gaps.length.toLocaleString()}.</p>
               )}
             </>
           )
-        ) : (
+        ) : gaps.length === 0 ? (
           <p className="mt-2 text-xs text-fg-muted">
-            {sendable.toLocaleString()} of {companies.length.toLocaleString()} accounts have an email today.
-            {gaps.length > 0 && <> {gaps.length.toLocaleString()} still need enrichment before they can receive a send.</>}
+            All {seg.total.toLocaleString()} accounts in this segment have an email and a named buyer — nothing blocking the send.
+          </p>
+        ) : (
+          // The send's own view of the gap: the number, and where the work happens. The calls
+          // themselves belong to the enrichment campaign, not duplicated here.
+          <div className="mt-2 space-y-2">
+            <p className="text-sm text-fg">
+              <strong>{gaps.length.toLocaleString()}</strong> of {seg.total.toLocaleString()} targets can't receive this send yet —
+              missing an email or a named buyer.
+            </p>
+            {enrichmentFor
+              ? <p className="text-xs text-fg-muted">Worked in <strong>{enrichmentFor.name}</strong>, which is scoped to this campaign's list.</p>
+              : <p className="text-xs text-fg-muted">No enrichment pass is scoped to this campaign yet — create one and set <code className="rounded bg-bg px-1 py-0.5 font-mono">serves</code> to this campaign.</p>}
+          </div>
+        )}
+
+        {isEnrichment && (
+          <p className="mt-3 border-t border-border pt-3 text-xs text-fg-muted">
+            Captured here, not written to HubSpot — the private app is read-only by design. Export the cleared rows
+            as a HubSpot-import CSV (contact properties map 1:1, and the company record ID associates them).
+            A live write-back needs <code className="rounded bg-bg px-1 py-0.5 font-mono">crm.objects.contacts.write</code> added to the private app.
           </p>
         )}
       </div>
@@ -486,6 +752,273 @@ function ProspectPanel({ c, resolved }) {
         </p>
       )}
     </div>
+  );
+}
+
+// The approved working script, pinned above the call list (Rick, 2026-08-03). Shows ONLY approved
+// pieces — a draft script is not something to read down the phone, so if nothing is approved this
+// says so and points at where to approve it rather than silently showing the draft.
+function ScriptWindow({ scripts }) {
+  const approved = scripts.filter((s) => s.kind === "script" && s.approvalState === "approved");
+  const drafts = scripts.filter((s) => s.kind === "script" && s.approvalState !== "approved");
+  const [idx, setIdx] = useState(0);
+  const [open, setOpen] = useState(true);
+
+  if (approved.length === 0) {
+    return (
+      <div className="rounded-base border border-warning/40 bg-warning/5 p-4">
+        <div className="flex items-start gap-2">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
+          <div>
+            <p className="text-sm font-medium text-fg">No approved call script yet</p>
+            <p className="mt-1 text-sm text-fg-muted">
+              {drafts.length > 0
+                ? <>There {drafts.length === 1 ? "is" : "are"} {drafts.length} draft script{drafts.length === 1 ? "" : "s"} in <strong>Content &amp; approvals</strong> above. Set one to <strong>Approved</strong> and it appears here as the working script.</>
+                : <>Write one in <strong>Content &amp; approvals</strong> above and set it to <strong>Approved</strong> — it will appear here, pinned above the call list.</>}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const s = approved[Math.min(idx, approved.length - 1)];
+  return (
+    <div className="rounded-base border border-success/50 bg-success/5">
+      <div className="flex flex-wrap items-center justify-between gap-2 p-3">
+        <button type="button" onClick={() => setOpen((v) => !v)} className="flex min-w-0 items-center gap-2 text-left">
+          {open ? <ChevronDown className="h-4 w-4 shrink-0 text-fg-muted" /> : <ChevronRight className="h-4 w-4 shrink-0 text-fg-muted" />}
+          <ScrollText className="h-4 w-4 shrink-0 text-success" />
+          <span className="truncate text-sm font-medium text-fg">{s.title}</span>
+          <Badge variant="success">Approved</Badge>
+        </button>
+        <div className="flex shrink-0 items-center gap-2">
+          {approved.length > 1 && (
+            <select
+              className="rounded-base border border-border bg-surface px-2 py-1 text-xs text-fg"
+              value={idx} onChange={(e) => setIdx(Number(e.target.value))} aria-label="Choose script"
+            >
+              {approved.map((a, i) => <option key={a.id} value={i}>{a.title}</option>)}
+            </select>
+          )}
+          <CopyButton text={s.body} label="Copy script" />
+        </div>
+      </div>
+      {open && (
+        <pre className="max-h-80 overflow-auto whitespace-pre-wrap border-t border-success/30 p-3 font-mono text-xs leading-relaxed text-fg">
+          {s.body}
+        </pre>
+      )}
+    </div>
+  );
+}
+
+// One account on the gap list: what's missing, the number IN PLAIN TEXT so it can be dialled by
+// any method (Rick, 2026-08-03 — "phone number visible in line so I can choose a different
+// calling method"), and the capture fields for what the call produced.
+function CallRow({ co, rec, canWrite, onPatch }) {
+  const [open, setOpen] = useState(false);
+  const phone = rec.phone || co.ownerPhone || co.phone || "";
+  const outcome = rec.outcome || "not-called";
+  const touched = outcome !== "not-called" || rec.buyer || rec.email || rec.note;
+
+  return (
+    <li className="rounded-base border border-border">
+      <div className="flex flex-wrap items-center justify-between gap-2 p-2.5">
+        <button type="button" onClick={() => setOpen((v) => !v)} className="flex min-w-0 items-center gap-2 text-left">
+          {open ? <ChevronDown className="h-4 w-4 shrink-0 text-fg-muted" /> : <ChevronRight className="h-4 w-4 shrink-0 text-fg-muted" />}
+          <span className="min-w-0">
+            <span className="block truncate text-sm text-fg">{co.name}</span>
+            <span className="block text-xs text-fg-muted">
+              {[co.channel, [co.city, co.state].filter(Boolean).join(", ")].filter(Boolean).join(" · ") || "—"}
+            </span>
+          </span>
+        </button>
+
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          {!co.owner && !rec.buyer && <Badge variant="warning">No buyer</Badge>}
+          {!co.ownerEmail && !rec.email && <Badge variant="muted">No email</Badge>}
+          {touched && <Badge variant={OUTCOME_TONE[outcome] || "muted"}>{OUTCOME_LABEL[outcome]}</Badge>}
+          <PhoneInline phone={phone} />
+        </div>
+      </div>
+
+      {open && (
+        <div className="space-y-3 border-t border-border p-3">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <Field label="Buyer name" value={rec.buyer} placeholder={co.owner || "who buys the cheese"} disabled={!canWrite} onChange={(v) => onPatch({ buyer: v })} />
+            <Field label="Title" value={rec.title} placeholder="e.g. Cheese buyer" disabled={!canWrite} onChange={(v) => onPatch({ title: v })} />
+            <Field label="Email" type="email" value={rec.email} placeholder={co.ownerEmail || "direct email"} disabled={!canWrite} onChange={(v) => onPatch({ email: v })} />
+            <Field label="Phone (correct it here)" value={rec.phone} placeholder={co.ownerPhone || co.phone || "number"} disabled={!canWrite} onChange={(v) => onPatch({ phone: v })} />
+          </div>
+          <div className="grid gap-3 sm:grid-cols-[14rem_1fr]">
+            <div className="grid gap-1.5">
+              <Label htmlFor={`o-${co.id}`}>Call outcome</Label>
+              <select
+                id={`o-${co.id}`} value={outcome} disabled={!canWrite}
+                onChange={(e) => onPatch({ outcome: e.target.value })}
+                className="h-10 rounded-base border border-border bg-surface px-3 text-sm text-fg disabled:opacity-40"
+              >
+                {CALL_OUTCOMES.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
+              </select>
+            </div>
+            <div className="grid gap-1.5">
+              <Label htmlFor={`n-${co.id}`}>Call notes</Label>
+              <Textarea
+                id={`n-${co.id}`} className="min-h-[2.5rem] text-sm" placeholder="What they said, distributor, best time to call back…"
+                defaultValue={rec.note || ""} disabled={!canWrite} onChange={(e) => onPatch({ note: e.target.value })}
+              />
+            </div>
+          </div>
+          {outcome === "cleared" && (!rec.buyer || !rec.email) && (
+            <p className="text-xs text-warning">
+              Marked reached, but the buyer name and email are what close the gap — fill both in and this row clears.
+            </p>
+          )}
+          {rec.calledAt && <p className="text-xs text-fg-muted">Last updated {rec.calledAt.slice(0, 16).replace("T", " ")}</p>}
+        </div>
+      )}
+    </li>
+  );
+}
+
+// The number as SELECTABLE TEXT plus a copy button and a tel: link — so it can go into a desk
+// phone, a softphone, or a mobile, rather than forcing whatever the OS has registered for tel:.
+function PhoneInline({ phone }) {
+  if (!phone) return <span className="text-xs text-fg-muted">no number</span>;
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <code className="select-all rounded bg-bg px-2 py-1 font-mono text-xs text-fg">{phone}</code>
+      <CopyButton text={phone} label="Copy number" />
+      <a href={`tel:${phone.replace(/[^\d+]/g, "")}`} title="Dial with your default handler" className="text-fg-muted hover:text-brand-primary">
+        <PhoneCall className="h-3.5 w-3.5" />
+      </a>
+    </span>
+  );
+}
+
+function CopyButton({ text, label }) {
+  const [done, setDone] = useState(false);
+  return (
+    <button
+      type="button" title={label} aria-label={label}
+      onClick={async () => {
+        try { await navigator.clipboard.writeText(text || ""); setDone(true); setTimeout(() => setDone(false), 1500); } catch { /* clipboard blocked */ }
+      }}
+      className="text-fg-muted transition-colors hover:text-fg"
+    >
+      {done ? <Check className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5" />}
+    </button>
+  );
+}
+
+function Field({ label, value, placeholder, type = "text", disabled, onChange }) {
+  return (
+    <div className="grid gap-1.5">
+      <Label>{label}</Label>
+      <Input type={type} defaultValue={value || ""} placeholder={placeholder} disabled={disabled} onChange={(e) => onChange(e.target.value)} />
+    </div>
+  );
+}
+
+// Region → state → city coverage. Region is what the campaign scopes to; state and city are how
+// the calling gets divided up. Clicking any row narrows the call list to it, so a rep can take a
+// state (or a single city) and work it without scrolling past everyone else's.
+function GeoBreakdown({ tree, pick, onPick }) {
+  const [open, setOpen] = useState(() => new Set(tree.slice(0, 1).map((r) => r.key)));
+  const toggle = (key) => setOpen((s) => {
+    const n = new Set(s);
+    n.has(key) ? n.delete(key) : n.add(key);
+    return n;
+  });
+  if (!tree.length) return null;
+
+  return (
+    <div className="rounded-base border border-border">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border p-3">
+        <p className="text-sm font-medium text-fg">Coverage by region · state · city</p>
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-fg-muted">accounts · reachable · need a call</span>
+          {pick && (
+            <Button variant="ghost" size="sm" onClick={() => onPick(null)}>
+              <X className="h-3.5 w-3.5" /> Clear filter
+            </Button>
+          )}
+        </div>
+      </div>
+
+      <div className="max-h-80 overflow-y-auto">
+        {tree.map((region) => {
+          const isOpen = open.has(region.key);
+          return (
+            <div key={region.key} className="border-b border-border last:border-0">
+              <div className="flex items-center gap-1">
+                <button
+                  type="button" onClick={() => toggle(region.key)}
+                  className="p-2 text-fg-muted hover:text-fg" aria-label={isOpen ? "Collapse" : "Expand"}
+                >
+                  {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                </button>
+                <GeoRow node={region} level="region" pick={pick} onPick={onPick} />
+              </div>
+
+              {isOpen && region.children.map((state) => (
+                <div key={state.key} className="ml-6 border-t border-border/60">
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button" onClick={() => toggle(`${region.key}/${state.key}`)}
+                      className="p-2 text-fg-muted hover:text-fg" aria-label="Expand cities"
+                    >
+                      {open.has(`${region.key}/${state.key}`) ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+                    </button>
+                    <GeoRow node={state} level="state" pick={pick} onPick={onPick} />
+                  </div>
+                  {open.has(`${region.key}/${state.key}`) && (
+                    <div className="ml-6 border-t border-border/40">
+                      {state.children.map((city) => (
+                        <div key={city.key} className="flex items-center gap-1 pl-2">
+                          <GeoRow node={city} level="city" parentState={state.key} pick={pick} onPick={onPick} />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function GeoRow({ node, level, parentState, pick, onPick }) {
+  const selected = pick && pick.level === level && pick.key === node.key && (level !== "city" || pick.state === parentState);
+  return (
+    <button
+      type="button"
+      onClick={() => onPick(selected ? null : { level, key: node.key, state: parentState })}
+      className={[
+        "flex flex-1 items-center justify-between gap-3 rounded-base px-2 py-1.5 text-left transition-colors",
+        selected ? "bg-brand-primary/10 ring-1 ring-brand-primary" : "hover:bg-bg",
+      ].join(" ")}
+    >
+      <span className={level === "region" ? "text-sm font-medium text-fg" : level === "state" ? "text-sm text-fg" : "text-xs text-fg-muted"}>
+        {node.label}
+        {node.variants?.length > 0 && (
+          <span className="ml-1.5 text-[11px] text-fg-muted" title={`Includes ${node.variants.join(", ")}`}>
+            +{node.variants.length} area{node.variants.length === 1 ? "" : "s"}
+          </span>
+        )}
+      </span>
+      <span className="flex shrink-0 items-center gap-2 tabular-nums">
+        <span className="text-xs text-fg-muted">{node.total.toLocaleString()}</span>
+        <span className="text-xs text-success">{node.sendable.toLocaleString()}</span>
+        {node.gaps > 0
+          ? <Badge variant="warning">{node.gaps.toLocaleString()}</Badge>
+          : <Badge variant="muted">0</Badge>}
+      </span>
+    </button>
   );
 }
 

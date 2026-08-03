@@ -16,6 +16,9 @@
 
 import { rolesOf } from "./auth.js";
 import { writeAuthHeader } from "./auth-context.jsx";
+// Segment filters are expressed in the CRM's own region/state vocabulary — reuse its
+// normalizers rather than a second copy that could disagree about "NJ" vs "New Jersey".
+import { regionOf, stateOf } from "./crm.js";
 
 export function canViewCampaigns(user) {
   const roles = rolesOf(user);
@@ -138,6 +141,18 @@ const SEEDS = {
         emails: 106,
         source: "Fall_Tasting_NE_106_Qualified_2026-07-22.xlsx",
         note: "Suppress live threads (Ace Endico, Steven) and prior Asiago-wave sends before import.",
+        // SEGMENT SELECTOR — what scopes the call console and the enrichment pass that serves
+        // this campaign. `exact: false` because this is a Northeast + specialty-retail FILTER
+        // standing in for the hand-qualified 106. The canonical list is the xlsx above, which
+        // per the runbook already carries HubSpot IDs — drop them into `companyIds` and the
+        // filter is ignored, the scope becomes exact, and the UI stops flagging it.
+        // Scoped BY REGION (Rick, 2026-08-03) — a campaign targets regions; state and city are
+        // how the work inside gets divided, not what defines the target. `exact: false` because
+        // this is still a region filter standing in for the hand-qualified 106; drop the xlsx's
+        // HubSpot IDs into `companyIds` and the filter is ignored and the scope becomes exact.
+        exact: false,
+        companyIds: [],
+        filter: { regions: ["New England", "NY Metro", "Mid-Atlantic"] },
       },
       // The nurture ladder from the runbook — offsets are Day N from send.
       sequence: [
@@ -181,7 +196,10 @@ const SEEDS = {
       id: "ne-contact-enrichment",
       type: "enrichment",
       name: "NE Contact Enrichment — phone pass",
-      goal: "Call 66 companies to fill in a missing email or a named buyer, so those accounts can receive a send at all.",
+      goal: "Clear the contact gaps inside the Fall Tasting target list, so those accounts can receive the send at all.",
+      // Scoped to the campaign it unblocks, not to the whole account book — the call list is
+      // Fall Tasting's own segment. Its own lifecycle, someone else's target list.
+      serves: "fall-tasting-2026",
       channels: ["retail"],
       start: "2026-07-15",
       end: null,
@@ -195,6 +213,46 @@ const SEEDS = {
         path: "Email/Campaign_Brain/Fall_Tasting_Campaign/Email_to_Stefano_Rep_Request.md",
       },
       content: [],
+      // DRAFT, not approved — deliberately. Email_to_Stefano_Rep_Request.md ends "I'll put
+      // together a call script", so no approved script exists yet. This is a starting point
+      // built from the three facts that letter says each call must produce; edit it and approve
+      // it in the Content section and it becomes the working script on the call console.
+      seedContent: [
+        {
+          id: "call-script-v1",
+          kind: "script",
+          title: "Enrichment call script (starting draft)",
+          approvalState: "draft",
+          body: [
+            "OPENER",
+            "Hi, this is [name] calling for Monti Trentini — we're the Asiago producer out of the",
+            "Veneto, Casa Finco. Do you have thirty seconds?",
+            "",
+            "REASON FOR THE CALL",
+            "We're putting together a small fall tasting programme for specialty shops and I want to",
+            "make sure it reaches the right person at [shop] rather than a generic inbox.",
+            "",
+            "THE THREE THINGS TO GET (this is the whole job)",
+            "1. Who buys the cheese? — name and title",
+            "2. What's the best direct email for them?",
+            "3. Who's their distributor? — company and, if offered, a contact there",
+            "",
+            "IF THEY ASK WHAT THE PROGRAMME IS",
+            "A free tasting box — Asiago DOP and the Apericheese line. Fifty boxes, first come.",
+            "No obligation. Don't oversell it; the email does the selling.",
+            "",
+            "IF THE BUYER ISN'T AVAILABLE",
+            "Ask for the name and email anyway, note the best time to call back, mark Callback.",
+            "",
+            "CLOSE",
+            "Thanks — I'll send it across to [buyer] directly. Have a good one.",
+            "",
+            "NOTES",
+            "· Don't leave the distributor question out — it's half the point of the campaign.",
+            "· If they say take us off the list, mark Do not contact and stop.",
+          ].join("\n"),
+        },
+      ],
       audience: {
         label: "Phone Outreach Needed",
         size: 94,
@@ -277,6 +335,282 @@ export async function saveCampaignState(resolved, entries) {
   } catch {
     return { ok: false, status: 0 };
   }
+}
+
+// ---- Authored content + approvals (Netlify Blobs) -----------------------------------------
+// Where email copy, call scripts and their approvals live (Rick, 2026-08-03). TEXT is authored
+// and approved in the platform so the approved working copy sits one click from the campaign
+// that uses it; BINARY assets (one-sheets, PDFs, packshots) stay in the Media Hub and are
+// referenced here by `url`. Approval vocabulary is the Media Hub's, not a second one.
+
+export const CONTENT_KINDS = [
+  { id: "email", label: "Email copy" },
+  { id: "script", label: "Call script" },
+  { id: "social", label: "Social post" },
+  { id: "blog", label: "Blog / article" },
+  { id: "doc", label: "Document" },
+  { id: "other", label: "Other" },
+];
+export const APPROVAL_STATES = [
+  { id: "draft", label: "Draft", tone: "muted" },
+  { id: "in-review", label: "In review", tone: "warning" },
+  { id: "approved", label: "Approved", tone: "success" },
+];
+export const APPROVAL_TONE = Object.fromEntries(APPROVAL_STATES.map((s) => [s.id, s.tone]));
+export const APPROVAL_LABEL = Object.fromEntries(APPROVAL_STATES.map((s) => [s.id, s.label]));
+export const kindLabel = (id) => CONTENT_KINDS.find((k) => k.id === id)?.label || id;
+
+/** { entries: {campaignId: {items: [...]}}, updatedAt }. */
+export async function getCampaignContent(resolved) {
+  try {
+    const res = await fetch(`/.netlify/functions/campaign-content?tenant=${encodeURIComponent(resolved.id)}`, {
+      headers: { ...writeAuthHeader() },
+    });
+    if (!res.ok) return { entries: {}, updatedAt: null };
+    return await res.json();
+  } catch {
+    return { entries: {}, updatedAt: null };
+  }
+}
+
+export async function saveCampaignContent(resolved, entries) {
+  try {
+    const res = await fetch("/.netlify/functions/campaign-content", {
+      method: "POST",
+      headers: { "content-type": "application/json", ...writeAuthHeader() },
+      body: JSON.stringify({ tenant: resolved.id, entries }),
+    });
+    return { ok: res.ok, status: res.status };
+  } catch {
+    return { ok: false, status: 0 };
+  }
+}
+
+/** The approved pieces of a kind for a campaign — what the enrichment console shows as THE script. */
+export function approvedContent(contentEntries, campaignId, kind) {
+  const items = contentEntries?.[campaignId]?.items || [];
+  return items.filter((i) => i.approvalState === "approved" && (!kind || i.kind === kind));
+}
+
+// ---- Enrichment capture (Netlify Blobs) ----------------------------------------------------
+// What a phone pass produces. NOT written back to HubSpot — the private app is read-only (see
+// netlify/functions/campaign-enrichment.js header). Leaves as a HubSpot-import CSV instead.
+
+export const CALL_OUTCOMES = [
+  { id: "not-called", label: "Not called", tone: "muted", clears: false },
+  { id: "cleared", label: "Reached — details captured", tone: "success", clears: true },
+  { id: "callback", label: "Callback scheduled", tone: "info", clears: false },
+  { id: "left-message", label: "Left message", tone: "info", clears: false },
+  { id: "no-answer", label: "No answer", tone: "muted", clears: false },
+  { id: "bad-number", label: "Bad number", tone: "warning", clears: false },
+  { id: "do-not-contact", label: "Do not contact", tone: "error", clears: false },
+];
+export const OUTCOME_TONE = Object.fromEntries(CALL_OUTCOMES.map((o) => [o.id, o.tone]));
+export const OUTCOME_LABEL = Object.fromEntries(CALL_OUTCOMES.map((o) => [o.id, o.label]));
+
+/** A gap is closed when the call was reached AND the missing facts are actually filled in. */
+export function isCleared(rec) {
+  return !!rec && rec.outcome === "cleared" && !!rec.email && !!rec.buyer;
+}
+
+// ---- Audience scoping ----------------------------------------------------------------------
+// Enrichment is worked PER CAMPAIGN, against that campaign's own targets (Rick, 2026-08-03):
+// "enrich the relative prospect per campaign to keep productivity and harden the build and
+// process at the same time." So a campaign's audience has to be a SELECTOR over the live CRM,
+// not just a headline number — otherwise the call console can only offer the whole account book.
+//
+// Two ways to scope, in precedence order:
+//   1. `companyIds` — the exact list, when one exists. Authoritative.
+//   2. `filter` — a declarative segment (regions / states / channels) evaluated against live
+//      CRM data. An APPROXIMATION: it tracks the CRM as it changes, which is right for an
+//      open-ended segment and wrong for a hand-qualified list. `audience.exact` says which.
+// No scope at all = the whole book (a standing pass, not a campaign segment).
+
+/**
+ * The campaign whose audience defines a given campaign's scope — itself, or, for an enrichment
+ * campaign, the campaign it SERVES (Rick, 2026-08-03: "that's why the enrichment campaign
+ * exists, just frame it around the entire campaign"). An enrichment pass keeps its own pill and
+ * its own lifecycle, but it is never scoped to the whole account book — it works the gaps in the
+ * target list of the send it unblocks. One list, two lifecycles.
+ */
+export function scopeOf(campaign, all = []) {
+  if (!campaign?.serves) return campaign;
+  return all.find((c) => c.id === campaign.serves) || campaign;
+}
+
+/** The companies a campaign targets, out of the live CRM account book. */
+export function segmentOf(campaign, companies) {
+  const a = campaign?.audience;
+  if (!a || (!a.companyIds?.length && !a.filter)) return companies;
+  if (a.companyIds?.length) {
+    const want = new Set(a.companyIds.map(String));
+    return companies.filter((c) => want.has(String(c.id)));
+  }
+  const f = a.filter;
+  return companies.filter((c) => {
+    if (f.regions?.length && !f.regions.includes(regionOf(c))) return false;
+    if (f.states?.length && !f.states.includes(stateOf(c))) return false;
+    if (f.channels?.length && !f.channels.includes(c.channel)) return false;
+    return true;
+  });
+}
+
+/** Whether an account still blocks a send: no email, or no named buyer to address. */
+export const hasGap = (co) => !co.ownerEmail || !co.owner;
+
+// City names in the live CRM carry neighbourhood qualifiers in parentheses and arrive lowercase
+// — the 2026-08-03 pull found "boston" (5) alongside "boston (north end)" (3), and "new york"
+// (45) alongside "new york (greenwich village)" (2). Keying on the raw string splits one city
+// into several rows and undercounts every one of them, so normalize to the parent city for
+// GROUPING while keeping the qualifiers as `variants` so the detail isn't lost.
+// (State needs no equivalent here — stateOf() already uppercases and folds "new york" → "NY".)
+const CITY_QUALIFIER = /\s*\([^)]*\)\s*$/;
+
+/** Grouping key for a company's city: parent city, lowercased, qualifiers stripped. */
+export function cityKeyOf(co) {
+  const raw = String(co?.city || "").trim();
+  if (!raw) return "";
+  return raw.replace(CITY_QUALIFIER, "").replace(/\s+/g, " ").trim().toLowerCase();
+}
+
+const titleCase = (s) => s.replace(/\b[a-z]/g, (m) => m.toUpperCase());
+
+/**
+ * Region → state → city rollup of a segment (Rick, 2026-08-03: "scope by region for the sake of
+ * the campaign, but I want state and city breakdown as well"). REGION is the scoping unit — it's
+ * what a campaign targets — while state and city are how the work inside it actually gets
+ * divided: which state is worst, which city is worth an afternoon, how to split a list between
+ * two reps. Every level carries the same three numbers so they're comparable at any depth.
+ *
+ * Counts are computed once per account and rolled UP, so region totals always equal the sum of
+ * their states and cities — no level can drift from another.
+ */
+export function geoBreakdown(companies, enrichment = {}) {
+  const bump = (node, co, gapped) => {
+    node.total += 1;
+    if (co.ownerEmail) node.sendable += 1;
+    if (gapped) node.gaps += 1;
+  };
+  const blank = (key, label) => ({ key, label, total: 0, sendable: 0, gaps: 0, children: new Map() });
+  const regions = new Map();
+
+  for (const co of companies) {
+    const gapped = hasGap(co) && !isCleared(enrichment[co.id]);
+    const rKey = regionOf(co);
+    const sKey = stateOf(co) || "—";
+    const cKey = cityKeyOf(co) || "—";
+
+    if (!regions.has(rKey)) regions.set(rKey, blank(rKey, rKey));
+    const R = regions.get(rKey);
+    bump(R, co, gapped);
+
+    if (!R.children.has(sKey)) R.children.set(sKey, blank(sKey, sKey));
+    const S = R.children.get(sKey);
+    bump(S, co, gapped);
+
+    if (!S.children.has(cKey)) {
+      const node = blank(cKey, cKey === "—" ? "—" : titleCase(cKey));
+      node.variants = new Set();
+      S.children.set(cKey, node);
+    }
+    const C = S.children.get(cKey);
+    bump(C, co, gapped);
+    // Record the qualifier ("North End") when the raw value carried one, so grouping the row
+    // doesn't hide which neighbourhoods it covers.
+    const q = String(co.city || "").trim().match(CITY_QUALIFIER);
+    if (q) C.variants.add(titleCase(q[0].replace(/[()]/g, "").trim().toLowerCase()));
+  }
+
+  // Most work first: sort by outstanding gaps, then size — the top row is where to start calling.
+  const rank = (a, b) => b.gaps - a.gaps || b.total - a.total || String(a.label).localeCompare(String(b.label));
+  const flatten = (node) => ({
+    ...node,
+    ...(node.variants ? { variants: [...node.variants].sort() } : {}),
+    children: [...node.children.values()].map(flatten).sort(rank),
+  });
+  return [...regions.values()].map(flatten).sort(rank);
+}
+
+/**
+ * Enrichment picture for a campaign's own segment — the numbers the launch gate cares about.
+ * `remaining` is what's still to call; `cleared` counts gaps closed on this pass.
+ */
+export function segmentEnrichment(campaign, companies, enrichment = {}, all = []) {
+  const segment = segmentOf(scopeOf(campaign, all), companies);
+  const gapped = segment.filter(hasGap);
+  const cleared = gapped.filter((co) => isCleared(enrichment[co.id]));
+  const remaining = gapped.filter((co) => !isCleared(enrichment[co.id]));
+  return {
+    segment,
+    total: segment.length,
+    sendable: segment.filter((co) => co.ownerEmail).length,
+    gapped: gapped.length,
+    cleared: cleared.length,
+    remaining,
+    // The whole point of doing this per campaign: one number that says "can this send go out".
+    ready: gapped.length === 0 || remaining.length === 0,
+  };
+}
+
+export async function getEnrichment(resolved) {
+  try {
+    const res = await fetch(`/.netlify/functions/campaign-enrichment?tenant=${encodeURIComponent(resolved.id)}`, {
+      headers: { ...writeAuthHeader() },
+    });
+    if (!res.ok) return { entries: {}, updatedAt: null };
+    return await res.json();
+  } catch {
+    return { entries: {}, updatedAt: null };
+  }
+}
+
+export async function saveEnrichment(resolved, entries) {
+  try {
+    const res = await fetch("/.netlify/functions/campaign-enrichment", {
+      method: "POST",
+      headers: { "content-type": "application/json", ...writeAuthHeader() },
+      body: JSON.stringify({ tenant: resolved.id, entries }),
+    });
+    return { ok: res.ok, status: res.status };
+  } catch {
+    return { ok: false, status: 0 };
+  }
+}
+
+/**
+ * Enrichment rows as a HubSpot-import CSV. The first seven columns map 1:1 onto standard HubSpot
+ * contact properties, so the file imports without remapping; the last three are the call record
+ * (map them to custom properties, or drop them at import and keep the file as the audit trail).
+ * "Associated Company ID" is the HubSpot company record id we already read, so imported contacts
+ * associate to the right company instead of creating duplicates.
+ */
+export function enrichmentCsv(rows) {
+  const header = [
+    "First Name", "Last Name", "Email", "Phone Number", "Job Title",
+    "Company Name", "Associated Company ID",
+    "Call Outcome", "Call Notes", "Called At",
+  ];
+  const esc = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const body = rows.map((r) => {
+    const parts = String(r.buyer || "").trim().split(/\s+/);
+    const first = parts.length > 1 ? parts.slice(0, -1).join(" ") : (parts[0] || "");
+    const last = parts.length > 1 ? parts[parts.length - 1] : "";
+    return [
+      first, last, r.email || "", r.phone || "", r.title || "",
+      r.companyName || "", r.companyId || "",
+      OUTCOME_LABEL[r.outcome] || "", r.note || "", r.calledAt || "",
+    ].map(esc).join(",");
+  });
+  return [header.map(esc).join(","), ...body].join("\n");
+}
+
+/** Trigger a client-side CSV download (same approach as the CRM console's export). */
+export function downloadCsv(filename, csv) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
 }
 
 // ---- Merge + derive -------------------------------------------------------------------------

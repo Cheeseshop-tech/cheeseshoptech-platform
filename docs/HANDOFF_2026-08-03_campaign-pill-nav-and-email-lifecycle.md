@@ -67,6 +67,100 @@ Fall Tasting social support (social, draft).
 
 ---
 
+## Round 2 (2026-08-03, same day) — Rick's first feedback pass
+
+Four asks off using the build, plus two things found while answering them.
+
+**1. "Where do content, email copy, phone scripts and approvals get handled?"** → new
+`netlify/functions/campaign-content.js` + a **Content & approvals** section. Two shelves, kept
+apart on purpose: TEXT (email copy, call scripts) is authored and approved in the platform, so
+approved copy is one click from the campaign — and from the call console — using it; FILES
+(one-sheets, PDFs, packshots) stay in the Media Hub and are linked. The platform is not a file
+store. `approvalState` reuses the Media Hub's own vocabulary (draft → in-review → approved)
+rather than inventing a second approval language; provenance clears on any step back so nothing
+shows a stale "approved by".
+
+**2. "How do we track call notes and get enrichment into HubSpot?"** → new
+`netlify/functions/campaign-enrichment.js` capturing buyer / title / email / phone / outcome /
+notes per company. **HubSpot cannot be written to.** Every call in `crm-hubspot.js` is a POST to
+`/search` (a read); declared scopes are `crm.objects.companies.read`,
+`crm.objects.contacts.read`, `sales-email-read`. So cleared rows leave as a **HubSpot-import
+CSV** — first seven columns map 1:1 onto contact properties, and "Associated Company ID" is the
+real record id so imports associate instead of duplicating. A live write-back needs
+`crm.objects.contacts.write` on the private app: a decision, not something to switch on quietly.
+
+**3. Approved script window** — pinned above the call list, shows ONLY approved scripts. A draft
+is not something to read down the phone, so when nothing is approved it says so and points at
+where to approve one. The seeded script is a **draft**, because
+`Email_to_Stefano_Rep_Request.md` ends "I'll put together a call script" — none exists yet.
+
+**4. Phone number inline** — rendered as selectable monospace text plus copy and `tel:`, so it
+can go to a desk phone, softphone or mobile rather than whatever the OS registered for `tel:`.
+
+**Scoping (Rick): enrichment is worked per campaign.** "Enrich the relative prospect per campaign
+to keep productivity"; then "that's why the enrichment campaign exists, just frame it around the
+entire campaign." So an enrichment campaign keeps its own pill and lifecycle but declares
+`serves: <campaignId>`, and `scopeOf()` resolves its call list to the SERVED campaign's segment.
+One list, two lifecycles. The served campaign shows the gap count and points at the pass rather
+than duplicating the call rows.
+
+That required a campaign's `audience` to become a SELECTOR over live CRM, not a headline number:
+`companyIds` (exact, authoritative) else `filter` (regions / states / channels, tracks the CRM).
+**Scoped BY REGION** per Rick; state and city are how the work divides, not what defines it.
+
+**Coverage breakdown** — region → state → city, three numbers at every level (accounts ·
+reachable · need a call), sorted by outstanding gaps so the top row is where to start calling.
+Counts are computed once per account and rolled UP, so a region total always equals the sum of
+its states and cities. Clicking any row filters the call list to it — a rep can take MA, or just
+Boston, without scrolling past everyone else's accounts.
+
+**CRM read is now session-cached** (`src/lib/crm.js`). `crm-hubspot.js` paginates companies AND
+contacts sequentially on purpose (HubSpot caps search at ~4 req/s; a parallel burst 429s the
+payload into zeros), so a full read of a 600+ account book takes seconds — and three surfaces now
+want it. Cached per tenant storing the in-flight promise, so concurrent callers share one request.
+Failures are never cached (note a failed read RESOLVES with the empty dataset rather than
+rejecting, so the entry is dropped in the success path too). Module-level, so a reload always
+refetches.
+
+### Verified against live HubSpot (via the MCP connector, 2026-08-03)
+
+Pulled directly rather than guessing. **648 companies total** — matches the CRM console exactly.
+
+- **Fall Tasting's region scope (New England + NY Metro + Mid-Atlantic) = 326 companies**, not the
+  106 of the qualified list. The region filter is ~3× the hand-qualified list, which is why the UI
+  flags `exact: false` in amber. `Fall_Tasting_NE_106_Qualified_2026-07-22.xlsx` already carries
+  HubSpot IDs per the runbook — load them into `companyIds` and the scope becomes exact.
+- NY Metro 190 (NY 148 · NJ 42) · New England 87 · Mid-Atlantic 49.
+- **97 companies have no state at all** — they fall outside every region filter. 2 are
+  international (Piemonte, Trentino-Alto Adige).
+- 155 distinct cities in scope; New York 45, Brooklyn 35, Philadelphia 19, Bronx 10.
+
+**Two data-shape findings.** State arrives in BOTH formats and lowercase (`ny` and `new york`) —
+`stateOf()` already folds these, confirmed. **City does not**, and that was a real bug in the
+breakdown: the live data has `boston` alongside `boston (north end)`, and `new york` alongside
+`new york (greenwich village)`. Keying on the raw string split one city into several rows and
+undercounted every one. Now normalized to the parent city for grouping, with the qualifiers kept
+as `variants` and surfaced as "+2 areas" on the row. The click-to-filter predicate uses the same
+`cityKeyOf()`, or clicking "Boston" would miss the rows its own count includes.
+
+**Note on the gap/sendable count:** it cannot be reproduced in SQL. `owner`/`ownerEmail` are
+derived by `crm-hubspot.js` joining contacts to companies on name and email-domain — the
+2026-07-22 import stored company as free text with NO association records, so querying
+associations gives a confidently wrong answer. Only the app produces that number.
+
+### Still open
+
+- The region filter is an approximation until the xlsx's HubSpot IDs are loaded into `companyIds`.
+- Local dev still cannot reach live data: no Netlify CLI installed and no CLI config on disk (a
+  netlify.com web session is not a CLI session), `vite dev` doesn't serve functions at all,
+  `VITE_CRM_BACKEND` defaults to `mock`, and `VITE_AUTH_MODE` defaults to `identity` so no
+  passcode header is sent. `netlify link` + `netlify dev` would inject `HUBSPOT_TOKEN` and the
+  `PORTAL_*` passcodes without anyone pasting a secret. Until then, anything touching functions
+  or live CRM can only be verified after deploy — which is how a `ReferenceError` (missing
+  `regionOf`/`stateOf` import) got past a clean `npm run build` this session.
+
+---
+
 ## The ask (Rick, verbatim intent)
 
 Anchor campaign work in the CST portal's existing **Campaigns** tab. Add a **pill sub-navigation** at the top of that tab, organized by campaign type/project:
