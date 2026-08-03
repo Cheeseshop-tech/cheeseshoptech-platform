@@ -741,8 +741,10 @@ function CardThumb({ entry }) {
   useEffect(() => {
     if (!html || !boxRef.current) return;
     const el = boxRef.current;
-    // Fit, not fill: the smaller of the two ratios, so the whole page lands inside the box.
-    const set = () => setScale(Math.min(el.clientWidth / THUMB_WIDTH, el.clientHeight / THUMB_HEIGHT));
+    // Scale to the card's WIDTH so the page fills it edge to edge. Fitting both dimensions
+    // letterboxed the page into grey rails (Rick, 2026-08-03: "an awkward fit"); the card box is
+    // page-shaped instead, so filling the width still shows essentially the whole document.
+    const set = () => setScale(el.clientWidth / THUMB_WIDTH);
     set();
     const ro = new ResizeObserver(set);
     ro.observe(el);
@@ -751,7 +753,7 @@ function CardThumb({ entry }) {
 
   if (entry.cover) {
     return (
-      <div className="aspect-[4/3] w-full overflow-hidden bg-bg">
+      <div className="aspect-[3/4] w-full overflow-hidden bg-bg">
         <img src={coverUrl(entry.cover, cldUrl)} alt="" loading="lazy" className="h-full w-full object-cover" />
       </div>
     );
@@ -759,9 +761,9 @@ function CardThumb({ entry }) {
 
   if (html) {
     return (
-      <div ref={boxRef} className="relative flex aspect-[4/3] w-full items-start justify-center overflow-hidden bg-neutral-100">
+      <div ref={boxRef} className="relative aspect-[3/4] w-full overflow-hidden bg-white">
         {scale > 0 && (
-          <div style={{ width: THUMB_WIDTH * scale, height: THUMB_HEIGHT * scale }} className="shadow-sm">
+          <div style={{ width: THUMB_WIDTH * scale, height: THUMB_HEIGHT * scale }}>
             <iframe
               title=""
               aria-hidden="true"
@@ -784,16 +786,16 @@ function CardThumb({ entry }) {
 
   if (entry.kind === "text" && entry.body) {
     return (
-      <div className="aspect-[4/3] w-full overflow-hidden bg-white p-3">
+      <div className="aspect-[3/4] w-full overflow-hidden bg-white p-4">
         <pre className="whitespace-pre-wrap font-mono text-[5px] leading-[1.5] text-neutral-600">
-          {entry.body.slice(0, 1400)}
+          {entry.body.slice(0, 2600)}
         </pre>
       </div>
     );
   }
 
   return (
-    <div className="flex aspect-[4/3] w-full items-center justify-center bg-bg text-fg-muted">
+    <div className="flex aspect-[3/4] w-full items-center justify-center bg-bg text-fg-muted">
       <MonitorPlay className="h-8 w-8" />
     </div>
   );
