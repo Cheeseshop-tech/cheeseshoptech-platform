@@ -194,16 +194,28 @@ export function PresentationsPage({ resolved }) {
                     : d.kind === "pdf" ? "PDF"
                     : d.kind === "pptx" ? "PPTX"
                     : d.kind === "image" ? "Image"
+                    // Copy authored in the platform (campaign email copy, call scripts). It has a
+                    // body rather than a URL, so it must not be labelled — or opened — as a link.
+                    : d.kind === "text" ? "Text"
                     : "Link"
                   }</Badge>
+                  {d.campaignId && <Badge variant="outline">Campaign</Badge>}
                   {entryStatus(d) === "submitted" && <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">Pending review</span>}
                   {entryStatus(d) === "returned" && <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">Returned</span>}
                   {canReview && dupes.has(d.key) && <span className="rounded-full border border-amber-400 px-2 py-0.5 text-xs text-amber-700">Possible duplicate</span>}
                 </div>
                 <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-border pt-3">
-                  <Button size="sm" variant="outline" onClick={() => open(d)}>
-                    {d.kind === "deck" ? <MonitorPlay className="h-4 w-4" /> : <ExternalLink className="h-4 w-4" />} Open
-                  </Button>
+                  {/* A text piece has a body, not a destination — Open would be a button that
+                      does nothing, which is worse than no button. Show its length instead. */}
+                  {d.kind === "text" && !d.url ? (
+                    <span className="text-xs text-fg-muted">
+                      {(d.body || "").length.toLocaleString()} characters · read it on the campaign
+                    </span>
+                  ) : (
+                    <Button size="sm" variant="outline" onClick={() => open(d)}>
+                      {d.kind === "deck" ? <MonitorPlay className="h-4 w-4" /> : <ExternalLink className="h-4 w-4" />} Open
+                    </Button>
+                  )}
                   <Button size="sm" variant="outline" onClick={() => share(d)}>
                     <Share2 className="h-4 w-4" /> Share
                   </Button>

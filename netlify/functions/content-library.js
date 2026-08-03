@@ -25,11 +25,15 @@ import { connectLambda, getStore } from "@netlify/blobs";
 import { requireReadAuth, requireWriteAuth, jsonUnauthorized } from "./_write-guard.js";
 import { logWrite } from "./_write-log.js";
 
-const MAX_BYTES = 900_000;   // catalog metadata only — files live in Cloudinary
+const MAX_BYTES = 1_800_000; // catalog metadata + authored text; files still live in Cloudinary
 const MAX_ENTRIES = 500;     // far above any per-tenant quota; a runaway guard, not the quota
-const CATEGORIES = ["presentation", "slide-deck", "social-post", "email-campaign", "blog-post"];
+const MAX_BODY = 20_000;     // one piece of authored copy (email body, call script)
+// `call-script` joins the spec's §5 taxonomy (2026-08-03). Campaign copy and call scripts are
+// finished, approved work like anything else here — folding them in is what lets the Library be
+// the SINGLE approval vocabulary instead of campaigns keeping a parallel one.
+const CATEGORIES = ["presentation", "slide-deck", "social-post", "email-campaign", "blog-post", "call-script"];
 const STATUSES = ["submitted", "posted", "returned"];
-const KINDS = ["link", "pdf", "deck"];
+const KINDS = ["link", "pdf", "deck", "text"];
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -90,6 +94,12 @@ export const handler = async (event) => {
       kind: KINDS.includes(e.kind) ? e.kind : "link",
       category: CATEGORIES.includes(e.category) ? e.category : "presentation",
       url: str(e.url, 1000),
+      // Copy authored in the platform (kind "text"): email bodies, call scripts. Still metadata,
+      // not a file — anything heavy remains a Cloudinary reference via `url`.
+      ...(e.body ? { body: str(e.body, MAX_BODY) } : {}),
+      // The campaign this piece was written for, when it was. Lets a campaign show its own
+      // content without the catalog forking into a second per-campaign store.
+      ...(/^[a-z0-9][a-z0-9-]{0,63}$/i.test(e.campaignId || "") ? { campaignId: e.campaignId } : {}),
       // Deck slides are Cloudinary URLs/public_ids — references, never file payloads.
       ...(Array.isArray(e.slides) ? { slides: e.slides.slice(0, 100).map((s) => str(s, 600)).filter(Boolean) } : {}),
       status: STATUSES.includes(e.status) ? e.status : "posted",

@@ -9,9 +9,16 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs.j
 import { useAuth } from "@/lib/auth-context.jsx";
 import {
   getCampaigns, getCampaignState, saveCampaignState, mergeCampaign, readinessOf, summarize,
-  getCampaignContent, saveCampaignContent, getEnrichment, saveEnrichment,
+  getEnrichment, saveEnrichment,
   canViewCampaigns, CAMPAIGN_TYPES, STATUS_TONE, STATUS_LABEL, CHANNELS, campaignsAreSample, compact,
 } from "@/lib/campaigns.js";
+// Campaign content lives in the CONTENT LIBRARY, not a per-campaign store (Rick, 2026-08-03).
+// The Library is "the organized catalog of finished, approved work" and owns the one approval
+// vocabulary (submitted -> posted / returned). A campaign's pieces are Library entries tagged
+// with its campaignId, so nothing forks into a second home.
+import {
+  fetchCatalog, loadCatalog, addEntry, updateEntry, removeEntry, entriesForCampaign,
+} from "@/lib/presentations-store.js";
 import { CampaignDetail } from "./campaign-detail.jsx";
 
 // Campaigns tab — pill sub-nav by campaign type, then a lifecycle dashboard per campaign
@@ -28,24 +35,24 @@ export function CampaignsPage({ resolved }) {
   const { user } = useAuth();
   const [defs, setDefs] = useState(undefined);
   const [entries, setEntries] = useState({});
-  const [content, setContent] = useState({});
+  const [library, setLibrary] = useState([]);
   const [enrich, setEnrich] = useState({});
   const [saveState, setSaveState] = useState("idle"); // idle | dirty | saving | saved | denied | failed
   const [type, setType] = useState(CAMPAIGN_TYPES[0].id);
   const [openId, setOpenId] = useState(null);
   const timer = useRef(null);
   // One ref per store so a debounced flush always writes the latest of each, never a stale copy.
-  const refs = useRef({ entries, content, enrich });
-  refs.current = { entries, content, enrich };
+  const refs = useRef({ entries, enrich });
+  refs.current = { entries, enrich };
 
   useEffect(() => {
     let alive = true;
     setDefs(undefined); setOpenId(null);
     Promise.all([
-      getCampaigns(resolved), getCampaignState(resolved), getCampaignContent(resolved), getEnrichment(resolved),
-    ]).then(([list, state, c, e]) => {
+      getCampaigns(resolved), getCampaignState(resolved), fetchCatalog(resolved.id), getEnrichment(resolved),
+    ]).then(([list, state, cat, e]) => {
       if (!alive) return;
-      setDefs(list); setEntries(state.entries || {}); setContent(c.entries || {}); setEnrich(e.entries || {});
+      setDefs(list); setEntries(state.entries || {}); setLibrary(cat || []); setEnrich(e.entries || {});
     });
     return () => { alive = false; };
   }, [resolved.id]);
@@ -56,7 +63,6 @@ export function CampaignsPage({ resolved }) {
   const dirty = useRef(new Set());
   function scheduleSave(store, next) {
     if (store === "entries") setEntries(next);
-    else if (store === "content") setContent(next);
     else setEnrich(next);
     refs.current = { ...refs.current, [store]: next };
     dirty.current.add(store);
@@ -68,8 +74,7 @@ export function CampaignsPage({ resolved }) {
       dirty.current = new Set();
       const results = await Promise.all(todo.map((s) =>
         s === "entries" ? saveCampaignState(resolved, refs.current.entries)
-          : s === "content" ? saveCampaignContent(resolved, refs.current.content)
-            : saveEnrichment(resolved, refs.current.enrich)
+          : saveEnrichment(resolved, refs.current.enrich)
       ));
       const bad = results.find((r) => !r.ok);
       setSaveState(!bad ? "saved" : bad.status === 401 ? "denied" : "failed");
@@ -80,8 +85,11 @@ export function CampaignsPage({ resolved }) {
     ...refs.current.entries,
     [id]: { ...refs.current.entries[id], ...part, updatedAt: new Date().toISOString() },
   });
-  /** Replace one campaign's authored content items. */
-  const patchContent = (id, items) => scheduleSave("content", { ...refs.current.content, [id]: { items } });
+  // Content writes go straight to the Library store, which owns its own debounced save and
+  // status chip. Nothing about a campaign's copy is stored on the campaign itself.
+  const addContent = (campaignId, piece) => setLibrary(addEntry(resolved.id, { ...piece, campaignId }));
+  const patchContentItem = (key, patch) => setLibrary(updateEntry(resolved.id, key, patch));
+  const removeContentItem = (key) => setLibrary(removeEntry(resolved.id, key));
   /** Merge a capture patch into one company's enrichment row. */
   const patchEnrich = (companyId, part) => scheduleSave("enrich", {
     ...refs.current.enrich,
@@ -131,8 +139,10 @@ export function CampaignsPage({ resolved }) {
           onBack={() => setOpenId(null)}
           onPatch={(part) => patch(open.id, part)}
           entry={entries[open.id] || {}}
-          contentItems={content[open.id]?.items ?? open.seedContent ?? []}
-          onContent={(items) => patchContent(open.id, items)}
+          contentItems={entriesForCampaign(library, open.id)}
+          onAddContent={(piece) => addContent(open.id, piece)}
+          onPatchContent={patchContentItem}
+          onRemoveContent={removeContentItem}
           enrichment={enrich}
           onEnrich={patchEnrich}
           allCampaigns={campaigns}

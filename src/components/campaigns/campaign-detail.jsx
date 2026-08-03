@@ -14,11 +14,12 @@ import { EmptyState } from "@/components/ui/empty-state.jsx";
 import { ProgressBar } from "./campaigns-page.jsx";
 import {
   LIFECYCLE, STATUS_TONE, STATUS_LABEL, CHANNELS, readinessOf, canAdvanceTo, groupChecklist, pct, typeLabel,
-  CONTENT_KINDS, APPROVAL_STATES, APPROVAL_TONE, APPROVAL_LABEL, kindLabel,
   CALL_OUTCOMES, OUTCOME_TONE, OUTCOME_LABEL, isCleared, enrichmentCsv, downloadCsv,
   scopeOf, segmentEnrichment, geoBreakdown, cityKeyOf,
 } from "@/lib/campaigns.js";
 import { getCrmData, CHANNEL_TO_AUDIENCE, regionOf, stateOf } from "@/lib/crm.js";
+// The Library owns content and its approval vocabulary (submitted -> posted / returned).
+import { CONTENT_CATEGORIES, categoryLabel, entryStatus, entryCategory } from "@/lib/presentations-store.js";
 
 // One campaign's lifecycle dashboard — the five surfaces the handoff asked for, in the order it
 // asked for them: launch-readiness checklist (the actual send gate), strategy, content, target
@@ -33,7 +34,7 @@ const SECTION_ICON = { checklist: ListChecks, strategy: BookOpen, content: FileT
 
 export function CampaignDetail({
   campaign: c, resolved, onBack, onPatch, entry, canWrite,
-  contentItems = [], onContent, enrichment = {}, onEnrich, allCampaigns = [],
+  contentItems = [], onAddContent, onPatchContent, onRemoveContent, enrichment = {}, onEnrich, allCampaigns = [],
 }) {
   const r = readinessOf(c);
 
@@ -100,10 +101,10 @@ export function CampaignDetail({
         <StrategyPanel strategy={c.strategy} />
       </Section>
 
-      <Section id="content" title="Content & approvals" description="Copy and scripts are written and approved here; files live in the Media Hub and are linked.">
+      <Section id="content" title="Content & approvals" description="Written here, catalogued in the Content Library — which owns approval. Files live in the Media Hub and are linked.">
         <ContentPanel
-          linked={c.content} sequence={c.sequence}
-          items={contentItems} onChange={onContent} canWrite={canWrite}
+          linked={c.content} sequence={c.sequence} items={contentItems} canWrite={canWrite}
+          onAdd={onAddContent} onPatch={onPatchContent} onRemove={onRemoveContent}
         />
       </Section>
 
@@ -354,28 +355,24 @@ function PathRef({ label, path }) {
 //   · LINKED — one-sheets, PDFs, packshots. Those stay in the Media Hub / project folder; this
 //     shelf points at them. The platform is not a file store and shouldn't pretend to be.
 // approvalState reuses the Media Hub's vocabulary rather than inventing a second one.
-function ContentPanel({ linked, sequence, items, onChange, canWrite }) {
-  const [editing, setEditing] = useState(null); // item id being edited, or "new"
+function ContentPanel({ linked, sequence, items, canWrite, onAdd, onPatch, onRemove }) {
+  const [editing, setEditing] = useState(null); // entry key being edited, or "new"
 
-  const upsert = (item) => {
-    const next = items.some((i) => i.id === item.id)
-      ? items.map((i) => (i.id === item.id ? { ...item, updatedAt: new Date().toISOString() } : i))
-      : [...items, { ...item, updatedAt: new Date().toISOString() }];
-    onChange(next);
+  const save = (piece) => {
+    if (piece.key) onPatch(piece.key, piece);
+    else onAdd(piece);
     setEditing(null);
   };
-  const remove = (id) => onChange(items.filter((i) => i.id !== id));
-  const setApproval = (item, approvalState) => upsert({
-    ...item,
-    approvalState,
-    ...(approvalState === "approved" ? { approvedAt: new Date().toISOString() } : {}),
-  });
+  // Approval is the LIBRARY's vocabulary, not a second one: submitted -> posted / returned
+  // (CONTENT_ORCHESTRATION_SPEC §3). "posted" is what a campaign may actually use.
+  const setStatus = (item, status) =>
+    onPatch(item.key, { status, ...(status === "posted" ? { reviewNote: "" } : {}) });
 
   return (
     <div className="space-y-6">
       <div>
         <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="cs-eyebrow text-fg-muted">Written here</p>
+          <p className="cs-eyebrow text-fg-muted">Written for this campaign</p>
           {editing !== "new" && (
             <Button variant="outline" size="sm" onClick={() => setEditing("new")} disabled={!canWrite}>
               <Plus className="h-4 w-4" /> New piece
@@ -383,30 +380,34 @@ function ContentPanel({ linked, sequence, items, onChange, canWrite }) {
           )}
         </div>
 
-        {editing === "new" && (
-          <ContentEditor onSave={upsert} onCancel={() => setEditing(null)} />
-        )}
+        {editing === "new" && <ContentEditor onSave={save} onCancel={() => setEditing(null)} />}
 
         {items.length === 0 && editing !== "new" ? (
           <p className="text-sm text-fg-muted">
-            Nothing written yet. Email copy and call scripts you write here get an approval state,
-            and an approved script becomes the working script on the call console.
+            Nothing written yet. Pieces you write here are catalogued in the <strong>Content Library</strong>,
+            which owns approval — and a <em>Posted</em> call script becomes the working script on the call console.
           </p>
         ) : (
           <ul className="space-y-2">
             {items.map((it) => (
-              editing === it.id ? (
-                <li key={it.id}><ContentEditor item={it} onSave={upsert} onCancel={() => setEditing(null)} /></li>
+              editing === it.key ? (
+                <li key={it.key}><ContentEditor item={it} onSave={save} onCancel={() => setEditing(null)} /></li>
               ) : (
-                <li key={it.id}>
+                <li key={it.key}>
                   <ContentRow
                     item={it} canWrite={canWrite}
-                    onEdit={() => setEditing(it.id)} onRemove={() => remove(it.id)} onApproval={(s) => setApproval(it, s)}
+                    onEdit={() => setEditing(it.key)} onRemove={() => onRemove(it.key)}
+                    onStatus={(st) => setStatus(it, st)}
                   />
                 </li>
               )
             ))}
           </ul>
+        )}
+        {items.length > 0 && (
+          <p className="mt-2 text-xs text-fg-muted">
+            These live in the Content Library tagged to this campaign — one catalog, one approval trail.
+          </p>
         )}
       </div>
 
@@ -432,7 +433,7 @@ function ContentPanel({ linked, sequence, items, onChange, canWrite }) {
             ))}
           </ul>
           <p className="mt-2 text-xs text-fg-muted">
-            Files (one-sheets, PDFs, packshots) live in the Media Hub — link them here rather than uploading a second copy.
+            Files (one-sheets, PDFs, packshots) live in the Media Hub — link them rather than uploading a second copy.
           </p>
         </div>
       )}
@@ -454,8 +455,12 @@ function ContentPanel({ linked, sequence, items, onChange, canWrite }) {
   );
 }
 
-function ContentRow({ item, canWrite, onEdit, onRemove, onApproval }) {
+const STATUS_TONE_LIB = { submitted: "warning", posted: "success", returned: "error" };
+const STATUS_LABEL_LIB = { submitted: "Submitted", posted: "Posted", returned: "Returned" };
+
+function ContentRow({ item, canWrite, onEdit, onRemove, onStatus }) {
   const [open, setOpen] = useState(false);
+  const status = entryStatus(item);
   return (
     <div className="rounded-base border border-border">
       <div className="flex flex-wrap items-center justify-between gap-2 p-3">
@@ -464,15 +469,17 @@ function ContentRow({ item, canWrite, onEdit, onRemove, onApproval }) {
           <span className="truncate text-sm text-fg">{item.title}</span>
         </button>
         <div className="flex shrink-0 flex-wrap items-center gap-2">
-          <Badge variant="muted">{kindLabel(item.kind)}</Badge>
-          <Badge variant={APPROVAL_TONE[item.approvalState] || "muted"}>{APPROVAL_LABEL[item.approvalState] || item.approvalState}</Badge>
+          <Badge variant="muted">{categoryLabel(entryCategory(item))}</Badge>
+          <Badge variant={STATUS_TONE_LIB[status] || "muted"}>{STATUS_LABEL_LIB[status] || status}</Badge>
           <select
             className="rounded-base border border-border bg-surface px-2 py-1 text-xs text-fg disabled:opacity-40"
-            value={item.approvalState} disabled={!canWrite}
-            onChange={(e) => onApproval(e.target.value)}
-            aria-label={`Approval state for ${item.title}`}
+            value={status} disabled={!canWrite}
+            onChange={(e) => onStatus(e.target.value)}
+            aria-label={`Approval status for ${item.title}`}
           >
-            {APPROVAL_STATES.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
+            <option value="submitted">Submitted</option>
+            <option value="posted">Posted</option>
+            <option value="returned">Returned</option>
           </select>
           <Button variant="ghost" size="sm" onClick={onEdit} disabled={!canWrite}>Edit</Button>
           <button
@@ -493,9 +500,8 @@ function ContentRow({ item, canWrite, onEdit, onRemove, onApproval }) {
               <ExternalLink className="h-3.5 w-3.5" /> {item.url}
             </a>
           )}
-          {item.approvalState === "approved" && item.approvedAt && (
-            <p className="mt-2 text-xs text-fg-muted">Approved {item.approvedAt.slice(0, 10)}</p>
-          )}
+          {item.reviewNote && <p className="mt-2 text-xs text-warning">Returned: {item.reviewNote}</p>}
+          {item.savedAt && <p className="mt-2 text-xs text-fg-muted">Saved {item.savedAt.slice(0, 10)}</p>}
         </div>
       )}
     </div>
@@ -504,7 +510,7 @@ function ContentRow({ item, canWrite, onEdit, onRemove, onApproval }) {
 
 function ContentEditor({ item, onSave, onCancel }) {
   const [title, setTitle] = useState(item?.title || "");
-  const [kind, setKind] = useState(item?.kind || "email");
+  const [category, setCategory] = useState(item?.category || "email-campaign");
   const [url, setUrl] = useState(item?.url || "");
   const [body, setBody] = useState(item?.body || "");
 
@@ -512,10 +518,11 @@ function ContentEditor({ item, onSave, onCancel }) {
     const t = title.trim();
     if (!t) return;
     onSave({
-      id: item?.id || `c-${slug(t)}-${Math.abs(hash(t + kind)) % 9973}`,
-      kind, title: t, url: url.trim(), body,
-      approvalState: item?.approvalState || "draft",
-      ...(item?.approvedAt ? { approvedAt: item.approvedAt } : {}),
+      ...(item?.key ? { key: item.key } : {}),
+      // kind "text" marks copy authored in the platform; the Library still stores metadata only.
+      kind: body.trim() ? "text" : "link",
+      category, title: t, url: url.trim(), body,
+      status: item?.status || "submitted",
     });
   };
 
@@ -527,17 +534,17 @@ function ContentEditor({ item, onSave, onCancel }) {
           <Input id="ct" autoFocus value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Enrichment call script" />
         </div>
         <div className="grid gap-1.5">
-          <Label htmlFor="ck">Kind</Label>
+          <Label htmlFor="ck">Category</Label>
           <select
-            id="ck" value={kind} onChange={(e) => setKind(e.target.value)}
+            id="ck" value={category} onChange={(e) => setCategory(e.target.value)}
             className="h-10 rounded-base border border-border bg-surface px-3 text-sm text-fg"
           >
-            {CONTENT_KINDS.map((k) => <option key={k.id} value={k.id}>{k.label}</option>)}
+            {CONTENT_CATEGORIES.map((k) => <option key={k.id} value={k.id}>{k.label}</option>)}
           </select>
         </div>
       </div>
       <div className="grid gap-1.5">
-        <Label htmlFor="cu">Link (optional — for a file in the Media Hub or a doc)</Label>
+        <Label htmlFor="cu">Link (optional — a file in the Media Hub, or a doc)</Label>
         <Input id="cu" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://…" />
       </div>
       <div className="grid gap-1.5">
@@ -548,7 +555,10 @@ function ContentEditor({ item, onSave, onCancel }) {
         <Button variant="ghost" size="sm" onClick={onCancel}>Cancel</Button>
         <Button size="sm" onClick={submit} disabled={!title.trim()}>Save piece</Button>
       </div>
-      <p className="text-xs text-fg-muted">New pieces save as <strong>Draft</strong>. Set them to Approved when they're signed off — an approved call script becomes the working script on the call console.</p>
+      <p className="text-xs text-fg-muted">
+        New pieces are catalogued as <strong>Submitted</strong>. Move to <strong>Posted</strong> once signed off —
+        a Posted call script becomes the working script on the call console.
+      </p>
     </div>
   );
 }
@@ -759,8 +769,11 @@ function ProspectPanel({ c, resolved, scripts = [], enrichment = {}, onEnrich, c
 // pieces — a draft script is not something to read down the phone, so if nothing is approved this
 // says so and points at where to approve it rather than silently showing the draft.
 function ScriptWindow({ scripts }) {
-  const approved = scripts.filter((s) => s.kind === "script" && s.approvalState === "approved");
-  const drafts = scripts.filter((s) => s.kind === "script" && s.approvalState !== "approved");
+  // Only POSTED scripts — the Library's own approval vocabulary. A submitted-but-unreviewed
+  // script is not something to read down the phone.
+  const isScript = (s) => entryCategory(s) === "call-script";
+  const approved = scripts.filter((s) => isScript(s) && entryStatus(s) === "posted" && s.body);
+  const drafts = scripts.filter((s) => isScript(s) && entryStatus(s) !== "posted");
   const [idx, setIdx] = useState(0);
   const [open, setOpen] = useState(true);
 
@@ -770,11 +783,11 @@ function ScriptWindow({ scripts }) {
         <div className="flex items-start gap-2">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
           <div>
-            <p className="text-sm font-medium text-fg">No approved call script yet</p>
+            <p className="text-sm font-medium text-fg">No posted call script yet</p>
             <p className="mt-1 text-sm text-fg-muted">
               {drafts.length > 0
-                ? <>There {drafts.length === 1 ? "is" : "are"} {drafts.length} draft script{drafts.length === 1 ? "" : "s"} in <strong>Content &amp; approvals</strong> above. Set one to <strong>Approved</strong> and it appears here as the working script.</>
-                : <>Write one in <strong>Content &amp; approvals</strong> above and set it to <strong>Approved</strong> — it will appear here, pinned above the call list.</>}
+                ? <>There {drafts.length === 1 ? "is" : "are"} {drafts.length} unposted script{drafts.length === 1 ? "" : "s"} in <strong>Content &amp; approvals</strong> above. Move one to <strong>Posted</strong> and it appears here as the working script.</>
+                : <>Write one in <strong>Content &amp; approvals</strong> above (category <em>Call scripts</em>) and move it to <strong>Posted</strong> — it will appear here, pinned above the call list.</>}
             </p>
           </div>
         </div>
@@ -790,7 +803,7 @@ function ScriptWindow({ scripts }) {
           {open ? <ChevronDown className="h-4 w-4 shrink-0 text-fg-muted" /> : <ChevronRight className="h-4 w-4 shrink-0 text-fg-muted" />}
           <ScrollText className="h-4 w-4 shrink-0 text-success" />
           <span className="truncate text-sm font-medium text-fg">{s.title}</span>
-          <Badge variant="success">Approved</Badge>
+          <Badge variant="success">Posted</Badge>
         </button>
         <div className="flex shrink-0 items-center gap-2">
           {approved.length > 1 && (
@@ -798,7 +811,7 @@ function ScriptWindow({ scripts }) {
               className="rounded-base border border-border bg-surface px-2 py-1 text-xs text-fg"
               value={idx} onChange={(e) => setIdx(Number(e.target.value))} aria-label="Choose script"
             >
-              {approved.map((a, i) => <option key={a.id} value={i}>{a.title}</option>)}
+              {approved.map((a, i) => <option key={a.key} value={i}>{a.title}</option>)}
             </select>
           )}
           <CopyButton text={s.body} label="Copy script" />

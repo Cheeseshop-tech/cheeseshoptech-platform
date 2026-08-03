@@ -23,7 +23,24 @@ export const CONTENT_CATEGORIES = [
   { id: "social-post", label: "Social posts" },
   { id: "email-campaign", label: "Email campaigns" },
   { id: "blog-post", label: "Blog posts" },
+  // 2026-08-03: campaign copy and call scripts are finished, approved work too. Folding them
+  // into this taxonomy is what lets the Library own approval outright, instead of campaigns
+  // running a parallel draft/in-review/approved vocabulary (spec §1: no fact has two homes).
+  { id: "call-script", label: "Call scripts" },
 ];
+
+/** Entries a campaign owns — the pieces authored for it, in catalog order. */
+export function entriesForCampaign(entries, campaignId) {
+  return (entries || []).filter((e) => e.campaignId === campaignId);
+}
+
+/** Approved-and-live pieces of a category — what a campaign may actually use. */
+export function postedOfCategory(entries, category, campaignId) {
+  return (entries || []).filter((e) =>
+    entryStatus(e) === "posted" &&
+    (!category || e.category === category) &&
+    (!campaignId || e.campaignId === campaignId));
+}
 export const DEFAULT_CATEGORY = "presentation";
 export const categoryLabel = (id) => CONTENT_CATEGORIES.find((c) => c.id === id)?.label || "Presentations";
 /** Every entry resolves to a known category (legacy/un-set entries fall back to the default). */

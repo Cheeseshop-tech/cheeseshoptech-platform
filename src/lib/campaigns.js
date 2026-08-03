@@ -215,46 +215,6 @@ const SEEDS = {
         path: "Email/Campaign_Brain/Fall_Tasting_Campaign/Email_to_Stefano_Rep_Request.md",
       },
       content: [],
-      // DRAFT, not approved — deliberately. Email_to_Stefano_Rep_Request.md ends "I'll put
-      // together a call script", so no approved script exists yet. This is a starting point
-      // built from the three facts that letter says each call must produce; edit it and approve
-      // it in the Content section and it becomes the working script on the call console.
-      seedContent: [
-        {
-          id: "call-script-v1",
-          kind: "script",
-          title: "Enrichment call script (starting draft)",
-          approvalState: "draft",
-          body: [
-            "OPENER",
-            "Hi, this is [name] calling for Monti Trentini — we're the Asiago producer out of the",
-            "Veneto, Casa Finco. Do you have thirty seconds?",
-            "",
-            "REASON FOR THE CALL",
-            "We're putting together a small fall tasting programme for specialty shops and I want to",
-            "make sure it reaches the right person at [shop] rather than a generic inbox.",
-            "",
-            "THE THREE THINGS TO GET (this is the whole job)",
-            "1. Who buys the cheese? — name and title",
-            "2. What's the best direct email for them?",
-            "3. Who's their distributor? — company and, if offered, a contact there",
-            "",
-            "IF THEY ASK WHAT THE PROGRAMME IS",
-            "A free tasting box — Asiago DOP and the Apericheese line. Fifty boxes, first come.",
-            "No obligation. Don't oversell it; the email does the selling.",
-            "",
-            "IF THE BUYER ISN'T AVAILABLE",
-            "Ask for the name and email anyway, note the best time to call back, mark Callback.",
-            "",
-            "CLOSE",
-            "Thanks — I'll send it across to [buyer] directly. Have a good one.",
-            "",
-            "NOTES",
-            "· Don't leave the distributor question out — it's half the point of the campaign.",
-            "· If they say take us off the list, mark Do not contact and stop.",
-          ].join("\n"),
-        },
-      ],
       audience: {
         label: "Phone Outreach Needed",
         size: 94,
@@ -339,60 +299,13 @@ export async function saveCampaignState(resolved, entries) {
   }
 }
 
-// ---- Authored content + approvals (Netlify Blobs) -----------------------------------------
-// Where email copy, call scripts and their approvals live (Rick, 2026-08-03). TEXT is authored
-// and approved in the platform so the approved working copy sits one click from the campaign
-// that uses it; BINARY assets (one-sheets, PDFs, packshots) stay in the Media Hub and are
-// referenced here by `url`. Approval vocabulary is the Media Hub's, not a second one.
-
-export const CONTENT_KINDS = [
-  { id: "email", label: "Email copy" },
-  { id: "script", label: "Call script" },
-  { id: "social", label: "Social post" },
-  { id: "blog", label: "Blog / article" },
-  { id: "doc", label: "Document" },
-  { id: "other", label: "Other" },
-];
-export const APPROVAL_STATES = [
-  { id: "draft", label: "Draft", tone: "muted" },
-  { id: "in-review", label: "In review", tone: "warning" },
-  { id: "approved", label: "Approved", tone: "success" },
-];
-export const APPROVAL_TONE = Object.fromEntries(APPROVAL_STATES.map((s) => [s.id, s.tone]));
-export const APPROVAL_LABEL = Object.fromEntries(APPROVAL_STATES.map((s) => [s.id, s.label]));
-export const kindLabel = (id) => CONTENT_KINDS.find((k) => k.id === id)?.label || id;
-
-/** { entries: {campaignId: {items: [...]}}, updatedAt }. */
-export async function getCampaignContent(resolved) {
-  try {
-    const res = await fetch(`/.netlify/functions/campaign-content?tenant=${encodeURIComponent(resolved.id)}`, {
-      headers: { ...writeAuthHeader() },
-    });
-    if (!res.ok) return { entries: {}, updatedAt: null };
-    return await res.json();
-  } catch {
-    return { entries: {}, updatedAt: null };
-  }
-}
-
-export async function saveCampaignContent(resolved, entries) {
-  try {
-    const res = await fetch("/.netlify/functions/campaign-content", {
-      method: "POST",
-      headers: { "content-type": "application/json", ...writeAuthHeader() },
-      body: JSON.stringify({ tenant: resolved.id, entries }),
-    });
-    return { ok: res.ok, status: res.status };
-  } catch {
-    return { ok: false, status: 0 };
-  }
-}
-
-/** The approved pieces of a kind for a campaign — what the enrichment console shows as THE script. */
-export function approvedContent(contentEntries, campaignId, kind) {
-  const items = contentEntries?.[campaignId]?.items || [];
-  return items.filter((i) => i.approvalState === "approved" && (!kind || i.kind === kind));
-}
+// ---- Authored content + approvals ----------------------------------------------------------
+// RETIRED 2026-08-03. Campaign copy and call scripts used to live in a per-campaign store with
+// their own draft/in-review/approved vocabulary. They now live in the CONTENT LIBRARY, tagged
+// with `campaignId`, under the Library's own submitted -> posted / returned vocabulary
+// (CONTENT_ORCHESTRATION_SPEC §1: "no fact or file has two homes"; Rick, 2026-08-03: the Library
+// "will be the source for the content approval"). See src/lib/presentations-store.js —
+// entriesForCampaign() / postedOfCategory().
 
 // ---- Enrichment capture (Netlify Blobs) ----------------------------------------------------
 // What a phone pass produces. NOT written back to HubSpot — the private app is read-only (see
