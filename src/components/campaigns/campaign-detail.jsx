@@ -17,7 +17,7 @@ import {
 import { ProgressBar } from "./campaigns-page.jsx";
 import {
   LIFECYCLE, STATUS_TONE, STATUS_LABEL, CHANNELS, readinessOf, canAdvanceTo, groupChecklist, pct, typeLabel,
-  CALL_OUTCOMES, OUTCOME_TONE, OUTCOME_LABEL, isCleared, isResolved, enrichmentCsv, downloadCsv,
+  CALL_OUTCOMES, OUTCOME_TONE, OUTCOME_LABEL, isCleared, isResolved, hasGap, enrichmentCsv, downloadCsv,
   callSummary, pushToHubspot,
   scopeOf, segmentEnrichment, geoBreakdown, cityKeyOf,
 } from "@/lib/campaigns.js";
@@ -581,6 +581,11 @@ const tierOf = (co) => CHANNEL_TIER[CHANNEL_TO_AUDIENCE[co?.channel]] ?? 3;
 function ProspectPanel({ c, resolved, scripts = [], enrichment = {}, onEnrich, canWrite, allCampaigns = [], saveState = "idle" }) {
   const [crm, setCrm] = useState(undefined);
   const [pick, setPick] = useState(null); // {level:'region'|'state'|'city', key, state?}
+  // Which slice of the gap list to show. "remaining" is the working view, but a row DROPS OFF
+  // it the moment it is resolved — so without this there is no way back to a captured row to
+  // fix a typo before pushing it to the CRM of record (Rick, 2026-08-04: "I can't find those").
+  const [listFilter, setListFilter] = useState("remaining");
+  const [query, setQuery] = useState("");
   const [summaryOpen, setSummaryOpen] = useState(false);
   const [pushOpen, setPushOpen] = useState(false);
   const isEnrichment = c.type === "enrichment";
@@ -613,11 +618,28 @@ function ProspectPanel({ c, resolved, scripts = [], enrichment = {}, onEnrich, c
     // miss every "boston (north end)" row that the count above it includes.
     return (cityKeyOf(co) || "—") === pick.key && (!pick.state || (stateOf(co) || "—") === pick.state);
   };
+  // Every account this pass owns — including the ones already worked, so they stay reachable.
+  const workedRows = useMemo(
+    () => seg.segment.filter((co) => hasGap(co) && isResolved(enrichment[co.id])),
+    [seg, enrichment]
+  );
   const gaps = useMemo(() => {
-    const list = seg.remaining.filter(matchesPick);
+    const base = listFilter === "cleared" ? workedRows
+      : listFilter === "all" ? [...seg.remaining, ...workedRows]
+        : seg.remaining;
+    // Search spans the fields you'd actually reach for mid-call: the shop, where it is, and
+    // whoever has already been captured on it.
+    const q = query.trim().toLowerCase();
+    const hit = (co) => {
+      if (!q) return true;
+      const r = enrichment[co.id] || {};
+      return [co.name, co.city, co.state, co.channel, co.domain, r.buyer, r.email, r.phone, co.phone, co.ownerPhone]
+        .some((v) => String(v || "").toLowerCase().includes(q));
+    };
+    const list = base.filter(matchesPick).filter(hit);
     list.sort((a, b) => tierOf(a) - tierOf(b) || String(a.name).localeCompare(String(b.name)));
     return list;
-  }, [seg, pick]);
+  }, [seg, pick, listFilter, workedRows, query, enrichment]);
   // Export list stays strict: only rows with real captured detail. A disqualified company is
   // resolved (off the call list) but has nothing to send to HubSpot.
   const clearedRows = useMemo(
@@ -734,13 +756,45 @@ function ProspectPanel({ c, resolved, scripts = [], enrichment = {}, onEnrich, c
         {crm === undefined ? null : companies.length === 0 ? (
           <p className="mt-3 text-sm text-fg-muted">No accounts returned — the CRM console will show why.</p>
         ) : isEnrichment ? (
-          gaps.length === 0 ? (
+          gaps.length === 0 && listFilter === "remaining" && workedRows.length === 0 ? (
             <EmptyState icon={CheckCircle2} title="No gaps left" description="Every account on this list now has an email and a named buyer." />
           ) : (
             <>
-              <p className="mt-1 text-xs text-fg-muted">
-                {gaps.length.toLocaleString()} still to clear{pick ? <> in <strong>{pick.key}</strong></> : null}, ordered by channel tier.
-                A row leaves this list once the outcome is <em>Reached</em> and both the buyer and email are filled in.
+              <div className="mt-3">
+                <Input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search shop, city, state, buyer, email or phone…"
+                  aria-label="Search accounts"
+                />
+              </div>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                {[
+                  ["remaining", `To call (${seg.remaining.length})`],
+                  ["cleared", `Worked (${workedRows.length})`],
+                  ["all", `All (${seg.remaining.length + workedRows.length})`],
+                ].map(([id, label]) => (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => setListFilter(id)}
+                    className={[
+                      "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand",
+                      listFilter === id
+                        ? "border-brand-primary bg-brand-primary text-brand-on-primary"
+                        : "border-border text-fg-muted hover:border-brand-primary hover:text-fg",
+                    ].join(" ")}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <p className="mt-2 text-xs text-fg-muted">
+                {gaps.length.toLocaleString()} shown{query ? <> matching “{query}”</> : null}{pick ? <> in <strong>{pick.key}</strong></> : null}, ordered by channel tier.
+                {listFilter === "remaining"
+                  ? " A row moves to Worked once the outcome is Reached and both the buyer and email are filled in."
+                  : " Open any row to correct what was captured before it goes to HubSpot."}
               </p>
               <ul className="mt-3 max-h-[36rem] space-y-2 overflow-y-auto pr-1">
                 {gaps.slice(0, 200).map((co) => (
