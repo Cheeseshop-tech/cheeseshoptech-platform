@@ -1315,14 +1315,15 @@ function PushDialog({ open, onClose, rows, resolved }) {
   // Rows written BEFORE an error. The push is sequential, so a mid-run failure can leave records
   // already created — reporting "nothing was pushed" then would be a lie about the CRM of record.
   const [partial, setPartial] = useState([]);
+  const [scopes, setScopes] = useState([]);
 
   useEffect(() => {
-    if (!open) { setPhase("idle"); setPlan([]); setDone([]); setErr(""); return; }
+    if (!open) { setPhase("idle"); setPlan([]); setDone([]); setErr(""); setPartial([]); setScopes([]); return; }
     let alive = true;
     setPhase("previewing");
     pushToHubspot(resolved, rows, { commit: false }).then((r) => {
       if (!alive) return;
-      if (!r.ok) { setErr(r.hint ? `${r.error} — ${r.hint}` : (r.error || `Failed (${r.status})`)); setPartial(r.results || []); setPhase("error"); return; }
+      if (!r.ok) { setErr(r.hint ? `${r.error} — ${r.hint}` : (r.error || `Failed (${r.status})`)); setPartial(r.results || []); setScopes(r.requiredScopes || []); setPhase("error"); return; }
       setPlan(r.planned || []); setPhase("preview");
     });
     return () => { alive = false; };
@@ -1331,7 +1332,7 @@ function PushDialog({ open, onClose, rows, resolved }) {
   async function commit() {
     setPhase("pushing");
     const r = await pushToHubspot(resolved, rows, { commit: true });
-    if (!r.ok) { setErr(r.hint ? `${r.error} — ${r.hint}` : (r.error || `Failed (${r.status})`)); setPartial(r.results || []); setPhase("error"); return; }
+    if (!r.ok) { setErr(r.hint ? `${r.error} — ${r.hint}` : (r.error || `Failed (${r.status})`)); setPartial(r.results || []); setScopes(r.requiredScopes || []); setPhase("error"); return; }
     setDone(r.results || []); setPhase("done");
   }
 
@@ -1358,6 +1359,14 @@ function PushDialog({ open, onClose, rows, resolved }) {
                 : "Nothing was pushed"}
             </p>
             <p className="mt-1 text-sm text-fg-muted">{err}</p>
+            {scopes.length > 0 && (
+              <p className="mt-2 text-xs text-fg-muted">
+                Scopes HubSpot asked for:{" "}
+                {scopes.map((sc) => (
+                  <code key={sc} className="mr-1 rounded bg-bg px-1.5 py-0.5 font-mono text-[11px]">{sc}</code>
+                ))}
+              </p>
+            )}
             {partial.length > 0 && (
               <>
                 <p className="mt-2 text-xs font-medium text-fg">Already in HubSpot — do not re-push these:</p>

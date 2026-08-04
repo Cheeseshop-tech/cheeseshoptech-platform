@@ -52,6 +52,12 @@ async function hs(token, path, { method = "GET", body } = {}) {
     const msg = data?.message || text?.slice(0, 200) || `HTTP ${res.status}`;
     const err = new Error(msg);
     err.status = res.status;
+    // HubSpot names the exact scopes it wanted in context.requiredScopes, and which of them the
+    // token actually carries. Throwing that away turned every permission problem into the same
+    // opaque sentence — surface it so a 403 is diagnosable instead of guessable.
+    err.requiredScopes = data?.context?.requiredScopes || data?.context?.requiredGranularScopes || null;
+    err.category = data?.category || null;
+    err.endpoint = path;
     throw err;
   }
   return data;
@@ -183,11 +189,24 @@ export const handler = async (event) => {
     }
   } catch (err) {
     await logWrite(event, { fn: "crm-push", ok: false, tenant, status: err.status || 502 });
+    // Report what HubSpot actually said, and WHICH call failed — a dry run only searches, so a
+    // 403 there is a read-scope problem, while a 403 on commit is the write scope. Same sentence
+    // from HubSpot, completely different fix.
+    const scopes = err.requiredScopes;
+    const hint = err.status === 403
+      ? [
+          scopes?.length ? `HubSpot requires: ${scopes.join(", ")}.` : null,
+          `Failed on ${commit ? "the write" : "the lookup"} (${err.endpoint}).`,
+          "Add the scope on the SAME private app whose token is in HUBSPOT_TOKEN, then Commit changes.",
+        ].filter(Boolean).join(" ")
+      : undefined;
     return json(err.status === 403 ? 403 : 502, {
       error: String(err.message || err),
-      hint: err.status === 403
-        ? "The private app is missing crm.objects.contacts.write — add the scope in HubSpot, then retry."
-        : undefined,
+      requiredScopes: scopes,
+      category: err.category,
+      failedOn: err.endpoint,
+      phase: commit ? "commit" : "dry-run",
+      hint,
       planned,
       results,
       partial: results.length > 0,
