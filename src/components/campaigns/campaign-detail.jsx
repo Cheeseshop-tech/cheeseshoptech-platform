@@ -1258,6 +1258,9 @@ function PushDialog({ open, onClose, rows, resolved }) {
   const [plan, setPlan] = useState([]);
   const [done, setDone] = useState([]);
   const [err, setErr] = useState("");
+  // Rows written BEFORE an error. The push is sequential, so a mid-run failure can leave records
+  // already created — reporting "nothing was pushed" then would be a lie about the CRM of record.
+  const [partial, setPartial] = useState([]);
 
   useEffect(() => {
     if (!open) { setPhase("idle"); setPlan([]); setDone([]); setErr(""); return; }
@@ -1265,7 +1268,7 @@ function PushDialog({ open, onClose, rows, resolved }) {
     setPhase("previewing");
     pushToHubspot(resolved, rows, { commit: false }).then((r) => {
       if (!alive) return;
-      if (!r.ok) { setErr(r.hint ? `${r.error} — ${r.hint}` : (r.error || `Failed (${r.status})`)); setPhase("error"); return; }
+      if (!r.ok) { setErr(r.hint ? `${r.error} — ${r.hint}` : (r.error || `Failed (${r.status})`)); setPartial(r.results || []); setPhase("error"); return; }
       setPlan(r.planned || []); setPhase("preview");
     });
     return () => { alive = false; };
@@ -1274,7 +1277,7 @@ function PushDialog({ open, onClose, rows, resolved }) {
   async function commit() {
     setPhase("pushing");
     const r = await pushToHubspot(resolved, rows, { commit: true });
-    if (!r.ok) { setErr(r.hint ? `${r.error} — ${r.hint}` : (r.error || `Failed (${r.status})`)); setPhase("error"); return; }
+    if (!r.ok) { setErr(r.hint ? `${r.error} — ${r.hint}` : (r.error || `Failed (${r.status})`)); setPartial(r.results || []); setPhase("error"); return; }
     setDone(r.results || []); setPhase("done");
   }
 
@@ -1295,8 +1298,22 @@ function PushDialog({ open, onClose, rows, resolved }) {
 
         {phase === "error" && (
           <div className="rounded-base border border-error/50 bg-error/5 p-3">
-            <p className="text-sm font-medium text-fg">Nothing was pushed</p>
+            <p className="text-sm font-medium text-fg">
+              {partial.length > 0
+                ? `Stopped after ${partial.length} record${partial.length === 1 ? "" : "s"} — the rest were not written`
+                : "Nothing was pushed"}
+            </p>
             <p className="mt-1 text-sm text-fg-muted">{err}</p>
+            {partial.length > 0 && (
+              <>
+                <p className="mt-2 text-xs font-medium text-fg">Already in HubSpot — do not re-push these:</p>
+                <ul className="mt-1 space-y-0.5">
+                  {partial.map((d, i) => (
+                    <li key={i} className="text-xs text-fg-muted">{d.email} · {d.action}</li>
+                  ))}
+                </ul>
+              </>
+            )}
           </div>
         )}
 
