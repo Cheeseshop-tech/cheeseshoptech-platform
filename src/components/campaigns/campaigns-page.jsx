@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Mail, Share2, PhoneCall, Megaphone, Rocket, ListChecks, Users, MessageSquare, Lock, Link2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
+import { Button } from "@/components/ui/button.jsx";
 import { Stat } from "@/components/ui/stat.jsx";
 import { Skeleton } from "@/components/ui/skeleton.jsx";
 import { EmptyState } from "@/components/ui/empty-state.jsx";
@@ -57,29 +58,66 @@ export function CampaignsPage({ resolved }) {
     return () => { alive = false; };
   }, [resolved.id]);
 
-  // One debounced flush for all three stores — the same shape as the outreach console's
-  // (crm-page.jsx), extended so a single "Saving…/Saved" chip covers the whole tab. Only the
-  // stores that actually changed are written; `which` is a Set of store names.
+  // Autosave, PLUS an explicit end-of-session commit (Rick, 2026-08-04: "this is why we need a
+  // save button for end of session — to cover gaps").
+  //
+  // Autosave alone genuinely leaves two gaps, and neither is fixed by a louder status chip:
+  //   1. The 900ms debounce. Type into a field and close the tab inside that second and the
+  //      pending write never fires — silent loss, no warning.
+  //   2. No commit point. There is no moment where you can KNOW everything is flushed before
+  //      shutting the laptop; you can only infer it from a chip that may have scrolled away.
+  // So: keep the debounce for ordinary typing, add `Save now` to force a flush, and warn on
+  // unload while anything is still pending.
   const dirty = useRef(new Set());
+  const pending = useRef(false); // true from first edit until a flush resolves
+
+  /** Write every store that has changed. Shared by the debounce and the explicit button. */
+  async function flush() {
+    if (timer.current) { clearTimeout(timer.current); timer.current = null; }
+    const todo = [...dirty.current];
+    if (!todo.length) return true;
+    dirty.current = new Set();
+    setSaveState("saving");
+    const results = await Promise.all(todo.map((store) =>
+      store === "entries" ? saveCampaignState(resolved, refs.current.entries)
+        : saveEnrichment(resolved, refs.current.enrich)
+    ));
+    const bad = results.find((r) => !r.ok);
+    if (bad) {
+      // Put the work back on the queue so a retry (or the button) can pick it up rather than
+      // dropping edits that were never written.
+      todo.forEach((t) => dirty.current.add(t));
+      setSaveState(bad.status === 401 ? "denied" : "failed");
+      return false;
+    }
+    pending.current = false;
+    setSaveState("saved");
+    return true;
+  }
+
   function scheduleSave(store, next) {
     if (store === "entries") setEntries(next);
     else setEnrich(next);
     refs.current = { ...refs.current, [store]: next };
     dirty.current.add(store);
+    pending.current = true;
     setSaveState("dirty");
     if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(async () => {
-      setSaveState("saving");
-      const todo = [...dirty.current];
-      dirty.current = new Set();
-      const results = await Promise.all(todo.map((s) =>
-        s === "entries" ? saveCampaignState(resolved, refs.current.entries)
-          : saveEnrichment(resolved, refs.current.enrich)
-      ));
-      const bad = results.find((r) => !r.ok);
-      setSaveState(!bad ? "saved" : bad.status === 401 ? "denied" : "failed");
-    }, 900);
+    timer.current = setTimeout(flush, 900);
   }
+
+  // The browser's own guard for gap #1 — closing the tab mid-debounce. Native dialog only; the
+  // message is whatever the browser chooses, but the prompt itself is the point.
+  useEffect(() => {
+    const onLeave = (e) => {
+      if (!pending.current && !dirty.current.size) return;
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", onLeave);
+    return () => window.removeEventListener("beforeunload", onLeave);
+  }, []);
+
   /** Merge a partial state patch into one campaign's entry. */
   const patch = (id, part) => scheduleSave("entries", {
     ...refs.current.entries,
@@ -129,7 +167,10 @@ export function CampaignsPage({ resolved }) {
           <h1 className="font-heading text-3xl text-fg">Campaigns</h1>
           <p className="mt-1 text-fg-muted">{resolved.brand.name} · from draft through launch to results.</p>
         </div>
-        <SaveChip state={saveState} />
+        <div className="flex items-center gap-2">
+          <SaveChip state={saveState} />
+          <SaveNowButton state={saveState} onSave={flush} />
+        </div>
       </div>
 
       {open ? (
@@ -318,5 +359,29 @@ function SaveChip({ state }) {
     >
       {text}
     </span>
+  );
+}
+
+/**
+ * Explicit end-of-session commit. Not a replacement for autosave — a way to force the pending
+ * write and get a definite answer before closing the laptop. Enabled only when something is
+ * actually unsaved, so it can never imply work exists that doesn't.
+ */
+function SaveNowButton({ state, onSave }) {
+  const [busy, setBusy] = useState(false);
+  const unsaved = state === "dirty" || state === "failed" || state === "denied";
+  if (!unsaved && state !== "saved") return null;
+  if (!unsaved) {
+    return <span className="text-xs text-success">Safe to close</span>;
+  }
+  return (
+    <Button
+      size="sm"
+      variant={state === "failed" || state === "denied" ? "outline" : "primary"}
+      disabled={busy}
+      onClick={async () => { setBusy(true); try { await onSave(); } finally { setBusy(false); } }}
+    >
+      {busy ? "Saving…" : state === "failed" || state === "denied" ? "Retry save" : "Save now"}
+    </Button>
   );
 }
