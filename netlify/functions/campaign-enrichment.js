@@ -17,15 +17,17 @@
 //
 // GET  ?tenant=<id>          → { entries, updatedAt }   (any valid passcode tier)
 // POST { tenant, entries }   → { ok, updatedAt }        (house/client-admin passcode)
-//   entries = { [companyId]: { buyer, title, email, phone, outcome, note, calledAt, campaignId } }
+//   entries = { [companyId]: { buyer, title, email, phone, instagram, outcome, note, calledAt, campaignId } }
 
 import { connectLambda, getStore } from "@netlify/blobs";
 import { requireReadAuth, requireWriteAuth, jsonUnauthorized } from "./_write-guard.js";
 import { logWrite } from "./_write-log.js";
 
 const MAX_BYTES = 600_000;
-// The outcome of one call attempt. "cleared" is the one that counts as the gap being closed.
-const OUTCOMES = ["not-called", "cleared", "left-message", "no-answer", "callback", "bad-number", "do-not-contact"];
+// The outcome of one call attempt. "cleared" closes the gap by capturing the missing details;
+// "not-a-prospect" closes it by disqualifying the company. Both stop the row being called again
+// (isResolved in campaigns.js), but only "cleared" is exported to HubSpot.
+const OUTCOMES = ["not-called", "cleared", "left-message", "no-answer", "callback", "bad-number", "do-not-contact", "not-a-prospect"];
 const ID_RE = /^[a-z0-9][a-z0-9-]{0,63}$/i;
 
 const CORS = {
@@ -87,12 +89,13 @@ export const handler = async (event) => {
       title: str(e.title, 120),
       email: str(e.email, 160),
       phone: str(e.phone, 40),
+      instagram: str(e.instagram, 120),
       note: str(e.note, 1000),
       ...(outcome && outcome !== "not-called" ? { outcome } : {}),
       ...(ID_RE.test(e.campaignId || "") ? { campaignId: e.campaignId } : {}),
     };
     // Nothing captured = nothing stored, so an accidental focus/blur never writes a row.
-    if (!rec.buyer && !rec.email && !rec.note && !rec.outcome && !rec.phone && !rec.title) continue;
+    if (!rec.buyer && !rec.email && !rec.note && !rec.outcome && !rec.phone && !rec.title && !rec.instagram) continue;
     clean[companyId] = { ...rec, calledAt: str(e.calledAt, 40) || new Date().toISOString() };
   }
 

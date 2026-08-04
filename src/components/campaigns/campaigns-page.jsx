@@ -146,6 +146,7 @@ export function CampaignsPage({ resolved }) {
           enrichment={enrich}
           onEnrich={patchEnrich}
           allCampaigns={campaigns}
+          saveState={saveState}
           canWrite={saveState !== "denied"}
         />
       ) : (

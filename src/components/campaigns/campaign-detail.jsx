@@ -14,7 +14,7 @@ import { EmptyState } from "@/components/ui/empty-state.jsx";
 import { ProgressBar } from "./campaigns-page.jsx";
 import {
   LIFECYCLE, STATUS_TONE, STATUS_LABEL, CHANNELS, readinessOf, canAdvanceTo, groupChecklist, pct, typeLabel,
-  CALL_OUTCOMES, OUTCOME_TONE, OUTCOME_LABEL, isCleared, enrichmentCsv, downloadCsv,
+  CALL_OUTCOMES, OUTCOME_TONE, OUTCOME_LABEL, isCleared, isResolved, enrichmentCsv, downloadCsv,
   scopeOf, segmentEnrichment, geoBreakdown, cityKeyOf,
 } from "@/lib/campaigns.js";
 import { getCrmData, CHANNEL_TO_AUDIENCE, regionOf, stateOf } from "@/lib/crm.js";
@@ -34,7 +34,7 @@ const SECTION_ICON = { checklist: ListChecks, strategy: BookOpen, content: FileT
 
 export function CampaignDetail({
   campaign: c, resolved, onBack, onPatch, entry, canWrite,
-  contentItems = [], onAddContent, onPatchContent, onRemoveContent, enrichment = {}, onEnrich, allCampaigns = [],
+  contentItems = [], onAddContent, onPatchContent, onRemoveContent, enrichment = {}, onEnrich, allCampaigns = [], saveState = "idle",
 }) {
   const r = readinessOf(c);
 
@@ -111,7 +111,7 @@ export function CampaignDetail({
       <Section id="prospects" title={c.type === "enrichment" ? "Call console" : "Target prospects"} description={c.type === "enrichment" ? "Work the gap list — the approved script, the number, and what the call produced." : "Who this campaign reaches — live from the same HubSpot data as the CRM console."}>
         <ProspectPanel
           c={c} resolved={resolved} scripts={contentItems} allCampaigns={allCampaigns}
-          enrichment={enrichment} onEnrich={onEnrich} canWrite={canWrite}
+          enrichment={enrichment} onEnrich={onEnrich} canWrite={canWrite} saveState={saveState}
         />
       </Section>
 
@@ -574,7 +574,7 @@ const hash = (s) => { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 
 const CHANNEL_TIER = { distributor: 0, retail: 1, foodservice: 2 };
 const tierOf = (co) => CHANNEL_TIER[CHANNEL_TO_AUDIENCE[co?.channel]] ?? 3;
 
-function ProspectPanel({ c, resolved, scripts = [], enrichment = {}, onEnrich, canWrite, allCampaigns = [] }) {
+function ProspectPanel({ c, resolved, scripts = [], enrichment = {}, onEnrich, canWrite, allCampaigns = [], saveState = "idle" }) {
   const [crm, setCrm] = useState(undefined);
   const [pick, setPick] = useState(null); // {level:'region'|'state'|'city', key, state?}
   const isEnrichment = c.type === "enrichment";
@@ -612,6 +612,8 @@ function ProspectPanel({ c, resolved, scripts = [], enrichment = {}, onEnrich, c
     list.sort((a, b) => tierOf(a) - tierOf(b) || String(a.name).localeCompare(String(b.name)));
     return list;
   }, [seg, pick]);
+  // Export list stays strict: only rows with real captured detail. A disqualified company is
+  // resolved (off the call list) but has nothing to send to HubSpot.
   const clearedRows = useMemo(
     () => seg.segment.filter((co) => isCleared(enrichment[co.id])),
     [seg, enrichment]
@@ -644,7 +646,10 @@ function ProspectPanel({ c, resolved, scripts = [], enrichment = {}, onEnrich, c
           <Figure label="In segment" value={seg.total.toLocaleString()} />
           <Figure label="Reachable now" value={seg.sendable.toLocaleString()} />
           <Figure label="Need a call" value={seg.remaining.length.toLocaleString()} />
-          <Figure label={isEnrichment ? "Cleared this pass" : (c.capTarget ? `Cap (${c.capTarget})` : "Cleared")} value={clearedRows.length.toLocaleString()} />
+          <Figure
+            label={isEnrichment ? "Cleared this pass" : (c.capTarget ? `Cap (${c.capTarget})` : "Cleared")}
+            value={clearedRows.length.toLocaleString() + (seg.disqualified ? ` · ${seg.disqualified} n/a` : "")}
+          />
         </div>
       ) : scope.audience ? (
         // Fallback while the CRM read is unavailable: the audience's own stated figures. Read
@@ -719,7 +724,7 @@ function ProspectPanel({ c, resolved, scripts = [], enrichment = {}, onEnrich, c
               <ul className="mt-3 max-h-[36rem] space-y-2 overflow-y-auto pr-1">
                 {gaps.slice(0, 200).map((co) => (
                   <CallRow
-                    key={co.id} co={co} rec={enrichment[co.id] || {}} canWrite={canWrite}
+                    key={co.id} co={co} rec={enrichment[co.id] || {}} canWrite={canWrite} saveState={saveState}
                     onPatch={(part) => onEnrich(co.id, { campaignId: c.id, ...part })}
                   />
                 ))}
@@ -829,7 +834,7 @@ function ScriptWindow({ scripts }) {
 // One account on the gap list: what's missing, the number IN PLAIN TEXT so it can be dialled by
 // any method (Rick, 2026-08-03 — "phone number visible in line so I can choose a different
 // calling method"), and the capture fields for what the call produced.
-function CallRow({ co, rec, canWrite, onPatch }) {
+function CallRow({ co, rec, canWrite, onPatch, saveState }) {
   const [open, setOpen] = useState(false);
   const phone = rec.phone || co.ownerPhone || co.phone || "";
   const outcome = rec.outcome || "not-called";
@@ -863,6 +868,7 @@ function CallRow({ co, rec, canWrite, onPatch }) {
             <Field label="Title" value={rec.title} placeholder="e.g. Cheese buyer" disabled={!canWrite} onChange={(v) => onPatch({ title: v })} />
             <Field label="Email" type="email" value={rec.email} placeholder={co.ownerEmail || "direct email"} disabled={!canWrite} onChange={(v) => onPatch({ email: v })} />
             <Field label="Phone (correct it here)" value={rec.phone} placeholder={co.ownerPhone || co.phone || "number"} disabled={!canWrite} onChange={(v) => onPatch({ phone: v })} />
+            <Field label="Instagram" value={rec.instagram} placeholder="@handle" disabled={!canWrite} onChange={(v) => onPatch({ instagram: v })} />
           </div>
           <div className="grid gap-3 sm:grid-cols-[14rem_1fr]">
             <div className="grid gap-1.5">
@@ -883,12 +889,25 @@ function CallRow({ co, rec, canWrite, onPatch }) {
               />
             </div>
           </div>
+          {outcome === "not-a-prospect" && (
+            <p className="text-xs text-fg-muted">
+              Disqualified — this row leaves the outstanding list but is not exported to HubSpot.
+            </p>
+          )}
           {outcome === "cleared" && (!rec.buyer || !rec.email) && (
             <p className="text-xs text-warning">
               Marked reached, but the buyer name and email are what close the gap — fill both in and this row clears.
             </p>
           )}
-          {rec.calledAt && <p className="text-xs text-fg-muted">Last updated {rec.calledAt.slice(0, 16).replace("T", " ")}</p>}
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            {rec.calledAt
+              ? <p className="text-xs text-fg-muted">Last updated {rec.calledAt.slice(0, 16).replace("T", " ")}</p>
+              : <span />}
+            {/* Save status AT THE ROW. It already shows in the tab header, but mid-call you are
+                looking at the fields, not the top of the page (Rick asked twice for a save
+                button; the answer is autosave with a status you can actually see). */}
+            <RowSaveStatus state={saveState} />
+          </div>
         </div>
       )}
     </li>
@@ -1113,3 +1132,17 @@ function ResultsPanel({ c, onChange, canWrite }) {
 }
 
 const slug = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) || "task";
+
+/** Compact save status shown on the row being edited. Same states as the tab-header chip. */
+function RowSaveStatus({ state }) {
+  const map = {
+    dirty:  ["Saving…", "text-fg-muted"],
+    saving: ["Saving…", "text-fg-muted"],
+    saved:  ["Saved ✓", "text-success"],
+    denied: ["Not saved — admin passcode required", "text-warning font-medium"],
+    failed: ["Not saved — retry an edit", "text-warning font-medium"],
+  };
+  const hit = map[state];
+  if (!hit) return <span className="text-xs text-fg-muted">Auto-saves</span>;
+  return <span className={`text-xs ${hit[1]}`} role="status" aria-live="polite">{hit[0]}</span>;
+}

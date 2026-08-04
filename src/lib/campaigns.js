@@ -319,13 +319,31 @@ export const CALL_OUTCOMES = [
   { id: "no-answer", label: "No answer", tone: "muted", clears: false },
   { id: "bad-number", label: "Bad number", tone: "warning", clears: false },
   { id: "do-not-contact", label: "Do not contact", tone: "error", clears: false },
+  // A company that was never a prospect (wrong trade, closed, duplicate). It leaves the gap list
+  // for the OPPOSITE reason to `cleared`: not because the missing facts got filled in, but
+  // because they never will be. Deliberately NOT exported to HubSpot — see isCleared below.
+  { id: "not-a-prospect", label: "Not a prospect", tone: "muted", clears: false },
 ];
 export const OUTCOME_TONE = Object.fromEntries(CALL_OUTCOMES.map((o) => [o.id, o.tone]));
 export const OUTCOME_LABEL = Object.fromEntries(CALL_OUTCOMES.map((o) => [o.id, o.label]));
 
-/** A gap is closed when the call was reached AND the missing facts are actually filled in. */
+/**
+ * A gap is CLOSED when the call was reached AND the missing facts are actually filled in.
+ * This is the export predicate: only these rows carry real contact detail, so only these belong
+ * in the HubSpot-import CSV. Keep it strict — "disqualified" must never look like "captured".
+ */
 export function isCleared(rec) {
   return !!rec && rec.outcome === "cleared" && !!rec.email && !!rec.buyer;
+}
+
+/**
+ * A row is RESOLVED when nobody needs to call it again — either the details were captured, or
+ * the company was disqualified. This is the predicate the gap COUNTS use, so a "not a prospect"
+ * drops out of the outstanding work exactly like a cleared one, without pretending it produced
+ * a contact (2026-08-03 Cowork follow-up).
+ */
+export function isResolved(rec) {
+  return isCleared(rec) || rec?.outcome === "not-a-prospect";
 }
 
 // ---- Audience scoping ----------------------------------------------------------------------
@@ -410,7 +428,7 @@ export function geoBreakdown(companies, enrichment = {}) {
   const regions = new Map();
 
   for (const co of companies) {
-    const gapped = hasGap(co) && !isCleared(enrichment[co.id]);
+    const gapped = hasGap(co) && !isResolved(enrichment[co.id]);
     const rKey = regionOf(co);
     const sKey = stateOf(co) || "—";
     const cKey = cityKeyOf(co) || "—";
@@ -454,13 +472,15 @@ export function segmentEnrichment(campaign, companies, enrichment = {}, all = []
   const segment = segmentOf(scopeOf(campaign, all), companies);
   const gapped = segment.filter(hasGap);
   const cleared = gapped.filter((co) => isCleared(enrichment[co.id]));
-  const remaining = gapped.filter((co) => !isCleared(enrichment[co.id]));
+  const disqualified = gapped.filter((co) => enrichment[co.id]?.outcome === "not-a-prospect");
+  const remaining = gapped.filter((co) => !isResolved(enrichment[co.id]));
   return {
     segment,
     total: segment.length,
     sendable: segment.filter((co) => co.ownerEmail).length,
     gapped: gapped.length,
     cleared: cleared.length,
+    disqualified: disqualified.length,
     remaining,
     // The whole point of doing this per campaign: one number that says "can this send go out".
     ready: gapped.length === 0 || remaining.length === 0,
@@ -503,6 +523,9 @@ export function enrichmentCsv(rows) {
   const header = [
     "First Name", "Last Name", "Email", "Phone Number", "Job Title",
     "Company Name", "Associated Company ID",
+    // HubSpot has no native Instagram property — this rides along as an extra column for manual
+    // reference, or maps to a custom contact property at import time.
+    "Instagram",
     "Call Outcome", "Call Notes", "Called At",
   ];
   const esc = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
@@ -513,6 +536,7 @@ export function enrichmentCsv(rows) {
     return [
       first, last, r.email || "", r.phone || "", r.title || "",
       r.companyName || "", r.companyId || "",
+      r.instagram || "",
       OUTCOME_LABEL[r.outcome] || "", r.note || "", r.calledAt || "",
     ].map(esc).join(",");
   });

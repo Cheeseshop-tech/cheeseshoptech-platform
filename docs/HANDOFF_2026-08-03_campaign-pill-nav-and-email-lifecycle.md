@@ -2,8 +2,9 @@
 
 For: the next coding session in this repo (recommend Claude Code — see Recommendation below) · Owner: Rick Posada
 Read first: `src/components/campaigns/campaigns-page.jsx`, `src/lib/campaigns.js`, `src/components/crm/crm-page.jsx`, `src/lib/crm.js` (the CRM tab is the architectural precedent this brief asks you to follow for the live-data/persistence pattern).
-State: **BUILT 2026-08-03.** The spec below is kept as written for the record; what actually shipped, and the four
-answers that shaped it, are in "What shipped" immediately below. Everything from "The ask" down is the original brief.
+State: **BUILT 2026-08-03. Round 3 (Cowork follow-up) BUILT 2026-08-04.** The spec below is
+kept as written for the record; what actually shipped, and the four answers that shaped it, are in
+"What shipped" immediately below. Everything from "The ask" down is the original brief.
 
 ---
 
@@ -96,6 +97,56 @@ where to approve one. The seeded script is a **draft**, because
 
 **4. Phone number inline** — rendered as selectable monospace text plus copy and `tel:`, so it
 can go to a desk phone, softphone or mobile rather than whatever the OS registered for `tel:`.
+
+---
+
+## Round 3 (2026-08-03, Cowork follow-up — BUILT 2026-08-04)
+
+Rick, working the call console from a Cowork session (not Claude Code), asked for three things.
+Verified against the current code (`src/lib/campaigns.js`, `netlify/functions/campaign-enrichment.js`,
+`src/components/campaigns/campaign-detail.jsx`) before writing this — none of the three exist yet.
+
+**1. A "not a prospect" outcome.** `CALL_OUTCOMES` in `campaigns.js` (line ~314) currently has seven
+values: `not-called`, `cleared`, `callback`, `left-message`, `no-answer`, `bad-number`,
+`do-not-contact` — none of them disqualify a company from the gap count, only `cleared` does (via
+`isCleared()`, line ~327, which requires `outcome === "cleared"` AND both `email` and `buyer`
+filled in). A company that's genuinely not a prospect needs to leave the outstanding-gap count
+too, but for the opposite reason — not because the missing facts got filled in, but because they
+never will be. Adding `not-a-prospect` to the list is a one-line change; making it actually drop
+the row from `remaining`/gap totals in `segmentEnrichment()` and `geoBreakdown()` (both in
+`campaigns.js`) is the real work, since both currently gate purely on `isCleared()`. Recommend a
+second boolean predicate (`isResolved()` or similar) that's true for either `cleared` or
+`not-a-prospect`, and swap the gap-counting call sites to use it instead of `isCleared()` directly
+— `isCleared()` itself should stay as-is since `enrichmentCsv()` / HubSpot-import logic still needs
+to know the difference between "got the details" and "disqualified."
+
+**2. An Instagram field.** No `instagram` field exists anywhere in the enrichment shape today —
+not in `campaign-enrichment.js`'s per-entry sanitizer (`buyer`/`title`/`email`/`phone`/`note` only,
+line ~85), not in `campaigns.js`'s enrichment helpers, not in the `CallRow` component's `Field`
+list in `campaign-detail.jsx` (line ~862, right after Phone). Needs the same treatment as `phone`:
+a `str(e.instagram, ...)` cap in the Netlify function's sanitizer, a `Field` in `CallRow`, and a
+column in `enrichmentCsv()` if it should flow into the HubSpot-import file (HubSpot doesn't have a
+native Instagram property, so this would likely map to a custom contact property or just ride
+along as an extra CSV column for manual reference).
+
+**3. A save button.** Rick asked for this same thing earlier today (see `campaigns-page.jsx` lines
+292–299) — the response then was a deliberate no: edits autosave ~1s after you stop typing, same
+as the outreach console, and the "Save" chip was redesigned from a bordered pill (which looked
+clickable) to a plain status line that reads "Auto-saves" even at rest, "Auto-saves · Saving…"
+while dirty, "Auto-saves · Saved ✓" once flushed — with `role="status"` + `aria-live` so the
+transition is announced. Failure states (`denied`, `failed`) keep the border/color specifically so
+they're the one thing that can't be missed. That reasoning is still sound on its own terms — but
+Rick is asking again, this time specifically about the enrichment call console, so either (a) the
+status chip isn't visible enough while he's mid-call and switching between fields fast, or (b) he
+wants the certainty of a manual commit rather than trusting a 1s debounce he can't see the timer
+on. **Resolved (Rick, same session): keep autosave, no button — make the chip louder.** Don't add a
+Save control. Instead make the existing status chip (`SaveChip`, `campaigns-page.jsx` line ~301)
+more prominent specifically on the call console, since that's the surface where he's asking again
+— options worth considering: larger/bolder text, positioning it closer to the fields being edited
+(currently top-of-tab, easy to lose track of mid-call) rather than only in the shared tab header,
+or a brief inline confirmation next to the row itself (e.g. a small "Saved ✓" by the phone number)
+in addition to the tab-level chip. The `saved`/`saving`/`denied`/`failed` states already exist in
+`SaveChip` — this is a prominence/placement change, not new save logic.
 
 **Scoping (Rick): enrichment is worked per campaign.** "Enrich the relative prospect per campaign
 to keep productivity"; then "that's why the enrichment campaign exists, just frame it around the
@@ -213,3 +264,27 @@ The first real campaign to populate this with is the **Fall Tasting Box** campai
 ## Recommendation: hand off to code
 
 This is real multi-file frontend + backend engineering — new data model, new Netlify function/Blobs wiring, new components, a status-lifecycle rewrite of an existing (currently mock) tab. It matches the scale of this repo's own established handoff pattern (`CLAUDE_CODE_BRIEF.md`, and the `HANDOFF_2026-07-01`/`07-09`/`07-19` docs already in `docs/`) — meaning this project already expects exactly this kind of doc to precede a coding session, rather than being built inside a content/campaign-ops Cowork session. Recommend picking this up in **Claude Code** (or an equivalent coding-focused session) scoped to this repo, starting from the Open questions above.
+
+### Round 3 — what shipped (2026-08-04)
+
+**1. `not-a-prospect`.** Added to `CALL_OUTCOMES` and to the sanitizer's `OUTCOMES` in
+`campaign-enrichment.js`. Took the recommended shape: a second predicate `isResolved()` =
+`isCleared() || outcome === "not-a-prospect"`, with the GAP-counting call sites swapped to it
+(`segmentEnrichment`'s `remaining`, and `geoBreakdown`'s per-row `gapped`). `isCleared()` is
+untouched and still gates `enrichmentCsv()`, so a disqualified company leaves the call list
+without ever looking like captured contact detail. `segmentEnrichment` also returns
+`disqualified` so the two reasons a row left the list stay distinguishable on screen.
+
+**2. Instagram.** `str(e.instagram, 120)` in the function's sanitizer (and added to the
+"nothing captured" guard so an Instagram handle alone is enough to store a row), a `Field` in
+`CallRow` directly after Phone, and an `Instagram` column in `enrichmentCsv()` between the
+company columns and the call record — HubSpot has no native property, so it rides along for
+manual mapping.
+
+**3. Save prominence, no button.** `RowSaveStatus` renders the same save states inside the OPEN
+call row, next to the fields being typed into — the tab-header chip stays as it was. Mid-call the
+eyes are on the row, not the top of the page, which was the actual complaint.
+
+**Verified against the live module** with a 4-company fixture: 3 gapped → 1 remaining after one
+`cleared` and one `not-a-prospect`; `geoBreakdown` shows Boston 3 total / 0 gaps; the CSV carries
+the Instagram column and exactly 1 data row, with the disqualified company absent.
