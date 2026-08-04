@@ -543,6 +543,60 @@ export function enrichmentCsv(rows) {
   return [header.map(esc).join(","), ...body].join("\n");
 }
 
+/**
+ * Push cleared rows into HubSpot as contacts. DRY RUN unless `commit` is true — the server
+ * resolves create-vs-update and writes nothing, so the UI can show exactly what will happen
+ * before anything touches the CRM of record.
+ */
+export async function pushToHubspot(resolved, rows, { commit = false } = {}) {
+  try {
+    const res = await fetch("/.netlify/functions/crm-push", {
+      method: "POST",
+      headers: { "content-type": "application/json", ...writeAuthHeader() },
+      body: JSON.stringify({ tenant: resolved.id, rows, commit }),
+    });
+    const data = await res.json().catch(() => ({}));
+    return { ok: res.ok, status: res.status, ...data };
+  } catch (e) {
+    return { ok: false, status: 0, error: String(e?.message || e) };
+  }
+}
+
+/**
+ * Session summary for a phone pass: what was called, what it produced, what is left.
+ * Counts every touched row, not just cleared ones — "left 12 messages" is progress too.
+ */
+export function callSummary(segment, enrichment = {}) {
+  const touched = segment.filter((co) => {
+    const r = enrichment[co.id];
+    return r && (r.outcome || r.buyer || r.email || r.note || r.instagram);
+  });
+  const byOutcome = {};
+  for (const co of touched) {
+    const k = enrichment[co.id]?.outcome || "not-called";
+    byOutcome[k] = (byOutcome[k] || 0) + 1;
+  }
+  const cleared = touched.filter((co) => isCleared(enrichment[co.id]));
+  const notes = touched
+    .filter((co) => enrichment[co.id]?.note)
+    .map((co) => ({ company: co.name, note: enrichment[co.id].note, outcome: enrichment[co.id].outcome || "" }));
+  const gapped = segment.filter(hasGap);
+  return {
+    segmentTotal: segment.length,
+    called: touched.length,
+    byOutcome,
+    cleared: cleared.length,
+    disqualified: touched.filter((co) => enrichment[co.id]?.outcome === "not-a-prospect").length,
+    emailsCaptured: touched.filter((co) => enrichment[co.id]?.email).length,
+    instagramCaptured: touched.filter((co) => enrichment[co.id]?.instagram).length,
+    notes,
+    remaining: gapped.filter((co) => !isResolved(enrichment[co.id])).length,
+    // Progress against the gap the pass exists to close — not against the whole segment.
+    gapTotal: gapped.length,
+    gapClosed: gapped.filter((co) => isResolved(enrichment[co.id])).length,
+  };
+}
+
 /** Trigger a client-side CSV download (same approach as the CRM console's export). */
 export function downloadCsv(filename, csv) {
   const a = document.createElement("a");

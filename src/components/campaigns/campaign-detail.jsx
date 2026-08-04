@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft, ListChecks, BookOpen, FileText, Users, BarChart3, Plus, X, AlertTriangle,
   CheckCircle2, Copy, Check, ExternalLink, Link2, PhoneCall, ChevronDown, ChevronRight,
-  ScrollText, Download,
+  ScrollText, Download, ClipboardList, UploadCloud,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card.jsx";
 import { Button } from "@/components/ui/button.jsx";
@@ -11,10 +11,14 @@ import { Input, Textarea } from "@/components/ui/input.jsx";
 import { Label } from "@/components/ui/label.jsx";
 import { Checkbox } from "@/components/ui/checkbox.jsx";
 import { EmptyState } from "@/components/ui/empty-state.jsx";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose,
+} from "@/components/ui/dialog.jsx";
 import { ProgressBar } from "./campaigns-page.jsx";
 import {
   LIFECYCLE, STATUS_TONE, STATUS_LABEL, CHANNELS, readinessOf, canAdvanceTo, groupChecklist, pct, typeLabel,
   CALL_OUTCOMES, OUTCOME_TONE, OUTCOME_LABEL, isCleared, isResolved, enrichmentCsv, downloadCsv,
+  callSummary, pushToHubspot,
   scopeOf, segmentEnrichment, geoBreakdown, cityKeyOf,
 } from "@/lib/campaigns.js";
 import { getCrmData, CHANNEL_TO_AUDIENCE, regionOf, stateOf } from "@/lib/crm.js";
@@ -577,6 +581,8 @@ const tierOf = (co) => CHANNEL_TIER[CHANNEL_TO_AUDIENCE[co?.channel]] ?? 3;
 function ProspectPanel({ c, resolved, scripts = [], enrichment = {}, onEnrich, canWrite, allCampaigns = [], saveState = "idle" }) {
   const [crm, setCrm] = useState(undefined);
   const [pick, setPick] = useState(null); // {level:'region'|'state'|'city', key, state?}
+  const [summaryOpen, setSummaryOpen] = useState(false);
+  const [pushOpen, setPushOpen] = useState(false);
   const isEnrichment = c.type === "enrichment";
 
   useEffect(() => {
@@ -621,9 +627,14 @@ function ProspectPanel({ c, resolved, scripts = [], enrichment = {}, onEnrich, c
   const servesOther = scope.id !== c.id;
   const enrichmentFor = allCampaigns.find((x) => x.type === "enrichment" && x.serves === c.id);
 
+  const pushRows = useMemo(
+    () => clearedRows.map((co) => ({ ...enrichment[co.id], companyName: co.name, companyId: co.id })),
+    [clearedRows, enrichment]
+  );
+  const summary = useMemo(() => callSummary(seg.segment, enrichment), [seg, enrichment]);
+
   function exportForHubspot() {
-    const rows = clearedRows.map((co) => ({ ...enrichment[co.id], companyName: co.name, companyId: co.id }));
-    downloadCsv(`${resolved.id}-enrichment-${new Date().toISOString().slice(0, 10)}.csv`, enrichmentCsv(rows));
+    downloadCsv(`${resolved.id}-enrichment-${new Date().toISOString().slice(0, 10)}.csv`, enrichmentCsv(pushRows));
   }
 
   return (
@@ -696,10 +707,20 @@ function ProspectPanel({ c, resolved, scripts = [], enrichment = {}, onEnrich, c
             {crm === undefined
               ? <span className="text-xs text-fg-muted">Loading accounts…</span>
               : <span className="text-xs text-fg-muted">{seg.total.toLocaleString()} in segment · {companies.length.toLocaleString()} in the CRM</span>}
-            {isEnrichment && clearedRows.length > 0 && (
-              <Button variant="outline" size="sm" onClick={exportForHubspot}>
-                <Download className="h-4 w-4" /> Export {clearedRows.length} for HubSpot
+            {isEnrichment && summary.called > 0 && (
+              <Button variant="outline" size="sm" onClick={() => setSummaryOpen(true)}>
+                <ClipboardList className="h-4 w-4" /> Session summary
               </Button>
+            )}
+            {isEnrichment && clearedRows.length > 0 && (
+              <>
+                <Button variant="outline" size="sm" onClick={exportForHubspot}>
+                  <Download className="h-4 w-4" /> Export CSV
+                </Button>
+                <Button variant="primary" size="sm" onClick={() => setPushOpen(true)}>
+                  <UploadCloud className="h-4 w-4" /> Push {clearedRows.length} to HubSpot
+                </Button>
+              </>
             )}
           </div>
         </div>
@@ -760,6 +781,9 @@ function ProspectPanel({ c, resolved, scripts = [], enrichment = {}, onEnrich, c
           </p>
         )}
       </div>
+
+      <SummaryDialog open={summaryOpen} onClose={() => setSummaryOpen(false)} s={summary} campaign={scope} />
+      <PushDialog open={pushOpen} onClose={() => setPushOpen(false)} rows={pushRows} resolved={resolved} />
 
       {(c.dependsOn || []).length > 0 && (
         <p className="flex items-center gap-1.5 text-xs text-fg-muted">
@@ -1145,4 +1169,178 @@ function RowSaveStatus({ state }) {
   const hit = map[state];
   if (!hit) return <span className="text-xs text-fg-muted">Auto-saves</span>;
   return <span className={`text-xs ${hit[1]}`} role="status" aria-live="polite">{hit[0]}</span>;
+}
+
+// ---- Session summary -------------------------------------------------------------------------
+// What a phone pass actually produced. Counts every TOUCHED row, not just cleared ones —
+// "left 12 messages" is progress, and a summary that only counted wins would misreport a session.
+function SummaryDialog({ open, onClose, s, campaign }) {
+  if (!open) return null;
+  const pct = s.gapTotal ? Math.round((s.gapClosed / s.gapTotal) * 100) : 0;
+  return (
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Session summary</DialogTitle>
+          <DialogDescription>{campaign?.name} · progress against the contact gap this pass exists to close.</DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          <div className="grid gap-3 sm:grid-cols-4">
+            <Figure label="Called" value={s.called.toLocaleString()} />
+            <Figure label="Details captured" value={s.cleared.toLocaleString()} />
+            <Figure label="Disqualified" value={s.disqualified.toLocaleString()} />
+            <Figure label="Still to call" value={s.remaining.toLocaleString()} />
+          </div>
+
+          <div>
+            <div className="mb-1.5 flex items-center justify-between text-xs text-fg-muted">
+              <span>Gap closed</span>
+              <span>{s.gapClosed} of {s.gapTotal} · {pct}%</span>
+            </div>
+            <ProgressBar done={s.gapClosed} total={s.gapTotal} tone={pct === 100 ? "success" : "brand"} />
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-base border border-border p-3">
+              <p className="cs-eyebrow mb-2 text-fg-muted">Outcomes</p>
+              <ul className="space-y-1">
+                {Object.entries(s.byOutcome).sort((a, b) => b[1] - a[1]).map(([k, n]) => (
+                  <li key={k} className="flex items-center justify-between text-sm">
+                    <span className="text-fg">{OUTCOME_LABEL[k] || k}</span>
+                    <span className="tabular-nums text-fg-muted">{n}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="rounded-base border border-border p-3">
+              <p className="cs-eyebrow mb-2 text-fg-muted">Captured</p>
+              <ul className="space-y-1 text-sm">
+                <li className="flex justify-between"><span className="text-fg">Emails</span><span className="tabular-nums text-fg-muted">{s.emailsCaptured}</span></li>
+                <li className="flex justify-between"><span className="text-fg">Instagram handles</span><span className="tabular-nums text-fg-muted">{s.instagramCaptured}</span></li>
+                <li className="flex justify-between"><span className="text-fg">Notes written</span><span className="tabular-nums text-fg-muted">{s.notes.length}</span></li>
+              </ul>
+            </div>
+          </div>
+
+          {s.notes.length > 0 && (
+            <div>
+              <p className="cs-eyebrow mb-2 text-fg-muted">Call notes</p>
+              <ul className="max-h-64 divide-y divide-border overflow-y-auto rounded-base border border-border">
+                {s.notes.map((n, i) => (
+                  <li key={i} className="p-2.5">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-sm font-medium text-fg">{n.company}</span>
+                      {n.outcome && <Badge variant={OUTCOME_TONE[n.outcome] || "muted"}>{OUTCOME_LABEL[n.outcome]}</Badge>}
+                    </div>
+                    <p className="mt-1 text-sm text-fg-muted">{n.note}</p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+
+        <DialogFooter>
+          <DialogClose asChild><Button variant="ghost">Close</Button></DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ---- Push to HubSpot -------------------------------------------------------------------------
+// PREVIEW FIRST, ALWAYS. This is the only write path to the CRM of record in the whole app, so
+// it opens on a dry run: the server resolves create-vs-update per row and writes nothing until
+// the second, explicit click. A bad row that reaches HubSpot gets cleaned up by hand.
+function PushDialog({ open, onClose, rows, resolved }) {
+  const [phase, setPhase] = useState("idle"); // idle | previewing | preview | pushing | done | error
+  const [plan, setPlan] = useState([]);
+  const [done, setDone] = useState([]);
+  const [err, setErr] = useState("");
+
+  useEffect(() => {
+    if (!open) { setPhase("idle"); setPlan([]); setDone([]); setErr(""); return; }
+    let alive = true;
+    setPhase("previewing");
+    pushToHubspot(resolved, rows, { commit: false }).then((r) => {
+      if (!alive) return;
+      if (!r.ok) { setErr(r.hint ? `${r.error} — ${r.hint}` : (r.error || `Failed (${r.status})`)); setPhase("error"); return; }
+      setPlan(r.planned || []); setPhase("preview");
+    });
+    return () => { alive = false; };
+  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function commit() {
+    setPhase("pushing");
+    const r = await pushToHubspot(resolved, rows, { commit: true });
+    if (!r.ok) { setErr(r.hint ? `${r.error} — ${r.hint}` : (r.error || `Failed (${r.status})`)); setPhase("error"); return; }
+    setDone(r.results || []); setPhase("done");
+  }
+
+  const creates = plan.filter((p) => p.action === "create").length;
+  const updates = plan.filter((p) => p.action === "update").length;
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Push to HubSpot</DialogTitle>
+          <DialogDescription>
+            HubSpot is the CRM of record. Nothing is written until you confirm below.
+          </DialogDescription>
+        </DialogHeader>
+
+        {phase === "previewing" && <p className="text-sm text-fg-muted">Checking each contact against HubSpot…</p>}
+
+        {phase === "error" && (
+          <div className="rounded-base border border-error/50 bg-error/5 p-3">
+            <p className="text-sm font-medium text-fg">Nothing was pushed</p>
+            <p className="mt-1 text-sm text-fg-muted">{err}</p>
+          </div>
+        )}
+
+        {phase === "preview" && (
+          <div className="space-y-3">
+            <p className="text-sm text-fg">
+              <strong>{creates}</strong> new contact{creates === 1 ? "" : "s"} · <strong>{updates}</strong> existing
+              contact{updates === 1 ? "" : "s"} updated. Call notes attach to the contact; each is associated to its company.
+            </p>
+            <ul className="max-h-72 divide-y divide-border overflow-y-auto rounded-base border border-border">
+              {plan.map((p, i) => (
+                <li key={i} className="flex flex-wrap items-center justify-between gap-2 p-2.5">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm text-fg">{p.buyer} · <span className="text-fg-muted">{p.email}</span></p>
+                    <p className="text-xs text-fg-muted">{p.companyName}</p>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    {p.noteWillBeWritten && <Badge variant="muted">+ note</Badge>}
+                    <Badge variant={p.action === "create" ? "success" : "info"}>{p.action}</Badge>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {phase === "pushing" && <p className="text-sm text-fg-muted">Writing to HubSpot — one row at a time to stay inside the rate limit…</p>}
+
+        {phase === "done" && (
+          <div className="rounded-base border border-success/50 bg-success/5 p-3">
+            <p className="text-sm font-medium text-fg">{done.length} contact{done.length === 1 ? "" : "s"} written to HubSpot</p>
+            <p className="mt-1 text-xs text-fg-muted">
+              {done.filter((d) => d.action === "create").length} created · {done.filter((d) => d.action === "update").length} updated
+            </p>
+          </div>
+        )}
+
+        <DialogFooter>
+          <DialogClose asChild><Button variant="ghost">{phase === "done" ? "Close" : "Cancel"}</Button></DialogClose>
+          {phase === "preview" && (
+            <Button variant="primary" onClick={commit}>Write {plan.length} to HubSpot</Button>
+          )}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
 }
