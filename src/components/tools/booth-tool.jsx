@@ -140,6 +140,11 @@ export function BoothTool({ resolved }) {
   const [scanning, setScanning] = useState(false);
   const [shutter, setShutter] = useState(false);
   const cameraRef = useRef(null);
+  // Card ids with an OCR request in flight right now. A fresh capture is written as "pending"
+  // BEFORE its read starts (so a crash mid-read can't lose it), which means the offline-retry
+  // sweep below would otherwise see it as an unread card and fire a second, concurrent read of
+  // the same photo — double the cost and a race over the same record.
+  const inFlight = useRef(new Set());
   // A webcam shutter only earns its place where `<input capture>` DOESN'T open the OS camera —
   // i.e. desktop. On a tablet the native camera is faster and better exposed, so don't offer two.
   const canWebcam = typeof navigator !== "undefined"
@@ -286,12 +291,15 @@ export function BoothTool({ resolved }) {
    *  failure handling can't drift apart between entry points. */
   async function ingestCardFile(file) {
     setScanning(true);
+    let claimed = null;
     setFlash("");
     let capture = newCapture({ source: "booth", scanState: "pending" });
 
     try {
       const { dataUrl } = await compressCardImage(file);
       await putCardImage(capture.id, dataUrl);
+      claimed = capture.id;
+      inFlight.current.add(claimed); // claim it before it becomes visible to the retry sweep
       persist(addCapture(tenantId, capture));
       setSheet(capture);
 
@@ -308,6 +316,7 @@ export function BoothTool({ resolved }) {
       setSheet(capture);
       setFlash(`Couldn't read that photo (${String(err?.message || err)}). Type what you need — the photo is saved.`);
     } finally {
+      if (claimed) inFlight.current.delete(claimed);
       setScanning(false);
     }
   }
@@ -365,31 +374,38 @@ export function BoothTool({ resolved }) {
   // details fill themselves in on the drive home.
   useEffect(() => {
     if (!online) return;
-    const pending = captures.filter((c) => c.scanState === "pending");
+    // Skip anything ingestCardFile is already reading — otherwise a brand-new capture gets read
+    // twice concurrently (it is written as "pending" before its own read starts).
+    const pending = captures.filter((c) => c.scanState === "pending" && !inFlight.current.has(c.id));
     if (!pending.length) return;
     let cancelled = false;
     (async () => {
       const { getCardImage } = await import("@/lib/card-scan.js");
       for (const c of pending) {
-        if (cancelled) return;
-        const dataUrl = await getCardImage(c.id);
-        if (!dataUrl) { persist(updateCapture(tenantId, c.id, { scanState: "failed" })); continue; }
-        const res = await readCard(dataUrl, { tenant: tenantId });
-        if (cancelled || !res.ok) return; // still no good connection — leave the rest queued
-        const card = res.card || {};
-        if (!card.legible) { persist(updateCapture(tenantId, c.id, { scanState: "illegible" })); continue; }
-        const m = matchCard(card, { people, companies: accounts });
-        persist(updateCapture(tenantId, c.id, {
-          name: c.name || card.name || "",
-          title: c.title || card.title || "",
-          company: c.company || m.account?.name || card.company || "",
-          companyId: c.companyId || m.account?.id || null,
-          email: c.email || card.email || "",
-          phone: c.phone || card.phone || "",
-          officePhone: c.officePhone || card.officePhone || m.account?.phone || "",
-          phoneExt: c.phoneExt || card.phoneExt || "",
-          scanState: "read", scannedAt: new Date().toISOString(), scanMatch: m.verdict,
-        }));
+        if (cancelled || inFlight.current.has(c.id)) return;
+        inFlight.current.add(c.id);
+        try {
+          const dataUrl = await getCardImage(c.id);
+          if (!dataUrl) { persist(updateCapture(tenantId, c.id, { scanState: "failed" })); continue; }
+          const res = await readCard(dataUrl, { tenant: tenantId });
+          if (cancelled || !res.ok) return; // still no good connection — leave the rest queued
+          const card = res.card || {};
+          if (!card.legible) { persist(updateCapture(tenantId, c.id, { scanState: "illegible" })); continue; }
+          const m = matchCard(card, { people, companies: accounts });
+          persist(updateCapture(tenantId, c.id, {
+            name: c.name || card.name || "",
+            title: c.title || card.title || "",
+            company: c.company || m.account?.name || card.company || "",
+            companyId: c.companyId || m.account?.id || null,
+            email: c.email || card.email || "",
+            phone: c.phone || card.phone || "",
+            officePhone: c.officePhone || card.officePhone || m.account?.phone || "",
+            phoneExt: c.phoneExt || card.phoneExt || "",
+            scanState: "read", scannedAt: new Date().toISOString(), scanMatch: m.verdict,
+          }));
+        } finally {
+          inFlight.current.delete(c.id);
+        }
       }
     })();
     return () => { cancelled = true; };
@@ -885,6 +901,34 @@ function CaptureSheet({ capture, brandName, calendarAddress, durationMinutes, ca
   const firstField = useRef(null);
 
   useEffect(() => { firstField.current?.focus(); }, []);
+
+  // ADOPT THE SCAN RESULT WHEN IT LANDS.
+  //
+  // The sheet opens BEFORE the OCR call returns (deliberately — the rep shouldn't wait on the
+  // network). So `capture` arrives blank, and the filled-in version arrives as a new prop a
+  // couple of seconds later. `useState(capture)` reads the prop exactly once, and React reuses
+  // this component rather than remounting it, so without this effect the scanned fields never
+  // reach the form — the OCR works and the rep types anyway. That was the bug.
+  //
+  // Fill only what's still EMPTY: if the rep started typing while the scan ran, their words win.
+  // Never overwrite a human.
+  useEffect(() => {
+    if (capture.scanState !== "read") return;
+    setC((prev) => {
+      const next = { ...prev, scanState: capture.scanState, scanMatch: capture.scanMatch };
+      for (const k of ["name", "title", "company", "email", "phone", "officePhone", "phoneExt", "notes", "city", "state"]) {
+        if (!String(prev[k] || "").trim() && capture[k]) next[k] = capture[k];
+      }
+      if (!prev.companyId && capture.companyId) next.companyId = capture.companyId;
+      return next;
+    });
+  }, [capture.id, capture.scanState, capture.scanMatch]);
+
+  // Same problem, other states: the banner has to follow pending -> illegible/failed too.
+  useEffect(() => {
+    if (capture.scanState === "read") return;
+    setC((prev) => (prev.scanState === capture.scanState ? prev : { ...prev, scanState: capture.scanState }));
+  }, [capture.scanState]);
 
   // Pull the card photo back out of IndexedDB. Showing it matters most in exactly the case where
   // OCR failed: the rep can read the card on screen and type from it, instead of hunting for the

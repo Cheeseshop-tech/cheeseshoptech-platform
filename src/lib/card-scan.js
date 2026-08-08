@@ -272,11 +272,27 @@ export function grabFrame(videoEl) {
 
 // ---- OCR ------------------------------------------------------------------------------------
 
+// `npm run dev` runs Vite, which does not serve Netlify functions — every function call 404s, and
+// the app (correctly) treats an unreachable reader the same as being offline. That made local
+// testing of the scan flow impossible and looked like a broken feature.
+//
+// The function sends `Access-Control-Allow-Origin: *` and allows the passcode header, so a
+// cross-origin call from localhost to the deployed function just works. Dev now reads cards for
+// real. Production is unaffected — it uses the same-origin path.
+const DEPLOYED_ORIGIN = "https://cheeseshoptech-platform.netlify.app";
+
+function ocrEndpoint() {
+  const path = "/.netlify/functions/card-ocr";
+  if (typeof location === "undefined") return path;
+  const local = location.hostname === "localhost" || location.hostname === "127.0.0.1";
+  return local ? `${DEPLOYED_ORIGIN}${path}` : path;
+}
+
 /** Send a compressed card to the server-side reader. Resolves { ok, card, status, error } and
  *  never throws — offline is the expected path here, not an exception. */
 export async function readCard(dataUrl, { tenant = "" } = {}) {
   try {
-    const res = await fetch("/.netlify/functions/card-ocr", {
+    const res = await fetch(ocrEndpoint(), {
       method: "POST",
       headers: { "content-type": "application/json", ...writeAuthHeader() },
       body: JSON.stringify({ tenant, image: dataUrl, mediaType: "image/jpeg" }),
