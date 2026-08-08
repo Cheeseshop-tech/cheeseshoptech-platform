@@ -32,7 +32,10 @@ const ALLOWED_MEDIA = new Set(["image/jpeg", "image/png", "image/webp"]);
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, x-portal-passcode",
+  // `Authorization` must be listed or the browser's preflight fails and the fetch THROWS —
+  // which surfaces as a network error, not a 401, and sends you hunting for a connection problem
+  // that doesn't exist. Added when the Identity bearer token started being sent.
+  "Access-Control-Allow-Headers": "Content-Type, x-portal-passcode, Authorization",
 };
 const json = (status, body) => ({
   statusCode: status,

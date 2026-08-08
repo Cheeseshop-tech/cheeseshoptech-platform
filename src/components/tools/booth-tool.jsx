@@ -354,12 +354,21 @@ export function BoothTool({ resolved }) {
       const detail = s.networkError
         ? "no network"
         : `${s.sessionToken ? "session token sent" : "NO session token"}${s.passcode ? " + passcode" : ""} · ${s.endpoint}`;
+      // Local dev signs in with the DEV-BYPASS user, which is a fake local identity that never
+      // talks to Netlify Identity — so there is no token to send and card reading can never work
+      // here. Say that plainly instead of reporting a connection problem, which sends you looking
+      // for a fault that doesn't exist. (The account book is empty on localhost for the same
+      // family of reason: VITE_CRM_BACKEND=mock.)
+      const localDev = typeof location !== "undefined"
+        && (location.hostname === "localhost" || location.hostname === "127.0.0.1");
       setFlash(
-        (res.status === 401
-          ? "The card reader rejected this sign-in. Try signing out and back in."
-          : res.status === 0
-            ? "No connection — the card stays queued and reads itself when you're back online."
-            : `The card reader answered ${res.status}.`)
+        (localDev && !s.sessionToken && !s.passcode
+          ? "Local dev is signed in as the dev-bypass user, which has no real session — card reading only works on the deployed site."
+          : res.status === 401
+            ? "The card reader rejected this sign-in. Try signing out and back in."
+            : res.status === 0
+              ? "No connection — the card stays queued and reads itself when you're back online."
+              : `The card reader answered ${res.status}.`)
         + `  [${res.status || "network"} · ${detail}]`
         + "  The photo is saved — use “Read the card again”, or type the details."
       );
