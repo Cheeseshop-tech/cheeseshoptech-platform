@@ -80,6 +80,12 @@ export function resolveClient(explicitSubdomain) {
     // always read `resolved.contentQuota`, but the resolver never passed it through — so a
     // per-client quota in config was silently ignored and every tenant got DEFAULT_QUOTA.
     contentQuota: client?.contentQuota ?? null,
+    // Booking calendar for the Booth to Meeting field tool. Null = no calendar configured, and
+    // that tool falls back to a downloadable .ics only.
+    calendar: client?.calendar ?? null,
+    // Offers a rep can put on the table. Empty until the business creates them (Rick,
+    // 2026-08-07: "deals still need to be created") — the booth falls back to a typed offer.
+    deals: client?.deals ?? [],
     cloudinaryFolder: client?.cloudinaryFolder || `clients/${id}`,
     cloudinaryLegacyFolders: client?.cloudinaryLegacyFolders ?? [],
     onPrimary: resolveOnColor(brand.colors.primary),

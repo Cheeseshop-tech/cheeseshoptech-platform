@@ -73,6 +73,13 @@ export const handler = async (event) => {
     return json(200, {
       contacts: contactsTotal,
       companies,
+      // EVERY contact, not just the one joined onto each company above (2026-08-07). These were
+      // already fetched and then discarded — the primary-contact join reduced the whole people
+      // list to one per company and dropped the rest. Field sales needs all of them (a
+      // distributor has a buyer AND a category manager AND a chef), and passing them through
+      // costs no extra HubSpot calls: same fetch, one more field on the response. Bounded by
+      // the same MAX_PAGES × PAGE_SIZE cap the companies list already carries.
+      people: contactsRes.people,
       // Pipeline/orders/invoices not wired yet — see SCOPE NOTE above. Leave empty so the
       // dashboard hides those cards (command-center.jsx guards on array length) rather
       // than showing misleading all-zero rows.

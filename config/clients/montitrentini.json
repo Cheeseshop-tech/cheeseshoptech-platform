@@ -17,6 +17,12 @@
   "cloudinaryFolder": "monti-trentini",
   "cloudinaryLegacyFolders": ["monti"],
   "crm": "hubspot",
+  "calendar": {
+    "provider": "google",
+    "address": "Sales@montitrentini-Usa.com",
+    "defaultDurationMinutes": 45
+  },
+  "deals": [],
   "modules": [
     "catalog",
     "orders",
@@ -52,6 +58,18 @@
       "route": "crm",
       "status": "live",
       "tag": "CRM · live"
+    },
+    {
+      "key": "booth",
+      "label": "Booth to Meeting",
+      "description": "Trade-show and territory field tool — capture the conversation and book the next step on the spot. Works offline.",
+      "icon": "calendar-check",
+      "type": "internal",
+      "route": "booth",
+      "status": "live",
+      "featured": true,
+      "tag": "Field · offline-first",
+      "allowed": ["admin", "client"]
     },
     {
       "key": "presentation-library",

@@ -23,6 +23,7 @@ import { ContentEnginePage } from "@/components/tools/content-engine-page.jsx";
 import { CampaignsPage } from "@/components/campaigns/campaigns-page.jsx";
 import { FeaturedTool } from "@/components/tools/featured-tool.jsx";
 import { PricingTool } from "@/components/tools/pricing-tool.jsx";
+import { BoothTool } from "@/components/tools/booth-tool.jsx";
 import { toolIcon } from "@/lib/icons.js";
 import { OrdersPage } from "@/components/crm/crm-dashboard.jsx";
 import { CrmPage } from "@/components/crm/crm-page.jsx";
@@ -61,7 +62,9 @@ const NAV = [
 // listed here sort after the listed ones, in assembly order.
 // Product catalog back ON the sidebar as a featured-tool tab (Rick, 2026-07-04) — it's the
 // item-driven price-list mirror now, a first-class daily surface.
-const NAV_ORDER = ["dashboard", "tool:price-list", "crm", "campaigns", "orders", "tool:buyer-catalog", "presentations", "tools", "tool:shopify", "media"];
+// Booth-to-Meeting sits next to CRM: it's the field end of the same account book (it reads the
+// HubSpot companies CRM reads, and pushes contacts back through crm-push).
+const NAV_ORDER = ["dashboard", "tool:price-list", "crm", "tool:booth", "campaigns", "orders", "tool:buyer-catalog", "presentations", "tools", "tool:shopify", "media"];
 // Pages reachable WITHOUT a nav tab: buyer share links + Opportunity-Engine compose (as before),
 // plus the Content Engine's apps (their tabs moved into the engine page's cards). `catalog`
 // stays listed so dashboard cards + ?page=catalog deep links keep working alongside the tab.
@@ -183,7 +186,9 @@ export default function App({ initialResolved }) {
           ? <PricingTool resolved={resolved} onNavigate={setPage} />
           : activeFeatured.route === "catalog"
             ? <CatalogPage resolved={resolved} />
-            : <FeaturedTool tool={activeFeatured} resolved={resolved} />
+            : activeFeatured.route === "booth"
+              ? <BoothTool resolved={resolved} />
+              : <FeaturedTool tool={activeFeatured} resolved={resolved} />
       ) : effectivePage === "media" ? (
         <MediaHub resolved={resolved} />
       ) : effectivePage === "campaigns" ? (
@@ -195,7 +200,7 @@ export default function App({ initialResolved }) {
       ) : effectivePage === "orders" ? (
         <OrdersPage resolved={resolved} />
       ) : effectivePage === "crm" ? (
-        <CrmPage resolved={resolved} />
+        <CrmPage resolved={resolved} onNavigate={setPage} />
       ) : effectivePage === "presentations" ? (
         // Content Library: gate matches its nav `allowed` (admin+client) — closes the
         // pre-existing direct-URL gap (?page=presentations rendered with no role check).

@@ -75,7 +75,7 @@ const CSS = `
 
 const statusClass = (s) => "status-sel s-" + String(s).replace(/[^A-Za-z]/g, "").replace(/^Nota/, "Nota");
 
-export function CrmPage({ resolved }) {
+export function CrmPage({ resolved, onNavigate }) {
   const [state, setState] = useState("loading"); // "loading" | "error" | "ok"
   const [data, setData] = useState(null);
   const [entries, setEntries] = useState({});
@@ -260,6 +260,11 @@ export function CrmPage({ resolved }) {
           <option value="n">No email</option>
         </select>
         <button className="btn ghost" onClick={exportCsv} disabled={!filtered.length}>Export CSV</button>
+        {/* Doorway to the field tool. Purely a shortcut — Booth already reads this same account
+            book through getCrmData(); the difference is that it snapshots it for offline use. */}
+        {onNavigate && (
+          <button className="btn ghost" onClick={() => onNavigate("tool:booth")}>Booth to Meeting →</button>
+        )}
       </div>
 
       {/* Live result counter — every query (search, region, state, status, email) shows its total. */}

@@ -34,12 +34,18 @@ browser (Auto-compose button)  →  Netlify function (holds ANTHROPIC_API_KEY)  
   composer). It writes into the SAME proposal draft model — so AI output is just a starting draft
   the human edits. Deterministic composer (Slice 2) is the backbone; AI is the optional layer on top.
 
-## Prerequisites (Rick's to-do when resumed)
-- **Anthropic API key** — pay-as-you-go, **separate account/billing from the Claude subscription**;
-  a card on file. Stored as a Netlify env secret `ANTHROPIC_API_KEY` (never committed).
-- **Spend cap** set in the Anthropic console (the real risk is an ungated loop, not per-call cost —
-  composing a proposal is cents).
-- Optional: a simple per-session/day call limit in the function as a second guardrail.
+## Prerequisites — ✅ DONE (was "Rick's to-do"; corrected 2026-08-07)
+- ✅ **Anthropic API key** — pay-as-you-go, **separate account/billing from the Claude
+  subscription**; a card on file. Live as the Netlify env secret `ANTHROPIC_API_KEY`
+  (never committed). Confirmed live 2026-08-07.
+- ✅ **Spend cap** — $25/mo, set in the Anthropic console (the real risk is an ungated loop, not
+  per-call cost — composing a proposal is cents).
+- Optional, still open: a per-session/day call limit in the function as a second guardrail.
+
+> This section read "Rick's to-do when resumed" for weeks after the key was actually live, while
+> BUILD_LOG.md line 437 recorded it as done — two docs disagreeing, and the stale one was the
+> easier to find. The full inventory now lives in **`docs/ENV_VARS.md`**; update that table in the
+> same commit as any code that reads a new variable.
 
 ## Cost reality
 Token cost per composition is trivial (cents). The real cost is build + ongoing maintenance of a
