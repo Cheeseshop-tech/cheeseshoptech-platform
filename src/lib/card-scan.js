@@ -21,6 +21,7 @@
 // needlessly expensive against the account's spend cap.
 
 import { writeAuthHeader } from "./auth-context.jsx";
+import { identityAuthHeader } from "./auth.js";
 
 const DB_NAME = "cst-booth-cards";
 const STORE = "cards";
@@ -292,9 +293,17 @@ function ocrEndpoint() {
  *  never throws — offline is the expected path here, not an exception. */
 export async function readCard(dataUrl, { tenant = "" } = {}) {
   try {
+    // Send BOTH credentials the app might hold. The portal signs in with Netlify Identity, but
+    // the function's guard checks a passcode — so a logged-in session sent no credential at all
+    // and every scan 401'd, which the UI reported as "reader unreachable". The function now
+    // accepts either; the client offers whichever it has.
     const res = await fetch(ocrEndpoint(), {
       method: "POST",
-      headers: { "content-type": "application/json", ...writeAuthHeader() },
+      headers: {
+        "content-type": "application/json",
+        ...writeAuthHeader(),            // passcode mode
+        ...(await identityAuthHeader()), // Netlify Identity session
+      },
       body: JSON.stringify({ tenant, image: dataUrl, mediaType: "image/jpeg" }),
     });
     const data = await res.json().catch(() => ({}));

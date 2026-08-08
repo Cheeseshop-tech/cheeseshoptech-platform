@@ -118,3 +118,27 @@ export function canAccessTenant(user, subdomain) {
   if (!subdomain) return false; // non-admins cannot use the house/apex view
   return tenantOf(user) === subdomain;
 }
+
+/**
+ * `Authorization: Bearer <Identity JWT>` for calls to Netlify Functions.
+ *
+ * The portal signs users in with Netlify Identity, but the write-guard on our functions checks a
+ * PASSCODE header — two separate auth systems that were never connected. Any function called from
+ * a logged-in session therefore 401'd, because `writeAuthHeader()` returns nothing outside
+ * passcode mode. This is the bridge: Netlify populates `context.clientContext.user` on a function
+ * automatically when this header carries a valid Identity token, so the function can trust a
+ * logged-in user without verifying signatures itself.
+ *
+ * Async because GoTrue refreshes an expired token here. Resolves `{}` when nobody is signed in —
+ * the call will then correctly 401 rather than silently running unauthenticated.
+ */
+export async function identityAuthHeader() {
+  try {
+    const user = auth.currentUser();
+    if (!user?.jwt) return {};
+    const token = await user.jwt();          // refreshes if near expiry
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  } catch {
+    return {};
+  }
+}

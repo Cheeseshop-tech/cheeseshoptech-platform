@@ -321,13 +321,35 @@ export function BoothTool({ resolved }) {
     }
   }
 
+  /** Re-read a photo that's already saved. Autofill runs on its own — that's the whole point of
+   *  the tool — but "on its own" needs a visible recovery path for the times it doesn't land: a
+   *  queued offline scan, a first read that failed, or a blurry shot the rep wants to retry
+   *  without hunting for the card again. Without this the rep's only option is to re-photograph. */
+  async function rescanCapture(capture) {
+    if (inFlight.current.has(capture.id)) return;
+    inFlight.current.add(capture.id);
+    setScanning(true);
+    setFlash("");
+    try {
+      const { getCardImage } = await import("@/lib/card-scan.js");
+      const dataUrl = await getCardImage(capture.id);
+      if (!dataUrl) { setFlash("That capture has no photo saved — type the details."); return; }
+      const res = await readCard(dataUrl, { tenant: tenantId });
+      applyScanResult(capture, res);
+    } finally {
+      inFlight.current.delete(capture.id);
+      setScanning(false);
+    }
+  }
+
   /** Fold an OCR result into a capture: fields, CRM verdict, and the state the UI reads. */
   function applyScanResult(capture, res) {
     if (!res.ok) {
       persist(updateCapture(tenantId, capture.id, { scanState: "pending" }));
       setFlash(
-        res.status === 401 ? "Card reading needs an admin passcode. Type the details for now — the photo is saved."
-        : "Couldn't reach the card reader. It stays queued and retries when the signal is better."
+        res.status === 401 ? "The card reader didn't accept this session — try signing out and back in. Type the details for now; the photo is saved."
+        : res.status === 0 ? "No connection — the card stays queued and reads itself when you're back online."
+        : `The card reader answered ${res.status}. The photo is saved; use “Read the card again”, or type the details.`
       );
       return { ...capture, scanState: "pending" };
     }
@@ -769,6 +791,8 @@ export function BoothTool({ resolved }) {
           onSave={saveSheet}
           onCommit={commitFrom}
           onClose={() => setSheet(null)}
+          onRescan={rescanCapture}
+          rescanning={scanning}
         />
       )}
 
@@ -892,7 +916,7 @@ function WebcamShutter({ onCapture, onClose }) {
 
 // The one capture sheet both entry triggers land on (§5b step 3), now producing both sides of
 // the note from a single pass of data entry.
-function CaptureSheet({ capture, brandName, calendarAddress, durationMinutes, catalog, deals, onSave, onCommit, onClose }) {
+function CaptureSheet({ capture, brandName, calendarAddress, durationMinutes, catalog, deals, onSave, onCommit, onClose, onRescan, rescanning }) {
   const [c, setC] = useState(capture);
   const [touchedTemp, setTouchedTemp] = useState(false);
   const [q, setQ] = useState("");
@@ -1003,7 +1027,7 @@ function CaptureSheet({ capture, brandName, calendarAddress, durationMinutes, ca
         {c.scanState === "pending" && (
           <div className="verdict pending">
             ⏳ Card saved, not read yet
-            <span className="vd">No signal. It reads itself when you're back online — keep going.</span>
+            <span className="vd">It reads itself once the reader is reachable — keep going. Use “Read the card again” to retry now.</span>
           </div>
         )}
         {c.scanState === "illegible" && (
@@ -1017,7 +1041,15 @@ function CaptureSheet({ capture, brandName, calendarAddress, durationMinutes, ca
           <>
             <div className="cardshot-row">
               <span className="lbl">The card you shot</span>
-              <a className="muted" href={shot} download={`card-${capture.id}.jpg`}>Download</a>
+              <span style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                {/* Autofill is automatic — this is the recovery path for when it didn't land. */}
+                {c.scanState !== "read" && onRescan && (
+                  <button className="btn ghost sm" onClick={() => onRescan(capture)} disabled={rescanning}>
+                    {rescanning ? "Reading…" : "Read the card again"}
+                  </button>
+                )}
+                <a className="muted" href={shot} download={`card-${capture.id}.jpg`}>Download</a>
+              </span>
             </div>
             <img
               className="cardshot"

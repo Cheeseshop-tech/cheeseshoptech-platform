@@ -76,15 +76,29 @@ const RETURN_TOOL = {
 
 const str = (v, max = 200) => (typeof v === "string" ? v.trim().slice(0, max) : "");
 
-export async function handler(event) {
+export async function handler(event, context) {
   if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: CORS, body: "" };
   if (event.httpMethod !== "POST") return json(405, { error: "POST only" });
 
   let body;
   try { body = JSON.parse(event.body || "{}"); } catch { return json(400, { error: "Invalid JSON" }); }
 
-  const auth = requireReadAuth(event, body.tenant || "");
-  if (!auth.ok) return jsonUnauthorized(auth);
+  // TWO ACCEPTED CREDENTIALS, because the app has two auth systems.
+  //
+  // Everything server-side in this codebase guards on the portal PASSCODE, but the portal itself
+  // signs users in with NETLIFY IDENTITY. A logged-in rep therefore held no passcode to send, so
+  // every scan 401'd and the UI reported it as "couldn't reach the card reader" — the bug that
+  // made card scanning look broken while the API was working fine.
+  //
+  // `context.clientContext.user` is populated by Netlify itself when the request carries a valid
+  // Identity JWT in `Authorization: Bearer …`. Netlify verifies the signature; we never see the
+  // secret and can't get it wrong. Being signed in to the portal is exactly the bar this endpoint
+  // needs — it reads a photo the user just took and spends about a cent.
+  const identityUser = context?.clientContext?.user || null;
+  if (!identityUser) {
+    const auth = requireReadAuth(event, body.tenant || "");
+    if (!auth.ok) return jsonUnauthorized(auth);
+  }
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return json(500, { error: "ANTHROPIC_API_KEY not configured" });
