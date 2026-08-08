@@ -15,6 +15,7 @@
 
 import { writeAuthHeader } from "./auth-context.jsx";
 import { seedFor } from "./items-seeds.js";
+import { businessTypeLabel, contactRoleLabel, isMultiplierRole, channelForBusinessType } from "./lead-taxonomy.js";
 
 const VERSION = 1;
 const docKey = (tenantId) => `cst.booth.${tenantId}.v${VERSION}`;
@@ -205,6 +206,11 @@ export function newCapture(seed = {}) {
     phoneExt: seed.phoneExt || "",
     city: seed.city || "",
     state: seed.state || "",
+    // Lead classification (docs/LEAD_TAXONOMY.md). Two fields, not one, because they answer
+    // different questions and live on different HubSpot objects: businessType describes the
+    // COMPANY, contactRole describes the PERSON. A DSR is a person at a distributor — both.
+    businessType: seed.businessType || "",
+    contactRole: seed.contactRole || "",
     products: [],                       // [{sku,name,packSize,certification,...}] — real catalog rows
     useCase: seed.useCase || "",
     priceQuestion: false,
@@ -644,7 +650,10 @@ export function buildInternalNote(capture, { deals = [] } = {}) {
   const lines = [];
   lines.push(`${capture.company || "Unknown account"}${capture.city || capture.state ? ` (${[capture.city, capture.state].filter(Boolean).join(", ")})` : ""}`);
   const reach = phoneText(capture);
-  lines.push(`Spoke with: ${[capture.name, capture.title].filter(Boolean).join(", ") || "—"}${capture.email ? ` · ${capture.email}` : ""}${reach ? ` · ${reach}` : ""}`);
+  const role = contactRoleLabel(capture.contactRole);
+  const btype = businessTypeLabel(capture.businessType);
+  lines[0] += btype ? ` — ${btype}` : "";
+  lines.push(`Spoke with: ${[capture.name, capture.title, role].filter(Boolean).join(", ") || "—"}${capture.email ? ` · ${capture.email}` : ""}${reach ? ` · ${reach}` : ""}`);
   lines.push(`Temperature: ${capture.temperature}${capture.priceQuestion ? " · asked price/minimums" : ""}`);
 
   if (capture.products?.length) {
@@ -702,12 +711,37 @@ export function buildShowDigest(captures = [], { brandName = "", eventName = "",
   }
   const topProducts = [...skuTally.entries()].sort((a, b) => b[1] - a[1]);
 
+  // Who you met, by what the business IS — the question a channel-level field can't answer.
+  const typeTally = new Map();
+  for (const c of captures) {
+    const label = businessTypeLabel(c.businessType);
+    if (label) typeTally.set(label, (typeTally.get(label) || 0) + 1);
+  }
+  const byType = [...typeTally.entries()].sort((a, b) => b[1] - a[1]);
+
+  // Multipliers reported APART from customers. A DSR or broker isn't a lead in the usual sense —
+  // one relationship can open dozens of accounts. Counted together they inflate the headline and
+  // bury the more interesting number.
+  const multipliers = captures.filter((c) => isMultiplierRole(c.contactRole));
+
   const out = [];
   out.push(`${brandName || "Show"} — ${eventName || "field report"}`);
   out.push("=".repeat(Math.min(60, (brandName + (eventName || "")).length + 6)));
   out.push("");
   out.push(`${stats.conversations} conversations · ${stats.committed} with a next step agreed (${stats.committedRate}%) · ${stats.requested} requests out`);
   out.push(`Hot ${stats.hot} · Warm ${stats.warm} · Cold ${stats.cold}`);
+  if (multipliers.length) {
+    out.push("");
+    out.push(`Trade contacts (open doors rather than buy) — ${multipliers.length}:`);
+    for (const c of multipliers) {
+      out.push(`  ${contactRoleLabel(c.contactRole)} · ${c.name || "—"}${c.company ? ` · ${c.company}` : ""}`);
+    }
+  }
+  if (byType.length) {
+    out.push("");
+    out.push("Who you met, by business type:");
+    for (const [label, n] of byType) out.push(`  ${n}× ${label}`);
+  }
   if (topProducts.length) {
     out.push("");
     out.push("Most-discussed products:");

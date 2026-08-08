@@ -15,6 +15,12 @@
 // For the email-activity feed additionally: sales-email-read (degrades to an empty feed
 // without it — check the JSON's activityNote field when the card doesn't show).
 const CHANNEL_PROPERTY = "channel";
+// Lead taxonomy (docs/LEAD_TAXONOMY.md): `channel` is the coarse route to market and is
+// already populated on 189 companies; these two are the finer grain added alongside it.
+// Both are safe to request before they exist in HubSpot — unknown properties come back
+// undefined rather than erroring, so this ships ahead of the HubSpot-side setup.
+const BUSINESS_TYPE_PROPERTY = "business_type";
+const CONTACT_ROLE_PROPERTY = "contact_role";
 
 import { requireReadAuth, jsonUnauthorized } from "./_write-guard.js";
 
@@ -213,7 +219,7 @@ async function fetchAllCompanies(token) {
       // city/state/domain/phone: standard HubSpot company properties (populated by the
       // 2026-07-22 campaign import) — power the CRM outreach console's location column,
       // region filter, and site links. Absent values come back undefined → null below.
-      properties: ["name", CHANNEL_PROPERTY, "city", "state", "domain", "phone"],
+      properties: ["name", CHANNEL_PROPERTY, BUSINESS_TYPE_PROPERTY, "city", "state", "domain", "phone"],
       ...(after ? { after } : {}),
     });
     if (!data) break; // degrade: serve what we have rather than 502 the payload
@@ -224,6 +230,9 @@ async function fetchAllCompanies(token) {
         // domain instead of a "(no name)" wall at the top of the alphabetically-sorted console.
         name: r.properties?.name || r.properties?.domain || "(no name)",
         channel: r.properties?.[CHANNEL_PROPERTY] || null,
+        // Fine-grained class (docs/LEAD_TAXONOMY.md). Null until the property exists in
+        // HubSpot — the app falls back to guessing from `channel`, so this is additive.
+        businessType: r.properties?.[BUSINESS_TYPE_PROPERTY] || null,
         city: r.properties?.city || null,
         state: r.properties?.state || null,
         domain: r.properties?.domain || null,
@@ -245,7 +254,7 @@ async function fetchAllContacts(token) {
   for (let page = 0; page < MAX_PAGES; page++) {
     const data = await hsSearch(token, "https://api.hubapi.com/crm/v3/objects/contacts/search", {
       limit: PAGE_SIZE,
-      properties: ["firstname", "lastname", "email", "phone", "company"],
+      properties: ["firstname", "lastname", "email", "phone", "company", CONTACT_ROLE_PROPERTY],
       ...(after ? { after } : {}),
     });
     if (!data) break; // degrade: whatever we joined so far still renders
@@ -257,6 +266,7 @@ async function fetchAllContacts(token) {
         email: p.email || null,
         phone: p.phone || null,
         company: p.company || null,
+        role: p[CONTACT_ROLE_PROPERTY] || null,
       });
     }
     after = data.paging?.next?.after;

@@ -9,6 +9,9 @@ import {
   phoneText,
 } from "@/lib/booth.js";
 import { openCamera, closeCamera, grabFrame, listCameras } from "@/lib/card-scan.js";
+import {
+  CONTACT_ROLES, businessTypesByChannel, contactRole, isMultiplierRole, guessBusinessType,
+} from "@/lib/lead-taxonomy.js";
 import { compressCardImage, readCard, matchCard, putCardImage, deleteCardImage } from "@/lib/card-scan.js";
 
 // Booth-to-Meeting (BOOTH_TO_MEETING_HANDOFF.md + Rick 2026-08-07).
@@ -268,6 +271,10 @@ export function BoothTool({ resolved }) {
       // The account's own switchboard, offered to whoever the rep picked. Separate from `phone`
       // so it reads as the office line, not as this person's direct number.
       officePhone: account.phone || "",
+      // Seed from the CRM's coarse channel where that maps to ONE obvious type. "Specialty
+      // grocer" splits four ways, so it seeds blank rather than guessing — a blank the rep fills
+      // beats a confident mislabel nobody notices.
+      businessType: account.businessType || guessBusinessType(account.channel),
       city: account.city || "",
       state: account.state || "",
     }));
@@ -1093,8 +1100,34 @@ function CaptureSheet({ capture, brandName, calendarAddress, durationMinutes, ca
           </div>
         </div>
 
+        {/* What the PERSON does. Separate from Business Type on purpose — a DSR is a person at a
+            distributor, and rolling them into one list makes both unfilterable. */}
+        <label htmlFor="bf-role">What do they do?</label>
+        <select id="bf-role" value={c.contactRole} onChange={(e) => set({ contactRole: e.target.value })}>
+          <option value="">Choose a role…</option>
+          {CONTACT_ROLES.map((r) => <option key={r.key} value={r.key}>{r.label}</option>)}
+        </select>
+        {isMultiplierRole(c.contactRole) && (
+          <div className="hint">
+            {contactRole(c.contactRole)?.label} opens doors rather than buying — one relationship can
+            reach many accounts. Counted apart from customers in the show report.
+          </div>
+        )}
+
         <label htmlFor="bf-company">Company / account</label>
         <input id="bf-company" value={c.company} onChange={(e) => set({ company: e.target.value })} />
+
+        {/* What the BUSINESS is. Grouped by channel so the rep picks the specific one and the
+            coarse grouping follows automatically. */}
+        <label htmlFor="bf-btype">What kind of business?</label>
+        <select id="bf-btype" value={c.businessType} onChange={(e) => set({ businessType: e.target.value })}>
+          <option value="">Choose a business type…</option>
+          {businessTypesByChannel().map(([channel, types]) => (
+            <optgroup key={channel} label={channel}>
+              {types.map((t) => <option key={t.key} value={t.key}>{t.label}</option>)}
+            </optgroup>
+          ))}
+        </select>
 
         <div className="two">
           <div>
