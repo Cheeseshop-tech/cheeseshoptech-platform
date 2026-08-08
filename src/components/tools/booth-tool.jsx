@@ -8,6 +8,7 @@ import {
   searchCatalog, productSpec, activeDeals, nextStepText, indexContacts, contactsForCompany, cityOf,
   phoneText,
 } from "@/lib/booth.js";
+import { openCamera, closeCamera, grabFrame } from "@/lib/card-scan.js";
 import { compressCardImage, readCard, matchCard, putCardImage, deleteCardImage } from "@/lib/card-scan.js";
 
 // Booth-to-Meeting (BOOTH_TO_MEETING_HANDOFF.md + Rick 2026-08-07).
@@ -96,6 +97,9 @@ const CSS = `
 .bth-sheet .results button:active{background:var(--cs-color-surface);}
 .bth-sheet .results .rn{font-weight:700;font-size:15px;}
 .bth-sheet .results .rs{font-size:12.5px;color:var(--cs-color-fg-muted);margin-top:2px;}
+.bth-sheet .shot{position:relative;border-radius:10px;overflow:hidden;background:#111;aspect-ratio:4/3;margin-top:6px;}
+.bth-sheet .shot video{width:100%;height:100%;object-fit:cover;display:block;}
+.bth-sheet .shot-wait{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;}
 .bth-sheet .verdict{border-radius:10px;padding:11px 13px;margin:0 0 14px;font-size:15px;font-weight:700;border:1px solid var(--cs-color-border);background:var(--cs-color-bg);}
 .bth-sheet .verdict .vd{display:block;font-weight:400;font-size:13px;color:var(--cs-color-fg-muted);margin-top:3px;}
 .bth-sheet .verdict.existing-contact{background:#e3f6e9;border-color:#9ed8b3;color:var(--cs-color-success);}
@@ -129,7 +133,13 @@ export function BoothTool({ resolved }) {
   const [syncing, setSyncing] = useState(false);
   const [flash, setFlash] = useState("");
   const [scanning, setScanning] = useState(false);
+  const [shutter, setShutter] = useState(false);
   const cameraRef = useRef(null);
+  // A webcam shutter only earns its place where `<input capture>` DOESN'T open the OS camera —
+  // i.e. desktop. On a tablet the native camera is faster and better exposed, so don't offer two.
+  const canWebcam = typeof navigator !== "undefined"
+    && !!navigator.mediaDevices?.getUserMedia
+    && !matchMedia("(pointer: coarse)").matches;
   const calendar = resolved.calendar || null;
 
   // Product catalog + deals both come from the BUNDLE (items-seed.json / tenant config), so they
@@ -260,11 +270,16 @@ export function BoothTool({ resolved }) {
   // compress → PERSIST → open the sheet → then read. The rep is looking at an open sheet with a
   // saved photo before any request is made, so a slow or dead network costs a field, never a
   // conversation.
-  async function onCardPicked(e) {
+  function onCardPicked(e) {
     const file = e.target.files?.[0];
     e.target.value = ""; // let the same card be re-shot without the input going inert
-    if (!file) return;
+    if (file) ingestCardFile(file);
+  }
 
+  /** The one path every card image travels, however it was captured — OS camera, file picker, or
+   *  the desktop webcam shutter. Keeping it single means the offline queue, the CRM match, and the
+   *  failure handling can't drift apart between entry points. */
+  async function ingestCardFile(file) {
     setScanning(true);
     setFlash("");
     let capture = newCapture({ source: "booth", scanState: "pending" });
@@ -500,9 +515,20 @@ export function BoothTool({ resolved }) {
         </button>
         {/* THE fast path — first among the actions because it's the one the rep should reach for
             by default. `capture="environment"` opens the rear camera straight into the card. */}
-        <button className="mode cta" onClick={() => cameraRef.current?.click()} disabled={scanning}>
+        <button
+          className="mode cta"
+          onClick={() => (canWebcam ? setShutter(true) : cameraRef.current?.click())}
+          disabled={scanning}
+        >
           {scanning ? "Reading card…" : "📷 Scan a card"}
         </button>
+        {/* On desktop the primary button opens the webcam, so keep the file picker reachable for
+            a photo that's already on disk. On a tablet the primary button IS the picker. */}
+        {canWebcam && (
+          <button className="mode" onClick={() => cameraRef.current?.click()} disabled={scanning}>
+            Choose a photo
+          </button>
+        )}
         <button className="mode" onClick={openBlank}>Type it instead</button>
         <input
           ref={cameraRef}
@@ -704,6 +730,13 @@ export function BoothTool({ resolved }) {
         </>
       )}
 
+      {shutter && (
+        <WebcamShutter
+          onClose={() => setShutter(false)}
+          onCapture={(file) => { setShutter(false); ingestCardFile(file); }}
+        />
+      )}
+
       {sheet && (
         <CaptureSheet
           capture={sheet}
@@ -724,6 +757,88 @@ export function BoothTool({ resolved }) {
         Products come from the {resolved.brand.name} item list bundled in the app ({catalog.length} SKUs), so search works with no signal.
         Confirmed times open prefilled in Google Calendar{calendar?.address ? ` (${calendar.address})` : ""} with the buyer as a guest.
         Sync writes the house note to HubSpot through crm-push (admin passcode; dry run first). Nothing sends without your tap.
+      </div>
+    </div>
+  );
+}
+
+// Desktop webcam shutter. The tablet uses the OS camera via `<input capture>`; this exists so the
+// same button does something sensible on a laptop, where `capture` is silently ignored and the
+// picker opens instead.
+//
+// The whole component is really about ONE invariant: the stream must be released on every exit
+// path — capture, cancel, backdrop click, unmount, or a failed start. A leaked MediaStream leaves
+// the recording light on and holds the camera against every other app on the machine, which reads
+// as a bug in the app and is invisible from inside it.
+function WebcamShutter({ onCapture, onClose }) {
+  const videoRef = useRef(null);
+  const streamRef = useRef(null);
+  const [error, setError] = useState("");
+  const [ready, setReady] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const stream = await openCamera();
+        // The dialog can close while getUserMedia is still resolving; without this the stream
+        // starts after unmount and never gets stopped.
+        if (cancelled) { closeCamera(stream); return; }
+        streamRef.current = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          await videoRef.current.play().catch(() => {});
+        }
+        setReady(true);
+      } catch (err) {
+        if (!cancelled) setError(String(err?.message || err));
+      }
+    })();
+    return () => {
+      cancelled = true;
+      closeCamera(streamRef.current);
+      streamRef.current = null;
+    };
+  }, []);
+
+  async function shoot() {
+    setBusy(true);
+    try {
+      const file = await grabFrame(videoRef.current);
+      closeCamera(streamRef.current);   // release before handing off — don't hold it through OCR
+      streamRef.current = null;
+      onCapture(file);
+    } catch (err) {
+      setError(String(err?.message || err));
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="bth-back" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="bth-sheet" role="dialog" aria-modal="true" aria-label="Scan a card with the camera">
+        <h2>Scan a card</h2>
+        <p className="sh-sub">Fill the frame with the card, then Capture. Flat and well-lit reads best.</p>
+
+        {error ? (
+          <div className="verdict illegible">
+            ⚠ {error}
+            <span className="vd">Use “Type it instead”, or pick a photo file.</span>
+          </div>
+        ) : (
+          <div className="shot">
+            <video ref={videoRef} playsInline muted autoPlay />
+            {!ready && <div className="shot-wait">Starting camera…</div>}
+          </div>
+        )}
+
+        <div className="acts">
+          <button className="btn ghost" onClick={onClose}>Cancel</button>
+          <button className="btn" onClick={shoot} disabled={!ready || busy || !!error}>
+            {busy ? "Reading…" : "Capture"}
+          </button>
+        </div>
       </div>
     </div>
   );

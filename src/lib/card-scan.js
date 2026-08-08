@@ -113,6 +113,61 @@ export function compressCardImage(file, { maxEdge = MAX_EDGE, quality = JPEG_QUA
   });
 }
 
+// ---- Live webcam capture (desktop) ----------------------------------------------------------
+//
+// The `<input capture="environment">` path above is the right one on a tablet — it opens the OS
+// camera, which is faster and better-exposed than anything we'd build. But `capture` is IGNORED
+// on desktop browsers: on a Mac the same button just opens a file picker, which is a poor answer
+// to a button labelled "Scan a card". This is the desktop path — a live preview and a shutter —
+// and it hands off to exactly the same compress → persist → read pipeline.
+
+/** Open the default camera. Resolves a MediaStream, or rejects with a human-readable reason.
+ *  `facingMode` is a soft preference (`ideal`), not a requirement — a laptop has no environment
+ *  camera and a hard constraint would fail outright there. */
+export async function openCamera() {
+  if (!navigator.mediaDevices?.getUserMedia) {
+    throw new Error("This browser can't open a camera. Use the file picker instead.");
+  }
+  try {
+    return await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: { ideal: "environment" },
+        width: { ideal: 1920 },
+        height: { ideal: 1080 },
+      },
+      audio: false,
+    });
+  } catch (err) {
+    const name = err?.name || "";
+    if (name === "NotAllowedError") throw new Error("Camera access was blocked. Allow it in the browser's address bar, then try again.");
+    if (name === "NotFoundError") throw new Error("No camera found on this device.");
+    if (name === "NotReadableError") throw new Error("The camera is already in use by another app.");
+    throw new Error(err?.message || "Couldn't open the camera.");
+  }
+}
+
+/** Release the camera. MUST be called when the shutter UI closes — otherwise the recording light
+ *  stays on and the device keeps the camera locked against every other app. */
+export function closeCamera(stream) {
+  for (const track of stream?.getTracks?.() || []) track.stop();
+}
+
+/** Grab the current video frame as a File, so it enters the identical path as a picked photo. */
+export function grabFrame(videoEl) {
+  const w = videoEl?.videoWidth, h = videoEl?.videoHeight;
+  if (!w || !h) throw new Error("The camera hasn't warmed up yet — give it a second and try again.");
+  const canvas = document.createElement("canvas");
+  canvas.width = w; canvas.height = h;
+  canvas.getContext("2d").drawImage(videoEl, 0, 0, w, h);
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => (blob ? resolve(new File([blob], "card.jpg", { type: "image/jpeg" })) : reject(new Error("Couldn't read that frame."))),
+      "image/jpeg",
+      0.92, // near-lossless here; compressCardImage does the real downscale next
+    );
+  });
+}
+
 // ---- OCR ------------------------------------------------------------------------------------
 
 /** Send a compressed card to the server-side reader. Resolves { ok, card, status, error } and
