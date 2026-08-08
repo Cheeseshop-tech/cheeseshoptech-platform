@@ -8,7 +8,7 @@ import {
   searchCatalog, productSpec, activeDeals, nextStepText, indexContacts, contactsForCompany, cityOf,
   phoneText,
 } from "@/lib/booth.js";
-import { openCamera, closeCamera, grabFrame } from "@/lib/card-scan.js";
+import { openCamera, closeCamera, grabFrame, listCameras } from "@/lib/card-scan.js";
 import { compressCardImage, readCard, matchCard, putCardImage, deleteCardImage } from "@/lib/card-scan.js";
 
 // Booth-to-Meeting (BOOTH_TO_MEETING_HANDOFF.md + Rick 2026-08-07).
@@ -100,6 +100,11 @@ const CSS = `
 .bth-sheet .shot{position:relative;border-radius:10px;overflow:hidden;background:#111;aspect-ratio:4/3;margin-top:6px;}
 .bth-sheet .shot video{width:100%;height:100%;object-fit:cover;display:block;}
 .bth-sheet .shot-wait{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;}
+.bth-sheet .shot-guide{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:82%;aspect-ratio:1.75/1;border:2px dashed rgba(255,255,255,.85);border-radius:8px;box-shadow:0 0 0 9999px rgba(0,0,0,.28);pointer-events:none;}
+.bth-sheet .cardshot{display:block;width:100%;max-height:190px;object-fit:contain;background:#f4f1e6;border:1px solid var(--cs-color-border);border-radius:10px;margin-top:6px;cursor:zoom-in;}
+.bth-sheet .cardshot-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;}
+.bth-sheet .cardshot-row .lbl{font-size:13px;font-weight:600;}
+.bth .pill.shot{background:#eef3ff;border-color:#c3d4ff;}
 .bth-sheet .verdict{border-radius:10px;padding:11px 13px;margin:0 0 14px;font-size:15px;font-weight:700;border:1px solid var(--cs-color-border);background:var(--cs-color-bg);}
 .bth-sheet .verdict .vd{display:block;font-weight:400;font-size:13px;color:var(--cs-color-fg-muted);margin-top:3px;}
 .bth-sheet .verdict.existing-contact{background:#e3f6e9;border-color:#9ed8b3;color:var(--cs-color-success);}
@@ -776,14 +781,20 @@ function WebcamShutter({ onCapture, onClose }) {
   const [error, setError] = useState("");
   const [ready, setReady] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [cameras, setCameras] = useState([]);
+  const [deviceId, setDeviceId] = useState("");
 
+  // Re-runs when the rep picks a different camera — the old stream is torn down by the cleanup
+  // below before the new one opens, so two cameras are never live at once.
   useEffect(() => {
     let cancelled = false;
+    setReady(false);
+    setError("");
     (async () => {
       try {
-        const stream = await openCamera();
-        // The dialog can close while getUserMedia is still resolving; without this the stream
-        // starts after unmount and never gets stopped.
+        const stream = await openCamera(deviceId || undefined);
+        // The dialog can close (or the device change again) while getUserMedia is still
+        // resolving; without this the stream starts after unmount and never gets stopped.
         if (cancelled) { closeCamera(stream); return; }
         streamRef.current = stream;
         if (videoRef.current) {
@@ -791,6 +802,9 @@ function WebcamShutter({ onCapture, onClose }) {
           await videoRef.current.play().catch(() => {});
         }
         setReady(true);
+        // Labels are only populated once permission is granted, so enumerate now, not earlier.
+        const found = await listCameras();
+        if (!cancelled && found.length > 1) setCameras(found);
       } catch (err) {
         if (!cancelled) setError(String(err?.message || err));
       }
@@ -800,7 +814,7 @@ function WebcamShutter({ onCapture, onClose }) {
       closeCamera(streamRef.current);
       streamRef.current = null;
     };
-  }, []);
+  }, [deviceId]);
 
   async function shoot() {
     setBusy(true);
@@ -829,8 +843,24 @@ function WebcamShutter({ onCapture, onClose }) {
         ) : (
           <div className="shot">
             <video ref={videoRef} playsInline muted autoPlay />
+            {/* Framing guide at a business card's ~1.75:1. Auto-crop does the real work, but a
+                rep who fills this box gives it an easy job — and a card shot edge-to-edge needs
+                no crop at all. */}
+            {ready && <div className="shot-guide" aria-hidden="true" />}
             {!ready && <div className="shot-wait">Starting camera…</div>}
           </div>
+        )}
+
+        {/* Only shown when there's an actual choice. On a Mac this is usually the built-in
+            FaceTime camera vs an iPhone over Continuity — pick the iPhone for small print. */}
+        {cameras.length > 1 && !error && (
+          <>
+            <label htmlFor="bf-cam">Camera</label>
+            <select id="bf-cam" value={deviceId} onChange={(e) => setDeviceId(e.target.value)}>
+              <option value="">Default camera</option>
+              {cameras.map((c) => <option key={c.deviceId} value={c.deviceId}>{c.label}</option>)}
+            </select>
+          </>
         )}
 
         <div className="acts">
@@ -851,9 +881,23 @@ function CaptureSheet({ capture, brandName, calendarAddress, durationMinutes, ca
   const [touchedTemp, setTouchedTemp] = useState(false);
   const [q, setQ] = useState("");
   const [noteSide, setNoteSide] = useState("buyer"); // buyer | house
+  const [shot, setShot] = useState(null);
   const firstField = useRef(null);
 
   useEffect(() => { firstField.current?.focus(); }, []);
+
+  // Pull the card photo back out of IndexedDB. Showing it matters most in exactly the case where
+  // OCR failed: the rep can read the card on screen and type from it, instead of hunting for the
+  // physical card that's already in a pocket. It's also the only proof the shutter actually fired.
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      const { getCardImage } = await import("@/lib/card-scan.js");
+      const url = await getCardImage(capture.id);
+      if (alive) setShot(url);
+    })();
+    return () => { alive = false; };
+  }, [capture.id]);
 
   // Re-run the §3 escalation ladder as the signal fields change, until the rep overrides it.
   useEffect(() => {
@@ -923,6 +967,22 @@ function CaptureSheet({ capture, brandName, calendarAddress, durationMinutes, ca
             ⚠ Couldn't read that photo
             <span className="vd">Too blurry or cropped. Retake it, or type the details.</span>
           </div>
+        )}
+
+        {shot && (
+          <>
+            <div className="cardshot-row">
+              <span className="lbl">The card you shot</span>
+              <a className="muted" href={shot} download={`card-${capture.id}.jpg`}>Download</a>
+            </div>
+            <img
+              className="cardshot"
+              src={shot}
+              alt="The scanned business card"
+              onClick={() => window.open(shot, "_blank", "noopener,noreferrer")}
+              title="Click to open full size"
+            />
+          </>
         )}
 
         <div className="two">

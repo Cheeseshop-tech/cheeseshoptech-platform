@@ -86,17 +86,98 @@ export async function listCardImageIds() {
 
 // ---- Capture + compress -------------------------------------------------------------------
 
-/** Downscale and re-encode a camera file to a JPEG data URI. Returns { dataUrl, width, height,
- *  bytes }. Runs entirely on-device — the original never leaves. */
-export function compressCardImage(file, { maxEdge = MAX_EDGE, quality = JPEG_QUALITY } = {}) {
+// ---- Auto-crop -------------------------------------------------------------------------------
+//
+// A webcam frame is mostly desk. Cropping to the card before downscaling does two things at once:
+// it removes background the model would otherwise have to reason past, and it spends the whole
+// 1400px budget on the card instead of the room — so the small print gets meaningfully sharper.
+//
+// The method is an EDGE-ENERGY PROJECTION, not document-scanner perspective correction. A card
+// is dense with ink; a desk is flat. Compute per-pixel gradient, sum it along rows and along
+// columns, and the card is the band where that sum stays high. Cheap (runs on a 320px thumbnail),
+// no dependencies, and it degrades safely.
+//
+// It is deliberately conservative: any implausible result — too small, too thin, a crop that ate
+// most of the frame — is DISCARDED in favour of the full frame. A bad auto-crop that slices off
+// the email line is far worse than no crop at all, so the failure mode is "did nothing".
+
+const CROP_WORK_W = 320;      // analysis thumbnail width — enough signal, trivial cost
+const CROP_ENERGY_FLOOR = 0.12; // fraction of peak row/col energy that still counts as "card"
+const CROP_PAD = 0.02;        // keep a 2% margin so we never shave a glyph
+
+/** Bounding box of the busiest region, in 0..1 fractions of the source. Null when unconvincing. */
+function detectCardBox(img) {
+  const w = CROP_WORK_W;
+  const h = Math.max(1, Math.round((img.naturalHeight / img.naturalWidth) * w));
+  const c = document.createElement("canvas");
+  c.width = w; c.height = h;
+  const ctx = c.getContext("2d", { willReadFrequently: true });
+  ctx.drawImage(img, 0, 0, w, h);
+
+  let data;
+  try { data = ctx.getImageData(0, 0, w, h).data; }
+  catch { return null; } // tainted canvas (cross-origin) — skip cropping rather than throw
+  // Luminance plane.
+  const lum = new Float32Array(w * h);
+  for (let i = 0, p = 0; i < data.length; i += 4, p++) {
+    lum[p] = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+  }
+  // Gradient magnitude, accumulated per row and per column.
+  const rowE = new Float32Array(h), colE = new Float32Array(w);
+  for (let y = 1; y < h - 1; y++) {
+    for (let x = 1; x < w - 1; x++) {
+      const p = y * w + x;
+      const e = Math.abs(lum[p + 1] - lum[p - 1]) + Math.abs(lum[p + w] - lum[p - w]);
+      rowE[y] += e; colE[x] += e;
+    }
+  }
+  const span = (arr) => {
+    let peak = 0;
+    for (const v of arr) if (v > peak) peak = v;
+    if (peak <= 0) return null;
+    const floor = peak * CROP_ENERGY_FLOOR;
+    let a = 0, b = arr.length - 1;
+    while (a < arr.length && arr[a] < floor) a++;
+    while (b > a && arr[b] < floor) b--;
+    return b > a ? [a / arr.length, (b + 1) / arr.length] : null;
+  };
+  const ys = span(rowE), xs = span(colE);
+  if (!ys || !xs) return null;
+
+  const [x0, x1] = xs, [y0, y1] = ys;
+  const bw = x1 - x0, bh = y1 - y0;
+  // Sanity gates — reject anything that doesn't look like a card sitting in a frame.
+  if (bw < 0.25 || bh < 0.15) return null;        // too small to be the subject
+  if (bw > 0.97 && bh > 0.97) return null;        // found the whole frame: nothing gained
+  const aspect = bw / bh;
+  if (aspect < 0.5 || aspect > 4.5) return null;  // a card is ~1.75:1; allow rotation and slack
+  return {
+    x: Math.max(0, x0 - CROP_PAD),
+    y: Math.max(0, y0 - CROP_PAD),
+    w: Math.min(1, bw + CROP_PAD * 2),
+    h: Math.min(1, bh + CROP_PAD * 2),
+  };
+}
+
+/** Downscale and re-encode a camera file to a JPEG data URI, cropping to the card first when one
+ *  can be found confidently. Returns { dataUrl, width, height, bytes, cropped }. Runs entirely
+ *  on-device — the original never leaves. */
+export function compressCardImage(file, { maxEdge = MAX_EDGE, quality = JPEG_QUALITY, autoCrop = true } = {}) {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);
     const img = new Image();
     img.onload = () => {
       URL.revokeObjectURL(url);
-      const scale = Math.min(1, maxEdge / Math.max(img.naturalWidth, img.naturalHeight));
-      const w = Math.max(1, Math.round(img.naturalWidth * scale));
-      const h = Math.max(1, Math.round(img.naturalHeight * scale));
+
+      const box = autoCrop ? detectCardBox(img) : null;
+      const sx = box ? Math.round(box.x * img.naturalWidth) : 0;
+      const sy = box ? Math.round(box.y * img.naturalHeight) : 0;
+      const sw = box ? Math.round(box.w * img.naturalWidth) : img.naturalWidth;
+      const sh = box ? Math.round(box.h * img.naturalHeight) : img.naturalHeight;
+
+      const scale = Math.min(1, maxEdge / Math.max(sw, sh));
+      const w = Math.max(1, Math.round(sw * scale));
+      const h = Math.max(1, Math.round(sh * scale));
       const canvas = document.createElement("canvas");
       canvas.width = w; canvas.height = h;
       const ctx = canvas.getContext("2d");
@@ -104,9 +185,9 @@ export function compressCardImage(file, { maxEdge = MAX_EDGE, quality = JPEG_QUA
       // known background than with whatever the alpha channel would otherwise become.
       ctx.fillStyle = "#fff";
       ctx.fillRect(0, 0, w, h);
-      ctx.drawImage(img, 0, 0, w, h);
+      ctx.drawImage(img, sx, sy, sw, sh, 0, 0, w, h);
       const dataUrl = canvas.toDataURL("image/jpeg", quality);
-      resolve({ dataUrl, width: w, height: h, bytes: Math.round((dataUrl.length - 23) * 0.75) });
+      resolve({ dataUrl, width: w, height: h, bytes: Math.round((dataUrl.length - 23) * 0.75), cropped: !!box });
     };
     img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Could not read that photo")); };
     img.src = url;
@@ -124,14 +205,17 @@ export function compressCardImage(file, { maxEdge = MAX_EDGE, quality = JPEG_QUA
 /** Open the default camera. Resolves a MediaStream, or rejects with a human-readable reason.
  *  `facingMode` is a soft preference (`ideal`), not a requirement — a laptop has no environment
  *  camera and a hard constraint would fail outright there. */
-export async function openCamera() {
+export async function openCamera(deviceId) {
   if (!navigator.mediaDevices?.getUserMedia) {
     throw new Error("This browser can't open a camera. Use the file picker instead.");
   }
   try {
     return await navigator.mediaDevices.getUserMedia({
       video: {
-        facingMode: { ideal: "environment" },
+        // An explicit device wins; otherwise prefer a rear camera on mobile and accept whatever
+        // the desktop's default is. `exact` on the id is right — if the chosen camera is gone,
+        // failing loudly beats silently recording from a different one.
+        ...(deviceId ? { deviceId: { exact: deviceId } } : { facingMode: { ideal: "environment" } }),
         width: { ideal: 1920 },
         height: { ideal: 1080 },
       },
@@ -143,6 +227,24 @@ export async function openCamera() {
     if (name === "NotFoundError") throw new Error("No camera found on this device.");
     if (name === "NotReadableError") throw new Error("The camera is already in use by another app.");
     throw new Error(err?.message || "Couldn't open the camera.");
+  }
+}
+
+/** Cameras available to pick from — [{ deviceId, label }].
+ *
+ *  Only useful AFTER permission has been granted: before that, browsers return entries with empty
+ *  labels (a privacy measure — an unpermitted page shouldn't learn you own a particular camera).
+ *  So call this once the stream is live, not before. On a Mac this typically surfaces the built-in
+ *  "FaceTime HD Camera" alongside an iPhone via Continuity Camera — and the iPhone is markedly
+ *  better for small print, which is the whole job here. */
+export async function listCameras() {
+  try {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    return devices
+      .filter((d) => d.kind === "videoinput")
+      .map((d, i) => ({ deviceId: d.deviceId, label: d.label || `Camera ${i + 1}` }));
+  } catch {
+    return [];
   }
 }
 
