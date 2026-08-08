@@ -297,20 +297,27 @@ export async function readCard(dataUrl, { tenant = "" } = {}) {
     // the function's guard checks a passcode — so a logged-in session sent no credential at all
     // and every scan 401'd, which the UI reported as "reader unreachable". The function now
     // accepts either; the client offers whichever it has.
+    const passcode = writeAuthHeader();               // passcode mode
+    const identity = await identityAuthHeader();      // Netlify Identity session
+    // Carried back on every result so a failure can say WHICH credential it had. Without this,
+    // "no auth was available" and "auth was rejected" look identical from the outside, and
+    // diagnosing a field failure needs DevTools the rep won't open.
+    const sent = {
+      sessionToken: !!identity.Authorization,
+      passcode: !!passcode["x-portal-passcode"],
+      endpoint: ocrEndpoint().startsWith("http") ? "deployed (cross-origin)" : "same-origin",
+    };
+
     const res = await fetch(ocrEndpoint(), {
       method: "POST",
-      headers: {
-        "content-type": "application/json",
-        ...writeAuthHeader(),            // passcode mode
-        ...(await identityAuthHeader()), // Netlify Identity session
-      },
+      headers: { "content-type": "application/json", ...passcode, ...identity },
       body: JSON.stringify({ tenant, image: dataUrl, mediaType: "image/jpeg" }),
     });
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) return { ok: false, status: res.status, error: data?.error || `Read failed (${res.status})` };
-    return { ok: true, status: 200, card: data.card };
+    if (!res.ok) return { ok: false, status: res.status, error: data?.error || `Read failed (${res.status})`, sent };
+    return { ok: true, status: 200, card: data.card, sent };
   } catch (e) {
-    return { ok: false, status: 0, error: String(e?.message || e) };
+    return { ok: false, status: 0, error: String(e?.message || e), sent: { networkError: true } };
   }
 }
 

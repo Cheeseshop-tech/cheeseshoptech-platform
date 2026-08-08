@@ -346,10 +346,22 @@ export function BoothTool({ resolved }) {
   function applyScanResult(capture, res) {
     if (!res.ok) {
       persist(updateCapture(tenantId, capture.id, { scanState: "pending" }));
+      // The diagnostic is SHOWN, not buried in a console. This failure has three very different
+      // causes that look identical to the rep — no credential, a rejected credential, or no
+      // network — and naming which one it was is the difference between a two-minute fix and a
+      // guessing match over screenshots.
+      const s = res.sent || {};
+      const detail = s.networkError
+        ? "no network"
+        : `${s.sessionToken ? "session token sent" : "NO session token"}${s.passcode ? " + passcode" : ""} · ${s.endpoint}`;
       setFlash(
-        res.status === 401 ? "The card reader didn't accept this session — try signing out and back in. Type the details for now; the photo is saved."
-        : res.status === 0 ? "No connection — the card stays queued and reads itself when you're back online."
-        : `The card reader answered ${res.status}. The photo is saved; use “Read the card again”, or type the details.`
+        (res.status === 401
+          ? "The card reader rejected this sign-in. Try signing out and back in."
+          : res.status === 0
+            ? "No connection — the card stays queued and reads itself when you're back online."
+            : `The card reader answered ${res.status}.`)
+        + `  [${res.status || "network"} · ${detail}]`
+        + "  The photo is saved — use “Read the card again”, or type the details."
       );
       return { ...capture, scanState: "pending" };
     }
