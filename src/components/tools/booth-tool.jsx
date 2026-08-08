@@ -12,6 +12,10 @@ import { openCamera, closeCamera, grabFrame, listCameras } from "@/lib/card-scan
 import {
   CONTACT_ROLES, businessTypesByChannel, contactRole, isMultiplierRole, guessBusinessType,
 } from "@/lib/lead-taxonomy.js";
+import {
+  canPickFolder, pickFolder, getSavedFolder, forgetFolder, saveCardToFolder, exportCardsZip,
+  folderName,
+} from "@/lib/card-export.js";
 import { compressCardImage, readCard, matchCard, putCardImage, deleteCardImage } from "@/lib/card-scan.js";
 
 // Booth-to-Meeting (BOOTH_TO_MEETING_HANDOFF.md + Rick 2026-08-07).
@@ -148,6 +152,11 @@ export function BoothTool({ resolved }) {
   // sweep below would otherwise see it as an unread card and fire a second, concurrent read of
   // the same photo — double the cost and a race over the same record.
   const inFlight = useRef(new Set());
+  // The folder cards are copied into, if one has been chosen. Photos always live in IndexedDB
+  // first — this is an additive copy onto the real filesystem, never the only home, so a lapsed
+  // permission or a moved folder can't cost a card.
+  const [saveDir, setSaveDir] = useState(null);
+  useEffect(() => { getSavedFolder().then(setSaveDir); }, []);
   // A webcam shutter only earns its place where `<input capture>` DOESN'T open the OS camera —
   // i.e. desktop. On a tablet the native camera is faster and better exposed, so don't offer two.
   const canWebcam = typeof navigator !== "undefined"
@@ -309,6 +318,10 @@ export function BoothTool({ resolved }) {
       inFlight.current.add(claimed); // claim it before it becomes visible to the retry sweep
       persist(addCapture(tenantId, capture));
       setSheet(capture);
+      // Copy onto the real filesystem if a folder was chosen. Deliberately not awaited into the
+      // critical path and it swallows its own failures — a disk copy must never delay or break
+      // the capture the rep is standing in front of.
+      saveCardToFolder(dataUrl, capture, { brandName: resolved.brand.name });
 
       if (!navigator.onLine) {
         setFlash("Card saved. No signal — it'll be read automatically once you're back online. Keep going.");
@@ -514,6 +527,37 @@ export function BoothTool({ resolved }) {
     } else {
       setFlash("Confirmed and saved on this device. No signal — add it to Google Calendar from Captured once you're back online.");
     }
+  }
+
+  /** Choose the folder, then back-fill every card already captured — picking a folder halfway
+   *  through a show should not leave the morning's cards behind. */
+  async function chooseFolder() {
+    try {
+      const dir = await pickFolder();
+      if (!dir) return;                    // cancelled
+      setSaveDir(dir);
+      const { getCardImage } = await import("@/lib/card-scan.js");
+      let written = 0;
+      for (const c of captures) {
+        const dataUrl = await getCardImage(c.id);
+        if (!dataUrl) continue;
+        const at = new Date(c.capturedAt || Date.now());
+        if (await saveCardToFolder(dataUrl, c, { brandName: resolved.brand.name, at })) written++;
+      }
+      setFlash(
+        `Cards will be saved to “${folderName(resolved.brand.name)}” inside the folder you chose.`
+        + (written ? ` ${written} already-captured card${written === 1 ? "" : "s"} copied there now.` : "")
+      );
+    } catch (err) {
+      setFlash(String(err?.message || err));
+    }
+  }
+
+  async function exportZip() {
+    const n = await exportCardsZip(captures, { brandName: resolved.brand.name });
+    setFlash(n
+      ? `Downloaded ${n} card photo${n === 1 ? "" : "s"} as a .zip — unzip it wherever you like.`
+      : "No card photos to export yet.");
   }
 
   function discard(id) {
@@ -785,6 +829,27 @@ export function BoothTool({ resolved }) {
                 </div>
               </div>
             ))
+          )}
+
+          {/* Card photos live in the browser's storage, which is invisible in Finder. This is how
+              they reach the actual drive. */}
+          {captures.length > 0 && (
+            <div className="sync">
+              <div style={{ flex: 1, minWidth: 240 }}>
+                {saveDir
+                  ? <>Saving cards to <strong>{saveDir.name}/{folderName(resolved.brand.name)}</strong></>
+                  : <>Card photos are stored in this browser. Save copies to a folder on your drive?</>}
+              </div>
+              {canPickFolder() && (
+                <button className="btn ghost" onClick={chooseFolder}>
+                  {saveDir ? "Change folder" : "Choose a folder…"}
+                </button>
+              )}
+              {saveDir && (
+                <button className="btn ghost" onClick={() => { forgetFolder(); setSaveDir(null); }}>Stop saving</button>
+              )}
+              <button className="btn ghost" onClick={exportZip}>Export all as .zip</button>
+            </div>
           )}
 
           {captures.length > 0 && (
