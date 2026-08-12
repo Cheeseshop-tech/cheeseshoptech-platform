@@ -1,14 +1,14 @@
 {
   "schemaVersion": "1.2",
   "clientId": "monti-trentini",
-  "lastUpdated": "2026-08-07",
+  "lastUpdated": "2026-08-10",
   "lastUpdatedSource": "drive-modifiedTime",
   "sheetStatedUpdate": "2026-08-07",
-  "sheetModifiedAt": "2026-08-07T20:12:24.795Z",
+  "sheetModifiedAt": "2026-08-10T15:23:02.104Z",
   "sheetFileId": "1meZQQ_0dA1S1IR5xjVWzFvuqCJE6DLgVd-fOfSMGvCk",
   "sheetOwner": "order@montitrentini-usa.com",
-  "source": "availability_2026-08-08.csv",
-  "generatedAt": "2026-08-08T11:25:05.933Z",
+  "source": "availability_2026-08-12.csv",
+  "generatedAt": "2026-08-12T13:25:21.501Z",
   "generatedBy": "scripts/sync-inventory.mjs",
   "skus": {
     "20141": {
@@ -666,7 +666,7 @@
     "20438": {
       "code": "20438",
       "name": "PROVOLONE CYLINDER CHEESE",
-      "casesAvail": -144,
+      "casesAvail": -216,
       "casesInTransit": 0,
       "comment": "1 pallet available for Stock, Veroni preorder",
       "commentEn": "",
@@ -737,11 +737,11 @@
           "receiptDate": null,
           "eta": "2026-08-25",
           "cases": 0,
-          "reserved": 0,
+          "reserved": 72,
           "netAvailLb": 1062.1,
           "expDate": null,
           "expMonth": "2027-03",
-          "comment": ""
+          "comment": "Veroni 22-26C (plus 144)"
         }
       ]
     },
@@ -2254,8 +2254,8 @@
     "05007": {
       "code": "05007",
       "name": "GRANA PADANO PDO 1/8 WHEEL",
-      "casesAvail": 2200,
-      "casesInTransit": 416,
+      "casesAvail": 1784,
+      "casesInTransit": 0,
       "comment": "",
       "commentEn": "",
       "lots": [
@@ -2468,7 +2468,7 @@
           "status": "in_transit",
           "receiptDate": null,
           "eta": "2026-08-25",
-          "cases": 104,
+          "cases": 0,
           "reserved": 0,
           "netAvailLb": 2259.24,
           "expDate": null,
@@ -2480,7 +2480,7 @@
           "status": "in_transit",
           "receiptDate": null,
           "eta": "2026-08-25",
-          "cases": 104,
+          "cases": 0,
           "reserved": 0,
           "netAvailLb": 2220.76,
           "expDate": null,
@@ -2492,7 +2492,7 @@
           "status": "in_transit",
           "receiptDate": null,
           "eta": "2026-08-25",
-          "cases": 104,
+          "cases": 0,
           "reserved": 0,
           "netAvailLb": 2256.08,
           "expDate": null,
@@ -2504,7 +2504,7 @@
           "status": "in_transit",
           "receiptDate": null,
           "eta": "2026-08-25",
-          "cases": 104,
+          "cases": 0,
           "reserved": 0,
           "netAvailLb": 2258.6,
           "expDate": null,
@@ -2642,8 +2642,8 @@
     "05095": {
       "code": "05095",
       "name": "TRENTIN GRANA PDO CHEESE",
-      "casesAvail": 25,
-      "casesInTransit": 25,
+      "casesAvail": 0,
+      "casesInTransit": 0,
       "comment": "no need to reorder it until September 2026, ask Stefano",
       "commentEn": "",
       "lots": [
@@ -2652,7 +2652,7 @@
           "status": "in_transit",
           "receiptDate": null,
           "eta": "2026-08-25",
-          "cases": 25,
+          "cases": 0,
           "reserved": 0,
           "netAvailLb": 2057.72,
           "expDate": null,
@@ -2673,8 +2673,8 @@
     "05411": {
       "code": "05411",
       "name": "GRANA PADANO PDO RISERVA WHOLE WHEEL",
-      "casesAvail": 65,
-      "casesInTransit": 30,
+      "casesAvail": 35,
+      "casesInTransit": 0,
       "comment": "Greg 12x monthly plan and ACE, we monitor, next",
       "commentEn": "",
       "lots": [
@@ -2707,7 +2707,7 @@
           "status": "in_transit",
           "receiptDate": null,
           "eta": "2026-08-25",
-          "cases": 30,
+          "cases": 0,
           "reserved": 0,
           "netAvailLb": 2489.73,
           "expDate": null,
