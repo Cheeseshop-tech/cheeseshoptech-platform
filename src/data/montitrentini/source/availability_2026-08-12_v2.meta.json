@@ -1,0 +1,9 @@
+{
+  "driveFileId": "1meZQQ_0dA1S1IR5xjVWzFvuqCJE6DLgVd-fOfSMGvCk",
+  "driveModifiedTime": "2026-08-10T15:23:02.104Z",
+  "sheetOwner": "order@montitrentini-usa.com",
+  "sheetTitle": "Availability of items and pending orders",
+  "exportedAt": "2026-08-12T13:29:00.000Z",
+  "capturedBy": "Cowork scheduled task monti-inventory-watch — Google Drive get_file_metadata + content re-check",
+  "note": "Drive modifiedTime unchanged from the prior sidecar (2026-08-10T15:23:02.104Z), but a fresh content-level diff against the previously stored CSV found real cell edits (SKUs 02073, 20228, 20533, 20719). Re-synced on content evidence rather than the timestamp gate, per Rick's request to check again because updates are sometimes made without the Drive-reported modifiedTime advancing."
+}

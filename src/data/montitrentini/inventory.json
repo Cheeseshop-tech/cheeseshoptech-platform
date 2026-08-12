@@ -7,8 +7,8 @@
   "sheetModifiedAt": "2026-08-10T15:23:02.104Z",
   "sheetFileId": "1meZQQ_0dA1S1IR5xjVWzFvuqCJE6DLgVd-fOfSMGvCk",
   "sheetOwner": "order@montitrentini-usa.com",
-  "source": "availability_2026-08-12.csv",
-  "generatedAt": "2026-08-12T13:25:21.501Z",
+  "source": "availability_2026-08-12_v2.csv",
+  "generatedAt": "2026-08-12T13:57:31.947Z",
   "generatedBy": "scripts/sync-inventory.mjs",
   "skus": {
     "20141": {
@@ -966,7 +966,7 @@
     "20533": {
       "code": "20533",
       "name": "AGED TRUFFLE CHEESE BLACK",
-      "casesAvail": 178,
+      "casesAvail": 150,
       "casesInTransit": 0,
       "comment": "News about production? Baldor",
       "commentEn": "",
@@ -977,11 +977,11 @@
           "receiptDate": "2026-05-15",
           "eta": null,
           "cases": 58,
-          "reserved": 0,
+          "reserved": 28,
           "netAvailLb": 271.726,
           "expDate": "2026-12-16",
           "expMonth": null,
-          "comment": ""
+          "comment": "Baldor 101-0001462105"
         },
         {
           "lotNum": "1316590",
@@ -1727,7 +1727,7 @@
     "02073": {
       "code": "02073",
       "name": "ASIAGO FRESCO PDO 1/4 WHEEL NT",
-      "casesAvail": 583,
+      "casesAvail": 571,
       "casesInTransit": 0,
       "comment": "Cowbell monthly plan 50x, average purchase TONY 10x, ACE Endico sometimes, Baldor 108x",
       "commentEn": "",
@@ -1738,11 +1738,11 @@
           "receiptDate": "2026-06-18",
           "eta": null,
           "cases": 103,
-          "reserved": 0,
+          "reserved": 12,
           "netAvailLb": 733.258,
           "expDate": "2027-01-09",
           "expMonth": null,
-          "comment": ""
+          "comment": "Baldor 101-0001462105"
         },
         {
           "lotNum": "1312791",
