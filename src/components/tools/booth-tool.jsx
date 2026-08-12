@@ -365,7 +365,13 @@ export function BoothTool({ resolved }) {
   /** Fold an OCR result into a capture: fields, CRM verdict, and the state the UI reads. */
   function applyScanResult(capture, res) {
     if (!res.ok) {
-      persist(updateCapture(tenantId, capture.id, { scanState: "pending" }));
+      // Store the reason ON the capture, not only in the dismissible flash bar. The banner inside
+      // the sheet is what a rep actually looks at, and a banner that says "not read yet" without
+      // saying WHY has cost several rounds of guessing.
+      const why = res.sent?.networkError
+        ? "no network"
+        : `${res.status} · ${res.sent?.sessionToken ? "session token sent" : "NO session token"}${res.sent?.passcode ? " + passcode" : ""} · ${res.sent?.endpoint || ""}`;
+      persist(updateCapture(tenantId, capture.id, { scanState: "pending", scanNote: why }));
       // The diagnostic is SHOWN, not buried in a console. This failure has three very different
       // causes that look identical to the rep — no credential, a rejected credential, or no
       // network — and naming which one it was is the difference between a two-minute fix and a
@@ -392,7 +398,12 @@ export function BoothTool({ resolved }) {
         + `  [${res.status || "network"} · ${detail}]`
         + "  The photo is saved — use “Read the card again”, or type the details."
       );
-      return { ...capture, scanState: "pending" };
+      // The success and illegible paths both push the new capture into the open sheet; this one
+      // has to as well, or the banner keeps rendering the capture as it looked before the read and
+      // the reason never reaches the screen — which is exactly the round of guessing this avoids.
+      const failed = { ...capture, scanState: "pending", scanNote: why };
+      setSheet(failed);
+      return failed;
     }
 
     const card = res.card || {};
@@ -1067,8 +1078,11 @@ function CaptureSheet({ capture, brandName, calendarAddress, durationMinutes, ca
   // Same problem, other states: the banner has to follow pending -> illegible/failed too.
   useEffect(() => {
     if (capture.scanState === "read") return;
-    setC((prev) => (prev.scanState === capture.scanState ? prev : { ...prev, scanState: capture.scanState }));
-  }, [capture.scanState]);
+    setC((prev) =>
+      prev.scanState === capture.scanState && prev.scanNote === capture.scanNote
+        ? prev
+        : { ...prev, scanState: capture.scanState, scanNote: capture.scanNote });
+  }, [capture.scanState, capture.scanNote]);
 
   // Pull the card photo back out of IndexedDB. Showing it matters most in exactly the case where
   // OCR failed: the rep can read the card on screen and type from it, instead of hunting for the
@@ -1143,7 +1157,11 @@ function CaptureSheet({ capture, brandName, calendarAddress, durationMinutes, ca
         {c.scanState === "pending" && (
           <div className="verdict pending">
             ⏳ Card saved, not read yet
-            <span className="vd">It reads itself once the reader is reachable — keep going. Use “Read the card again” to retry now.</span>
+            <span className="vd">
+              It reads itself once the reader is reachable — keep going, or use “Read the card
+              again” to retry now.
+              {c.scanNote ? <><br /><code style={{ fontSize: 12 }}>reason: {c.scanNote}</code></> : null}
+            </span>
           </div>
         )}
         {c.scanState === "illegible" && (

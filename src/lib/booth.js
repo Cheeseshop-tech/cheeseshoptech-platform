@@ -230,6 +230,7 @@ export function newCapture(seed = {}) {
     scanState: seed.scanState || "none", // none | pending | read | failed | illegible
     scannedAt: null,
     scanMatch: null,                    // "existing-contact" | "new-at-known" | "new"
+    scanNote: "",                       // why a read failed, shown in the banner (status + what was sent)
     recapSentAt: null,
     calendarAddedAt: null,             // set once the rep has taken it into Google Calendar
     pushedAt: null,
