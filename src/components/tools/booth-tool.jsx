@@ -435,6 +435,16 @@ export function BoothTool({ resolved }) {
   // Any scan taken with no signal is read the moment one returns. This is what makes the offline
   // path a real path rather than a consolation prize: the rep shoots cards all afternoon and the
   // details fill themselves in on the drive home.
+  //
+  // BUG (Rick, 2026-08-12): "card reader not filling in detail in form." This sweep only ever
+  // wrote to storage via `persist` — it never touched `sheet`, the separate piece of state the
+  // open CaptureSheet actually renders. If the rep's card went out "pending" with no signal (or
+  // mid-read when another scan was in flight) and they're SITTING ON that capture's sheet when
+  // connectivity returns, the read completes correctly in storage but the visible form never
+  // hears about it — same failure shape as the CaptureSheet prop-adoption bug fixed earlier
+  // (bad89f7), just one level up: the prop itself was never updated for this path. Fixed by
+  // mirroring every persisted patch into `sheet` (functional update, guarded by id) so the sheet
+  // that's currently open — if it's this same capture — updates the instant the sweep does.
   useEffect(() => {
     if (!online) return;
     // Skip anything ingestCardFile is already reading — otherwise a brand-new capture gets read
@@ -442,6 +452,9 @@ export function BoothTool({ resolved }) {
     const pending = captures.filter((c) => c.scanState === "pending" && !inFlight.current.has(c.id));
     if (!pending.length) return;
     let cancelled = false;
+    // Keep the open sheet in sync with whatever this sweep just persisted, if it's showing this
+    // same capture. Functional update so the effect doesn't need `sheet` in its deps.
+    const syncSheet = (id, patch) => setSheet((prev) => (prev && prev.id === id ? { ...prev, ...patch } : prev));
     (async () => {
       const { getCardImage } = await import("@/lib/card-scan.js");
       for (const c of pending) {
@@ -449,13 +462,21 @@ export function BoothTool({ resolved }) {
         inFlight.current.add(c.id);
         try {
           const dataUrl = await getCardImage(c.id);
-          if (!dataUrl) { persist(updateCapture(tenantId, c.id, { scanState: "failed" })); continue; }
+          if (!dataUrl) {
+            persist(updateCapture(tenantId, c.id, { scanState: "failed" }));
+            syncSheet(c.id, { scanState: "failed" });
+            continue;
+          }
           const res = await readCard(dataUrl, { tenant: tenantId });
           if (cancelled || !res.ok) return; // still no good connection — leave the rest queued
           const card = res.card || {};
-          if (!card.legible) { persist(updateCapture(tenantId, c.id, { scanState: "illegible" })); continue; }
+          if (!card.legible) {
+            persist(updateCapture(tenantId, c.id, { scanState: "illegible" }));
+            syncSheet(c.id, { scanState: "illegible" });
+            continue;
+          }
           const m = matchCard(card, { people, companies: accounts });
-          persist(updateCapture(tenantId, c.id, {
+          const patch = {
             name: c.name || card.name || "",
             title: c.title || card.title || "",
             company: c.company || m.account?.name || card.company || "",
@@ -465,7 +486,9 @@ export function BoothTool({ resolved }) {
             officePhone: c.officePhone || card.officePhone || m.account?.phone || "",
             phoneExt: c.phoneExt || card.phoneExt || "",
             scanState: "read", scannedAt: new Date().toISOString(), scanMatch: m.verdict,
-          }));
+          };
+          persist(updateCapture(tenantId, c.id, patch));
+          syncSheet(c.id, patch);
         } finally {
           inFlight.current.delete(c.id);
         }
