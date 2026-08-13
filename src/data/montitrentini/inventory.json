@@ -1,14 +1,14 @@
 {
   "schemaVersion": "1.2",
   "clientId": "monti-trentini",
-  "lastUpdated": "2026-08-10",
+  "lastUpdated": "2026-08-13",
   "lastUpdatedSource": "drive-modifiedTime",
   "sheetStatedUpdate": "2026-08-07",
-  "sheetModifiedAt": "2026-08-10T15:23:02.104Z",
+  "sheetModifiedAt": "2026-08-13T16:35:53.282Z",
   "sheetFileId": "1meZQQ_0dA1S1IR5xjVWzFvuqCJE6DLgVd-fOfSMGvCk",
   "sheetOwner": "order@montitrentini-usa.com",
-  "source": "availability_2026-08-12_v2.csv",
-  "generatedAt": "2026-08-12T13:57:31.947Z",
+  "source": "availability_2026-08-13.csv",
+  "generatedAt": "2026-08-13T16:45:42.834Z",
   "generatedBy": "scripts/sync-inventory.mjs",
   "skus": {
     "20141": {
@@ -666,7 +666,7 @@
     "20438": {
       "code": "20438",
       "name": "PROVOLONE CYLINDER CHEESE",
-      "casesAvail": -216,
+      "casesAvail": -144,
       "casesInTransit": 0,
       "comment": "1 pallet available for Stock, Veroni preorder",
       "commentEn": "",
@@ -737,11 +737,11 @@
           "receiptDate": null,
           "eta": "2026-08-25",
           "cases": 0,
-          "reserved": 72,
+          "reserved": 0,
           "netAvailLb": 1062.1,
           "expDate": null,
           "expMonth": "2027-03",
-          "comment": "Veroni 22-26C (plus 144)"
+          "comment": "Dekalb?"
         }
       ]
     },
@@ -976,12 +976,12 @@
           "status": "on_hand",
           "receiptDate": "2026-05-15",
           "eta": null,
-          "cases": 58,
-          "reserved": 28,
+          "cases": 30,
+          "reserved": 0,
           "netAvailLb": 271.726,
           "expDate": "2026-12-16",
           "expMonth": null,
-          "comment": "Baldor 101-0001462105"
+          "comment": ""
         },
         {
           "lotNum": "1316590",
@@ -1116,7 +1116,7 @@
     "20724": {
       "code": "20724",
       "name": "ALPEGGIO AGED CHEESE WHOLE WHEEL",
-      "casesAvail": 54,
+      "casesAvail": 48,
       "casesInTransit": 0,
       "comment": "keep 25 in stock",
       "commentEn": "",
@@ -1127,11 +1127,11 @@
           "receiptDate": "2026-06-18",
           "eta": null,
           "cases": 24,
-          "reserved": 0,
+          "reserved": 6,
           "netAvailLb": 305.29,
           "expDate": "2027-05-07",
           "expMonth": null,
-          "comment": "Ace Endico?"
+          "comment": "Ace Endico 639823"
         },
         {
           "lotNum": "1312770",
@@ -1509,7 +1509,7 @@
     "01032": {
       "code": "01032",
       "name": "SHARP PROVOLONE (HALF CYLINDER)",
-      "casesAvail": 19,
+      "casesAvail": 14,
       "casesInTransit": 0,
       "comment": "only Cowbell and Dekalb, Cheese Imp order that item",
       "commentEn": "",
@@ -1520,11 +1520,11 @@
           "receiptDate": "2026-07-03",
           "eta": null,
           "cases": 19,
-          "reserved": 0,
+          "reserved": 5,
           "netAvailLb": 229.884,
           "expDate": "2027-02-04",
           "expMonth": null,
-          "comment": ""
+          "comment": "Cheese Importers 86070"
         }
       ]
     },
@@ -1737,12 +1737,12 @@
           "status": "on_hand",
           "receiptDate": "2026-06-18",
           "eta": null,
-          "cases": 103,
-          "reserved": 12,
+          "cases": 91,
+          "reserved": 0,
           "netAvailLb": 733.258,
           "expDate": "2027-01-09",
           "expMonth": null,
-          "comment": "Baldor 101-0001462105"
+          "comment": ""
         },
         {
           "lotNum": "1312791",
@@ -1927,7 +1927,7 @@
     "03023": {
       "code": "03023",
       "name": "ASIAGO AGED WHOLE WHEEL",
-      "casesAvail": 44,
+      "casesAvail": 34,
       "casesInTransit": 0,
       "comment": "occasionally DeKalb, as long as we are >20, no thanks",
       "commentEn": "",
@@ -1938,11 +1938,11 @@
           "receiptDate": "2026-01-29",
           "eta": null,
           "cases": 44,
-          "reserved": 0,
+          "reserved": 10,
           "netAvailLb": 815.76,
           "expDate": "2026-08-30",
           "expMonth": null,
-          "comment": ""
+          "comment": "Ace 639823"
         }
       ]
     },
@@ -2602,7 +2602,7 @@
     "05034": {
       "code": "05034",
       "name": "PARMIGIANO REGGIANO PDO WHOLE WHEEL 18mo",
-      "casesAvail": 25,
+      "casesAvail": 15,
       "casesInTransit": 0,
       "comment": "",
       "commentEn": "",
@@ -2613,11 +2613,11 @@
           "receiptDate": "2026-04-03",
           "eta": null,
           "cases": 25,
-          "reserved": 0,
+          "reserved": 10,
           "netAvailLb": 2267.357,
           "expDate": "2027-03-06",
           "expMonth": null,
-          "comment": ""
+          "comment": "Cheese Importers 86070"
         }
       ]
     },
@@ -2719,7 +2719,7 @@
     "05417": {
       "code": "05417",
       "name": "GRANA PADANO PDO 1/8 WHEEL 16 MONTHS",
-      "casesAvail": 19,
+      "casesAvail": 7,
       "casesInTransit": 0,
       "comment": "ACE Endico pre order?",
       "commentEn": "",
@@ -2730,11 +2730,11 @@
           "receiptDate": "2026-08-06",
           "eta": null,
           "cases": 19,
-          "reserved": 0,
+          "reserved": 12,
           "netAvailLb": 388.352,
           "expDate": "2027-03-12",
           "expMonth": null,
-          "comment": ""
+          "comment": "Ace 639823"
         }
       ]
     },
