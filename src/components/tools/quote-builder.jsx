@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Search, Plus, X, FileText } from "lucide-react";
+import { Search, Plus, Check, X, FileText } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card.jsx";
 import { Button } from "@/components/ui/button.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
@@ -7,6 +7,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@
 import { useToast } from "@/components/ui/toast.jsx";
 import { getBrandKit } from "@/lib/brandKit.js";
 import { cldUrl } from "@/lib/cloudinary.js";
+import { codeImageUrl, isPlaceholderImage } from "@/lib/images.js";
 import { flattenSkus } from "@/lib/proposals.js";
 import { appendQuoteLog, loadQuoteLog, lastQuotedPrice, newQuoteId } from "@/lib/quotes-log.js";
 import * as PC from "@/lib/pricing-core.js";
@@ -193,10 +194,14 @@ export function QuoteBuilder({ data, brand, resolved, itemsDoc }) {
     return PC.quoteUnitPrice(l.entry.sku, promoOpts, config);
   };
 
+  /* The whole price list is ON SCREEN from the moment the tab opens — search NARROWS it, it does
+     not summon it (Rick, 2026-08-13). A rep builds a rate card by browsing what's for sale, the
+     same way Pro Forma's grid works; an empty box that only reveals SKUs once you already know
+     what to type is the wrong instrument for "arrange the price list for this conversation." */
   const visible = search.trim()
     ? allSkus.filter((x) => (x.sku.code + " " + x.name + " " + (x.product.category || "") + " " + (x.sku.packing || ""))
         .toLowerCase().includes(search.trim().toLowerCase()))
-    : [];
+    : allSkus;
 
   function addSku(code) {
     if (lines.some((l) => l.code === code)) return;
@@ -206,7 +211,8 @@ export function QuoteBuilder({ data, brand, resolved, itemsDoc }) {
       ? lastQuotedPrice(quoteLog, customer, code, dates.effectiveDate)
       : null;
     setLines((ls) => [...ls, { code, prevPrice: prior ? String(prior.unitPrice) : "", promoPrice: "" }]);
-    setSearch("");
+    // Search is NOT cleared on add: the rep is usually adding several SKUs off one search
+    // ("asiago"), and wiping it would send them back to the top of the full list every time.
   }
   const removeSku = (code) => setLines((ls) => ls.filter((l) => l.code !== code));
   const setLineField = (code, key, value) =>
@@ -612,42 +618,75 @@ export function QuoteBuilder({ data, brand, resolved, itemsDoc }) {
       )}
 
       {/* SKU picker */}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span className={fieldLabel}>Selections <Badge variant="brand">{selected.length}</Badge></span>
+        {purposeId === "price_change" && (
+          <Button variant="outline" size="sm" onClick={refillPrevious}>Fill previous prices from history</Button>
+        )}
+      </div>
+
+      {/* Search sits directly above the product list it filters — same element, same styling and
+          same wording as Pro Forma's (Rick, 2026-08-13). One search bar, one behaviour, whichever
+          tab the rep is on. */}
+      <div className="relative">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-fg-muted" />
+        <input
+          className="h-10 w-full rounded-base border border-border bg-bg pl-9 pr-3 text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search the price list — SKU code or product name…"
+        />
+      </div>
+
       <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <span className={fieldLabel}>Selections <Badge variant="brand">{selected.length}</Badge></span>
-            {purposeId === "price_change" && (
-              <Button variant="outline" size="sm" onClick={refillPrevious}>Fill previous prices from history</Button>
+        <CardContent className="p-0">
+          {/* The price list itself — open on arrival, scrollable, priced at the selected tier so the
+              rep is reading the same numbers that will print. Click a row to add or remove it. */}
+          <div className="max-h-[460px] overflow-y-auto rounded-base">
+            {visible.map((x) => {
+              const added = lines.some((l) => l.code === x.sku.code);
+              const unit = PC.quoteUnitPrice(x.sku, opts, config);
+              const ph = isPlaceholderImage(resolved, x.sku.code);
+              return (
+                <button key={x.sku.code} type="button" onClick={() => (added ? removeSku(x.sku.code) : addSku(x.sku.code))}
+                  title={added ? "Remove from this quote" : "Add to this quote"}
+                  className={"flex w-full items-center gap-3 border-b border-border px-3 py-2 text-left last:border-b-0 transition-colors "
+                    + (added ? "bg-brand-primary/10" : "hover:bg-bg")}>
+                  <span className={"flex h-5 w-5 flex-none items-center justify-center rounded-base border "
+                    + (added ? "border-brand-primary bg-brand-primary text-brand-on-primary" : "border-border text-fg-muted")}>
+                    {added ? <Check className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
+                  </span>
+                  {/* Internal selection surface, same as Pro Forma's grid — low-res reference images
+                      are allowed here (dashed border marks them) because nothing from this picker
+                      reaches the printed sheet; the quote is type, not photography. */}
+                  <img loading="lazy" src={codeImageUrl(resolved, config, x.sku.code, "card", { allowPlaceholder: true })} alt=""
+                    onError={(e) => (e.currentTarget.style.visibility = "hidden")}
+                    className={"h-10 w-10 flex-none rounded-base border bg-white object-contain "
+                      + (ph ? "border-dashed border-fg-muted/60" : "border-border")} />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-medium text-fg">{x.name}</span>
+                    <span className="block truncate text-xs text-fg-muted">{tidy(x.sku.packing)}</span>
+                  </span>
+                  <span className="hidden w-32 flex-none truncate text-xs text-fg-muted sm:block">{x.product.category}</span>
+                  <span className="w-24 flex-none text-right font-mono text-sm">
+                    {unit == null
+                      ? <span className="rounded-base border border-warning/50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-warning" title="No cost on file — price on request">POR</span>
+                      : <>{money(unit)}<span className="text-xs text-fg-muted">/{x.sku.unit === "case" ? "cs" : "lb"}</span></>}
+                  </span>
+                  <span className="w-16 flex-none text-right font-mono text-xs text-fg-muted">#{x.sku.code}</span>
+                </button>
+              );
+            })}
+            {visible.length === 0 && (
+              <p className="px-3 py-6 text-center text-sm text-fg-muted">Nothing matches “{search}”.</p>
             )}
           </div>
-          <div className="relative mt-2">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-fg-muted" />
-            <input
-              className="h-10 w-full rounded-base border border-border bg-bg pl-9 pr-3 text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
-              value={search} onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search the price list to add a SKU — code or product name…" />
-          </div>
-          {visible.length > 0 && (
-            <div className="mt-2 max-h-64 overflow-y-auto rounded-base border border-border">
-              {visible.slice(0, 40).map((x) => {
-                const added = lines.some((l) => l.code === x.sku.code);
-                return (
-                  <button key={x.sku.code} type="button" disabled={added} onClick={() => addSku(x.sku.code)}
-                    className={"flex w-full items-center gap-3 border-b border-border px-3 py-2 text-left last:border-b-0 "
-                      + (added ? "opacity-40" : "hover:bg-bg")}>
-                    <Plus className="h-3.5 w-3.5 flex-none text-brand-primary" />
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-medium text-fg">{x.name}</span>
-                      <span className="block truncate text-xs text-fg-muted">{x.sku.packing}</span>
-                    </span>
-                    <span className="font-mono text-xs text-fg-muted">#{x.sku.code}</span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
         </CardContent>
       </Card>
+      <p className="text-xs text-fg-muted">
+        Showing {visible.length} of {allSkus.length} SKUs at {tier.label} pricing
+        {search.trim() ? " — clear the search to see the whole list." : "."}
+      </p>
 
       {/* the sheet, as it will print */}
       {selected.length > 0 && (

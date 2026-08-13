@@ -1,14 +1,13 @@
 #!/bin/bash
-# COMMIT QUOTE BUILDER — the one-page branded rate card + the quotes-issued log.
-# Double-click to commit and push. Closes QUOTING_TOOL_PRINCIPLES §9's last
-# "not captured yet" row (quotes issued) and fixes the hardcoded TODAY constant.
+# COMMIT QUOTE BUILDER PICKER — the price list open on arrival + a Pro Forma-matched search bar.
+# Double-click to commit and push. Follow-up to the Quote Builder commit (2e603c1).
 
 cd "$(dirname "$0")" || exit 1
 export GIT_OPTIONAL_LOCKS=0
 
 echo "=============================================="
-echo " COMMIT: Quote Builder + quotes-issued log"
-echo " (QUOTE_BUILDER_SPEC_2026-08-13)"
+echo " COMMIT: Quote Builder — price list open"
+echo " on arrival + Pro Forma-matched search"
 echo "=============================================="
 echo
 
@@ -23,13 +22,6 @@ echo
 echo "Staging changed files..."
 git add \
   "src/components/tools/quote-builder.jsx" \
-  "src/lib/quotes-log.js" \
-  "netlify/functions/quotes.js" \
-  "src/components/tools/pricing-tool.jsx" \
-  "src/data/montitrentini/client.config.json" \
-  "src/data/_template/client.config.json" \
-  "docs/QUOTE_BUILDER_SPEC_2026-08-13.md" \
-  "docs/QUOTING_TOOL_PRINCIPLES.md" \
   "docs/BUILD_LOG.md" \
   "COMMIT QUOTE BUILDER.command"
 if [ $? -ne 0 ]; then
@@ -43,29 +35,23 @@ echo "Staged."
 echo
 
 echo "Committing..."
-git commit -m "Quote Builder: one-page branded rate card + quotes-issued log
+git commit -m "Quote Builder: price list open on arrival, Pro Forma-matched search
 
-New 'Quotes' tab in Pricing & Inventory — the FreshDirect-style one-sheet:
-header, optional story panels, one pricing table, footer. Print/PDF only for
-v1; a trackable shareable link stays the Proposal engine's job.
+The SKU picker was a search box that revealed nothing until you typed. Wrong
+instrument for 'arrange the price list for this conversation' — a rep builds a
+rate card by browsing what's for sale. Now the whole list (106 SKUs) is on
+screen the moment the tab opens, in a scrollable window, priced at the selected
+class of trade so the numbers on screen are the numbers that will print.
 
-One engine, three arrangements (purpose selector swaps columns + copy):
-- New Customer Negotiation: Item/Type/Format & Aging/SKU/\$ per lb/Net wt,
-  story panels on, filtered to the audience the class-of-trade tier implies
-- Price Change Notification: Previous/New/change, story panels off,
-  'Previous' auto-filled from the quotes log
-- Promo Offer: Regular/Promo/You Save, offer window, order-level promo %
-  (rides the existing customPct lever) with a per-line override
-
-Closes QUOTING_TOOL_PRINCIPLES §9's last 'not captured yet' row: quotes issued
-now log to a shared Netlify Blobs store ('quotes'), mirroring the movement
-history pair exactly — same auth guard, self-logging, caps and client seam.
-One record per SKU line, grouped by quoteId, written on Generate/Print only.
-
-Also fixes pricing-tool.jsx's hardcoded TODAY = '2026-06-06' (flagged
-2026-07-28) — recorded sales and printed proformas now carry the real local
-date. Adds brand.contact to client.config.json (+ the tenant template) so the
-footer contact block is canonical, not hardcoded in the component."
+- Search NARROWS the list, it no longer summons it; the field is now the same
+  element as Pro Forma's — identical placeholder, classes and position above
+  the list it filters
+- Click a row to add, click again to remove; added rows stay marked and survive
+  filtering, and the search is no longer cleared on add (reps add several SKUs
+  off one search)
+- Each row carries the packshot, category, tier price with unit, and SKU code;
+  unpriced SKUs show POR rather than a number
+- Footer line reports 'Showing N of M SKUs at <tier> pricing'"
 if [ $? -ne 0 ]; then
   echo
   echo "❌ COMMIT FAILED (or nothing to commit) — see the message above."
@@ -89,7 +75,7 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 echo
-echo "✅ Pushed. Quote Builder is committed and on GitHub."
+echo "✅ Pushed. Quote Builder picker is committed and on GitHub."
 echo "   Netlify will deploy it automatically."
 echo
 read -n 1 -s -r -p "Press any key to close..."

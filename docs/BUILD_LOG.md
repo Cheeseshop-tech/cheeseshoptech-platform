@@ -6,6 +6,23 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 > Format convention: `## YYYY-MM-DD — Title` · **Decision / Action / Status** ·
 > keep entries short and factual. This file is the project's memory.
 
+## 2026-08-13 — Quote Builder follow-up: the price list is open on arrival
+
+**Rick, on first use of the shipped tab:** the SKU picker was a search box that revealed nothing
+until you typed a query. That is the wrong instrument for a tool whose whole job is "arrange the
+price list for this conversation" — a rep builds a rate card by *browsing what's for sale*, not by
+already knowing the code. The empty box was a mis-read of the workflow on my part.
+
+Now the full list (106 SKUs) renders the moment the tab opens, in a 460px scrollable window, priced
+at the selected class of trade so what's on screen is what will print. Search **narrows** it rather
+than summoning it, and the search field is now literally the same element as Pro Forma's —
+identical placeholder, classes and position directly above the list it filters, verified by
+comparing the two rendered DOM nodes. One search bar, one behaviour, whichever tab you're on.
+
+Also: click a row to add, click again to remove; added rows stay marked and survive filtering; the
+search is no longer wiped on add (reps add several SKUs off one search like "asiago"); each row
+carries the packshot, category, tier price with unit and SKU code, with POR on unpriced SKUs.
+
 ## 2026-08-13 — Feature: Quote Builder (one-page branded rate card) + the quotes-issued log
 
 **Built to `docs/QUOTE_BUILDER_SPEC_2026-08-13.md`**, reference `FreshDirect_PricingAOneSheet.pdf`.
