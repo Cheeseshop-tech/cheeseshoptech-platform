@@ -6,6 +6,47 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 > Format convention: `## YYYY-MM-DD — Title` · **Decision / Action / Status** ·
 > keep entries short and factual. This file is the project's memory.
 
+## 2026-08-13 — Feature: Quote Builder (one-page branded rate card) + the quotes-issued log
+
+**Built to `docs/QUOTE_BUILDER_SPEC_2026-08-13.md`**, reference `FreshDirect_PricingAOneSheet.pdf`.
+A fourth quoting surface, distinct from the three that existed: Pro Forma is the internal dense
+working order, Proposal is the buyer-facing multi-page deck on a shareable link, and this is the
+**one page you print or email as a PDF** — header, optional story panels, one pricing table, footer.
+"Here is our price list, arranged for this specific conversation." Print-only for v1 on purpose; a
+trackable link stays the Proposal engine's job and is not duplicated.
+
+**One engine, three arrangements** — a purpose selector swaps the table columns, header framing and
+footer copy while SKU picking, pricing and logging stay shared:
+- *New Customer Negotiation* — Item / Type badge / Format & Aging / SKU / $ per lb / Net wt per case;
+  story panels on by default, filtered to the audience the class-of-trade tier implies.
+- *Price Change Notification* — Previous / New / Δ$ and Δ% / Effective date; story panels off;
+  "Previous" auto-fills from the new quotes log.
+- *Promo Offer* — Regular / Promo / You Save / Format; offer window replaces valid-until. The promo %
+  rides the engine's existing `customPct` (same additive mechanism as Pro Forma's Custom ±%), with a
+  per-line override. Labelled in the UI, because 10% off a +15% tier lands at ~8.7% off the regular
+  price and the rep should not learn that from the printed sheet.
+
+**Closes the last "not captured yet" row in QUOTING_TOOL_PRINCIPLES §9.** `netlify/functions/quotes.js`
+(Blobs store `quotes`) + `src/lib/quotes-log.js` mirror the movement-history pair exactly — same
+guards (`requireReadAuth`), same self-logging on write, same batch/stored caps, same optimistic
+localStorage-then-POST client seam. One record per SKU line, grouped by `quoteId`. Written on the
+explicit Generate/Print action only. Approvals (accepted/declined) are the remaining gap.
+
+**Also fixed in the same pass: `pricing-tool.jsx`'s hardcoded `TODAY = "2026-06-06"`** (flagged
+2026-07-28). Every recorded sale was landing in that month's movement bucket and every printed
+proforma carried that date regardless of when it was issued. Now a real local-calendar date
+(timezone-offset before `toISOString`, so a US evening doesn't roll into tomorrow).
+
+**New canonical field:** `client.config.json` → `brand.contact` (orders email, rep, phone, company,
+city) — the footer contact block, in config rather than hardcoded in a component, and stubbed in
+`_template/client.config.json` so a new tenant carries its own.
+
+**Verified live:** all three arrangements generated against real catalog data. At the direct-retail
+tier the sheet reproduces the FreshDirect reference exactly ($9.07 / $9.28 / $8.85 / $9.32 / $6.70 /
+$8.59 / $16.05 / $8.61). The previous-price lookup was unit-tested across cutoff, customer, SKU and
+unpriced-record boundaries. Netlify Functions can't run under plain `npm run dev`, so `quotes.js`
+was smoke-tested directly in Node (OPTIONS 204, unauthenticated GET/POST 401).
+
 ## 2026-07-25 — Session close: both fixes live, inventory watch rewired, and a log-coverage gap found
 
 **Live and verified.** `16827d8` pushed to `phase-2-6-build`. Live inventory now reports

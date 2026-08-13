@@ -6,7 +6,15 @@
     "name": "Monti Trentini",
     "tagline": "Italian Alpine Cheese · since 1925",
     "accent": "#009640",
-    "logo": "monti/brand/logo"
+    "logo": "monti/brand/logo",
+    "_contactNote": "The sales contact block printed in the footer of buyer-facing documents (Quote Builder rate cards today). Canonical here rather than hardcoded in a component so it changes in one place and every future tenant carries its own.",
+    "contact": {
+      "ordersEmail": "order@montitrentini-usa.com",
+      "name": "Stefano Viero",
+      "phone": "(516) 507-9658",
+      "company": "Monti Trentini USA, LLC",
+      "city": "Deerfield, IL"
+    }
   },
 
   "currency": "USD",

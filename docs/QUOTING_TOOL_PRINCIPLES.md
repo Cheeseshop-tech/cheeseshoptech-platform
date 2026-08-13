@@ -92,11 +92,26 @@ reads from those sources and writes back to them, so the whole ecosystem stays c
 | Inventory: stock, lots, shelf life, in-transit | Live store (Netlify Blobs, weekly sync) | ✅ live (2026-06-18) |
 | Standing commitments (regular customers) | `commitments.json` | ✅ canonical |
 | Movement history (sold / missed cases) | Live store (Netlify Blobs) + localStorage layer | ✅ shared (2026-06-18) |
-| Quotes issued / approvals (logging) | not captured yet | ⏳ future (extend the history store) |
+| Quotes issued (logging) | Live store (Netlify Blobs, `quotes`) + localStorage layer | ✅ shared (2026-08-13) |
+| Quote **approvals** (buyer accepted / declined) | not captured yet | ⏳ future (extend the quotes store) |
 
-Movement history now lives in a **central shared store** (`netlify/functions/history.js` over Netlify
+Movement history lives in a **central shared store** (`netlify/functions/history.js` over Netlify
 Blobs, `src/lib/history.js`), so every rep's captures accrue into one record and forecasting can be
-trusted. Remaining: log issued quotes/approvals into the same store.
+trusted.
+
+Issued quotes now do the same (2026-08-13, Quote Builder): `netlify/functions/quotes.js` over the
+Blobs store `quotes`, with `src/lib/quotes-log.js` as the client seam — identical shape, guards and
+caps to the movement pair. **One record per SKU line** on a printed quote, grouped by `quoteId`, so
+the store is queryable per customer+SKU the way movement history is per SKU+period. Written on the
+explicit Generate/Print action only, never on keystroke. The first consumer is the Price Change
+Notification's "Previous $/lb" auto-fill (`lastQuotedPrice`): the last price quoted to this customer
+for this SKU, from any purpose, before the notice's effective date.
+
+Note the log accrues **forward only** — it starts empty, so the first price-change notice for any
+customer shows "no prior quote on file — enter manually" until a quote has gone out through this
+tool. That is the honest state, not a bug.
+
+Remaining: quote **approvals** (buyer accepted / declined) — same store, one more record type.
 
 ## 10. Gap log (build backlog, against this doc)
 1. **Shelf-life alerts** — surface remaining shelf life at quote time; flag lots < 4 months as "must move." (high)

@@ -6,7 +6,15 @@
     "name": "",
     "tagline": "",
     "accent": "#6B7280",
-    "logo": ""
+    "logo": "",
+    "_contactNote": "Sales contact printed in the footer of buyer-facing documents (Quote Builder rate cards). Leave blank and the footer simply omits the line.",
+    "contact": {
+      "ordersEmail": "",
+      "name": "",
+      "phone": "",
+      "company": "",
+      "city": ""
+    }
   },
   "currency": "USD",
   "images": {

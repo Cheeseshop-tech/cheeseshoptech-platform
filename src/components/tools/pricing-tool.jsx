@@ -13,11 +13,19 @@ import { seedMovementRecords, seedStatus } from "@/lib/sales-monthly.js";
 import { usePricingData } from "@/lib/use-pricing-data.js";
 import { useItemsDoc } from "@/lib/use-items-doc.js";
 import { getItem } from "@/lib/items.js";
+import { QuoteBuilder } from "@/components/tools/quote-builder.jsx";
 import { codeImageUrl, isPlaceholderImage, placeholderNote } from "@/lib/images.js";
 import * as PC from "@/lib/pricing-core.js";
 import * as FC from "@/lib/forecast-core.js";
 
-const TODAY = "2026-06-06";
+// The real calendar date, in the REP's timezone. Was a hardcoded "2026-06-06" (flagged
+// 2026-07-28): every recorded sale landed in that month's movement bucket and every printed
+// proforma carried that date, no matter when it was actually issued. `toISOString()` alone is
+// UTC, which rolls a US evening into tomorrow — offset it first so the stamp is the local day.
+const todayISO = () => {
+  const d = new Date();
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+};
 const money = (n) => "$" + Number(n || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const lbsFmt = (n) => Number(n || 0).toLocaleString("en-US", { maximumFractionDigits: 0 });
 const fmtDate = (iso) => (iso ? new Date(iso + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—");
@@ -79,11 +87,16 @@ export function PricingTool({ resolved, onNavigate }) {
         <Tabs defaultValue="proforma">
           <TabsList>
             <TabsTrigger value="proforma">Pro Forma</TabsTrigger>
+            <TabsTrigger value="quotes">Quotes</TabsTrigger>
             <TabsTrigger value="shelflife">Shelf Life</TabsTrigger>
             <TabsTrigger value="movement">Movement</TabsTrigger>
             <TabsTrigger value="commitments">Commitments</TabsTrigger>
           </TabsList>
           <TabsContent value="proforma"><Proforma data={data} brand={resolved.brand} resolved={resolved} onNavigate={onNavigate} itemsDoc={itemsDoc} /></TabsContent>
+          {/* The one-page branded rate card (docs/QUOTE_BUILDER_SPEC_2026-08-13.md). Deliberately
+              its own file — this one is already large, and the Quote Builder shares only the
+              pricing engine and the customer/tier vocabulary, not Proforma's order machinery. */}
+          <TabsContent value="quotes"><QuoteBuilder data={data} brand={resolved.brand} resolved={resolved} itemsDoc={itemsDoc} /></TabsContent>
           <TabsContent value="shelflife"><ShelfLife data={data} itemsDoc={itemsDoc} /></TabsContent>
           <TabsContent value="movement"><Movement data={data} resolved={resolved} itemsDoc={itemsDoc} /></TabsContent>
           <TabsContent value="commitments"><Commitments data={data} itemsDoc={itemsDoc} /></TabsContent>
@@ -251,7 +264,8 @@ function Proforma({ data, brand, resolved, onNavigate, itemsDoc }) {
 
   function recordSale() {
     if (!items.length) { toast({ title: "Nothing to record", description: "Enter case quantities first.", tone: "warning" }); return; }
-    const recs = items.map((it) => ({ period: TODAY.slice(0, 7), skuCode: it.sku.code, customer: customer || "(unspecified)", soldCases: it.cases, missedCases: 0, at: TODAY }));
+    const at = todayISO();
+    const recs = items.map((it) => ({ period: at.slice(0, 7), skuCode: it.sku.code, customer: customer || "(unspecified)", soldCases: it.cases, missedCases: 0, at }));
     appendHistory(resolved.id, recs);
     toast({ title: "Sale recorded", description: `${items.length} line(s) added to shared movement history.`, tone: "success" });
   }
@@ -291,7 +305,7 @@ function Proforma({ data, brand, resolved, onNavigate, itemsDoc }) {
       .fee td{color:#0E7C9E}tfoot td{font-weight:700;border-top:2px solid ${brandColor};font-size:14px;padding-top:9px}
       tfoot tr.grand td{font-size:17px;color:${brandColor}}.ft{margin-top:32px;color:#1f1f1f;font-size:11px;text-align:center}
     </style></head><body>
-      <div class="hd"><div><h1>${esc(b.name || "Monti Trentini")}</h1><div class="sub">${esc(b.tagline || "")}</div></div><div><div class="pf">PROFORMA</div><div class="sub">${TODAY}</div></div></div>
+      <div class="hd"><div><h1>${esc(b.name || "Monti Trentini")}</h1><div class="sub">${esc(b.tagline || "")}</div></div><div><div class="pf">PROFORMA</div><div class="sub">${todayISO()}</div></div></div>
       <div class="meta"><div><b>Bill to</b>${esc(customer || "—")}</div><div><b>Basis</b>${basis === "pickup" ? "Pickup (EXW)" : "Delivered"}</div><div><b>Class of trade</b>${esc(tier.label || "")}</div>${customPct ? `<div><b>Custom</b>${customPct > 0 ? "+" : ""}${customPct}%</div>` : ""}<div><b>Quote valid until</b><span style="font-weight:700;color:${brandColor}">${esc(fmtDate(validUntil))}</span></div></div>
       <table><thead><tr><th>Item</th><th>Product</th><th class="r">Cases</th><th class="r">Lbs</th><th class="r">Unit price (firm)</th><th class="r">Line total</th></tr></thead>
       <tbody>${rows}</tbody>
