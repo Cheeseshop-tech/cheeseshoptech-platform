@@ -8,7 +8,7 @@ import { usePricingData } from "@/lib/use-pricing-data.js";
 import { useItemsDoc } from "@/lib/use-items-doc.js";
 import { quoteUnitPrice } from "@/lib/pricing-core.js";
 import { proposalFromLocation, resolveSkus, quoteStatus } from "@/lib/proposals.js";
-import { codeImageUrl } from "@/lib/images.js";
+import { codeImageUrl, brandAssetUrl } from "@/lib/images.js";
 import { getBrandKit } from "@/lib/brandKit.js";
 import { getTheme, themeColors, themeSpec } from "@/lib/themes.js";
 import { cldUrl } from "@/lib/cloudinary.js";
@@ -70,7 +70,10 @@ export function ProposalView({ resolved, proposal: given }) {
   const leadIsLight = theme.tokens.lead === "cream";
 
   const stories = (kit?.storyBlocks || []).filter((b) => (proposal.storyKeys || []).includes(b.key));
-  const logoId = kit?.identity?.logo?.primary;
+  // Resolved through the Media Hub manifest (lib/images.js directive), not the raw kit string:
+  // the kit's id was folder-less and 404'd, so this cover logo had been silently missing. Also
+  // transparent-safe — the mark is a PNG with real alpha and must not be padded onto white.
+  const logoUrl = brandAssetUrl(resolved, kit?.identity?.logo?.primary, "preview");
   // Media Hub picks override brand-kit defaults: the proposal can set its own cover (heroImageId)
   // and per-story images (storyImages[key]); fall back to the kit when unset.
   const heroId = proposal.heroImageId || kit?.imagery?.hero;
@@ -100,7 +103,7 @@ export function ProposalView({ resolved, proposal: given }) {
         // MINIMAL — premium, gallery-quiet: centered title on the cream canvas, lots of air, a
         // thin rule, no dominant photo. Restraint signals quality.
         <div className={`flex flex-col items-center rounded-xl border border-border text-center ${sp.coverPad} py-16`} style={{ background: tc.cream }}>
-          {logoId && <img src={cldUrl(logoId, "card")} alt={resolved.brand.name} className="mb-6 h-14 w-auto object-contain" onError={(e) => (e.currentTarget.style.display = "none")} />}
+          {logoUrl && <img src={logoUrl} alt={resolved.brand.name} className="mb-6 h-14 w-auto object-contain" onError={(e) => (e.currentTarget.style.display = "none")} />}
           <p className={sp.eyebrow} style={{ color: tc.onCanvas }}>{resolved.brand.name} · {proposal.date}</p>
           <h1 className={`${sp.coverTitle} mt-3`} style={{ color: tc.onCanvas }}>{proposal.headline || `A proposal for ${proposal.buyer || "you"}`}</h1>
           <div className="mt-6 h-px w-24" style={{ background: tc.onCanvas, opacity: 0.5 }} />
@@ -110,7 +113,7 @@ export function ProposalView({ resolved, proposal: given }) {
         // SPLIT — title block on cream, hero image zone alongside.
         <div className="grid overflow-hidden rounded-xl border border-border md:grid-cols-2">
           <div className={`flex flex-col justify-center ${sp.coverPad}`} style={{ background: tc.cream }}>
-            {logoId && <img src={cldUrl(logoId, "card")} alt={resolved.brand.name} className="mb-5 h-12 w-auto object-contain" onError={(e) => (e.currentTarget.style.display = "none")} />}
+            {logoUrl && <img src={logoUrl} alt={resolved.brand.name} className="mb-5 h-12 w-auto object-contain" onError={(e) => (e.currentTarget.style.display = "none")} />}
             <p className={sp.eyebrow} style={{ color: tc.onCanvas }}>{resolved.brand.name} · {proposal.date}</p>
             <h1 className={`${sp.coverTitle} mt-2`} style={{ color: tc.ink }}>{proposal.headline || `A proposal for ${proposal.buyer || "you"}`}</h1>
             {proposal.buyer && <p className="mt-3 text-lg" style={{ color: tc.ink }}>Prepared for {proposal.buyer}</p>}
@@ -123,7 +126,7 @@ export function ProposalView({ resolved, proposal: given }) {
           <Zone id={heroId} className={`${sp.coverH} w-full`}/>
           <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, color-mix(in srgb, ${tc.lead} 20%, transparent), color-mix(in srgb, ${tc.lead} 88%, #000))` }} />
           <div className={`absolute inset-0 flex flex-col text-white ${sp.coverPad}`}>
-            {logoId && <img src={cldUrl(logoId, "card")} alt={resolved.brand.name} className="h-11 w-auto self-start object-contain" onError={(e) => (e.currentTarget.style.display = "none")} />}
+            {logoUrl && <img src={logoUrl} alt={resolved.brand.name} className="h-11 w-auto self-start object-contain" onError={(e) => (e.currentTarget.style.display = "none")} />}
             <div className="mt-auto">
               <p className={`${sp.eyebrow} text-white/80`}>{resolved.brand.name} · {proposal.date}</p>
               <h1 className={`${sp.coverTitle} mt-2 text-white`}>{proposal.headline || `A proposal for ${proposal.buyer || "you"}`}</h1>

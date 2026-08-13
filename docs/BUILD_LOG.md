@@ -6,6 +6,67 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 > Format convention: `## YYYY-MM-DD — Title` · **Decision / Action / Status** ·
 > keep entries short and factual. This file is the project's memory.
 
+## 2026-08-13 — DIRECTIVE: brand assets resolve through the Media Hub, never a hand-typed id
+
+**Rick:** "Cloudinary is the database for images, Media Hub is the local UI — would it be better to
+reference Media Hub and trigger the Cloudinary transfer/link?" Yes, and a live bug proved it.
+
+`brand-kit.json` stored `identity.logo.primary` as the bare `tswf07fmciwdpp13facm`, and
+`wordmark` / `favicon` / `seal` / `imagery.hero` under a `monti/brand/*` folder **that does not
+exist in the account**. All of them 404'd. So the Monti logo has been silently missing from every
+surface that renders it — including the Proposal cover a buyer sees — on production, not just dev.
+The real asset is `monti-trentini/library/tswf07fmciwdpp13facm` ("MT Official oval logo_trim"), and
+the Media Hub manifest had it correct the whole time; the kit was a hand-typed copy that rotted.
+
+**`brandAssetUrl()` in `lib/images.js`** now treats a brand-kit reference as a *hint* and resolves
+it against the manifest (exact id → folder-less id → basename → title), returning a URL only once
+the manifest confirms the asset exists, and `""` when it doesn't — a missing logo is visible and
+fixable, a broken `<img>` is neither. Delivery is transparent-safe: these marks are PNGs with real
+alpha and the old `c_pad,b_white` path would have painted a white box behind the oval on the cream
+sheet. Add an asset → re-run `sync-images.mjs` → it resolves, no code change. One front door.
+
+Fixed `primary` (now the verified full id) and `imagery.hero` (→ `montitrentini-mainbanner`).
+Deliberately did NOT invent mappings for `wordmark` / `favicon` / `seal`: they are not in the
+account under any name, and the two Casa Finco SVGs in the library are heritage marks, not the
+Monti wordmark. They render nothing until someone uploads them. Proposal view rewired to the same
+resolver, so its cover logo appears for the first time.
+
+## 2026-08-13 — Quote Builder: exact reference palette + margin/markup pricing methods
+
+**Colours are now sampled, not eyeballed.** Rendered `FreshDirect_PricingAOneSheet.pdf` at 150 dpi
+and read the actual pixels. Three things in my first pass were wrong: alternating table rows were a
+4%-alpha green tint (the sample alternates the two page neutrals, Heritage Cream ↔ Casa Paper), the
+divider bar and PDO badge used a washed accent (the sample uses **Alpine Mint `#C8E2C5`**, which was
+sitting unused in the kit's `secondary`), and the non-PDO badge was green (the sample uses a warm
+khaki `#EFE8D1` with bronze `#796A2E` text, so "Mountain" reads as *not* a protected designation).
+All thirteen surface colours now match the reference to ≤1/255 per channel. Two of them — the
+hairline rule `#E3DEC7` and that khaki badge pair — are not brand-kit tokens and are labelled as
+literals in the component rather than faked out of the green palette.
+
+**Pricing method (Rick's ask): two dropdowns, class of trade + how the uplift is expressed.**
+The tiers are preset uplifts on FOB (+0/+15/+35); this adds typing your own figure in either of the
+two ways the trade actually quotes it, because they are *not* the same arithmetic:
+
+    Markup %        price = cost × (1 + p/100)     25% on $8.07 → $10.09
+    Gross margin %  price = cost ÷ (1 − p/100)     25% on $8.07 → $10.76
+
+Gross margin is the share of the *selling price* that is profit; markup is the share of *cost*
+added on. Confusing them is the classic way to give away margin, so they are separate options, and
+a live worked example off a real SKU on the sheet prints both readings ("a 20.0% margin, 25.0%
+markup") at the moment of choosing. A manual figure **replaces** the tier preset rather than
+stacking on it (stacking would compound an uplift on an uplift); the class of trade still sets the
+audience line printed on the sheet. Margin is guarded to 0–99.9% — at 100% the price is infinite —
+and Print is blocked while the figure is invalid.
+
+The picker list reprices with the method too, so what a rep reads while choosing is what prints.
+The quote log now records `priceMode` + `pricePct`: once a typed margin can replace the tier,
+`tierId` alone no longer explains a logged price, and that log is what a later Price Change
+Notification quotes back to the customer as their previous price.
+
+**Promo changed as a consequence.** It previously rode the engine's additive `customPct`, so a 10%
+promo on a +15% tier printed 8.7% off — defensible, but not the number the rep typed. It is now a
+straight discount off the regular price shown, so "You save 10%" means 10%.
+
 ## 2026-08-13 — Quote Builder follow-up: the price list is open on arrival
 
 **Rick, on first use of the shipped tab:** the SKU picker was a search box that revealed nothing

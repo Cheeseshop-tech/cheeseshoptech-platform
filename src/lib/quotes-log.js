@@ -11,6 +11,14 @@
 // `quoteId` groups the lines of one printed document back together.
 //
 // The Price Change Notification's "Previous $/lb" column reads exactly this (see lastQuotedPrice).
+//
+// Record shape (one per SKU line):
+//   { id, tenant, at, purpose, quoteId, customer, skuCode, unitPrice, unit, tierId,
+//     priceMode, pricePct,            // "tier" | "markup" | "margin", + the % actually applied
+//     validUntil, effectiveDate, promoStart, promoEnd }
+// priceMode/pricePct exist because unitPrice alone cannot be explained after the fact once a rep
+// has replaced the class-of-trade preset with a typed margin or markup — and this log is what a
+// later Price Change Notification quotes back to the customer as their previous price.
 import { PRICING_BACKEND } from "@/lib/pricing.js";
 import { writeAuthHeader } from "@/lib/auth-context.jsx";
 

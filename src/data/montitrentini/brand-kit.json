@@ -8,7 +8,8 @@
   "source": "Parsed from Brand_Guide_2026-05-24 (colors/fonts JSON, Voice_and_Messaging.md) + Monti_Trentini_Brand_Voice.docx",
   "identity": {
     "logo": {
-      "primary": "tswf07fmciwdpp13facm",
+      "_assetNote": "Every id here is resolved through the MEDIA HUB manifest (src/data/<tenant>/images.json) by brandAssetUrl() in lib/images.js — Cloudinary is the database, the Media Hub is the front door. Verified 2026-08-13 against the live account: `primary` and `hero` resolve; `wordmark`, `favicon` and `seal` are NOT in the account under any name (the two Casa Finco SVGs in the library are heritage marks, not the Monti wordmark), so they render nothing rather than a broken image. Upload them, re-run scripts/sync-images.mjs, and they light up with no code change.",
+      "primary": "monti-trentini/library/tswf07fmciwdpp13facm",
       "wordmark": "monti/brand/wordmark",
       "favicon": "monti/brand/favicon",
       "seal": "monti/brand/aicc-seal"
@@ -49,7 +50,7 @@
     "radius": "md"
   },
   "imagery": {
-    "hero": "monti/brand/hero-mainbanner",
+    "hero": "monti-trentini/library/montitrentini-mainbanner",
     "lifestyle": ["monti-trentini/family-shots", "monti/brand/dolomites-pasture"],
     "patterns": [],
     "seal": "monti/brand/aicc-seal"

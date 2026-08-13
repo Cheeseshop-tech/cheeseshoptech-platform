@@ -27,6 +27,9 @@ const MAX_BATCH = 500;   // records per POST (one quote = one record per SKU lin
 const MAX_STORED = 5000; // rolling cap per tenant
 
 const PURPOSES = new Set(["new_customer", "price_change", "promo"]);
+// How the quoted price was derived: the class-of-trade preset, a manual markup on cost, or a
+// manual gross-profit margin. Stored per line so a logged price can be explained after the fact.
+const PRICE_MODES = new Set(["tier", "markup", "margin"]);
 const str = (v, n) => String(v == null ? "" : v).slice(0, n);
 
 function sanitize(r) {
@@ -45,6 +48,8 @@ function sanitize(r) {
     unitPrice: Number.isFinite(price) ? price : null,
     unit: r.unit === "case" ? "case" : "lb",
     tierId: str(r.tierId, 40),
+    priceMode: PRICE_MODES.has(r.priceMode) ? r.priceMode : "tier",
+    pricePct: Number.isFinite(Number(r.pricePct)) ? Number(r.pricePct) : null,
     validUntil: str(r.validUntil, 10),
     effectiveDate: str(r.effectiveDate, 10),
     promoStart: str(r.promoStart, 10),

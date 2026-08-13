@@ -6,8 +6,7 @@ import { Badge } from "@/components/ui/badge.jsx";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table.jsx";
 import { useToast } from "@/components/ui/toast.jsx";
 import { getBrandKit } from "@/lib/brandKit.js";
-import { cldUrl } from "@/lib/cloudinary.js";
-import { codeImageUrl, isPlaceholderImage } from "@/lib/images.js";
+import { codeImageUrl, isPlaceholderImage, brandAssetUrl } from "@/lib/images.js";
 import { flattenSkus } from "@/lib/proposals.js";
 import { appendQuoteLog, loadQuoteLog, lastQuotedPrice, newQuoteId } from "@/lib/quotes-log.js";
 import * as PC from "@/lib/pricing-core.js";
@@ -186,12 +185,63 @@ export function QuoteBuilder({ data, brand, resolved, itemsDoc }) {
   }, [resolved?.id]);
 
   const opts = { tierId, basis: config?.pricing?.costBasis, volumeId: "", customPct: 0 };
-  const promoOpts = { ...opts, customPct: -Math.abs(Number(promoPct) || 0) };
-  const regularPrice = (entry) => PC.quoteUnitPrice(entry.sku, opts, config);
+
+  /* ---- Pricing method (Rick, 2026-08-13) ------------------------------------------------------
+     Two controls that both "speak to" the price: the class of trade, and how the uplift over cost
+     is expressed. The class-of-trade tiers are preset uplifts on FOB (+0 / +15 / +35). This adds
+     the option to type your own figure instead, in either of the two ways the trade actually
+     quotes it — and they are NOT the same arithmetic:
+
+       Markup %        price = cost × (1 + p/100)        25% on $8.00 = $10.00
+       Gross margin %  price = cost ÷ (1 − p/100)        25% on $8.00 = $10.67
+
+     Gross margin is the share of the SELLING price that is profit; markup is the share of the
+     COST added on. Quoting one as if it were the other is the classic way to give away margin,
+     so they are separate options rather than one field with a label.
+
+     A manual figure REPLACES the tier's preset percentage — that is what "manual rather than a
+     pre-determined figure" means — and both are computed off the same FOB cost, never stacked
+     (stacking would compound an uplift on an uplift). The class-of-trade dropdown still sets the
+     audience label printed on the sheet in every mode. */
+  const PRICE_MODES = [
+    { id: "tier", label: "Class of trade %", hint: "use the preset for the selected class of trade" },
+    { id: "markup", label: "Markup % on cost", hint: "price = cost × (1 + p/100)" },
+    { id: "margin", label: "Gross profit margin %", hint: "price = cost ÷ (1 − p/100)" },
+  ];
+  const [priceMode, setPriceMode] = useState("tier");
+  const [manualPct, setManualPct] = useState(30);
+
+  /* The raw FOB cost for a SKU, straight out of the engine: quoteUnitPrice with no tier, no
+     volume break and no custom % returns the base unchanged, and it already handles the
+     $/lb vs $/case split (cost.fob vs cost.fobCase). null = no cost on file. */
+  const baseCost = (sku) => PC.quoteUnitPrice(sku, { tierId: "", volumeId: "", customPct: 0 }, config);
+
+  const manualValid = priceMode === "tier"
+    || (Number.isFinite(Number(manualPct)) && (priceMode === "markup" ? Number(manualPct) >= 0 : Number(manualPct) >= 0 && Number(manualPct) < 100));
+
+  function priceFor(sku) {
+    if (priceMode === "tier") return PC.quoteUnitPrice(sku, opts, config);
+    const base = baseCost(sku);
+    if (base == null) return null;
+    const p = Number(manualPct);
+    if (!Number.isFinite(p)) return null;
+    if (priceMode === "markup") return PC.round2(base * (1 + p / 100));
+    // Gross margin: a 100% margin is a divide-by-zero and anything above it is nonsense.
+    if (p >= 100 || p < 0) return null;
+    return PC.round2(base / (1 - p / 100));
+  }
+
+  const regularPrice = (entry) => priceFor(entry.sku);
+  /* Promo is a straight discount off the regular price shown above, so "You save 10%" means
+     exactly 10%. (It previously rode the engine's additive customPct, which made a 10% promo on a
+     +15% tier come out at 8.7% off — technically defensible, but it printed a number the rep did
+     not type. With the pricing method now explicit, the honest reading wins.) */
   const promoPrice = (l) => {
     const override = Number(l.promoPrice);
     if (l.promoPrice !== "" && Number.isFinite(override)) return PC.round2(override);
-    return PC.quoteUnitPrice(l.entry.sku, promoOpts, config);
+    const reg = regularPrice(l.entry);
+    if (reg == null) return null;
+    return PC.round2(reg * (1 - Math.abs(Number(promoPct) || 0) / 100));
   };
 
   /* The whole price list is ON SCREEN from the moment the tab opens — search NARROWS it, it does
@@ -243,8 +293,15 @@ export function QuoteBuilder({ data, brand, resolved, itemsDoc }) {
   const priceHeader = units.size === 1 ? (units.has("case") ? "$ / CASE" : "$ / LB") : "PRICE";
   const unitSuffix = (entry) => (units.size > 1 ? (entry.sku.unit === "case" ? "/cs" : "/lb") : "");
 
-  const canPrint = selected.length > 0 && !missingDates.length && !unpriced.length
+  const canPrint = selected.length > 0 && !missingDates.length && !unpriced.length && manualValid
     && (purposeId !== "promo" || !!headline.trim());
+
+  /* A worked example off a real SKU on the sheet, so the margin-vs-markup difference is visible
+     at the moment of choosing rather than discovered on the printed page. */
+  const example = selected[0] || allSkus.find((x) => baseCost(x.sku) != null);
+  const exBase = example ? baseCost(example.sku ? example.sku : example.entry.sku) : null;
+  const exSku = example ? (example.sku || example.entry.sku) : null;
+  const exPrice = exSku ? priceFor(exSku) : null;
 
   /* ---------------- print ---------------- */
   function printQuote() {
@@ -274,6 +331,11 @@ export function QuoteBuilder({ data, brand, resolved, itemsDoc }) {
       unitPrice: purposeId === "promo" ? promoPrice(l) : regularPrice(l.entry),
       unit: l.entry.sku.unit === "case" ? "case" : "lb",
       tierId,
+      // How the number was arrived at. Without this a logged price can't be explained after the
+      // fact — tierId alone is a lie once a manual margin/markup has replaced the tier's preset,
+      // and this log is what a future Price Change Notification quotes back to the customer.
+      priceMode,
+      pricePct: priceMode === "tier" ? (tier.adjustPct ?? 0) : Number(manualPct),
       validUntil: dates.validUntil, effectiveDate: dates.effectiveDate,
       promoStart: dates.promoStart, promoEnd: dates.promoEnd,
     }));
@@ -287,20 +349,45 @@ export function QuoteBuilder({ data, brand, resolved, itemsDoc }) {
   function buildQuoteHtml() {
     // Brand tokens, kit-first with the client-config / resolved-brand fallbacks a tenant
     // without a full kit still has. Nothing about Monti is hardcoded here.
+    /* Brand tokens. Every one of these was sampled out of the reference one-sheet
+       (FreshDirect_PricingAOneSheet.pdf) and matched back to a brand-kit token, so the printed
+       document reproduces that sheet's exact colour system rather than an approximation of it:
+         page background   #FFFBDC  Heritage Cream   (neutrals)
+         panels + row band #FAF9F5  Casa Paper       (neutrals)
+         headline / bars   #064E22  Forest Green     (primary)
+         eyebrow / dates   #009640  Italia Green     (accent)
+         body copy         #141413  Mountain Ink     (neutrals)
+         PDO badge + bar   #C8E2C5  Alpine Mint      (secondary)  <- was wrongly a green tint
+       Kit-first with the client-config fallbacks a tenant without a full kit still has; nothing
+       about Monti is hardcoded. */
     const c = kit?.identity?.colors || {};
     const neutral = (name, fallback) => (c.neutrals || []).find((n) => n.name === name)?.hex || fallback;
+    const secondary = (name, fallback) => (c.secondary || []).find((s) => s.name === name)?.hex || fallback;
     const primary = c.primary?.hex || brand?.colors?.primary || config.brand?.accent || "#064E22";
     const accent = c.accent?.hex || config.brand?.accent || primary;
     const cream = neutral("Heritage Cream", (c.neutrals || [])[0]?.hex || "#FFFBDC");
-    const paper = neutral("Casa Paper", "#FFFFFF");
+    const paper = neutral("Casa Paper", "#FAF9F5");
     const ink = neutral("Mountain Ink", "#141413");
-    const muted = neutral("Stone Charcoal", "#5f5b58");
+    const muted = neutral("Stone Charcoal", "#716A6A");
+    const mint = secondary("Alpine Mint", "#C8E2C5");
+    /* Two warm tones the reference uses that are NOT brand-kit tokens: the hairline rules between
+       table rows, and the non-PDO ("Mountain") badge. Sampled at #E3DEC7 / #EFE8D1 fill with
+       #796A2E text — a khaki + bronze pair that reads as "not a protected designation" without
+       competing with the green. Kept literal and labelled rather than faked out of the green
+       palette, which is what made my first pass look wrong. */
+    const rule = "#E3DEC7";
+    const tanFill = "#EFE8D1";
+    const tanInk = "#796A2E";
+    const legalGrey = "#BBB6A6"; // footer small print — lighter than Stone Charcoal in the sample
     const display = kit?.identity?.type?.display?.cssStack || 'Fraunces, Georgia, serif';
     const ui = kit?.identity?.type?.ui?.cssStack || 'Inter, system-ui, sans-serif';
 
     const b = config.brand || {};
     const contact = b.contact || {};
-    const logoUrl = kit?.identity?.logo?.primary ? cldUrl(kit.identity.logo.primary, "card") : "";
+    /* Resolved through the MEDIA HUB manifest, never a hand-typed Cloudinary id — see the
+       directive in lib/images.js. Transparent-safe, so the oval mark sits on the cream page
+       instead of inside a white box. */
+    const logoUrl = brandAssetUrl(resolved, kit?.identity?.logo?.primary, "preview");
     const motto = kit?.voice?.motto || "";
     const heritage = kit?.voice?.heritage || "";
     const attribution = kit?.attribution || "";
@@ -422,48 +509,52 @@ export function QuoteBuilder({ data, brand, resolved, itemsDoc }) {
       h1{font-family:${display};font-style:italic;font-weight:600;color:${primary};font-size:28px;line-height:1.12;margin:5px 0 0}
       .sub{font-family:${display};font-style:italic;color:${muted};font-size:11.5px;margin:7px 0 0;max-width:78%}
 
-      /* story panels */
+      /* story panels — Casa Paper card on the cream page, hairline warm rule */
       .panels{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin-top:16px}
-      .panel{border:1px solid ${accent}55;background:${paper};border-radius:5px;padding:11px 12px}
+      .panel{border:1px solid ${rule};background:${paper};border-radius:5px;padding:11px 12px}
       .panel h3{margin:0 0 5px;font-size:11.5px;font-weight:700;color:${primary}}
       .panel p{margin:0;font-size:9.5px;line-height:1.5;color:${ink}}
 
-      /* divider bar */
-      .divider{margin-top:16px;background:${primary};color:${cream};text-align:center;
+      /* divider bar — Alpine Mint on Forest Green, exactly as the sample sets it */
+      .divider{margin-top:16px;background:${primary};color:${mint};text-align:center;
         padding:8px 10px;border-radius:4px;font-size:10px;font-weight:600;letter-spacing:.13em;text-transform:uppercase}
 
       /* pricing table */
       .tablehd{display:flex;justify-content:space-between;align-items:baseline;margin:15px 0 7px}
       .tablehd h2{margin:0;font-size:10.5px;font-weight:700;letter-spacing:.19em;color:${primary};text-transform:uppercase}
       .tablehd .note{font-family:${display};font-style:italic;color:${muted};font-size:10px}
-      table{width:100%;border-collapse:collapse;border:1px solid ${primary}33;border-radius:5px;overflow:hidden}
-      thead th{background:${primary};color:${cream};text-align:left;padding:8px 9px;font-size:8.5px;
+      table{width:100%;border-collapse:collapse;border:1px solid ${rule};border-radius:5px;overflow:hidden}
+      thead th{background:${primary};color:#FFFFFF;text-align:left;padding:8px 9px;font-size:8.5px;
         font-weight:700;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap}
-      tbody td{padding:7px 9px;border-bottom:1px solid ${primary}1f;vertical-align:middle}
-      tbody tr:nth-child(even){background:${primary}0a}
+      tbody td{padding:7px 9px;border-bottom:1px solid ${rule};vertical-align:middle}
+      /* Row banding is cream ↔ Casa Paper — the sample alternates the two page neutrals. My first
+         pass tinted alternate rows green, which read as a colour wash rather than a paper change. */
+      tbody tr:nth-child(even){background:${paper}}
       tbody tr:last-child td{border-bottom:none}
       .r{text-align:right}
       .item{font-weight:700;color:${primary};font-size:11px}
       .spec{color:${ink};font-size:9.5px;font-weight:400}
-      .sku{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:${muted};font-size:9.5px;white-space:nowrap}
-      .price{font-weight:700;font-size:11.5px;white-space:nowrap}
+      .sku{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:${ink};font-size:9.5px;white-space:nowrap}
+      .price{font-weight:700;font-size:11.5px;color:${ink};white-space:nowrap}
       .prev{color:${muted};white-space:nowrap}
-      .wt{font-weight:600;white-space:nowrap}
+      .wt{font-weight:600;color:${ink};white-space:nowrap}
       .u{color:${muted};font-weight:400;font-size:8.5px;margin-left:1px}
       .none{color:${muted};font-style:italic;font-size:9px}
       .up{color:#9A3B1B;font-weight:700;white-space:nowrap}
       .down{color:${accent};font-weight:700;white-space:nowrap}
       .flat{color:${muted};white-space:nowrap}
+      /* PDO = Alpine Mint pill (a protected designation, so it carries the brand green).
+         Everything else = the warm khaki pill, which is how the sample separates the two. */
       .badge{display:inline-block;border-radius:999px;padding:2px 7px;font-size:7.5px;font-weight:700;
-        letter-spacing:.09em;background:${primary}14;color:${primary};white-space:nowrap}
-      .badge.pdo{background:${accent}24;color:${primary}}
+        letter-spacing:.09em;background:${tanFill};color:${tanInk};white-space:nowrap}
+      .badge.pdo{background:${mint};color:${primary}}
 
       /* footer */
       .ft{margin-top:14px;display:flex;justify-content:space-between;align-items:flex-end;gap:22px}
-      .ft .legal{color:${muted};font-size:8.5px;line-height:1.5;max-width:66%}
+      .ft .legal{color:${legalGrey};font-size:8.5px;line-height:1.5;max-width:66%}
       .ft .motto{text-align:right;font-family:${display};font-style:italic;color:${primary};font-size:13px}
-      .ft .attr{color:${muted};font-size:8px;font-style:normal;font-family:${ui}}
-      .contact{margin-top:9px;border-top:1px solid ${primary}33;padding-top:7px;font-size:8.5px;color:${ink}}
+      .ft .attr{color:${legalGrey};font-size:8px;font-style:normal;font-family:${ui}}
+      .contact{margin-top:9px;border-top:1px solid ${rule};padding-top:7px;font-size:8.5px;color:${ink}}
       .contact b{color:${primary}}
     </style></head><body>
       <div class="hd">
@@ -532,6 +623,23 @@ export function QuoteBuilder({ data, brand, resolved, itemsDoc }) {
             {config.pricing.tiers.map((t) => <option key={t.id} value={t.id}>{t.label} ({t.adjustPct >= 0 ? "+" : ""}{t.adjustPct}%)</option>)}
           </select>
         </div>
+        <div className="flex flex-col gap-1">
+          <span className={fieldLabel}>Pricing method</span>
+          <select className={selCls} value={priceMode} onChange={(e) => setPriceMode(e.target.value)}>
+            {PRICE_MODES.map((m) => <option key={m.id} value={m.id}>{m.label}</option>)}
+          </select>
+        </div>
+        {priceMode !== "tier" && (
+          <div className="flex flex-col gap-1">
+            <span className={fieldLabel}>
+              {priceMode === "margin" ? "Margin" : "Markup"} % <span className="text-error">*</span>
+            </span>
+            <input type="number" min="0" max={priceMode === "margin" ? 99.9 : undefined} step="0.5"
+              className={selCls + " w-24" + (manualValid ? "" : " border-error")}
+              value={manualPct}
+              onChange={(e) => setManualPct(e.target.value === "" ? "" : Number(e.target.value))} />
+          </div>
+        )}
         {purpose.dates.map((d) => (
           <div key={d.key} className="flex flex-col gap-1">
             <span className={fieldLabel}>{d.label} <span className="text-error">*</span></span>
@@ -545,14 +653,39 @@ export function QuoteBuilder({ data, brand, resolved, itemsDoc }) {
             <span className={fieldLabel}>Promo discount %</span>
             <input type="number" min="0" step="0.5" className={selCls + " w-24"} value={promoPct}
               onChange={(e) => setPromoPct(Math.max(0, Number(e.target.value) || 0))} />
-            {/* Rides the engine's customPct input, which is ADDITIVE against the FOB base alongside
-                the tier % — exactly like Pro Forma's Custom ±%. So 10% off a +15% tier lands at
-                +5%, i.e. ~8.7% below the regular price, not 10%. Say so rather than let the rep
-                discover it on the printed sheet; "You save" always prints the true saving. */}
-            <span className="text-[10px] text-fg-muted">off the base, like Custom ±%</span>
+            <span className="text-[10px] text-fg-muted">off the regular price</span>
           </div>
         )}
       </div>
+
+      {/* What the chosen method actually does to a real SKU on this sheet. Margin and markup are
+          different arithmetic and the gap widens as the % rises — show it, don't explain it. */}
+      {exSku && exBase != null && (
+        <p className="rounded-base border border-border bg-surface px-3 py-2 text-xs text-fg-muted">
+          {priceMode === "tier" ? (
+            <>Using the preset for <b className="text-fg">{tier.label}</b> ({tier.adjustPct >= 0 ? "+" : ""}{tier.adjustPct}%) on the{" "}
+              {config.pricing?.costBasis || "FOB"} cost. <span className="font-mono">#{exSku.code}</span>: cost{" "}
+              <span className="font-mono">{money(exBase)}</span> → <span className="font-mono font-semibold text-fg">{exPrice == null ? "—" : money(exPrice)}</span>
+              /{exSku.unit === "case" ? "cs" : "lb"}.</>
+          ) : !manualValid ? (
+            <span className="font-semibold text-error">
+              {priceMode === "margin" ? "A gross margin must be between 0 and 99.9% — at 100% the price is infinite." : "Enter a markup percentage."}
+            </span>
+          ) : (
+            <>
+              <b className="text-fg">{priceMode === "margin" ? "Gross profit margin" : "Markup on cost"} {manualPct}%</b>
+              {" "}replaces the class-of-trade preset ({tier.adjustPct >= 0 ? "+" : ""}{tier.adjustPct}%); {tier.label} still sets the audience line on the sheet.
+              {" "}<span className="font-mono">#{exSku.code}</span>: cost <span className="font-mono">{money(exBase)}</span>{" "}
+              {priceMode === "margin" ? <>÷ (1 − {manualPct}%)</> : <>× (1 + {manualPct}%)</>} ={" "}
+              <span className="font-mono font-semibold text-fg">{exPrice == null ? "—" : money(exPrice)}</span>/{exSku.unit === "case" ? "cs" : "lb"}
+              {exPrice != null && exPrice > 0 && (
+                <> — a <b className="text-fg">{(((exPrice - exBase) / exPrice) * 100).toFixed(1)}%</b> margin,{" "}
+                  <b className="text-fg">{(((exPrice - exBase) / exBase) * 100).toFixed(1)}%</b> markup.</>
+              )}
+            </>
+          )}
+        </p>
+      )}
 
       {/* header copy */}
       <Card>
@@ -645,7 +778,10 @@ export function QuoteBuilder({ data, brand, resolved, itemsDoc }) {
           <div className="max-h-[460px] overflow-y-auto rounded-base">
             {visible.map((x) => {
               const added = lines.some((l) => l.code === x.sku.code);
-              const unit = PC.quoteUnitPrice(x.sku, opts, config);
+              // The effective price under the CURRENT pricing method — not the tier price. The
+              // list has to show the number that will actually print, or it teaches the rep the
+              // wrong figure right at the moment they're choosing what to quote.
+              const unit = priceFor(x.sku);
               const ph = isPlaceholderImage(resolved, x.sku.code);
               return (
                 <button key={x.sku.code} type="button" onClick={() => (added ? removeSku(x.sku.code) : addSku(x.sku.code))}
@@ -684,7 +820,10 @@ export function QuoteBuilder({ data, brand, resolved, itemsDoc }) {
         </CardContent>
       </Card>
       <p className="text-xs text-fg-muted">
-        Showing {visible.length} of {allSkus.length} SKUs at {tier.label} pricing
+        Showing {visible.length} of {allSkus.length} SKUs at{" "}
+        {priceMode === "tier"
+          ? `${tier.label} pricing`
+          : `${manualPct}% ${priceMode === "margin" ? "gross margin" : "markup"} on cost`}
         {search.trim() ? " — clear the search to see the whole list." : "."}
       </p>
 
@@ -805,6 +944,7 @@ export function QuoteBuilder({ data, brand, resolved, itemsDoc }) {
           {!canPrint && selected.length > 0 && (
             <span className="text-[10px] text-fg-muted">
               {unpriced.length ? "Remove the unpriced line(s) to print"
+                : !manualValid ? "Fix the pricing percentage to print"
                 : missingDates.length ? `Set ${missingDates.map((d) => d.label.toLowerCase()).join(" and ")} to print`
                 : "Give the promo a headline to print"}
             </span>

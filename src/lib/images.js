@@ -77,6 +77,65 @@ export function placeholderNote(code) {
   return PLACEHOLDER_NOTES[code] || "";
 }
 
+/* ---- BRAND ASSETS: reference the Media Hub, never a hand-typed Cloudinary id ----------------
+ * DIRECTIVE (Rick, 2026-08-13). Cloudinary is the image DATABASE; the Media Hub is the UI and
+ * this manifest is its index. Nothing in the app should carry a hand-typed Cloudinary public_id,
+ * because a hand-typed id cannot be verified and silently rots — it 404s and the surface just
+ * shows nothing.
+ *
+ * That is exactly what had happened: brand-kit.json stored `identity.logo.primary` as
+ * "tswf07fmciwdpp13facm" and `logo.wordmark` / `favicon` / `seal` / `imagery.hero` as
+ * "monti/brand/*". NONE of those resolve — the real asset is
+ * "monti-trentini/library/tswf07fmciwdpp13facm" ("MT Official oval logo_trim"), and there is no
+ * `monti/brand` folder in the account at all. So the Monti logo was silently missing from every
+ * surface that renders it (the Proposal cover included), on production, not just in dev.
+ *
+ * brandAssetUrl() closes that class of bug: a brand-kit reference is treated as a HINT, resolved
+ * against the manifest (exact id → folder-less id → basename → title), and turned into a URL only
+ * once the manifest confirms the asset exists. When it doesn't resolve it returns "" rather than a
+ * URL that will 404 — a missing logo is visible and fixable; a broken <img> is neither.
+ *
+ * Logos and marks are transparent PNG/SVG, so delivery is transparent-safe (no `b_white` pad,
+ * which would paint a white box behind the mark on a cream or coloured page).
+ *
+ * Add an asset in Cloudinary → re-run scripts/sync-images.mjs → it resolves here. One front door.
+ */
+
+/** The manifest record for a brand-kit asset reference, or null. `ref` may be a full publicId,
+ *  a folder-less id, a basename, or a title fragment. */
+export function brandAsset(resolved, ref) {
+  if (!ref) return null;
+  const list = imageList(resolved);
+  if (!list.length) return null;
+  const needle = String(ref).trim();
+  const lower = needle.toLowerCase();
+  const base = needle.split("/").pop().toLowerCase();
+  return (
+    list.find((i) => i.publicId === needle) ||
+    list.find((i) => i.publicId.toLowerCase().endsWith("/" + lower)) ||
+    list.find((i) => i.publicId.split("/").pop().toLowerCase() === base) ||
+    list.find((i) => (i.title || "").toLowerCase().includes(lower)) ||
+    null
+  );
+}
+
+/** Delivery URL for a brand-kit asset reference, resolved through the manifest. "" when the
+ *  manifest has no such asset — deliberately not a blind URL that would 404. */
+export function brandAssetUrl(resolved, ref, preset = "card") {
+  const rec = brandAsset(resolved, ref);
+  if (!rec) return "";
+  const m = getImages(resolved);
+  return cldImage({
+    cloud: m.cloud,
+    publicId: rec.publicId,
+    version: rec.version,
+    format: rec.format,
+    preset,
+    // Marks carry real alpha; never pad them onto white.
+    transparent: true,
+  });
+}
+
 /**
  * Build a delivery URL for a SKU/product code at a preset.
  * Manifest-first (real publicId + version + format). Then, when `allowPlaceholder` is set and we
