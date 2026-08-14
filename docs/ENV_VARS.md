@@ -47,6 +47,7 @@ These are read by `netlify/functions/*`. They never reach the browser.
 | `SHOPIFY_ADMIN_TOKEN` | Admin API (orders) | `store-orders.js` | Storefront tool |
 | `INVENTORY_PUBLISH_SECRET` | Guards the inventory publish endpoint | `inventory-publish.js` | Used by the sync script |
 | `MAKE_CAMPAIGNS_WEBHOOK_URL` | Make webhook for campaigns | `campaigns.js` | Campaigns |
+| `SENTRY_DSN` | Error capture + slow-response signal for all 25 functions | `_sentry.js`, every function via `withMonitoring()` | **Not yet set** — code shipped 2026-08-14, inert until a Sentry account exists. See `docs/APP_HEALTH_AND_ROADMAP_2026-08-14.md` §setup |
 
 > **Status caveat:** "Live" for everything except `ANTHROPIC_API_KEY` is *inferred* from the
 > corresponding feature working in production, not from reading the Netlify dashboard. Only the
@@ -71,6 +72,7 @@ Set in Netlify build environment or `netlify.toml`. Changing any of these **requ
 | `VITE_GOTRUE_URL` | Netlify Identity endpoint |
 | `VITE_DEV_BYPASS_AUTH` | Local dev only — **must never be set in production** |
 | `VITE_HOUSE_PASSCODE`, `VITE_PORTAL_ADMIN_PASSCODE`, `VITE_PORTAL_PASSCODE` | Client-side passcode gate values — see the warning below |
+| `VITE_SENTRY_DSN` | Browser error boundary + Core Web Vitals (`lib/monitoring.js`) — SDK is dynamically imported, so unset means it's never even downloaded. **Not yet set.** |
 
 ### ⚠️ The `VITE_*_PASSCODE` variables are not secrets
 

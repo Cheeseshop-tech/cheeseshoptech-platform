@@ -23,7 +23,9 @@ const PRODUCTS_QUERY = `
     }
   }`;
 
-export const handler = async () => {
+import { withMonitoring } from "./_sentry.js";
+
+const rawHandler = async () => {
   const domain = process.env.SHOPIFY_STORE_DOMAIN;       // e.g. monti-trentini.myshopify.com
   const token = process.env.SHOPIFY_STOREFRONT_TOKEN;    // Storefront API access token
   if (!domain || !token) {
@@ -65,3 +67,5 @@ function json(statusCode, body) {
     body: JSON.stringify(body),
   };
 }
+
+export const handler = withMonitoring("store", rawHandler);

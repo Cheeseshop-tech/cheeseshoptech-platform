@@ -16,7 +16,8 @@
 
 import { logLogin } from "./_login-log.js";
 
-export const handler = async (event) => {
+import { withMonitoring } from "./_sentry.js";
+const rawHandler = async (event) => {
   if (event.httpMethod !== "POST") return resp(405, { error: "Method not allowed" });
 
   const client = process.env.PORTAL_PASSCODE;
@@ -65,3 +66,5 @@ function resp(statusCode, body) {
     body: JSON.stringify(body),
   };
 }
+
+export const handler = withMonitoring("gate", rawHandler);

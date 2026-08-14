@@ -4,6 +4,10 @@ One list. Add items here (or tell Claude). Format: `- [impact/effort] descriptio
 See `docs/CONTINUAL_IMPROVEMENT.md` for the loop. Updated 2026-06-18.
 
 ## Now (next batch)
+- [high/low] **Flip Sentry on** — code shipped 2026-08-14 (error boundary + Web Vitals on the
+  browser, all 25 Netlify Functions wrapped), inert until a Sentry account exists. Rick: create the
+  free account, set `VITE_SENTRY_DSN` + `SENTRY_DSN` in Netlify, redeploy. Steps in
+  `docs/APP_HEALTH_AND_ROADMAP_2026-08-14.md`.
 - [med/med] **Catch vs exact weight in the UI + invoice states** — mark catch-weight lines "estimate" and
   exact-weight "firm" in the on-screen proforma; carry proforma → weighed → final-invoice states.
 
@@ -32,6 +36,10 @@ See `docs/CONTINUAL_IMPROVEMENT.md` for the loop. Updated 2026-06-18.
   live availability + shelf life.
 
 ## Done (log)
+- ✅ 2026-08-14 Error tracking + performance monitoring (Sentry, env-gated) — React error boundary +
+  Web Vitals in the browser, all 25 Netlify Functions wrapped with exception + slow-response
+  capture. Closes the "no monitoring" gap from `docs/APP_HEALTH_AND_ROADMAP_2026-08-14.md`. Inert
+  until the account exists — see the Now item above.
 - ✅ 2026-08-03 Campaigns pill sub-nav (email / social / enrichment) + per-campaign lifecycle dashboard with a
   real launch-readiness gate; state in Netlify Blobs via `campaign-state.js`
 - ✅ 2026-06-18 Live inventory feed (Netlify Blobs, weekly sync, no rebuild) — `e31086a`, `cc7229a`, `04ba2e4`

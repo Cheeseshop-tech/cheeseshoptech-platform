@@ -24,11 +24,12 @@ const CONTACT_ROLE_PROPERTY = "contact_role";
 
 import { requireReadAuth, jsonUnauthorized } from "./_write-guard.js";
 
+import { withMonitoring } from "./_sentry.js";
 const HUBSPOT_SEARCH = "https://api.hubapi.com/crm/v3/objects/companies/search";
 const PAGE_SIZE = 100;
 const MAX_PAGES = 10; // safety cap — up to 1000 companies; raise if the tenant grows past that
 
-export const handler = async (event) => {
+const rawHandler = async (event) => {
   // Any valid passcode tier (2026-07-16, wiring-audit P0 #1) — this returns the tenant's full
   // company/contact/email-activity data; a bare URL used to get all of it with zero auth.
   const readAuth = requireReadAuth(event, event.queryStringParameters?.tenant || "");
@@ -287,3 +288,5 @@ function json(statusCode, body) {
     body: JSON.stringify(body),
   };
 }
+
+export const handler = withMonitoring("crm-hubspot", rawHandler);

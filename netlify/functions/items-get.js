@@ -7,7 +7,8 @@
 
 import { requireReadAuth, jsonUnauthorized } from "./_write-guard.js";
 
-export const handler = async (event) => {
+import { withMonitoring } from "./_sentry.js";
+const rawHandler = async (event) => {
   // Any valid passcode tier (2026-07-16, wiring-audit P0 #1) — item identity/copy docs used to
   // be readable from a bare URL with zero auth.
   //
@@ -57,3 +58,5 @@ export const handler = async (event) => {
 function json(statusCode, body) {
   return { statusCode, headers: { "content-type": "application/json" }, body: JSON.stringify(body) };
 }
+
+export const handler = withMonitoring("items-get", rawHandler);

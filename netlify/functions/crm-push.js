@@ -23,6 +23,7 @@
 import { requireWriteAuth, jsonUnauthorized } from "./_write-guard.js";
 import { logWrite } from "./_write-log.js";
 
+import { withMonitoring } from "./_sentry.js";
 const HS = "https://api.hubapi.com";
 const MAX_ROWS = 200;
 
@@ -70,7 +71,7 @@ function splitName(full) {
   return { firstname: parts.slice(0, -1).join(" "), lastname: parts[parts.length - 1] };
 }
 
-export const handler = async (event) => {
+const rawHandler = async (event) => {
   if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: CORS, body: "" };
   if (event.httpMethod !== "POST") return json(405, { error: "Method not allowed" });
 
@@ -216,3 +217,5 @@ export const handler = async (event) => {
   if (commit) await logWrite(event, { fn: "crm-push", ok: true, tenant, role: auth.role, count: results.length });
   return json(200, { ok: true, dryRun: !commit, planned, results });
 };
+
+export const handler = withMonitoring("crm-push", rawHandler);

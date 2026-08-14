@@ -9,13 +9,14 @@
 import { requireWriteAuth, jsonUnauthorized } from "./_write-guard.js";
 import { logWrite, tenantFromPath } from "./_write-log.js";
 
+import { withMonitoring } from "./_sentry.js";
 const APPROVAL_TAGS = ["approved-for-influencers", "approved-for-press", "draft"];
 const USAGE_IDS = [
   "product-catalog", "hero", "story-block", "lifestyle", "food-styling", "production",
   "social", "press", "event", "brand-asset", "email-campaign", "print", "web-marketing",
 ];
 
-export const handler = async (event) => {
+const rawHandler = async (event) => {
   if (event.httpMethod !== "POST") return json(405, { error: "Method not allowed" });
 
   let body;
@@ -80,3 +81,5 @@ export const handler = async (event) => {
 function json(statusCode, body) {
   return { statusCode, headers: { "content-type": "application/json" }, body: JSON.stringify(body) };
 }
+
+export const handler = withMonitoring("media-update", rawHandler);

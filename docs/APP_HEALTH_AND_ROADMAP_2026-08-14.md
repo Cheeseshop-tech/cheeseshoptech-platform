@@ -148,3 +148,40 @@ hours of wiring, tests can start narrow (the pricing/quoting math, since that's 
 costs money on). They're just not on the feature backlog today because nothing has broken badly
 enough yet to force them up. Recommend treating "flip auth + add basic error tracking" as the actual
 next batch, ahead of new features, given today's incident.
+
+---
+
+## 6. Error tracking + performance monitoring — shipped 2026-08-14, inert pending setup
+
+Closed item #2 above (error tracking is the biggest gap) the same day it was flagged. Chose Sentry
+free tier over building in-house, since the free tier (5k errors + 10k perf events/month) comfortably
+covers current traffic and gets real stack traces, alerting, and Core Web Vitals for free — things an
+in-house Blobs-based logger would take real time to rebuild.
+
+**What shipped, code-side:**
+- `src/lib/monitoring.js` + `src/components/error-boundary.jsx` — a React error boundary wraps the
+  whole app in `src/main.jsx`. A render crash now shows a branded "something went wrong, reload"
+  screen instead of a blank white page, and reports it. The Sentry SDK is dynamically imported —
+  zero bundle weight, zero init cost, until a DSN is configured.
+- `netlify/functions/_sentry.js` + all 25 function handlers wrapped via `withMonitoring()` — catches
+  uncaught exceptions AND any function that returns a 5xx it handled gracefully (the class of error
+  that was invisible before), with a slow-response flag (>3s) as a first perf signal. Explicit
+  `Sentry.flush()` before every return, since Netlify Functions can freeze the process the instant a
+  response goes out.
+- Everything is env-gated exactly like the CRM/Shopify/Campaigns backends already are in this repo:
+  unset `SENTRY_DSN` / `VITE_SENTRY_DSN` = zero behavior change, zero cost, functions and pages run
+  exactly as before.
+
+**Setup — the one remaining step, and it's Rick's, not code:**
+1. Go to sentry.io → create a free account → new project → platform **React** (one project covers
+   both the browser and the functions; Sentry gives one DSN per project either way).
+2. Project → Settings → Client Keys (DSN) → copy the DSN string.
+3. Netlify → Site configuration → Environment variables → add BOTH:
+   - `VITE_SENTRY_DSN` = the DSN (yes, same value, `VITE_`-prefixed copy for the browser build)
+   - `SENTRY_DSN` = the DSN (server-side copy for the functions)
+4. Trigger a redeploy (env vars only take effect on the next build — see `docs/ENV_VARS.md`).
+5. Verify: open the site, check Sentry's Issues stream shows the project as receiving events (a
+   quick way to force one: temporarily throw in a component, confirm it shows up, revert).
+
+Once that's done, the "Fixed, but caught by Rick manually" table in §1 above should stop growing —
+the next incident should show up in Sentry before it shows up as a support message.

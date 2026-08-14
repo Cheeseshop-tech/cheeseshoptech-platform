@@ -16,6 +16,7 @@ import { connectLambda, getStore } from "@netlify/blobs";
 import { requireReadAuth, requireWriteAuth, jsonUnauthorized } from "./_write-guard.js";
 import { logWrite } from "./_write-log.js";
 
+import { withMonitoring } from "./_sentry.js";
 const MAX_BYTES = 400_000; // plenty for thousands of {status,note} rows; guards runaway payloads
 const STAGES = ["New", "Emailed", "Replied", "Meeting", "Won", "Lost", "Not a fit"];
 
@@ -30,7 +31,7 @@ const json = (status, body) => ({
   body: JSON.stringify(body),
 });
 
-export const handler = async (event) => {
+const rawHandler = async (event) => {
   if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: CORS, body: "" };
 
   if (event.httpMethod === "GET") {
@@ -91,3 +92,5 @@ export const handler = async (event) => {
     return json(502, { error: String(err?.message || err) });
   }
 };
+
+export const handler = withMonitoring("crm-outreach", rawHandler);

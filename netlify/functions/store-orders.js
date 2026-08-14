@@ -5,7 +5,9 @@
 
 const API_VERSION = "2024-10";
 
-export const handler = async () => {
+import { withMonitoring } from "./_sentry.js";
+
+const rawHandler = async () => {
   const domain = process.env.SHOPIFY_STORE_DOMAIN;
   const token = process.env.SHOPIFY_ADMIN_TOKEN;
   if (!domain || !token) {
@@ -47,3 +49,5 @@ function json(statusCode, body) {
     body: JSON.stringify(body),
   };
 }
+
+export const handler = withMonitoring("store-orders", rawHandler);

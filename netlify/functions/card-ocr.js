@@ -22,6 +22,7 @@
 // one call = one card. A show is dozens of cards, not thousands.
 
 import { requireReadAuth, jsonUnauthorized } from "./_write-guard.js";
+import { withMonitoring } from "./_sentry.js";
 
 // ~1.5MB of base64 ≈ a 1400px JPEG at q0.75 with generous headroom. Anthropic's own per-image
 // ceiling is higher; this cap exists to stop an un-downscaled 12MP phone photo becoming a
@@ -79,7 +80,7 @@ const RETURN_TOOL = {
 
 const str = (v, max = 200) => (typeof v === "string" ? v.trim().slice(0, max) : "");
 
-export async function handler(event, context) {
+async function rawHandler(event, context) {
   if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: CORS, body: "" };
   if (event.httpMethod !== "POST") return json(405, { error: "POST only" });
 
@@ -178,3 +179,5 @@ export async function handler(event, context) {
     },
   });
 }
+
+export const handler = withMonitoring("card-ocr", rawHandler);

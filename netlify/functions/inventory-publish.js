@@ -8,6 +8,7 @@
 // which has implicit Blobs access.)
 import { connectLambda, getStore } from "@netlify/blobs";
 
+import { withMonitoring } from "./_sentry.js";
 const json = (status, body) => ({
   statusCode: status,
   headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
@@ -28,7 +29,7 @@ function validate(inv) {
   return errs;
 }
 
-export const handler = async (event) => {
+const rawHandler = async (event) => {
   if (event.httpMethod !== "POST") return json(405, { error: "Method not allowed" });
 
   const secret = process.env.INVENTORY_PUBLISH_SECRET;
@@ -54,3 +55,5 @@ export const handler = async (event) => {
     return json(500, { error: "Blobs write failed", detail: String(err && err.message || err) });
   }
 };
+
+export const handler = withMonitoring("inventory-publish", rawHandler);

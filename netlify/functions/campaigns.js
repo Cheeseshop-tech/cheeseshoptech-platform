@@ -3,7 +3,9 @@
 // uses it when VITE_CAMPAIGNS_BACKEND=make. Make must return the campaign array shape in
 // src/lib/campaigns.js (id, name, status, channels, start/end, goal, assets, kpis).
 
-export const handler = async (event) => {
+import { withMonitoring } from "./_sentry.js";
+
+const rawHandler = async (event) => {
   const webhook = process.env.MAKE_CAMPAIGNS_WEBHOOK_URL;
   if (!webhook) return json(500, { error: "MAKE_CAMPAIGNS_WEBHOOK_URL not configured" });
 
@@ -30,3 +32,5 @@ function json(statusCode, body) {
     body: JSON.stringify(body),
   };
 }
+
+export const handler = withMonitoring("campaigns", rawHandler);

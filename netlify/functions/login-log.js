@@ -3,7 +3,8 @@
 import { connectLambda, getStore } from "@netlify/blobs";
 import { requireWriteAuth, jsonUnauthorized } from "./_write-guard.js";
 
-export const handler = async (event) => {
+import { withMonitoring } from "./_sentry.js";
+const rawHandler = async (event) => {
   if (event.httpMethod !== "GET") return json(405, { error: "Method not allowed" });
 
   const auth = requireWriteAuth(event);
@@ -29,3 +30,5 @@ function json(statusCode, body) {
     body: JSON.stringify(body),
   };
 }
+
+export const handler = withMonitoring("login-log", rawHandler);

@@ -8,9 +8,10 @@
 
 import { requireReadAuth, jsonUnauthorized } from "./_write-guard.js";
 
+import { withMonitoring } from "./_sentry.js";
 const OBJECTS = ["contacts", "companies", "deals"];
 
-export const handler = async (event) => {
+const rawHandler = async (event) => {
   // Any valid passcode tier (2026-07-16, wiring-audit P0 #1) — CRM counts + newest contacts
   // (names/emails) used to be readable from a bare URL with zero auth.
   const readAuth = requireReadAuth(event, event.queryStringParameters?.tenant || "");
@@ -62,3 +63,5 @@ function json(statusCode, body) {
     body: JSON.stringify(body),
   };
 }
+
+export const handler = withMonitoring("crm-summary", rawHandler);

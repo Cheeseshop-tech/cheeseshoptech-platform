@@ -9,6 +9,7 @@ import { connectLambda, getStore } from "@netlify/blobs";
 import { requireReadAuth, jsonUnauthorized } from "./_write-guard.js";
 import { logWrite } from "./_write-log.js";
 
+import { withMonitoring } from "./_sentry.js";
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
@@ -36,7 +37,7 @@ function sanitize(r) {
   };
 }
 
-export const handler = async (event) => {
+const rawHandler = async (event) => {
   if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: CORS, body: "" };
 
   // Any valid passcode tier (2026-07-16, wiring-audit P0 #1) — reps on the base client tier
@@ -90,3 +91,5 @@ export const handler = async (event) => {
     return json(500, { error: "history store error", detail: String((err && err.message) || err) });
   }
 };
+
+export const handler = withMonitoring("history", rawHandler);

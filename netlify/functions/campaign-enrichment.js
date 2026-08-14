@@ -23,6 +23,7 @@ import { connectLambda, getStore } from "@netlify/blobs";
 import { requireReadAuth, requireWriteAuth, jsonUnauthorized } from "./_write-guard.js";
 import { logWrite } from "./_write-log.js";
 
+import { withMonitoring } from "./_sentry.js";
 const MAX_BYTES = 600_000;
 // The outcome of one call attempt. "cleared" closes the gap by capturing the missing details;
 // "not-a-prospect" closes it by disqualifying the company. Both stop the row being called again
@@ -42,7 +43,7 @@ const json = (status, body) => ({
 });
 const str = (v, max) => (typeof v === "string" ? v.trim().slice(0, max) : "");
 
-export const handler = async (event) => {
+const rawHandler = async (event) => {
   if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: CORS, body: "" };
 
   if (event.httpMethod === "GET") {
@@ -112,3 +113,5 @@ export const handler = async (event) => {
     return json(502, { error: String(err?.message || err) });
   }
 };
+
+export const handler = withMonitoring("campaign-enrichment", rawHandler);

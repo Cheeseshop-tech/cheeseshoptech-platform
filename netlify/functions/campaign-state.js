@@ -23,6 +23,7 @@ import { connectLambda, getStore } from "@netlify/blobs";
 import { requireReadAuth, requireWriteAuth, jsonUnauthorized } from "./_write-guard.js";
 import { logWrite } from "./_write-log.js";
 
+import { withMonitoring } from "./_sentry.js";
 const MAX_BYTES = 400_000;
 // Mirrors LIFECYCLE in src/lib/campaigns.js. Kept as a literal (not imported) because Netlify
 // functions bundle separately from the Vite app — same reason crm-outreach.js re-lists STAGES.
@@ -49,7 +50,7 @@ const int = (v) => {
   return Number.isFinite(n) && n >= 0 ? Math.min(Math.floor(n), 1e9) : 0;
 };
 
-export const handler = async (event) => {
+const rawHandler = async (event) => {
   if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: CORS, body: "" };
 
   if (event.httpMethod === "GET") {
@@ -150,3 +151,5 @@ export const handler = async (event) => {
     return json(502, { error: String(err?.message || err) });
   }
 };
+
+export const handler = withMonitoring("campaign-state", rawHandler);

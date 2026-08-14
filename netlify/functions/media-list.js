@@ -19,6 +19,7 @@ const BG_REMOVED_TAG = "bg-removed";
 
 import { requireReadAuth, jsonUnauthorized } from "./_write-guard.js";
 
+import { withMonitoring } from "./_sentry.js";
 // Map one Cloudinary Admin API resource to the shape src/lib/media.js expects. Shared by both
 // the legacy (fetch-everything) path and the paged path below so they can never drift.
 function mapResource(r) {
@@ -64,7 +65,7 @@ function withLegacySku(r, legacy) {
   return r;
 }
 
-export const handler = async (event) => {
+const rawHandler = async (event) => {
   // Any valid passcode tier (2026-07-16, wiring-audit P0 #1) — the full asset list (including
   // unapproved/draft) used to be readable from a bare URL with zero auth.
   //
@@ -200,3 +201,5 @@ function json(statusCode, body) {
     body: JSON.stringify(body),
   };
 }
+
+export const handler = withMonitoring("media-list", rawHandler);

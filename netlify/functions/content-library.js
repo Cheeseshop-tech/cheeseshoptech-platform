@@ -25,6 +25,7 @@ import { connectLambda, getStore } from "@netlify/blobs";
 import { requireReadAuth, requireWriteAuth, jsonUnauthorized } from "./_write-guard.js";
 import { logWrite } from "./_write-log.js";
 
+import { withMonitoring } from "./_sentry.js";
 const MAX_BYTES = 1_800_000; // catalog metadata + authored text; files still live in Cloudinary
 const MAX_ENTRIES = 500;     // far above any per-tenant quota; a runaway guard, not the quota
 const MAX_BODY = 20_000;     // one piece of authored copy (email body, call script)
@@ -47,7 +48,7 @@ const json = (status, body) => ({
 });
 const str = (v, max) => (typeof v === "string" ? v.slice(0, max) : "");
 
-export const handler = async (event) => {
+const rawHandler = async (event) => {
   if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: CORS, body: "" };
 
   if (event.httpMethod === "GET") {
@@ -120,3 +121,5 @@ export const handler = async (event) => {
     return json(502, { error: String(err?.message || err) });
   }
 };
+
+export const handler = withMonitoring("content-library", rawHandler);

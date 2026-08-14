@@ -8,6 +8,7 @@
 import { connectLambda, getStore } from "@netlify/blobs";
 import { requireReadAuth, jsonUnauthorized } from "./_write-guard.js";
 
+import { withMonitoring } from "./_sentry.js";
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, OPTIONS",
@@ -19,7 +20,7 @@ const json = (status, body, extra = {}) => ({
   body: JSON.stringify(body),
 });
 
-export const handler = async (event) => {
+const rawHandler = async (event) => {
   if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: CORS, body: "" };
 
   const tenant = (event.queryStringParameters?.tenant || "").replace(/[^a-z0-9-]/gi, "");
@@ -45,3 +46,5 @@ export const handler = async (event) => {
     return json(200, { inventory: null, source: "error", error: String(err && err.message || err) });
   }
 };
+
+export const handler = withMonitoring("inventory", rawHandler);

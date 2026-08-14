@@ -6,6 +6,39 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 > Format convention: `## YYYY-MM-DD — Title` · **Decision / Action / Status** ·
 > keep entries short and factual. This file is the project's memory.
 
+## 2026-08-14 — Error tracking + performance monitoring (Sentry), env-gated
+
+**Why.** An app-health audit run this session (`docs/APP_HEALTH_AND_ROADMAP_2026-08-14.md`) found
+the biggest gap wasn't a missing feature — it was that the platform had zero error/perf monitoring.
+Every incident on record (2026-07-24 blank images, 2026-07-25 PNG 400s, 2026-08-13 silently-404ing
+logo) was caught by Rick noticing something looked wrong, never by the app. Rick's call (asked via
+two questions): Sentry free tier over building in-house, covering both the browser AND all 25
+Netlify Functions.
+
+**Shipped.** `src/lib/monitoring.js` + `src/components/error-boundary.jsx` — a React error boundary
+now wraps the whole app (`main.jsx`); a render crash shows a branded "reload" screen and reports it,
+instead of a blank white page. The Sentry SDK is dynamically imported, so a session without a DSN
+pays zero bundle cost. `netlify/functions/_sentry.js` + a `withMonitoring()` wrapper applied to all
+25 function handlers — catches uncaught exceptions AND any function that returns a 5xx it handled
+gracefully (the exact class of failure that was invisible before), with a >3s slow-response flag as
+a first perf signal. Explicit `Sentry.flush()` before every function return, since Netlify Functions
+can freeze the process the instant a response goes out — an un-flushed capture is a silently
+dropped one.
+
+**Env-gated, same pattern as CRM/Shopify/Campaigns.** `VITE_SENTRY_DSN` (browser) + `SENTRY_DSN`
+(functions) are both unset today — zero behavior change, zero cost, everything runs exactly as
+before until Rick creates the free Sentry account and sets them in Netlify. Steps in
+`docs/APP_HEALTH_AND_ROADMAP_2026-08-14.md` §6 and `docs/ENV_VARS.md`.
+
+**Mechanical note for future reference.** Wrapping 25 function files was scripted (regex rename the
+internal `handler` declaration, insert the import, append the wrapped export) rather than done by
+hand — first pass caused an `Identifier 'handler' has already been declared` syntax error across
+every file (the wrapped export line also declares `const handler`, colliding with the original
+declaration in the same module scope); fixed by renaming the internal one to `rawHandler`. Verified
+with `node --check` on all 29 function files before calling it done.
+
+---
+
 ## 2026-08-13 — DIRECTIVE: brand assets resolve through the Media Hub, never a hand-typed id
 
 **Rick:** "Cloudinary is the database for images, Media Hub is the local UI — would it be better to

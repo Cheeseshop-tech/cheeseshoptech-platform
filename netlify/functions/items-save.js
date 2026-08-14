@@ -9,9 +9,10 @@ import { createHash } from "node:crypto";
 import { requireWriteAuth, jsonUnauthorized } from "./_write-guard.js";
 import { logWrite, tenantFromPath } from "./_write-log.js";
 
+import { withMonitoring } from "./_sentry.js";
 const MAX_BYTES = 900_000; // items.json is text; ~1 MB guard against runaway payloads
 
-export const handler = async (event) => {
+const rawHandler = async (event) => {
   if (event.httpMethod !== "POST") return json(405, { error: "Method not allowed" });
 
   let body;
@@ -81,3 +82,5 @@ export const handler = async (event) => {
 function json(statusCode, body) {
   return { statusCode, headers: { "content-type": "application/json" }, body: JSON.stringify(body) };
 }
+
+export const handler = withMonitoring("items-save", rawHandler);

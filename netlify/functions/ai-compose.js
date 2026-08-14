@@ -51,6 +51,7 @@ import { logWrite } from "./_write-log.js";
 import { fetchAssetPool, scoreCandidates } from "./_media-candidates.js";
 import { getSlideTemplate, templateAlternates } from "../../src/lib/slide-templates.js";
 
+import { withMonitoring } from "./_sentry.js";
 const MAX_SLIDES = 20;
 const MAX_BRIEF_CHARS = 24_000; // rough token-cost guard on the outbound prompt
 const MAX_TEXT_LEN = 2000;
@@ -65,7 +66,7 @@ const MAX_INSTRUCTION_LEN = 400;
 const IMAGE_KEY = /image/i;
 const IMG_N_KEY = /^img\d*$/i;
 
-export const handler = async (event) => {
+const rawHandler = async (event) => {
   if (event.httpMethod !== "POST") return json(405, { error: "Method not allowed" });
 
   let body;
@@ -463,3 +464,5 @@ const RETURN_TOOL = {
 function json(statusCode, body) {
   return { statusCode, headers: { "content-type": "application/json" }, body: JSON.stringify(body) };
 }
+
+export const handler = withMonitoring("ai-compose", rawHandler);
