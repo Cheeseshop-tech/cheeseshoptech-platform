@@ -449,11 +449,30 @@ Rules going forward: sandbox git = read-only with `GIT_OPTIONAL_LOCKS=0`, never 
 `7f94011` + `1742a94` confirmed on origin; Netlify deploy triggered. To ship the new Slice 3 work below:
 double-click **`COMMIT MARKET NEWS.command`**.
 
-**Now unblocked on the Netlify side (verify next session):** `VITE_CRM_BACKEND=hubspot` was added as a site env var with **Builds**
-scope (confirmed correct — Post processing, the first attempt, would NOT work for a Vite build-time var) —
-but it can't take effect until the push above lands and triggers a new deploy. Once deployed, re-test
-`https://montitrentini.cheeseshoptech.com/.netlify/functions/crm-hubspot` (should return JSON with real
-company data, not the SPA HTML shell) and check the Opportunities lane for real Monti accounts.
+**~~Now unblocked on the Netlify side (verify next session)~~ — ✅ CLOSED 2026-08-15, verified deployed.**
+`VITE_CRM_BACKEND=hubspot` was added as a site env var with **Builds** scope (confirmed correct — Post
+processing, the first attempt, would NOT work for a Vite build-time var); it could not take effect until a
+push landed and triggered a new deploy. **That deploy has since landed.** Verification run 2026-08-15:
+
+- `GET /.netlify/functions/crm-hubspot` → **HTTP 401 `application/json`** (`{"error":"Missing passcode …"}`),
+  i.e. real JSON from a deployed function, **not the SPA HTML shell** — the stated pass condition. The 401 is
+  the `_write-guard` read gate doing its job, not a failure.
+- Deployed bundle `/assets/index-*.js` inlines **`VITE_CRM_BACKEND:"hubspot"`** in the runtime env object.
+  (Note: `agency-console.jsx` does `const ENV = import.meta.env` then `ENV.VITE_CRM_BACKEND`, a dynamic
+  property read — so Vite emits a runtime env object rather than substituting a string literal. Grep the
+  bundle for `VITE_CRM_BACKEND:` to read the deployed value, not for a bare `"hubspot"` literal.)
+- Working tree clean and in sync with `origin/phase-2-6-build`; nothing unpushed.
+
+**Do not re-debug this as a token problem.** A 2026-08-15 session lost time on that: Netlify's `HUBSPOT_TOKEN`
+holds an older token (`pat-na2-2aed1d25…`) that differs from the one on the `CheeseShop TECH-read-only`
+private app (`pat-na2-c6e50e33…`), which reads as suspicious but is not the bug — **both authenticate 200
+against the correct portal 246062426**, and the older one is the one actually serving production (which is
+why the read-only app shows zero API calls). Env var naming matches the code (`HUBSPOT_TOKEN`) everywhere.
+Leave the Netlify value alone unless consolidating deliberately.
+
+**Still unverified (needs a passcode, so do it in the browser):** that real accounts *render*. Open the CRM
+page — it self-reports `HubSpot live ✓ N accounts` or the sample-data warning (`crm-page.jsx` ~L201) — and
+check the Opportunities lane for real Monti accounts.
 
 ### Earlier still-open item (2026-06-16, may be resolved — verify before redoing)
 The CheeseShop TECH **landing page v1** + apex wiring were written and build-verified as of 2026-06-16 but
