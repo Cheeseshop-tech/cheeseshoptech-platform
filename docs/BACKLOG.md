@@ -12,6 +12,12 @@ See `docs/CONTINUAL_IMPROVEMENT.md` for the loop. Updated 2026-06-18.
   exact-weight "firm" in the on-screen proforma; carry proforma → weighed → final-invoice states.
 
 ## Next
+- [high/med] **Photo series per SKU (typed, ordered)** — move off one-image-per-code
+  (`imageForCode` takes the first match) to the pack shot / beauty / styled series CLAUDE.md commits
+  to. Do it expand → adapter → contract so Catalog, Proposals, Pricing, and Studio Director migrate
+  one at a time; also settles the four double-packshot SKUs in `IMAGE_HEALTH_2026-07-09.md`. Step-by-step
+  plan in `docs/IMAGE_PIPELINE_SPEC.md` § "Migration plan — one image per code → typed, ordered series".
+  Rick's Cloudinary tagging pass can start now, ahead of any code change.
 - [med/med] **Create a campaign from the UI** — campaign definitions are seeded in `src/lib/campaigns.js`;
   lifecycle state (status/checklist/results) already round-trips through Blobs. Needs a write path for
   definitions too. See `docs/HANDOFF_2026-08-03_campaign-pill-nav-and-email-lifecycle.md`.

@@ -91,6 +91,64 @@ Two stores → one sync job → one canonical manifest per tenant → the `cldIm
 - [ ] First-load of any gallery is fast for a brand-new visitor (derivatives pre-warmed).
 - [ ] Removing/renaming an image in Cloudinary is reflected everywhere after one sync.
 
+## Migration plan — one image per code → typed, ordered series (not started)
+
+**Why this section exists.** CLAUDE.md (2026-07-13) commits the image model to a *series* per SKU,
+classified by type: **pack shot** · **beauty shot** · **styled photo**. Today `imageForCode()`
+(`src/lib/images.js:38`) returns the **first** manifest record whose `code` or `sku` matches, and
+four surfaces resolve a SKU's photo through it or through `codeImageUrl()`: Product Catalog,
+Proposals, Pricing Tool, and Studio Director. Changing the return shape in place breaks all four in
+the same deploy. This is the plan for not doing that.
+
+It also fixes a live ambiguity: `IMAGE_HEALTH_2026-07-09.md` records four SKUs carrying two
+packshots each, where whichever record sorts first silently wins the SKU. Type ranking makes that
+outcome deliberate instead of incidental.
+
+**Rule: additive first, destructive last and alone.** Each step below is independently deployable,
+and old and new code are both valid against the manifest at every step.
+
+### Expand — nothing reads it yet
+
+1. **`scripts/sync-images.mjs` writes two new optional fields** per record: `type`
+   (`"packshot"` | `"beauty"` | `"styled"`), derived from the Cloudinary tag, and `order`
+   (integer, optional manual override). Records with no type tag get **no** `type` key — absent,
+   not defaulted, so "untyped" stays distinguishable from "confirmed packshot". Existing readers
+   ignore both fields; the manifest stays backward-compatible.
+2. **Add `imagesForCode(resolved, code)`** to `src/lib/images.js` — returns the **ordered array**
+   of records for a code: explicit `order` first, then type rank (packshot → beauty → styled),
+   then untyped, then existing manifest order as the stable tiebreak. `imageForCode()` is
+   untouched. Nothing calls the new function yet.
+
+Rick's manual tagging pass in Cloudinary runs against step 1 and can proceed **ahead of and in
+parallel with** any code change — untyped records still resolve exactly as they do today.
+
+### Migrate — adapter, one surface at a time
+
+3. **Reduce `imageForCode()` to an adapter:** `imagesForCode(resolved, code)[0] ?? null`. Same
+   signature, same return type, so `codeImageUrl()` (line 151) and `isPlaceholderImage()` (line 72)
+   need no edit. Behavior changes only for codes holding more than one record — verify that pass
+   against the four SKUs named in `IMAGE_HEALTH_2026-07-09.md` before shipping it.
+4. **Move consumers individually**, each its own deploy:
+   - **Product Catalog** — first real consumer of the series (PDP gallery / ordered thumbnails).
+   - **Media Hub** — group a code's records instead of listing them flat; surface `type` as a facet.
+   - **Proposals / Pricing / Studio Director** — these genuinely want exactly one image. Switch them
+     to an explicit `imagesForCode(...)[0]` so the single-image choice is visible at the call site
+     rather than implied by a helper name.
+
+### Contract — separate, later deploy
+
+5. Once `grep -rn "imageForCode" src/` shows only the adapter itself, either keep it as a
+   documented one-line convenience (acceptable — it is no longer load-bearing) or delete it in a
+   commit that touches nothing else.
+
+### Additional acceptance criteria
+
+- [ ] A SKU with a pack shot, a beauty shot, and a styled photo renders all three in the Catalog,
+      in that order, from one manifest.
+- [ ] A SKU with a single untyped record renders exactly as it does today — no regression.
+- [ ] The four double-packshot SKUs resolve to a deliberate winner, not the first match by chance.
+- [ ] No commit changes `imageForCode()`'s contract and a consumer at the same time.
+
 ## Open questions
 
 - **(Rick/Claude)** Run sync as a build-time script (committed `images.json`, simplest) or a live

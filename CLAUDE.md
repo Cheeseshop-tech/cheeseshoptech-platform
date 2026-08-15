@@ -38,6 +38,13 @@ image model moves from today's *one image per SKU* (`imageForCode` takes the fir
 **type-tagged, ordered multi-image set per code** — a design item to fold into the catalog/media
 build (see `docs/IMAGE_PIPELINE_SPEC.md`, `docs/ASSET_LIBRARY_SPEC.md`, `docs/MEDIA_HUB.md`).
 
+> **TRIGGER (2026-08-15) — read before touching `src/lib/images.js` or any SKU-image consumer.**
+> `imageForCode` has four consumers (Catalog, Proposals, Pricing, Studio Director). Changing its
+> return shape in place breaks all four in one deploy. The migration is planned expand → adapter →
+> contract in `docs/IMAGE_PIPELINE_SPEC.md` § "Migration plan — one image per code → typed, ordered
+> series"; backlog item under **Next**. Rick's Cloudinary type-tagging pass can run now, ahead of
+> any code change.
+
 **Ownership (Rick is driving the manual pass):**
 - Rick will **put item numbers on all product-catalog shots** — this tags existing hub images to
   their codes and is the starting point for the catalog.
