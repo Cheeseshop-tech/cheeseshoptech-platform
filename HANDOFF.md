@@ -458,21 +458,42 @@ push landed and triggered a new deploy. **That deploy has since landed.** Verifi
   i.e. real JSON from a deployed function, **not the SPA HTML shell** — the stated pass condition. The 401 is
   the `_write-guard` read gate doing its job, not a failure.
 - Deployed bundle `/assets/index-*.js` inlines **`VITE_CRM_BACKEND:"hubspot"`** in the runtime env object.
-  (Note: `agency-console.jsx` does `const ENV = import.meta.env` then `ENV.VITE_CRM_BACKEND`, a dynamic
-  property read — so Vite emits a runtime env object rather than substituting a string literal. Grep the
-  bundle for `VITE_CRM_BACKEND:` to read the deployed value, not for a bare `"hubspot"` literal.)
+  Re-confirmed after an unrelated rebuild landed mid-session (hash `B_0ZaRhS` → `BBKIDZyU`), so the var is
+  set at the **site** level and survives rebuilds — not an artifact of one lucky build.
+- **Rick confirmed the CRM page renders real accounts** (the `HubSpot live ✓` state, not sample data).
+  End-to-end chain verified: Netlify env → build → function → HubSpot → rendered UI.
 - Working tree clean and in sync with `origin/phase-2-6-build`; nothing unpushed.
+
+**Two traps when verifying this from the bundle** — both produce a convincing false "the config is gone":
+1. `agency-console.jsx` does `const ENV = import.meta.env` then `ENV.VITE_CRM_BACKEND` — a dynamic property
+   read, so Vite emits a **runtime env object** instead of substituting a string literal. Grep for
+   `VITE_CRM_BACKEND:`, never for a bare `"hubspot"` literal.
+2. Asset hashes change on every deploy, and requesting a **stale** hash returns Netlify's SPA HTML fallback
+   with **HTTP 200** (~1.8 KB of `text/html`), not a 404. The grep then finds nothing and looks like proof of
+   breakage. Always pull the current hash from `index.html` first:
+   `curl -s https://montitrentini.cheeseshoptech.com/ | grep -oE '/assets/[A-Za-z0-9._-]+\.js'`
 
 **Do not re-debug this as a token problem.** A 2026-08-15 session lost time on that: Netlify's `HUBSPOT_TOKEN`
 holds an older token (`pat-na2-2aed1d25…`) that differs from the one on the `CheeseShop TECH-read-only`
-private app (`pat-na2-c6e50e33…`), which reads as suspicious but is not the bug — **both authenticate 200
-against the correct portal 246062426**, and the older one is the one actually serving production (which is
-why the read-only app shows zero API calls). Env var naming matches the code (`HUBSPOT_TOKEN`) everywhere.
-Leave the Netlify value alone unless consolidating deliberately.
+private app, which reads as suspicious but is not the bug — **both authenticated 200 against the correct
+portal 246062426**, and the older one is the one actually serving production (which is why the read-only app
+shows zero API calls). Env var naming matches the code (`HUBSPOT_TOKEN`) everywhere. Leave the Netlify value
+alone unless consolidating deliberately.
 
-**Still unverified (needs a passcode, so do it in the browser):** that real accounts *render*. Open the CRM
-page — it self-reports `HubSpot live ✓ N accounts` or the sample-data warning (`crm-page.jsx` ~L201) — and
-check the Opportunities lane for real Monti accounts.
+**Token rotation, 2026-08-15.** The `CheeseShop TECH-read-only` app's token was pasted in plaintext into a
+chat transcript, so it was rotated in HubSpot with **immediate** expiry of the old value. Verified dead
+(that token now returns **401**, was 200); production verified unaffected in the same pass, as expected —
+**nothing in the stack reads that token**, it is not the one in Netlify. The app itself was kept, not
+deleted: it is named, scoped and traceable, making it the right target if the anonymous `…2aed1d25` is ever
+consolidated away. **Never paste a live token into a chat/transcript — put it straight into the Netlify env
+UI.** That paste is the entire reason this rotation was needed.
+
+**Open / optional — consolidate onto the named app.** Retire the anonymous `…2aed1d25` in favour of
+`CheeseShop TECH-read-only`. Needs its own pass, and note the scope trap: `crm-push.js` performs real
+**writes** (PATCH/POST `/crm/v3/objects/contacts` at ~L151/L153 plus associations at ~L177), so the
+replacement token needs contacts **write**, not just the three reads `crm-summary.js` documents. The scopes
+on `…2aed1d25` are unknown, so swapping blind risks silently breaking commits. Sequence: confirm scopes →
+swap → redeploy → exercise a real contact write (dry-run *and* commit) before calling it done.
 
 ### Earlier still-open item (2026-06-16, may be resolved — verify before redoing)
 The CheeseShop TECH **landing page v1** + apex wiring were written and build-verified as of 2026-06-16 but
