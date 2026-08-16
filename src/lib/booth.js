@@ -803,7 +803,20 @@ export async function pushToHubspot(resolved, captures, { commit = false } = {})
       body: JSON.stringify({ tenant: resolved.id, rows: ready.map((c) => toPushRow(c, { deals })), commit }),
     });
     const data = await res.json().catch(() => ({}));
-    return { ok: res.ok, status: res.status, dryRun: !commit, pushedIds: res.ok && commit ? ready.map((c) => c.id) : [], ...data };
+    // Stamp only what HubSpot actually CONFIRMED, derived from `results` — not a blanket
+    // "res.ok ⇒ everything landed". crm-push loops row by row and returns `results` on BOTH the
+    // success path AND a mid-loop failure (where it also sets `partial: true`), so a push that dies
+    // on row 12 still reports the 11 that wrote. The old blanket stamp lost that entirely: on a
+    // partial, `res.ok` is false, nothing was marked, and the next sync replayed the rows that had
+    // already succeeded. Contacts survive a replay (crm-push upserts on email), but the call NOTE is
+    // created unconditionally — so replaying duplicated the note on every already-pushed contact.
+    const confirmed = new Set(
+      (data.results || []).map((r) => String(r?.email || "").trim().toLowerCase()).filter(Boolean),
+    );
+    const pushedIds = commit
+      ? ready.filter((c) => confirmed.has(String(c.email || "").trim().toLowerCase())).map((c) => c.id)
+      : [];
+    return { ok: res.ok, status: res.status, dryRun: !commit, ...data, pushedIds };
   } catch (e) {
     // Offline is the expected case here, not an exception — the captures stay local and the rep
     // syncs from anywhere with a signal later. Nothing is lost by a failed push.

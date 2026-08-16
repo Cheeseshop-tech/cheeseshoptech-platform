@@ -142,6 +142,7 @@ export function BoothTool({ resolved }) {
   const [nav, setNav] = useState({ region: null, state: null, city: null });
   const [sheet, setSheet] = useState(null);
   const [syncMsg, setSyncMsg] = useState("");
+  const [syncFailed, setSyncFailed] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [flash, setFlash] = useState("");
   const [scanning, setScanning] = useState(false);
@@ -600,23 +601,60 @@ export function BoothTool({ resolved }) {
   }
 
   async function runSync(commit) {
-    setSyncing(true); setSyncMsg("");
+    setSyncing(true); setSyncMsg(""); setSyncFailed(false);
     const res = await pushToHubspot(resolved, captures, { commit });
+    const landed = (res.pushedIds || []).length;
+
+    // Stamp confirmed rows BEFORE branching on ok. A partial push fails overall (`res.ok` false)
+    // while still having written some rows; those must be marked so the next sync doesn't replay
+    // them and duplicate their HubSpot notes.
+    if (commit && landed) {
+      const stamped = new Date().toISOString();
+      let doc = loadBooth(tenantId);
+      for (const id of res.pushedIds) doc = updateCapture(tenantId, id, { pushedAt: stamped });
+      persist(doc);
+    }
+
     if (!res.ok) {
+      setSyncFailed(true);
       setSyncMsg(
         res.status === 0 ? "No connection — captures stay on this device. Sync when you have signal."
         : res.status === 401 ? "Admin passcode required to write to HubSpot."
-        : `HubSpot refused the push (${res.status}). Captures are safe on this device.`
+        : [
+            `HubSpot refused the push (${res.status}).`,
+            // A partial is the dangerous case to leave vague: "nothing was sent" would be a lie,
+            // and the rep needs to know the remainder is still queued rather than re-entering it.
+            landed
+              ? `${landed} contact${landed === 1 ? "" : "s"} wrote before it stopped — marked synced, so they won't be sent twice.`
+              : "Nothing was written.",
+            `${Math.max(0, ready.length - landed)} still queued on this device.`,
+            // crm-push builds a precise 403 hint (which scope, which endpoint, dry-run vs commit).
+            // Surface it verbatim — discarding it is what turns "missing contacts.write" into an
+            // opaque number nobody can act on at a booth.
+            res.hint || (res.requiredScopes?.length ? `HubSpot requires: ${res.requiredScopes.join(", ")}.` : ""),
+          ].filter(Boolean).join(" ")
       );
     } else if (res.dryRun) {
-      const n = (res.planned || []).length;
-      setSyncMsg(`Dry run OK — ${n} contact${n === 1 ? "" : "s"} ready to write. Nothing sent yet.`);
+      const plans = res.planned || [];
+      const creates = plans.filter((p) => p.action === "create").length;
+      setSyncMsg(
+        `Dry run OK — ${plans.length} contact${plans.length === 1 ? "" : "s"} planned `
+        + `(${creates} new, ${plans.length - creates} updated). Nothing sent yet. `
+        + `Heads up: a dry run only READS HubSpot, so it cannot prove the write permission — only a real Sync can.`
+      );
     } else {
-      const stamped = new Date().toISOString();
-      let doc = loadBooth(tenantId);
-      for (const id of res.pushedIds || []) doc = updateCapture(tenantId, id, { pushedAt: stamped });
-      persist(doc);
-      setSyncMsg(`Pushed ${(res.pushedIds || []).length} contact(s) to HubSpot.`);
+      // A 200 does NOT mean every sub-write landed: crm-push catches per-row association and note
+      // failures, records them on the plan, and keeps going. Silently reporting "Pushed N" would
+      // hide an orphaned contact (created, but never linked to its company).
+      const plans = res.planned || [];
+      const linkFails = plans.filter((p) => p.associationError).length;
+      const noteFails = plans.filter((p) => p.noteError).length;
+      const warn = [
+        linkFails ? `${linkFails} could not be linked to its company` : "",
+        noteFails ? `${noteFails} could not attach the call note` : "",
+      ].filter(Boolean).join("; ");
+      setSyncFailed(!!warn);
+      setSyncMsg(`Pushed ${landed} contact${landed === 1 ? "" : "s"} to HubSpot.` + (warn ? ` ⚠ ${warn} — check ${linkFails || noteFails === 1 ? "it" : "them"} in HubSpot.` : ""));
     }
     setSyncing(false);
   }
@@ -896,7 +934,23 @@ export function BoothTool({ resolved }) {
               <button className="btn" onClick={() => runSync(true)} disabled={syncing || !ready.length || !online}>Sync to HubSpot</button>
             </div>
           )}
-          {syncMsg && <p className="muted" style={{ margin: "0 0 8px" }}>{syncMsg}</p>}
+          {/* A failed sync must not read like a successful one at a glance — this gets scanned on a
+              phone, in a warehouse, mid-conversation. Failures get the warning colour and weight;
+              routine confirmations stay muted. */}
+          {syncMsg && (
+            <p
+              className={syncFailed ? "" : "muted"}
+              role={syncFailed ? "alert" : undefined}
+              style={{
+                margin: "0 0 8px",
+                ...(syncFailed
+                  ? { color: "var(--cs-color-warning)", fontWeight: 600, borderLeft: "3px solid var(--cs-color-warning)", paddingLeft: 10 }
+                  : null),
+              }}
+            >
+              {syncMsg}
+            </p>
+          )}
         </>
       )}
 
