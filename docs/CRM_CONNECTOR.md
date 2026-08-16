@@ -1,7 +1,7 @@
 # CheeseShop TECH — CRM Connector
 
 **Status:** ✅ **LIVE — direct HubSpot** (`VITE_CRM_BACKEND=hubspot`, verified rendering real accounts
-2026-08-15) · **Last updated:** 2026-08-15
+2026-08-16) · **Last updated:** 2026-08-16
 
 > **⚠️ 2026-07-16 — the Make path for CRM was DELETED. This doc previously described it as the way to
 > wire CRM data; that is no longer true and following it will waste your time.**
@@ -95,7 +95,7 @@ CRM is live in production. Nothing here is an open task; kept as the record of w
 | Netlify env | `HUBSPOT_TOKEN` (private-app token, server-side only) |
 | Build var | `VITE_CRM_BACKEND=hubspot`, **Builds** scope |
 | Tenant config | `crm: "hubspot"` in `config/clients/montitrentini.json` |
-| Verified | 2026-08-15 — CRM page renders `HubSpot live ✓` with real accounts |
+| Verified | 2026-08-16 — CRM page renders `HubSpot live ✓` with real accounts |
 
 **How to verify it yourself — and the two ways people get a false answer:**
 
@@ -109,7 +109,7 @@ CRM is live in production. Nothing here is an open task; kept as the record of w
    finds nothing and looks like proof of breakage. Pull the current hash from `index.html` first, then grep
    for `VITE_CRM_BACKEND:` (Vite emits a runtime env object here, not a substituted literal).
 
-Full incident detail: `HANDOFF.md` (2026-08-15 close-out).
+Full incident detail: `HANDOFF.md` (2026-08-16 close-out).
 
 ---
 

@@ -449,10 +449,10 @@ Rules going forward: sandbox git = read-only with `GIT_OPTIONAL_LOCKS=0`, never 
 `7f94011` + `1742a94` confirmed on origin; Netlify deploy triggered. To ship the new Slice 3 work below:
 double-click **`COMMIT MARKET NEWS.command`**.
 
-**~~Now unblocked on the Netlify side (verify next session)~~ — ✅ CLOSED 2026-08-15, verified deployed.**
+**~~Now unblocked on the Netlify side (verify next session)~~ — ✅ CLOSED 2026-08-16, verified deployed.**
 `VITE_CRM_BACKEND=hubspot` was added as a site env var with **Builds** scope (confirmed correct — Post
 processing, the first attempt, would NOT work for a Vite build-time var); it could not take effect until a
-push landed and triggered a new deploy. **That deploy has since landed.** Verification run 2026-08-15:
+push landed and triggered a new deploy. **That deploy has since landed.** Verification run 2026-08-16:
 
 - `GET /.netlify/functions/crm-hubspot` → **HTTP 401 `application/json`** (`{"error":"Missing passcode …"}`),
   i.e. real JSON from a deployed function, **not the SPA HTML shell** — the stated pass condition. The 401 is
@@ -477,14 +477,14 @@ push landed and triggered a new deploy. **That deploy has since landed.** Verifi
    breakage. Always pull the current hash from `index.html` first:
    `curl -s https://montitrentini.cheeseshoptech.com/ | grep -oE '/assets/[A-Za-z0-9._-]+\.js'`
 
-**Do not re-debug this as a token problem.** A 2026-08-15 session lost time on that: Netlify's `HUBSPOT_TOKEN`
+**Do not re-debug this as a token problem.** A 2026-08-16 session lost time on that: Netlify's `HUBSPOT_TOKEN`
 holds an older token (`pat-na2-2aed1d25…`) that differs from the one on the `CheeseShop TECH-read-only`
 private app, which reads as suspicious but is not the bug — **both authenticated 200 against the correct
 portal 246062426**, and the older one is the one actually serving production (which is why the read-only app
 shows zero API calls). Env var naming matches the code (`HUBSPOT_TOKEN`) everywhere. Leave the Netlify value
 alone unless consolidating deliberately.
 
-**Token rotation, 2026-08-15.** The `CheeseShop TECH-read-only` app's token was pasted in plaintext into a
+**Token rotation, 2026-08-16.** The `CheeseShop TECH-read-only` app's token was pasted in plaintext into a
 chat transcript, so it was rotated in HubSpot with **immediate** expiry of the old value. Verified dead (that
 token now returns **401**, was 200). Production verified unaffected **by reloading the CRM page** and seeing
 `HubSpot live ✓` — not by the curl above, which cannot test the credential (see the ⚠️ note). The app itself
@@ -597,8 +597,8 @@ The platform = the Monti **month-long stand-up** (connect tools → strategy →
 - **[done] Auth** → passcode gate LIVE. ✓
 - **CRM** → ~~keep **sample data** for the pilot~~ … ~~wire it (Make scenario, **steps in
   `CRM_CONNECTOR.md`**)~~ ~~Code ready (`MAKE_WEBHOOK_URL` + `VITE_CRM_BACKEND=make`)~~.
-  **[SUPERSEDED — CRM is live on direct HubSpot as of 2026-08-15; the Make steps referenced here were
-  deleted from `CRM_CONNECTOR.md` on 2026-07-16. See the 2026-08-15 close-out earlier in this file.]**
+  **[SUPERSEDED — CRM is live on direct HubSpot as of 2026-08-16; the Make steps referenced here were
+  deleted from `CRM_CONNECTOR.md` on 2026-07-16. See the 2026-08-16 close-out earlier in this file.]**
   Still accurate from this entry: Monti = **HubSpot** (config `crm:hubspot`); Salesforce never active →
   dead/ignored; HubSpot had **no deals yet** at the time.
 - **Storefront** → Shopify headless. Needs a **real Shopify store w/ Storefront API** (mt-e-comm is a static mock) + `SHOPIFY_STORE_DOMAIN` / `SHOPIFY_STOREFRONT_TOKEN` / `SHOPIFY_ADMIN_TOKEN` + `VITE_STORE_BACKEND=shopify`. Post-token code is small (hydrate already wired).

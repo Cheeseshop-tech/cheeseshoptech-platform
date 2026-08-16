@@ -43,7 +43,7 @@ The docs' "commit + push → Netlify auto-deploys" describes the *intended* setu
 - [ ] **[Rick]** Confirm Cloudflare SSL/TLS = **Full (strict)**; optionally upload the Origin Certificate (OM §2.1).
 - [ ] **[Rick]** Registrar **auto-renew ON** for `cheeseshoptech.com`.
 
-### 6. CRM — ✅ LIVE (direct HubSpot, verified 2026-08-15)
+### 6. CRM — ✅ LIVE (direct HubSpot, verified 2026-08-16)
 - [x] **[Claude]** Live read built: `netlify/functions/crm-hubspot.js` calls the HubSpot API directly, token
       server-side. Activated with `VITE_CRM_BACKEND=hubspot` (**Builds** scope — a Vite build-time var).
 - [x] **[Rick]** `HUBSPOT_TOKEN` set in Netlify env; CRM page verified rendering real accounts.
