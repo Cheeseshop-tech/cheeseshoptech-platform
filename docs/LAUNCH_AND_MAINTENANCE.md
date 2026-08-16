@@ -43,10 +43,17 @@ The docs' "commit + push → Netlify auto-deploys" describes the *intended* setu
 - [ ] **[Rick]** Confirm Cloudflare SSL/TLS = **Full (strict)**; optionally upload the Origin Certificate (OM §2.1).
 - [ ] **[Rick]** Registrar **auto-renew ON** for `cheeseshoptech.com`.
 
-### 6. CRM (Phase 6 — dashboard built; backend wiring)
-- [x] **[Claude]** `crm` Netlify function built (`netlify/functions/crm.js`, proxies the Make webhook). To activate: set `MAKE_WEBHOOK_URL` + `VITE_CRM_BACKEND=make`.
-- [ ] **[Rick]** Build the Make scenario: client CRM (HubSpot/etc.) → dashboard data shape (OM §7 / docs/CRM_CONNECTOR.md); expose as a webhook → set `MAKE_WEBHOOK_URL` in Netlify env.
-- [ ] **[Rick]** CRM tokens in Netlify env. Wire HubSpot (agency) + Monti's CRM for the pilot.
+### 6. CRM — ✅ LIVE (direct HubSpot, verified 2026-08-15)
+- [x] **[Claude]** Live read built: `netlify/functions/crm-hubspot.js` calls the HubSpot API directly, token
+      server-side. Activated with `VITE_CRM_BACKEND=hubspot` (**Builds** scope — a Vite build-time var).
+- [x] **[Rick]** `HUBSPOT_TOKEN` set in Netlify env; CRM page verified rendering real accounts.
+- [x] ~~**[Rick]** Build the Make scenario → set `MAKE_WEBHOOK_URL`~~ — **CANCELLED 2026-07-16, do not do
+      this.** The Make CRM leg was deleted: there is no `netlify/functions/crm.js`, `MAKE_WEBHOOK_URL` is
+      dead in code, and `make` is not a valid `VITE_CRM_BACKEND` value. Superseded by the direct-HubSpot
+      read above. (Make is still live for *campaigns* via `MAKE_CAMPAIGNS_WEBHOOK_URL` — that one stays.)
+- [ ] **[Rick]** *Only remaining CRM item:* confirm `crm.objects.contacts.write` on the private app owning
+      the token in `HUBSPOT_TOKEN` — required by `crm-push.js` to sync booth/enrichment captures as
+      contacts. A passing **dry run does not prove it** (dry run only searches); only a real commit does.
 
 ### 6b. Tools module — connect Monti's existing tools
 - [x] **Shopify storefront URL** set → `https://mt-e-comm.netlify.app/ui_kits/shopify-store/` (live tile).

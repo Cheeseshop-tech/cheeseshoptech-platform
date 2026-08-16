@@ -456,7 +456,11 @@ push landed and triggered a new deploy. **That deploy has since landed.** Verifi
 
 - `GET /.netlify/functions/crm-hubspot` → **HTTP 401 `application/json`** (`{"error":"Missing passcode …"}`),
   i.e. real JSON from a deployed function, **not the SPA HTML shell** — the stated pass condition. The 401 is
-  the `_write-guard` read gate doing its job, not a failure.
+  the read gate doing its job, not a failure.
+  **⚠️ This 401 proves DEPLOYMENT ONLY — it does not test `HUBSPOT_TOKEN`.** `requireReadAuth` returns at
+  `crm-hubspot.js` ~L36, *before* `process.env.HUBSPOT_TOKEN` is read at ~L38, so HubSpot is never contacted.
+  A dead or wrong credential produces the identical 401. The only real proof the credential works is the
+  **CRM page's own status line** (`HubSpot live ✓ N accounts`) — an unauthenticated curl can never show it.
 - Deployed bundle `/assets/index-*.js` inlines **`VITE_CRM_BACKEND:"hubspot"`** in the runtime env object.
   Re-confirmed after an unrelated rebuild landed mid-session (hash `B_0ZaRhS` → `BBKIDZyU`), so the var is
   set at the **site** level and survives rebuilds — not an artifact of one lucky build.
@@ -481,12 +485,20 @@ shows zero API calls). Env var naming matches the code (`HUBSPOT_TOKEN`) everywh
 alone unless consolidating deliberately.
 
 **Token rotation, 2026-08-15.** The `CheeseShop TECH-read-only` app's token was pasted in plaintext into a
-chat transcript, so it was rotated in HubSpot with **immediate** expiry of the old value. Verified dead
-(that token now returns **401**, was 200); production verified unaffected in the same pass, as expected —
-**nothing in the stack reads that token**, it is not the one in Netlify. The app itself was kept, not
-deleted: it is named, scoped and traceable, making it the right target if the anonymous `…2aed1d25` is ever
-consolidated away. **Never paste a live token into a chat/transcript — put it straight into the Netlify env
-UI.** That paste is the entire reason this rotation was needed.
+chat transcript, so it was rotated in HubSpot with **immediate** expiry of the old value. Verified dead (that
+token now returns **401**, was 200). Production verified unaffected **by reloading the CRM page** and seeing
+`HubSpot live ✓` — not by the curl above, which cannot test the credential (see the ⚠️ note). The app itself
+was kept, not deleted: it is named, scoped and traceable, making it the right target if the anonymous
+`…2aed1d25` is ever consolidated away. **Never paste a live token into a chat/transcript — put it straight
+into the Netlify env UI.** That paste is the entire reason this rotation was needed.
+
+**Settled by that rotation: the two tokens are genuinely two separate private apps.** Worth recording,
+because the earlier evidence was ambiguous — the pair returned 200 *simultaneously*, which fits two apps but
+equally fits **one app inside a rotation grace window**, with `…2aed1d25` an older-but-still-valid token of
+the same app. Under that second reading, rotating with immediate expiry would have killed the production
+credential too. It didn't: post-rotation the CRM still renders live accounts, so `…2aed1d25` is independent
+and untouched. If a future rotation is ever done on the app that *does* own `…2aed1d25`, expect production to
+drop and have the new token ready to paste into Netlify before starting.
 
 **Open / optional — consolidate onto the named app.** Retire the anonymous `…2aed1d25` in favour of
 `CheeseShop TECH-read-only`. Needs its own pass, and note the scope trap: `crm-push.js` performs real
@@ -583,7 +595,12 @@ onboarding. Build order (each independently shippable):
 ## In flight / not done — Phase 7 launch (Rick's actions; mostly feeding the pipes)
 The platform = the Monti **month-long stand-up** (connect tools → strategy → content/photography → campaigns within a month). Every connection's CODE is built; the month is about feeding them. See [[monti-pilot-launch]] (memory) and `LAUNCH_AND_MAINTENANCE.md`.
 - **[done] Auth** → passcode gate LIVE. ✓
-- **CRM** → keep **sample data** for the pilot. Monti = **HubSpot** (config `crm:hubspot`); Salesforce never active → dead/ignored. HubSpot has **no deals yet** → wire it (Make scenario, **steps in `CRM_CONNECTOR.md`**) once populated. Code ready (`MAKE_WEBHOOK_URL` + `VITE_CRM_BACKEND=make`).
+- **CRM** → ~~keep **sample data** for the pilot~~ … ~~wire it (Make scenario, **steps in
+  `CRM_CONNECTOR.md`**)~~ ~~Code ready (`MAKE_WEBHOOK_URL` + `VITE_CRM_BACKEND=make`)~~.
+  **[SUPERSEDED — CRM is live on direct HubSpot as of 2026-08-15; the Make steps referenced here were
+  deleted from `CRM_CONNECTOR.md` on 2026-07-16. See the 2026-08-15 close-out earlier in this file.]**
+  Still accurate from this entry: Monti = **HubSpot** (config `crm:hubspot`); Salesforce never active →
+  dead/ignored; HubSpot had **no deals yet** at the time.
 - **Storefront** → Shopify headless. Needs a **real Shopify store w/ Storefront API** (mt-e-comm is a static mock) + `SHOPIFY_STORE_DOMAIN` / `SHOPIFY_STOREFRONT_TOKEN` / `SHOPIFY_ADMIN_TOKEN` + `VITE_STORE_BACKEND=shopify`. Post-token code is small (hydrate already wired).
 - **Media** → Cloudinary live; needs the actual **photography/content** uploaded.
 - **Campaigns** → code-ready; needs strategy + a data source.

@@ -11,22 +11,29 @@
 | Pricing & Inventory (availability, lots) | **Google Sheet** "availability of items" (sales@montitrentini-usa.com) | blocked on MT admin share — `DATA_UPDATES.md` |
 | Catalog / Media / Proposals images | **Cloudinary** (one `images.json` manifest) | LIVE (F5) |
 
-Key correction: **HubSpot is the social/content publishing engine, not the CRM of record.** The ~131
-contacts / 140 companies currently in HubSpot are incidental to a fresh setup; the pipeline lives in
-Salesforce. The CRM dashboard must wire to Salesforce, never HubSpot.
+> **⚠️ REVERSED 2026-06-17 — the section below is historical. Salesforce was DROPPED; HubSpot IS the CRM
+> of record**, and the CRM dashboard reads it directly and live (see `docs/CRM_CONNECTOR.md`,
+> `INTEGRATION_WIRING_BRIEF.md`, and the note at the top of `src/lib/crm.js`). There is no
+> `crm-salesforce.js` and `salesforce` is not a valid `VITE_CRM_BACKEND` value — it takes `mock | hubspot`.
+> Kept for the reasoning trail, not as a plan. Do not build from it.
 
-## CRM dashboard → Salesforce
+Key correction *(as understood 2026-06, since reversed)*: **HubSpot is the social/content publishing engine,
+not the CRM of record.** The ~131 contacts / 140 companies currently in HubSpot are incidental to a fresh
+setup; the pipeline lives in Salesforce. The CRM dashboard must wire to Salesforce, never HubSpot.
 
-- The dashboard + Orders pages are built against a mock (`lib/crm.js`, shape in `CRM_CONNECTOR.md`).
-- **No Salesforce MCP connector is available/connected today.** Options to wire it later:
-  1. **Salesforce connected app + token** → a Netlify function (`functions/crm-salesforce.js`) reads
+## ~~CRM dashboard → Salesforce~~ (superseded — CRM reads HubSpot directly)
+
+- ~~The dashboard + Orders pages are built against a mock~~ — they now read live HubSpot via
+  `netlify/functions/crm-hubspot.js`.
+- ~~**No Salesforce MCP connector is available/connected today.** Options to wire it later:~~
+  1. ~~**Salesforce connected app + token** → a Netlify function (`functions/crm-salesforce.js`) reads
      Salesforce (opportunities → pipeline, accounts → contacts/orders), behind the existing
-     `getCrmData` seam (`VITE_CRM_BACKEND=salesforce`). Most direct; needs Rick to create the
-     connected app + OAuth.
-  2. **Wait for a Salesforce connector** in the registry, then read it in-session / via a function.
-  3. Interim: keep sample data (the dashboard is demo-ready as-is).
-- The Make-scenario path in `CRM_CONNECTOR.md` is now deprecated in favor of a direct Salesforce
-  integration (fewer moving parts).
+     `getCrmData` seam (`VITE_CRM_BACKEND=salesforce`).~~ Never built.
+  2. ~~**Wait for a Salesforce connector** in the registry.~~
+  3. ~~Interim: keep sample data.~~
+- ~~The Make-scenario path in `CRM_CONNECTOR.md` is now deprecated in favor of a direct Salesforce
+  integration.~~ Both were abandoned: Make's CRM leg was deleted 2026-07-16 and Salesforce was never
+  started. The live answer is **direct HubSpot**.
 
 ## HubSpot → Campaigns / social content
 

@@ -103,7 +103,9 @@ token-themed for the tenant) becomes a first-class module. Two layers, don't con
 From `docs/LAUNCH_AND_MAINTENANCE.md` — all [Rick] dashboard/secret actions:
 - Auth: enforce strong passwords; invite a Monti `client` test user with roles `client` + `tenant:montitrentini`; verify tenant scoping over HTTPS.
 - Cloudinary: confirm folders/preset/env (media is already live, so mostly done — verify).
-- CRM: build the Make scenario (client CRM → OM §7 shape), set `MAKE_WEBHOOK_URL` + `VITE_CRM_BACKEND=make`.
+- CRM: ✅ **done — live on direct HubSpot** (`VITE_CRM_BACKEND=hubspot` + `HUBSPOT_TOKEN`, verified
+  2026-08-15). The old "build the Make scenario / `MAKE_WEBHOOK_URL` + `VITE_CRM_BACKEND=make`" step was
+  **cancelled 2026-07-16** — that path is deleted from the code. See `docs/CRM_CONNECTOR.md`.
 - SSL: Cloudflare = Full (strict); registrar auto-renew ON.
 - Host the Price-list calculator OR rely on the new native Pricing tool (decide).
 - Set Monti `brand.logo` (currently empty → falls back to brand name).

@@ -1,10 +1,20 @@
 # CheeseShop TECH — CRM Connector
 
-**Status:** Phase 6 (dashboard + data layer built against a mock; Make wiring deferred to launch) · **Last updated:** 2026-06-05
+**Status:** ✅ **LIVE — direct HubSpot** (`VITE_CRM_BACKEND=hubspot`, verified rendering real accounts
+2026-08-15) · **Last updated:** 2026-08-15
 
-Client CRM data flows into the dashboard via a **Make scenario** — zero new infrastructure (OM §7).
-Make maps the client's CRM (HubSpot / Salesforce / Zoho / Pipedrive / Monday) into the dashboard's
-data shape; the app reads it through one seam.
+> **⚠️ 2026-07-16 — the Make path for CRM was DELETED. This doc previously described it as the way to
+> wire CRM data; that is no longer true and following it will waste your time.**
+> There is no `netlify/functions/crm.js`, and **`MAKE_WEBHOOK_URL` is referenced nowhere in `src/` or
+> `netlify/`** — it is a dead variable. CRM data now comes **straight from the HubSpot API**, server-side,
+> via `netlify/functions/crm-hubspot.js`. `VITE_CRM_BACKEND` takes **`mock` | `hubspot`** — *not* `make`.
+>
+> Make is still live **for campaigns** (`MAKE_CAMPAIGNS_WEBHOOK_URL` → `netlify/functions/campaigns.js`).
+> Don't read "Make is dead" from this — only the CRM leg of it is.
+
+Client CRM data flows into the dashboard **directly from HubSpot**, read-only, with the private-app token
+held server-side in the Netlify env var `HUBSPOT_TOKEN` (never exposed to the browser). HubSpot is the CRM
+of record; the app reads it through one seam (`getCrmData`).
 
 ## What's surfaced
 
@@ -15,7 +25,7 @@ the fields called out in OM §7. Two pages:
   pipeline-by-stage bars, recent activity, invoice table.
 - **Orders** (`OrdersPage`): full order history table.
 
-## Data shape (the contract Make must produce)
+## Data shape (what `crm-hubspot.js` returns)
 
 ```json
 {
@@ -32,13 +42,31 @@ Invoice status: `Draft|Sent|Paid|Overdue`.
 ## Architecture / seam
 
 ```
-Dashboard/Orders → getCrmData(resolved)              ← src/lib/crm.js
-                      ├─ mock backend (now)
-                      └─ real (later): GET /.netlify/functions/crm?tenant=<id>
-                                        → Make webhook → client CRM (secrets server-side only)
+Dashboard/Orders → getCrmData(resolved)                      ← src/lib/crm.js (~L184)
+                      ├─ VITE_CRM_BACKEND=mock   → MOCK fixture
+                      └─ VITE_CRM_BACKEND=hubspot→ GET /.netlify/functions/crm-hubspot?tenant=<id>
+                                                     (passcode header replayed via writeAuthHeader)
+                                                   → HubSpot API, token server-side only
 ```
-Switch with `VITE_CRM_BACKEND=make`. The `crm` type per tenant lives in `config/clients/<id>.json`
-(`montitrentini` = `hubspot`).
+Switch with **`VITE_CRM_BACKEND=hubspot`** (build-time Vite var — **changing it requires a rebuild**, and it
+must be set with Netlify's **Builds** scope, not Post processing). The `crm` type per tenant lives in
+`config/clients/<id>.json` (`montitrentini` = `hubspot`).
+
+Read behaviour worth knowing before debugging an "empty" dashboard (`crm.js` ~L192-208):
+- Reads are **passcode-guarded server-side** since 2026-07-16; the client replays the unlock passcode.
+- **Any failure degrades to `emptyDataset()`** — `{ contacts: 0, pipeline: [], orders: [], invoices: [],
+  activity: [] }` — so cards hide rather than crash. An empty dashboard is therefore *ambiguous*: it can mean
+  a 401, a 5xx, or genuinely no data.
+- Failures are **never cached** (5-min TTL applies to successes only), so a transient error can't pin every
+  surface to an empty account book. Sign out/in restores a missing passcode header.
+
+### Related functions (all read-only except `crm-push`)
+| Function | Role |
+|---|---|
+| `crm-hubspot.js` | The live read — companies, contacts, email activity. Powers `getCrmData`. |
+| `crm-summary.js` | Counts for the Integration-health panel. Needs `crm.objects.{contacts,companies,deals}.read`. |
+| `crm-push.js` | **The only HubSpot write path** — booth/enrichment rows → contacts. Dry-run by default; needs `crm.objects.contacts.write`. |
+| `crm-outreach.js` | Outreach stage overlay in Netlify Blobs — *not* HubSpot, because HubSpot access is read-only. |
 
 ## Access control
 
@@ -46,62 +74,42 @@ CRM data is sensitive: **only `admin` / `client` roles see it** (`canViewCrm`). 
 (pr/influencer/creator) don't get Dashboard or Orders in the nav at all — they see only the Media hub.
 If `crm` is `none`, the dashboard shows a "connect a CRM" state instead of erroring.
 
-## Building the Make scenario — HubSpot (staged, 2026-06-06)
+## ~~Building the Make scenario~~ — REMOVED 2026-07-16 (historical)
 
-The pipe: `Dashboard → /.netlify/functions/crm?tenant=montitrentini` → the function POSTs
-`{ "tenant": "montitrentini" }` to `MAKE_WEBHOOK_URL` → **Make scenario** responds with the data
-shape above → dashboard renders. Build it in two stages so the plumbing is proven before the HubSpot
-mapping.
+**Deleted, not deferred.** This section used to give a two-stage Make build (custom webhook → webhook
+response → HubSpot modules) plus a `MAKE_WEBHOOK_URL` + `VITE_CRM_BACKEND=make` cutover. **None of it
+applies.** `netlify/functions/crm.js` was removed, `MAKE_WEBHOOK_URL` is dead in code, and `make` is not a
+valid value for `VITE_CRM_BACKEND`. The direct-HubSpot read replaced the whole approach — fewer moving parts,
+no third-party in the hot path for the CRM of record, and no scenario to keep switched on.
 
-### Stage 1 — prove the pipe (sample data, ~15 min)
-1. **Make.com** (free account ok) → **Create a new scenario**.
-2. Module 1: **Webhooks → Custom webhook** → **Add** → name it `monti-crm` → **copy the webhook URL**.
-3. Module 2 (after it): **Webhooks → Webhook response** → Status `200`, add header `Content-Type:
-   application/json`, **Body** = the sample JSON below.
-4. **Save**, toggle the scenario **ON** (and "Immediately as data arrives").
-5. **Netlify** → `cheeseshoptech-platform` → Environment variables: `MAKE_WEBHOOK_URL=<the copied URL>`
-   and `VITE_CRM_BACKEND=make` → **redeploy**.
-6. Open the Monti **Dashboard** → pipeline/orders/activity should now come from Make. ✅ pipe proven.
+The instructions were removed rather than left struck through: they were step-by-step and copy-pasteable,
+which is exactly the kind of stale content that gets followed by accident. Git history has them if the
+Make-per-tenant idea ever returns for a client whose CRM has no usable API.
 
-Sample JSON body for the Webhook response:
-```json
-{
-  "contacts": 38,
-  "pipeline": [
-    { "stage": "Lead", "count": 12, "value": 48000 },
-    { "stage": "Qualified", "count": 7, "value": 63000 },
-    { "stage": "Sample sent", "count": 5, "value": 81000 },
-    { "stage": "Negotiation", "count": 3, "value": 72000 },
-    { "stage": "Won", "count": 4, "value": 96000 }
-  ],
-  "orders": [
-    { "id": "SO-1042", "account": "Eataly Flatiron", "channel": "distributor", "total": 8400, "status": "Open", "date": "2026-06-02" }
-  ],
-  "invoices": [
-    { "id": "INV-880", "account": "Eataly Flatiron", "amount": 8400, "status": "Sent", "due": "2026-06-20" }
-  ],
-  "activity": [
-    { "who": "Eataly Flatiron", "what": "Reorder inquiry — Asiago DOP", "when": "2h ago" }
-  ]
-}
-```
+## Going live — ALREADY DONE
 
-### Stage 2 — real HubSpot data (incremental)
-Insert HubSpot modules between the webhook and the response, replacing the hardcoded body:
-- **HubSpot → Search Deals** → group by deal stage → build the `pipeline` array (map HubSpot's stage
-  names to `Lead/Qualified/Sample sent/Negotiation/Won`; `value` = sum of deal amounts per stage).
-- **HubSpot → Get Contacts** (or a count) → `contacts`.
-- Orders/invoices/activity: from HubSpot if tracked there, else another source (or leave as recent
-  deals/notes for v1). Use Make's **Array aggregator** to assemble each list.
-- The **Webhook response** body becomes the assembled JSON. Verify the dashboard after each addition.
+CRM is live in production. Nothing here is an open task; kept as the record of what "live" means.
 
-## Going live (also in LAUNCH_AND_MAINTENANCE.md §6)
+| | |
+|---|---|
+| Netlify env | `HUBSPOT_TOKEN` (private-app token, server-side only) |
+| Build var | `VITE_CRM_BACKEND=hubspot`, **Builds** scope |
+| Tenant config | `crm: "hubspot"` in `config/clients/montitrentini.json` |
+| Verified | 2026-08-15 — CRM page renders `HubSpot live ✓` with real accounts |
 
-1. **[Rick]** Build the Make scenario: client CRM → the data shape above; expose it as a webhook.
-2. **[Rick]** Store CRM tokens + the Make webhook URL in Netlify env (never committed).
-3. **[Claude]** Build `/.netlify/functions/crm` to call the webhook and return the dataset; set `VITE_CRM_BACKEND=make`.
-4. For the pilot: wire HubSpot (agency) + Monti Trentini's CRM.
-5. Verify: live data in the Monti dashboard; `crm` set correctly in `montitrentini.json`; no secret in the repo.
+**How to verify it yourself — and the two ways people get a false answer:**
+
+1. ✅ **Open the CRM page and read its status line** (`crm-page.jsx` ~L201): `HubSpot live ✓ N accounts`
+   vs the sample-data warning. This is the *only* check that exercises the whole chain.
+2. ❌ **Don't** curl `/.netlify/functions/crm-hubspot` and take a 401 as failure — or as success. The read
+   gate returns **before** `HUBSPOT_TOKEN` is read, so a valid JSON 401 proves only that the function is
+   deployed. A dead credential returns the identical response.
+3. ❌ **Don't** grep the deployed bundle for a bare `"hubspot"` literal, and don't reuse an old asset hash —
+   a stale `/assets/index-*.js` path returns the **SPA HTML shell with HTTP 200**, not a 404, so the grep
+   finds nothing and looks like proof of breakage. Pull the current hash from `index.html` first, then grep
+   for `VITE_CRM_BACKEND:` (Vite emits a runtime env object here, not a substituted literal).
+
+Full incident detail: `HANDOFF.md` (2026-08-15 close-out).
 
 ---
 
