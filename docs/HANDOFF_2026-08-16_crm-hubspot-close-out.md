@@ -1,149 +1,189 @@
-# HANDOFF — CRM / HubSpot close-out + booth sync hardening
+# HANDOFF — CRM / HubSpot close-out, booth sync hardening, company matching
 
-**Date:** 2026-08-16 · **Branch:** `phase-2-6-build` · **Commits:** `3b877d0` (docs), `e07e08a` (booth fix)
-**Status:** CRM is **LIVE and verified**. Two commits sit **unpushed** on the branch.
-
----
-
-## 1. TL;DR for whoever picks this up
-
-The session started from a handoff claiming an **unresolved blocker on live CRM data**. That blocker
-**did not exist** — it had been fixed weeks earlier and the note was never closed. Significant time went
-into re-debugging it as a HubSpot *token* problem, which it also never was.
-
-**CRM reads live HubSpot today and renders real accounts.** The remaining work is not about reads at all;
-it is about the **write** path (booth captures → HubSpot contacts), which has one unverified permission and
-one structural gap.
-
-**The recurring failure mode in this repo is stale documentation that reads as current.** Three separate
-docs instructed work that had already been deleted or completed. If you find yourself following a numbered
-procedure here, verify the code still matches it **before** acting.
+**Date:** 2026-08-16 · **Branch:** `phase-2-6-build` · **All work pushed to origin.**
+**Status:** CRM reads are **LIVE and verified**. Writes are **BLOCKED on one missing HubSpot scope**
+(confirmed by a live 403, not inferred).
 
 ---
 
-## 2. Verified this session (with method, so you can re-check)
+## 0. FOR COWORK — start here
 
-| Fact | How it was verified |
+**Do not start by re-verifying the CRM read path.** It is live, it renders real accounts, and the
+July blocker in `HANDOFF.md` is closed. A prior session lost hours re-debugging it as a token
+problem. See §3 for the four checks that produce convincing FALSE readings.
+
+**The one thing blocking progress is not code.** It is a scope on a HubSpot private app, and only
+Rick can add it (§4.1). Until it lands, `crm-push` cannot write and no amount of code changes will
+help. Everything else below is either done or waiting on that.
+
+### ⚠️ Cowork sandbox rules — these differ from Claude Code
+- **Git is READ-ONLY here.** Always `GIT_OPTIONAL_LOCKS=0 git status`. **Never `git add` / `git commit`
+  / `git push` from the Cowork sandbox.** The mount lets it create files under `.git/` but not delete
+  them, so even a plain `git status` can strand a `.git/index.lock` that then blocks Rick's own
+  pushes. (`CLAUDE_CODE_BRIEF.md` §2.6; root cause in `HANDOFF.md`, 2026-07-01.)
+- **To land code:** hand it to Claude Code, or have Rick double-click **`FIX GIT LOCK AND PUSH.command`**
+  (repo root — clears any stranded lock and pushes).
+- **`npm run build` may not be trustworthy in the sandbox** — `node_modules` is Linux-only here, which
+  is why the pricing tool sat unbuilt for weeks (`CLAUDE_CODE_BRIEF.md` §5.1). Treat a sandbox build as
+  a smoke test; real verification happens in Claude Code.
+- **Cowork's advantage is the MCP connectors.** The entire live-portal audit in §2 and §5 was done
+  through the HubSpot MCP connection, not the codebase. Use it — but know its limit: it authenticates
+  as a **separate OAuth connection**, so it can read CRM records and **cannot** tell you anything about
+  the private app's scopes. That is why §4.1 is a UI task.
+
+### Repo facts
+- Path: `/Users/richardposada/Cheese Shop TECH BUILD/Cheese Shop TECH  Agency Build`
+  — note the **double space** in the second folder name. Quote it. `~/Downloads/Publix` is not the repo.
+- **There is no test suite.** Nothing here is covered by tests.
+- `netlify/functions/*` are **server-side**; `src/*` is the browser bundle. A `VITE_*` var is
+  build-time and needs a redeploy; `HUBSPOT_TOKEN` is read per-request and does not.
+- `BUILD_LOG.md` is append-only history. Do not "correct" it.
+
+---
+
+## 1. What shipped (all on origin)
+
+| Commit | What |
 |---|---|
-| CRM live, renders real accounts | Rick loaded the CRM page → `HubSpot live ✓` |
-| Portal is **246062426** | Confirmed twice — browser session, and independently via the HubSpot MCP connection |
-| `VITE_CRM_BACKEND:"hubspot"` in prod bundle | Grepped the deployed bundle; **survived an unrelated rebuild**, so it is set at site level |
-| `crm-hubspot` function deployed | Returns JSON 401, not the SPA HTML shell |
-| Leaked private-app token revoked | Old value now returns **401** (was 200) |
-| The two HubSpot tokens are **separate apps** | Rotating one with immediate expiry left production working |
+| `3b877d0` | Docs reconciled with the live direct-HubSpot path |
+| `e07e08a` | Booth sync failure handling — five silent/misleading failure modes |
+| `b1331cd` | This handoff + date corrections |
+| `ecc9c73` | `crm-push` company resolution, match-first |
 
-### Live portal contents (2026-08-16, read via MCP)
-- **821 contacts**, **650 companies**, **0 deals**
-- **156 contacts (19%) have no associated company**; **101 of those carry a company NAME as text** but no
-  link — see §4.2, this is the booth gap already present in the data at scale.
-
-`0 deals` is **expected, not a bug.** `crm-summary.js` reads deals and will legitimately report zero. Don't
-go debugging it.
+All four are deployed and verified live in the production bundle.
 
 ---
 
-## 3. Three verification traps that produced false readings
+## 2. Verified, with method
 
-Each of these cost real time. They look like proof and are not.
+| Fact | How |
+|---|---|
+| CRM live, real accounts | Rick loaded the CRM page → `HubSpot live ✓` |
+| Portal **246062426** | Browser session **and** independently via the HubSpot MCP connection |
+| `VITE_CRM_BACKEND:"hubspot"` | In the deployed bundle; survived an unrelated rebuild ⇒ set at site level |
+| `crm-hubspot` deployed | Returns JSON 401, not the SPA HTML shell |
+| `crm-push` deployed | `POST {}` → **HTTP 400 JSON** (the "no cleared rows" guard) |
+| Token is VALID | Live sync returned **403**, not 401 — authenticated, just not authorized |
+| **`crm.objects.contacts.write` is MISSING** | Live sync: `Failed on the write (/crm/v3/objects/contacts/493472041685)` |
+| Leaked private-app token revoked | Now returns 401 (was 200) |
+| The two tokens are **separate apps** | Rotating one with immediate expiry left production working |
 
-1. **A 401 from `crm-hubspot` proves DEPLOYMENT ONLY — not that the token works.** `requireReadAuth`
-   returns at ~L36, *before* `process.env.HUBSPOT_TOKEN` is read at ~L38. A dead credential returns an
-   identical 401. **The only real proof is the CRM page's own status line.**
+### Live portal contents (read via MCP, 2026-08-16)
+- **821 contacts**, **650 companies**, **0 deals**
+- **156 contacts (19%) have no associated company.** 99 of those carry a company name.
+
+`0 deals` is **expected**. `crm-summary.js` reads deals and will legitimately report zero. Not a bug.
+
+---
+
+## 3. Checks that produce FALSE readings — all four cost real time
+
+1. **A 401 from `crm-hubspot` proves DEPLOYMENT ONLY, not that the token works.** `requireReadAuth`
+   returns at ~L36, *before* `process.env.HUBSPOT_TOKEN` is read at ~L38. A dead credential returns
+   an identical 401. Same for `crm-push`'s 400 — an early guard, no HubSpot call. **The only proof a
+   credential works is the CRM page's own status line, or a real sync.**
 2. **A stale asset hash returns the SPA shell with HTTP 200, not a 404.** Grepping an old
-   `/assets/index-*.js` finds nothing and looks like proof the config vanished. Pull the current hash from
-   `index.html` first:
-   `curl -s https://montitrentini.cheeseshoptech.com/ | grep -oE '/assets/[A-Za-z0-9._-]+\.js'`
-3. **Grep for `VITE_CRM_BACKEND:` — never for a bare `"hubspot"` literal.** `agency-console.jsx` does
-   `const ENV = import.meta.env` then `ENV.VITE_CRM_BACKEND`, a dynamic property read, so Vite emits a
-   **runtime env object** instead of substituting a string.
-
-A fourth, for the write path: **a passing `crm-push` dry run does NOT prove write permission.** Dry run
-only searches. Only a real commit proves `contacts.write`.
+   `/assets/index-*.js` finds nothing and looks like proof the config vanished. Get the current hash
+   first: `curl -s https://montitrentini.cheeseshoptech.com/ | grep -oE '/assets/index-[A-Za-z0-9._-]+\.js'`
+3. **A changed bundle hash does NOT mean your code deployed.** This produced a false "deploy landed"
+   during this session. Netlify serves the previous deploy until the new one publishes, and an
+   unrelated rebuild changes the hash too. **Grep the live bundle for a distinctive string from your
+   own change**, and sanity-check the byte size moved — the false positive was byte-identical.
+4. **A passing `crm-push` dry run does NOT prove write permission.** Dry run only searches. Only a
+   real commit proves it — which is exactly how the 403 in §4.1 was finally found.
 
 ---
 
 ## 4. Open items
 
-### 4.1 Confirm `crm.objects.contacts.write` — BLOCKS booth sync · **[Rick, HubSpot UI]**
-`crm-push.js` genuinely writes (PATCH/POST on contacts + associations + notes). It needs
-`crm.objects.contacts.write` on the private app owning the token in Netlify's `HUBSPOT_TOKEN`
-(`pat-na2-2aed1d25…`). **That app is anonymous to us and its scopes are unknown.**
+### 4.1 ⛔ ~~BLOCKER — add two scopes~~ **SUPERSEDED 2026-08-17 — THIS SECTION IS WRONG**
+> The scopes were already present on BOTH private apps. The real cause is that `HUBSPOT_TOKEN`
+> belongs to neither of them. See `HANDOFF_2026-08-17_hubspot-403-root-cause.md`.
+> Do not spend time adding scopes — it cannot fix this.
 
-**This cannot be checked from code or via the MCP connection.** The MCP HubSpot integration is a separate
-OAuth connection with its own permissions; private-app scopes live only in the HubSpot settings UI.
+<details><summary>Original (incorrect) section, kept for the record</summary>
 
-Steps: HubSpot → Settings → Integrations → Private Apps → open each app's **Auth** tab → match the token
-prefix `pat-na2-2aed1d25` → confirm `crm.objects.contacts.write` is listed.
+A live sync of 9 captures returned:
 
-### 4.2 Net-new companies land as orphan contacts — STRUCTURAL · **needs a design decision**
-`crm-push` associates a contact to a company **only when it already has a `companyId`**, which only exists
-if the capture came from the synced account book. A buyer met at a booth whose shop isn't in HubSpot yet
-becomes a contact with `company` as a **text property**, no company record, no association. It does not
-error, and the new sync warnings **cannot** catch it (no link is attempted).
+> HubSpot refused the push (403). Nothing was written. 9 still queued on this device. Failed on the
+> write (`/crm/v3/objects/contacts/493472041685`). Add the scope on the SAME private app whose token
+> is in HUBSPOT_TOKEN, then Commit changes.
 
-**This is already the dominant pattern in the live data:** 101 contacts carry a company name with no link.
-Examples: *Cucina Baci*, *A Taste of Italy Deli*, *Angela's Pasta & Cheese Shop* — all from a 2026-07-23
-import, so this predates booth, but booth will keep producing it.
+The failure is a PATCH on an existing contact — the write itself. Search and auth both succeeded.
 
-Fixing it means letting `crm-push` create **company** records — a second written object type in a codebase
-that is deliberately read-only nearly everywhere. **Get Rick's decision before extending the write surface.**
+**Fix:** HubSpot → Settings → Integrations → Private Apps → open each app's **Auth** tab and match
+the token prefix **`pat-na2-2aed1d25`** (this app is anonymous to us; that is why the error says "the
+SAME private app"). On it, add **both**:
+- `crm.objects.contacts.write` — what failed
+- `crm.objects.companies.write` — needed by §5's company creation, or the next run fails here instead
 
-### 4.3 Live two-row sync test — before any trade show · **[Rick + Claude]**
-Push two captures where the second fails. Confirm (a) the first is marked synced, (b) it is **not** re-sent
-on retry. This exercises the partial-push fix in `e07e08a`, which was reasoned from `crm-push`'s response
-shapes rather than executed — **there is no test suite in this repo**. It also settles §4.1 in the same
-action, since only a real commit proves write scope.
+Then **Commit changes** and re-run Sync. **No redeploy needed** — scopes are HubSpot-side and the
+token is read per-request. Adding scopes does not rotate the token.
 
-### 4.4 Optional — consolidate onto the named private app
-Retire the anonymous `…2aed1d25` in favour of `CheeseShop TECH-read-only`. Sequence: confirm scopes → swap
-in Netlify → redeploy → exercise a real contact write. **Not urgent; the current token works.** Note the
-warning in `HANDOFF.md`: rotating the app that owns `…2aed1d25` **will** drop production, so have the
-replacement ready to paste before starting.
+Nothing was written and nothing was stamped `pushedAt`, so a retry pushes all 9 cleanly with no
+duplicate notes.
 
----
+</details>
 
-## 5. What changed, and why
+### 4.2 Duplicate captures observed in the booth list · **[triage]**
+The pre-sync list showed `Bruce Birenbaum / Nassau Candy` twice, and
+`Sheryl Benward / Paul Ferrari` alongside `Sheryl Benward / Paul Ferran` — same company, one
+character apart, almost certainly an OCR variant from a rescan. Same email ⇒ `crm-push` upserts
+safely; differing or missing email ⇒ two contacts for one person. **Worth a dedupe pass in the booth
+UI** (`splitPushable` could flag near-duplicate name+company pairs before sync).
 
-**`3b877d0` — docs reconciled.** `CRM_CONNECTOR.md` described a Make-webhook architecture deleted
-2026-07-16. `LAUNCH_AND_MAINTENANCE.md` carried an **unchecked task assigned to Rick** to build that
-scenario — work that would have been entirely wasted. `INTEGRATIONS_PLAN.md` planned a Salesforce
-integration dropped 2026-06-17. `.env.example` named `HUBSPOT_ACCESS_TOKEN`, which no function has ever
-read (they all read `HUBSPOT_TOKEN`).
+### 4.3 Live two-row test — before any trade show
+Push two captures where the second fails. Confirm the first is marked synced and is **not** re-sent
+on retry. The partial-push fix in `e07e08a` was reasoned from `crm-push`'s response shapes, not
+executed. Same for the company-create path in `ecc9c73`.
 
-The Make build steps were **deleted, not struck through** — they were copy-pasteable, which is exactly the
-content that gets followed by accident. Git history has them.
+### 4.4 Orphan contacts — 156, analysed, list produced
+Not a hypothetical: 19% of live contacts. Breakdown and the reasoning are in §5. The actionable
+output is a **48-record call list** (company known, named owner, phone on file, missing only an
+email) plus 13 more where the number comes off the company record. **53 have no company name at all**
+and cannot be settled by a call — their email handle usually *is* the company
+(`sproutmarketbk@gmail.com`, `wineandcheeseco@gmail.com`), so that is desk research, a different job.
 
-⚠️ **Only the CRM leg of Make is dead.** `MAKE_CAMPAIGNS_WEBHOOK_URL` → `campaigns.js` is still live. Don't
-read "Make is gone" and rip out working campaign wiring.
+⚠️ `Joel Cezl` carries `jobtitle: "FORMER EMPLOYEE — no longer at Stew Leonard's, per Richard
+2026-07-22"`. Any bulk campaign over orphans **must** read `jobtitle` or it will call him again.
+Two records (`rick.posada@gmail.com`, `mrsposada2007@gmail.com`) are internal test data.
 
-**`e07e08a` — booth sync failure handling.** Five problems, the third of which duplicated data:
-1. The 403 diagnostic `crm-push` builds (which scope, which endpoint, lookup vs write) was discarded; the
-   rep saw only a status code. Now surfaced verbatim.
-2. "Dry run OK — N ready to write" was a false assurance (dry run only reads). Reworded.
-3. **Partial pushes replayed and duplicated notes.** `crm-push` writes row by row and on mid-loop failure
-   returns `partial: true` plus rows that landed. The client stamped `pushedAt` only when `res.ok`, so a
-   partial marked nothing and the next sync re-sent already-written rows. Contacts survive (upsert on
-   email) but the note is created unconditionally → duplicate notes. `pushedIds` now derives from the
-   server's `results`.
-4. Per-row association/note failures were invisible under a `200` "Pushed N contacts" → orphaned contact,
-   rep told it worked. Now warned on.
-5. Failures rendered in the same muted grey as successes. Now warning-coloured with `role="alert"`.
+### 4.5 Optional — consolidate onto the named private app
+Retire the anonymous `…2aed1d25` in favour of `CheeseShop TECH-read-only`. Not urgent. Note: rotating
+the app that owns `…2aed1d25` **will** drop production — have the replacement ready to paste first.
 
 ---
 
-## 6. Environment / working rules
+## 5. Design notes worth not re-deriving
 
-- **Repo:** `/Users/richardposada/Cheese Shop TECH BUILD/Cheese Shop TECH  Agency Build`
-  (note the **double space** in the folder name). The cwd `~/Downloads/Publix` does **not** exist.
-- **Verify with:** `npm run build` — passes clean; the `card-scan` dynamic-import and chunk-size warnings
-  are **pre-existing**. There is **no test suite**.
-- **Git in the sandbox:** reads only, with `GIT_OPTIONAL_LOCKS=0`. The sandbox can strand a
-  `.git/index.lock` it cannot delete — even a plain `git status` can do it. `FIX GIT LOCK AND PUSH.command`
-  in the repo root clears a lock and pushes. *Both commits this session went through cleanly with no lock
-  stranded, checked before and after.*
-- **Never paste a live token into a chat or transcript.** That is the entire reason a rotation was needed
-  this session. Tokens go straight into the Netlify env UI.
-- **`BUILD_LOG.md` is append-only history — do not "correct" it.** It records what was true when written.
+**Company matching is MATCH-FIRST for a reason** (`crm-push.js`, `findCompany`). Auditing the live
+portal showed the obvious implementation would have corrupted a 650-company CRM:
+- The companies mostly **already exist** — every orphan sampled was on file with a domain. The 19% is
+  a **linking** failure, not a missing-company problem.
+- **Exact-name matching is not enough.** 29 contacts carry the company text `Baldor`; the record is
+  `Baldor Specialty Foods`. `Di Palo Fine Foods` is filed as `Di Palo's Fine Foods`.
+- **Email domains are useless as a key here** — 12/12 sampled orphans were on gmail/hotmail/aol.
+  Keying on email domain would create a company named after a free provider.
+
+Order is domain → unambiguous name → create. An ambiguous match is **deliberately left unlinked**:
+a wrong link silently attributes a buyer to the wrong account, which is worse than no link and much
+harder to notice. The domain comes from the card's printed website, which the OCR always read but the
+capture never persisted until `ecc9c73`.
+
+**Enrichment is keyed by `companyId`** (`campaign-enrichment.js`: `entries = { [companyId]: {...} }`).
+So an orphan contact **cannot enter the enrichment queue until it is linked** — linking is the
+precondition for enrichment, not an alternative to it. Do not overload that store with a
+person-keyed variant; its own header explains why it was split from `crm-outreach.js` rather than
+bending one schema around two jobs.
+
+**Only the CRM leg of Make is dead.** `MAKE_CAMPAIGNS_WEBHOOK_URL` → `campaigns.js` is still live.
+Do not read "Make is gone" and rip out working campaign wiring.
+
+---
+
+## 6. Security rule, learned the hard way
+**Never paste a live token into a chat or transcript.** A token pasted this session had to be rotated.
+Tokens go straight into the Netlify env UI. Claude does not handle credential values.
 
 ---
 
