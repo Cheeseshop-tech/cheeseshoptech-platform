@@ -353,16 +353,19 @@ function IntegrationPanel({ clients }) {
   async function pingGate() {
     setGate("checking");
     try {
-      // An empty passcode never unlocks anything; the status code reveals configuration:
-      // 401 = function up + PORTAL_PASSCODE set · 500 = env var missing · network error = no functions (dev).
-      const res = await fetch("/.netlify/functions/gate", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ passcode: "" }),
-      });
-      setGate(res.status === 401 ? "ok" : res.status === 500 ? "missing" : "unreachable");
+      // 2026-08-17: this used to POST an empty passcode to the now-retired gate.js and read its
+      // status code. That function will 500 forever now that the passcode env vars are
+      // deliberately deleted (see docs/HANDOFF_2026-08-17_identity-write-guard-fix.md) -- a
+      // permanent false "env missing" alarm for a subsystem that's supposed to be off. Real
+      // Identity is the live gate now, so this checks THAT instead: Netlify's public Identity
+      // settings endpoint (no auth needed, no secret exposed -- same "presence only" posture as
+      // every other probe on this panel).
+      const res = await fetch("/.netlify/identity/settings");
+      if (!res.ok) { setGate("misconfigured"); return; }
+      const data = await res.json().catch(() => null);
+      setGate(data ? "ok" : "misconfigured");
     } catch {
-      setGate("unreachable");
+      setGate("unreachable"); // no Identity endpoint reachable at all -- expected in local dev
     }
   }
 
@@ -408,12 +411,12 @@ function IntegrationPanel({ clients }) {
               );
             })}
             <TableRow>
-              <TableCell className="font-medium">Passcode gate</TableCell>
+              <TableCell className="font-medium">Auth <span className="text-xs font-normal text-fg-muted">(Identity)</span></TableCell>
               <TableCell><code className="font-mono text-xs">{ENV.VITE_AUTH_MODE || "identity"}</code></TableCell>
               <TableCell>
                 {gate === "ok" && <Badge variant="success"><CheckCircle2 className="mr-1 h-3 w-3" />configured</Badge>}
-                {gate === "missing" && <Badge variant="error"><AlertTriangle className="mr-1 h-3 w-3" />env missing</Badge>}
-                {gate === "unreachable" && <Badge variant="warning">no functions (dev?)</Badge>}
+                {gate === "misconfigured" && <Badge variant="error"><AlertTriangle className="mr-1 h-3 w-3" />misconfigured</Badge>}
+                {gate === "unreachable" && <Badge variant="warning">no endpoint (dev?)</Badge>}
                 {gate === "checking" && <Badge variant="muted">checking…</Badge>}
                 {gate === null && <Badge variant="muted">untested</Badge>}
               </TableCell>
@@ -429,7 +432,7 @@ function IntegrationPanel({ clients }) {
               <TableCell>
                 {crm && typeof crm === "object" && <Badge variant="success"><CheckCircle2 className="mr-1 h-3 w-3" />live</Badge>}
                 {crm === "error" && <Badge variant="error"><AlertTriangle className="mr-1 h-3 w-3" />error</Badge>}
-                {crm === "relogin" && <Badge variant="warning"><AlertTriangle className="mr-1 h-3 w-3" />re-enter passcode</Badge>}
+                {crm === "relogin" && <Badge variant="warning"><AlertTriangle className="mr-1 h-3 w-3" />not signed in</Badge>}
                 {crm === "checking" && <Badge variant="muted">checking…</Badge>}
                 {crm === null && <Badge variant="muted">untested</Badge>}
               </TableCell>
@@ -438,7 +441,7 @@ function IntegrationPanel({ clients }) {
                   <Button size="sm" variant="outline" onClick={pingCrm}><RefreshCw className="h-3.5 w-3.5" /> Test</Button>
                   {crm && typeof crm === "object" && <span className="text-fg">{crm.counts?.contacts ?? "—"} contacts · {crm.counts?.companies ?? "—"} cos · {crm.counts?.deals ?? "—"} deals</span>}
                   {crm === "error" && <span className="text-error">check token / scopes</span>}
-                  {crm === "relogin" && <span className="text-fg-muted">sign out and re-enter your passcode, then retest</span>}
+                  {crm === "relogin" && <span className="text-fg-muted">sign in with your real Identity account, then retest</span>}
                 </span>
               </TableCell>
             </TableRow>
