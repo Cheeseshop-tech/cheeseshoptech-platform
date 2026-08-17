@@ -690,16 +690,65 @@ function listPhrase(arr) {
   return `${arr.slice(0, -1).join(", ")} and ${arr[arr.length - 1]}`;
 }
 
+function recapSubject(capture, opts = {}) {
+  const type = FOLLOW_UP_TYPES.find((t) => t.key === capture.followUpType);
+  return capture.nextStepMode === "time" && capture.whenISO
+    ? `Confirmed: ${type?.label || "follow-up"} — ${prettyWhen(capture.whenISO)}`
+    : `Following up — ${opts.brandName || "the show"}`;
+}
+
 /** mailto: with the buyer recap pre-filled. The rep taps send — nothing leaves the device on its
  *  own. §9 asks how much AI-drafted content should send without review; this is the conservative
  *  answer, and the one that matches how Rick works. The .ics downloads separately and gets
- *  attached, because mailto: cannot carry an attachment. */
+ *  attached, because mailto: cannot carry an attachment.
+ *
+ *  Kept as the fallback for any tenant without a Google `calendar` identity configured — see
+ *  recapComposeUrl() below, which is what actually fires for Monti Trentini. */
 export function recapMailto(capture, opts = {}) {
-  const type = FOLLOW_UP_TYPES.find((t) => t.key === capture.followUpType);
-  const subject = capture.nextStepMode === "time" && capture.whenISO
-    ? `Confirmed: ${type?.label || "follow-up"} — ${prettyWhen(capture.whenISO)}`
-    : `Following up — ${opts.brandName || "the show"}`;
-  return `mailto:${encodeURIComponent(capture.email || "")}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(buildRecap(capture, opts))}`;
+  return `mailto:${encodeURIComponent(capture.email || "")}?subject=${encodeURIComponent(recapSubject(capture, opts))}&body=${encodeURIComponent(buildRecap(capture, opts))}`;
+}
+
+// ---- Recap origin identity (2026-08-17) ----------------------------------------------------
+//
+// Rick's ask: buyer recaps need to originate from the shared sales inbox (Sales@montitrentini-
+// Usa.com for this tenant), not whatever personal account happens to be the default mail handler
+// on a rep's own device at a trade show -- and it has to be right every time, not "usually right
+// if the rep remembers." A plain mailto: CANNOT do this: no mail client honours a From address in
+// a mailto: URI (that's an anti-spoofing rule, not a gap in this app), so a dropdown of reps here
+// would only ever be a reminder, never a guarantee.
+//
+// The fix is to reuse the SAME trick already shipped for the Calendar button (see
+// googleCalendarUrl's `authuser=` param and its comment: "the rep is already signed into the
+// sales@ account on the tablet"). Gmail's own web compose URL supports the identical `authuser=`
+// param: it composes as whichever Google account is named, PROVIDED that account is already
+// signed into the browser doing the composing. Same assumption Calendar already depends on, same
+// config field (`calendar.address`) -- this is not new infrastructure, it's the existing one
+// applied to the other button. If that Google session isn't there, Gmail shows its own account
+// picker rather than silently doing nothing, which is also strictly better than today's mailto:
+// failure mode (a rep never had visible feedback that nothing happened).
+//
+// "Assign contact after": crm-push.js does not set hubspot_owner_id today, deliberately left for
+// this reason -- no code change needed there. Whoever answers the recap claims the HubSpot contact
+// afterward.
+const GMAIL_COMPOSE = "https://mail.google.com/mail/?view=cm&fs=1";
+
+/** The URL Recap should actually open: Gmail web compose forced onto the tenant's shared sales
+ *  identity when `calendar.provider === "google"` and an address is configured, else the plain
+ *  mailto: fallback (unaffected for any client without that identity set up yet). */
+export function recapComposeUrl(capture, opts = {}) {
+  const { calendar } = opts;
+  if (calendar?.provider !== "google" || !calendar?.address) return recapMailto(capture, opts);
+
+  const params = new URLSearchParams({
+    to: capture.email || "",
+    su: recapSubject(capture, opts),
+    body: buildRecap(capture, opts),
+    // Selects which already-signed-in Google account composes this -- the identity guarantee.
+    // Not authentication and not a login trigger: if that account isn't signed into this
+    // browser, Gmail falls back to its own account chooser instead of composing as it.
+    authuser: calendar.address,
+  });
+  return `${GMAIL_COMPOSE}&${params.toString()}`;
 }
 
 // ---- End-of-show digest (the house side, rolled up) -------------------------------------

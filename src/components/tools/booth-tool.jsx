@@ -3,7 +3,7 @@ import { getCrmData, regionOf, stateOf, crmIsSample } from "@/lib/crm.js";
 import {
   FOLLOW_UP_TYPES, FOLLOW_UP_WINDOWS, TEMPERATURES, loadBooth, addCapture, updateCapture,
   removeCapture, newCapture, cacheAccounts, readCachedAccounts, boothStats, downloadIcs,
-  recapMailto, buildRecap, buildInternalNote, buildShowDigest, prettyWhen, suggestTemperature,
+  recapComposeUrl, buildRecap, buildInternalNote, buildShowDigest, prettyWhen, suggestTemperature,
   suggestedFollowUp, splitPushable, pushToHubspot, googleCalendarUrl, boothCatalog,
   searchCatalog, productSpec, activeDeals, nextStepText, indexContacts, contactsForCompany, cityOf,
   phoneText,
@@ -524,13 +524,23 @@ export function BoothTool({ resolved }) {
     window.open(url, "_blank", "noopener,noreferrer");
   }
 
-  // A mailto: via synthetic anchor, NOT window.open/location.href — handing a mailto: to either
-  // can unload this SPA on some browsers, throwing away the capture the rep just took.
+  // Two dispatch paths, chosen by recapComposeUrl() based on whether this tenant has a Google
+  // sales identity configured (see booth.js "Recap origin identity", 2026-08-17):
+  //   · Gmail compose (a real https:// URL) opens via window.open, same as the Calendar button —
+  //     completely safe, a normal new tab, no risk to this SPA's state.
+  //   · The mailto: fallback goes through a synthetic anchor, NOT window.open/location.href —
+  //     handing a mailto: to either can unload this SPA on some browsers, throwing away the
+  //     capture the rep just took. Kept exactly as it was for any tenant without that identity.
   function openMail(capture) {
-    const a = document.createElement("a");
-    a.href = recapMailto(capture, { brandName: resolved.brand.name, deals });
-    a.rel = "noopener";
-    a.click();
+    const url = recapComposeUrl(capture, { brandName: resolved.brand.name, deals, calendar });
+    if (url.startsWith("mailto:")) {
+      const a = document.createElement("a");
+      a.href = url;
+      a.rel = "noopener";
+      a.click();
+    } else {
+      window.open(url, "_blank", "noopener,noreferrer");
+    }
   }
 
   // The commit action, branching on how the next step was left. Each branch WRITES FIRST and
