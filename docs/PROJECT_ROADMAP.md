@@ -254,9 +254,22 @@ status page below. Blocked on one step only Rick can do.
 2. Next active build thread (of Scale-to-10 / Ecommerce / Progress tab): **the in-app Progress /
    Onboarding tab** — see its own section above, now promoted from spec'd to active build.
 
-**Still blocking the daily email specifically:** the Gmail account connected to this session sends
-as `sales@montitrentini-usa.com` (Monti's own mailbox), not a CheeseShop TECH address. Rick wants
-`Hello@cheeseshoptech.com` to send from. **This is Rick's action, not triggerable in-session** —
-connect it via the Claude app's Settings → Connectors, same way the Monti account is connected
-today. Once confirmed connected, the recurring scheduled task (`create_trigger`, real daily cron —
-never local/in-session cron, which doesn't survive) gets built against this doc + the status page.
+**RESOLVED, 2026-08-17 ~9pm — different mechanism than planned, not the MCP connector.**
+`hello@cheeseshoptech.com` turned out to be a Gmail account itself. Checked Anthropic's own docs:
+Cowork currently supports only ONE connected Google account at a time (a known, open limitation —
+see the GitHub feature request, closed as a duplicate). Connecting `hello@` as the MCP connector
+would have silently dropped clean API access to Monti's `sales@` mailbox. Rick's call: don't touch
+the connector. Instead, send via Claude-in-Chrome BROWSER AUTOMATION logged into
+`hello@cheeseshoptech.com` in Rick's actual browser, on request.
+
+**This changes the delivery model from automated-cron to Rick-prompted, on demand:**
+- NO scheduled task (`create_trigger`) — deliberately not built. A 7am unattended cron can't
+  reliably drive browser automation anyway (needs Rick's desktop app open + Chrome connected at
+  that exact moment), so it would have silently failed some mornings — worse than not building it.
+- Rick prompts a session himself whenever he wants an update (e.g. "send the project update" /
+  "send today's status email"). Claude then drives Rick's own logged-in Gmail session
+  (`hello@cheeseshoptech.com`) via browser automation to compose + send.
+- The 7:00 AM send-time decision from earlier this evening is now moot (no cron to schedule it
+  against) — kept here only as a historical note, not an active setting.
+- Content: pulls from this doc + the `cst-project-status.html` status page (send that file, or its
+  content inline, as the email body/attachment).

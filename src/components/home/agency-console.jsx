@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Users, PlugZap, Database, ExternalLink, RefreshCw, CheckCircle2, AlertTriangle, CircleDashed, ShieldCheck, Maximize2 } from "lucide-react";
+import { Users, PlugZap, Database, ExternalLink, RefreshCw, CheckCircle2, AlertTriangle, CircleDashed, ShieldCheck, Maximize2, ListChecks } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
 import { Button } from "@/components/ui/button.jsx";
@@ -10,6 +10,7 @@ import { getPricingData, fetchInventory } from "@/lib/pricing.js";
 import { getBuyerCatalog } from "@/lib/catalog.js";
 import { authHeaders } from "@/lib/auth-context.jsx";
 import { cn } from "@/lib/utils.js";
+import { PROJECT_THREADS, PROJECT_RADAR, PROJECT_STATUS_UPDATED, STATUS_BADGE_VARIANT } from "@/lib/project-status.js";
 
 // Agency Console — the house dashboard's P0 panels (ADMIN_DASHBOARDS_SPEC §3, built per
 // Rick's v1 priorities): tenant management · integration health · data pipelines.
@@ -25,6 +26,7 @@ export function AgencyConsole({ onNavigate }) {
         Tenants, integration wiring, and data freshness — the answers that used to live only in HANDOFF.md.
       </p>
       <div className="space-y-5">
+        <ProjectStatusPanel />
         <CrmSnapshotPanel />
         <TenantPanel clients={clients} onNavigate={onNavigate} />
         <IntegrationPanel clients={clients} />
@@ -32,6 +34,59 @@ export function AgencyConsole({ onNavigate }) {
         <LoginLogPanel />
       </div>
     </div>
+  );
+}
+
+/* ---------------- Project status (CheeseShop TECH itself — Agency Console view of the
+   in-app Progress/Onboarding tab, docs/PROGRESS_TAB_SPEC_2026-08-17.md) ---------------- */
+
+function ProjectStatusPanel() {
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center gap-3">
+        <PanelIcon icon={ListChecks} />
+        <div>
+          <CardTitle>CheeseShop TECH — project status</CardTitle>
+          <CardDescription>
+            Every active thread, synced from docs/PROJECT_ROADMAP.md · last updated {PROJECT_STATUS_UPDATED}
+          </CardDescription>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="grid gap-4 md:grid-cols-2">
+          {PROJECT_THREADS.map((t) => (
+            <div key={t.id} className="rounded-base border border-border bg-bg p-4">
+              <div className="flex items-center gap-3">
+                <h3 className="font-heading text-base text-fg">{t.label}</h3>
+                <Badge variant={STATUS_BADGE_VARIANT[t.status] || "muted"} className="ml-auto">
+                  {t.statusLabel}
+                </Badge>
+              </div>
+              <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-bg">
+                <div className="h-full rounded-full bg-brand-primary" style={{ width: `${t.progress}%` }} />
+              </div>
+              <p className="mt-2 text-xs text-fg-muted">
+                <span className="font-medium text-fg">Next:</span> {t.nextAction}
+              </p>
+            </div>
+          ))}
+        </div>
+        {PROJECT_RADAR.length > 0 && (
+          <div className="mt-4 rounded-base border border-dashed border-border p-4">
+            <p className="text-xs font-medium uppercase tracking-wide text-fg-muted">On the radar</p>
+            <ul className="mt-2 space-y-1.5 text-sm text-fg-muted">
+              {PROJECT_RADAR.map((item, i) => (
+                <li key={i}>· {item}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+        <p className="mt-3 text-xs text-fg-muted">
+          This is a hand-maintained mirror of docs/PROJECT_ROADMAP.md, not a live parse — update
+          src/lib/project-status.js whenever a thread's status changes there.
+        </p>
+      </CardContent>
+    </Card>
   );
 }
 

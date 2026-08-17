@@ -6,6 +6,24 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 > Format convention: `## YYYY-MM-DD — Title` · **Decision / Action / Status** ·
 > keep entries short and factual. This file is the project's memory.
 
+## 2026-08-17 — Project status panel added to the House Command Center (Agency Console)
+
+**Action.** Rick asked to surface the daily-accountability status directly inside the app,
+not only as an external status page. Added an admin-only "Project status" panel to the
+Agency Console (`src/components/home/agency-console.jsx`) — the section that always renders
+on the House/admin home hub, since `CommandCenter` itself is skipped for the house tenant
+(no CRM). New data module `src/lib/project-status.js` mirrors `docs/PROJECT_ROADMAP.md`'s
+four threads (status badge, progress bar, next action) — hand-maintained by design, not a
+build-time markdown parse, since the roadmap doc is a running narrative log, not clean
+structured data. Read-only, matches the v1 scope in `docs/PROGRESS_TAB_SPEC_2026-08-17.md`
+(Agency Console/admin view first; client-scoped view once client #2 onboarding is underway).
+Build verified clean (2051 modules). Commit script:
+`COMMIT PROJECT STATUS PANEL AND ROADMAP UPDATE.command` (same script also carries the
+roadmap doc's delivery-mechanism update — see the Daily accountability system entry above
+in PROJECT_ROADMAP.md).
+
+**Status.** Code written, build-verified, not yet pushed/deployed/live-tested as of this entry.
+
 ## 2026-08-17 — Security & Auth: real Netlify Identity now actually live; write/read functions being migrated off the old passcode guard
 
 **Finding.** The "Identity has been live since June" belief recorded in earlier sessions was
