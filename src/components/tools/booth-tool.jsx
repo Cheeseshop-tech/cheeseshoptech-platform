@@ -637,9 +637,19 @@ export function BoothTool({ resolved }) {
     } else if (res.dryRun) {
       const plans = res.planned || [];
       const creates = plans.filter((p) => p.action === "create").length;
+      // Surface the COMPANY outcome too — "this will create a new account in HubSpot" is the one
+      // consequence worth seeing before committing, and an ambiguous name is left unlinked on
+      // purpose rather than guessed at.
+      const newCos = plans.filter((p) => p.companyAction === "would-create").length;
+      const unsure = plans.filter((p) => String(p.companyAction || "").startsWith("ambiguous")).length;
+      const noCo = plans.filter((p) => p.companyAction === "none-no-company-on-card").length;
       setSyncMsg(
         `Dry run OK — ${plans.length} contact${plans.length === 1 ? "" : "s"} planned `
-        + `(${creates} new, ${plans.length - creates} updated). Nothing sent yet. `
+        + `(${creates} new, ${plans.length - creates} updated). `
+        + `Accounts: ${newCos} new compan${newCos === 1 ? "y" : "ies"} would be created`
+        + (unsure ? `, ${unsure} ambiguous (left unlinked — check the name)` : "")
+        + (noCo ? `, ${noCo} with no company on the card` : "")
+        + `. Nothing sent yet. `
         + `Heads up: a dry run only READS HubSpot, so it cannot prove the write permission — only a real Sync can.`
       );
     } else {
@@ -649,12 +659,23 @@ export function BoothTool({ resolved }) {
       const plans = res.planned || [];
       const linkFails = plans.filter((p) => p.associationError).length;
       const noteFails = plans.filter((p) => p.noteError).length;
+      const madeCos = plans.filter((p) => p.companyAction === "created").length;
+      const coFails = plans.filter((p) => p.companyAction === "create-failed" || p.companyAction === "lookup-failed").length;
+      const unsure = plans.filter((p) => String(p.companyAction || "").startsWith("ambiguous")).length;
       const warn = [
         linkFails ? `${linkFails} could not be linked to its company` : "",
         noteFails ? `${noteFails} could not attach the call note` : "",
+        // A company create failing is its OWN scope (companies.write, separate from contacts.write),
+        // so it must not be reported as a generic link failure.
+        coFails ? `${coFails} could not create/find the company (needs crm.objects.companies.write)` : "",
+        unsure ? `${unsure} left unlinked — the company name matched more than one account` : "",
       ].filter(Boolean).join("; ");
       setSyncFailed(!!warn);
-      setSyncMsg(`Pushed ${landed} contact${landed === 1 ? "" : "s"} to HubSpot.` + (warn ? ` ⚠ ${warn} — check ${linkFails || noteFails === 1 ? "it" : "them"} in HubSpot.` : ""));
+      setSyncMsg(
+        `Pushed ${landed} contact${landed === 1 ? "" : "s"} to HubSpot`
+        + (madeCos ? `, creating ${madeCos} new compan${madeCos === 1 ? "y" : "ies"}` : "")
+        + `.` + (warn ? ` ⚠ ${warn} — check in HubSpot.` : "")
+      );
     }
     setSyncing(false);
   }

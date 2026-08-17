@@ -196,6 +196,11 @@ export function newCapture(seed = {}) {
     title: seed.title || "",
     company: seed.company || "",
     companyId: seed.companyId || null,  // HubSpot id when it came from the account book
+    // The website printed on the card. The OCR already reads it and card-scan.js uses it to match
+    // the account in-session, but it was never PERSISTED — so by sync time the domain was gone.
+    // It matters because domain is HubSpot's own company key, and the buyers' own emails can't
+    // substitute: sampling the live portal, 12/12 unlinked contacts were on gmail/hotmail/aol.
+    website: seed.website || "",
     email: seed.email || "",
     phone: seed.phone || "",           // the person's OWN direct line, if they have one
     // Most foodservice buyers aren't reached on a direct line — they're reached on the house
@@ -758,6 +763,19 @@ export function buildShowDigest(captures = [], { brandName = "", eventName = "",
 
 // ---- Sync to HubSpot -------------------------------------------------------------------
 
+/** Company domain for a capture: the card's printed website first, then the buyer's email domain —
+ *  but ONLY when it isn't a freemail provider. Returns "" when there is no usable company domain,
+ *  which is the common case at a booth and is why crm-push must still fall back to name matching. */
+export function companyDomainOf(capture) {
+  const clean = (v) => String(v || "").toLowerCase().trim()
+    .replace(/^https?:\/\//, "").replace(/^www\./, "").split(/[/?#]/)[0];
+  const fromSite = clean(capture?.website);
+  if (fromSite && fromSite.includes(".") && !FREEMAIL.has(fromSite)) return fromSite;
+  const fromEmail = clean(String(capture?.email || "").split("@")[1] || "");
+  if (fromEmail && fromEmail.includes(".") && !FREEMAIL.has(fromEmail)) return fromEmail;
+  return "";
+}
+
 /** crm-push.js accepts only CLEARED rows (email AND buyer name). Split rather than filter, so the
  *  UI can tell the rep exactly which captures are being held back and why. */
 export function splitPushable(captures = []) {
@@ -773,6 +791,9 @@ export function toPushRow(capture, { deals = [] } = {}) {
   return {
     companyId: capture.companyId || undefined,
     companyName: capture.company || "",
+    // Freemail is stripped here, not server-side: a personal address must never become a company
+    // domain, or one "gmail.com" account would swallow every unrelated buyer.
+    companyDomain: companyDomainOf(capture),
     buyer: capture.name || "",
     title: capture.title || "",
     email: capture.email || "",

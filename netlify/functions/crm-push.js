@@ -38,6 +38,93 @@ const json = (status, body) => ({
   body: JSON.stringify(body),
 });
 const str = (v, max) => (typeof v === "string" ? v.trim().slice(0, max) : "");
+
+// ---- Company resolution -----------------------------------------------------------------
+//
+// WHY THIS IS MATCH-FIRST AND NOT CREATE. Auditing the live portal (2026-08-16) found the naive
+// version would have corrupted a 650-company CRM:
+//   · The companies mostly ALREADY EXIST. Every orphan sampled — Cucina Baci, A Taste of Italy
+//     Deli, Angela's Pasta & Cheese Shop, Alma Gourmet, Teitel Brothers — was already on file with
+//     a domain. The 19% orphan rate is a LINKING failure, not a missing-company problem.
+//   · Exact-name matching is not enough. Eight contacts carry the company text "Baldor"; the real
+//     record is "Baldor Specialty Foods". Create-on-no-exact-match would duplicate it.
+// So: strongest key first (domain), then a name search that must be UNAMBIGUOUS, and only then a
+// create. An ambiguous name is left alone deliberately — a wrong link is worse than no link,
+// because it silently attributes a buyer to the wrong account.
+const normName = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "");
+
+async function findCompany(token, { companyDomain, companyName }) {
+  const search = async (filters) => {
+    const d = await hs(token, "/crm/v3/objects/companies/search", {
+      method: "POST",
+      body: { filterGroups: [{ filters }], properties: ["name", "domain"], limit: 5 },
+    });
+    return d?.results || [];
+  };
+
+  // 1. Domain — HubSpot's own company key. The client strips freemail before sending, so anything
+  //    arriving here is a real company domain off the card.
+  if (companyDomain) {
+    const byDomain = await search([{ propertyName: "domain", operator: "EQ", value: companyDomain }]);
+    if (byDomain.length === 1) return { id: byDomain[0].id, how: "domain" };
+    if (byDomain.length > 1) return { id: null, how: "ambiguous-domain" };
+  }
+
+  // 2. Name. CONTAINS_TOKEN so "Baldor" reaches "Baldor Specialty Foods", then require a single
+  //    hit — or an exact normalized match among several — before trusting it.
+  if (companyName) {
+    const hits = await search([{ propertyName: "name", operator: "CONTAINS_TOKEN", value: companyName }]);
+    if (hits.length === 1) return { id: hits[0].id, how: "name" };
+    if (hits.length > 1) {
+      const exact = hits.filter((h) => normName(h.properties?.name) === normName(companyName));
+      if (exact.length === 1) return { id: exact[0].id, how: "name-exact" };
+      return { id: null, how: "ambiguous-name", candidates: hits.map((h) => h.properties?.name).filter(Boolean) };
+    }
+  }
+  return { id: null, how: "none" };
+}
+
+/** READ-ONLY. Records on `plan` which company this row will attach to, so a dry run can show
+ *  "would create" before anything is written. Never creates. */
+async function planCompany(token, r, plan) {
+  if (r.companyId) { plan.companyId = r.companyId; plan.companyAction = "from-account-book"; return; }
+  if (!r.companyName && !r.companyDomain) { plan.companyAction = "none-no-company-on-card"; return; }
+  try {
+    const found = await findCompany(token, r);
+    if (found.id) { plan.companyId = found.id; plan.companyAction = `matched-${found.how}`; return; }
+    if (found.how.startsWith("ambiguous")) {
+      plan.companyAction = found.how;
+      plan.companyCandidates = found.candidates;
+      return; // deliberately unlinked — see the note above
+    }
+    plan.companyAction = "would-create";
+  } catch (e) {
+    plan.companyAction = "lookup-failed";
+    plan.companyError = String(e?.message || e);
+  }
+}
+
+/** COMMIT PATH. Returns the company id to associate, creating the company only when planCompany
+ *  concluded there is genuinely no match. Requires `crm.objects.companies.write`. */
+async function resolveCompanyId(token, r, plan) {
+  if (plan.companyId) return plan.companyId;
+  if (plan.companyAction !== "would-create" || !r.companyName) return null;
+  try {
+    const created = await hs(token, "/crm/v3/objects/companies", {
+      method: "POST",
+      body: { properties: { name: r.companyName, ...(r.companyDomain ? { domain: r.companyDomain } : {}) } },
+    });
+    plan.companyId = created?.id || null;
+    plan.companyAction = "created";
+    return plan.companyId;
+  } catch (e) {
+    // A 403 here is specifically the COMPANIES write scope, which is separate from contacts.write.
+    // Don't fail the whole row over it — the contact and its note are still worth keeping.
+    plan.companyAction = "create-failed";
+    plan.companyError = String(e?.message || e);
+    return null;
+  }
+}
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function hs(token, path, { method = "GET", body } = {}) {
@@ -96,6 +183,10 @@ const rawHandler = async (event) => {
     .map((r) => ({
       companyId: str(String(r.companyId ?? ""), 32),
       companyName: str(r.companyName, 200),
+      // Domain off the photographed card. HubSpot's own company key, and the only reliable one
+      // here: sampling the live portal, 12/12 orphan contacts used gmail/hotmail/aol, so an
+      // email-derived domain is worthless. The client already strips freemail before sending.
+      companyDomain: str(r.companyDomain, 160).toLowerCase(),
       buyer: str(r.buyer, 120),
       title: str(r.title, 120),
       email: str(r.email, 160).toLowerCase(),
@@ -141,6 +232,10 @@ const rawHandler = async (event) => {
         // Instagram has no native HubSpot property; carried as a note rather than silently dropped.
         noteWillBeWritten: !!(r.note || r.instagram),
       };
+      // Resolve the company READ-ONLY first, so a dry run shows exactly which account this will
+      // attach to — including "this would create a new company", which is the one outcome worth
+      // seeing before it happens.
+      await planCompany(token, r, plan);
       planned.push(plan);
 
       if (!commit) { await sleep(120); continue; }
@@ -154,11 +249,13 @@ const rawHandler = async (event) => {
         contactId = created?.id || null;
       }
 
-      // 3. Associate to the company we already know the record id for — this is what stops the
-      //    import creating a second, orphaned company.
-      if (contactId && r.companyId) {
+      // 3. Associate to a company — resolving or creating one when the capture didn't come from
+      //    the account book. Without this the contact lands with `company` as a bare text property
+      //    and no record behind it; 156 of 821 live contacts (19%) are already in that state.
+      const companyId = commit ? await resolveCompanyId(token, r, plan) : plan.companyId;
+      if (contactId && companyId) {
         try {
-          await hs(token, `/crm/v4/objects/contacts/${contactId}/associations/default/companies/${r.companyId}`, { method: "PUT" });
+          await hs(token, `/crm/v4/objects/contacts/${contactId}/associations/default/companies/${companyId}`, { method: "PUT" });
         } catch (e) {
           plan.associationError = String(e.message || e);
         }
