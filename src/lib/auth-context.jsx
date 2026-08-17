@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, useEffect } from "react";
-import { auth, currentUser, login as doLogin, logout as doLogout } from "./auth.js";
+import { auth, currentUser, login as doLogin, logout as doLogout, identityAuthHeader } from "./auth.js";
 
 const AuthContext = createContext(null);
 
@@ -121,4 +121,17 @@ export function writeAuthHeader() {
     const code = localStorage.getItem(PASSCODE_VALUE_KEY);
     return code ? { "x-portal-passcode": code } : {};
   } catch { return {}; }
+}
+
+/**
+ * Combined credential for Netlify Function calls (2026-08-17 fix — AUTH_AND_ROLES.md).
+ * The portal now signs users in for real via Netlify Identity, but every write/read function
+ * still only checked the old passcode header, so a logged-in session sent no credential the
+ * server recognized and every call 401'd. This sends whichever this session actually holds:
+ * the stashed passcode (harmless no-op outside passcode mode) AND the Identity bearer token
+ * (identityAuthHeader() — resolves {} when signed out). Async because the Identity token may
+ * need a refresh; every call site awaits this instead of writeAuthHeader() directly.
+ */
+export async function authHeaders() {
+  return { ...writeAuthHeader(), ...(await identityAuthHeader()) };
 }

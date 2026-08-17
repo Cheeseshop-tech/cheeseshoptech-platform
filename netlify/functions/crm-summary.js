@@ -11,10 +11,10 @@ import { requireReadAuth, jsonUnauthorized } from "./_write-guard.js";
 import { withMonitoring } from "./_sentry.js";
 const OBJECTS = ["contacts", "companies", "deals"];
 
-const rawHandler = async (event) => {
+const rawHandler = async (event, context) => {
   // Any valid passcode tier (2026-07-16, wiring-audit P0 #1) — CRM counts + newest contacts
   // (names/emails) used to be readable from a bare URL with zero auth.
-  const readAuth = requireReadAuth(event, event.queryStringParameters?.tenant || "");
+  const readAuth = requireReadAuth(event, event.queryStringParameters?.tenant || "", context);
   if (!readAuth.ok) return jsonUnauthorized(readAuth);
 
   const token = process.env.HUBSPOT_TOKEN;

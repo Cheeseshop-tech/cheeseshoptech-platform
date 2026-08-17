@@ -16,7 +16,7 @@ const USAGE_IDS = [
   "social", "press", "event", "brand-asset", "email-campaign", "print", "web-marketing",
 ];
 
-const rawHandler = async (event) => {
+const rawHandler = async (event, context) => {
   if (event.httpMethod !== "POST") return json(405, { error: "Method not allowed" });
 
   let body;
@@ -26,7 +26,7 @@ const rawHandler = async (event) => {
   // the POST body (2026-07-18 fix, mirrors the items-get.js/media-list.js read-side fix) — this
   // used to call requireWriteAuth(event) with NO tenant at all, so a per-tenant admin passcode
   // could never update an asset — only the generic PORTAL_ADMIN_PASSCODE or house passcode did.
-  const writeAuth = requireWriteAuth(event, (body.tenant || "").replace(/[^a-z0-9-]/gi, ""));
+  const writeAuth = requireWriteAuth(event, (body.tenant || "").replace(/[^a-z0-9-]/gi, ""), context);
   if (!writeAuth.ok) {
     await logWrite(event, { fn: "media-update", ok: false, status: writeAuth.status });
     return jsonUnauthorized(writeAuth);

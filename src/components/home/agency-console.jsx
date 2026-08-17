@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { listClients } from "@/lib/clientConfig.js";
 import { getPricingData, fetchInventory } from "@/lib/pricing.js";
 import { getBuyerCatalog } from "@/lib/catalog.js";
-import { writeAuthHeader } from "@/lib/auth-context.jsx";
+import { authHeaders } from "@/lib/auth-context.jsx";
 import { cn } from "@/lib/utils.js";
 
 // Agency Console — the house dashboard's P0 panels (ADMIN_DASHBOARDS_SPEC §3, built per
@@ -56,7 +56,8 @@ function LoginLogPanel() {
 
   useEffect(() => {
     let alive = true;
-    fetch("/.netlify/functions/login-log", { headers: { ...writeAuthHeader() } })
+    authHeaders()
+      .then((headers) => fetch("/.netlify/functions/login-log", { headers }))
       .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
       .then((d) => {
         if (!alive) return;
@@ -201,7 +202,8 @@ function CrmSnapshotPanel() {
     let alive = true;
     // Passcode header required server-side since 2026-07-16 (read guard). 401 = browser
     // unlocked before that deploy → no stashed passcode → sign out/in fixes it.
-    fetch("/.netlify/functions/crm-summary", { headers: { ...writeAuthHeader() } })
+    authHeaders()
+      .then((headers) => fetch("/.netlify/functions/crm-summary", { headers }))
       .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
       .then((d) => { if (alive) setState(d?.counts ? d : "error"); })
       .catch((status) => { if (alive) setState(status === 401 ? "relogin" : "error"); });
@@ -340,7 +342,7 @@ function IntegrationPanel({ clients }) {
     setCrm("checking");
     try {
       // Read guard (2026-07-16): the passcode header must replay, same as every other read.
-      const res = await fetch("/.netlify/functions/crm-summary", { headers: { ...writeAuthHeader() } });
+      const res = await fetch("/.netlify/functions/crm-summary", { headers: { ...(await authHeaders()) } });
       const data = await res.json().catch(() => null);
       setCrm(res.status === 401 ? "relogin" : res.ok && data?.counts ? data : "error");
     } catch {

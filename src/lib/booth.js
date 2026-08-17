@@ -13,7 +13,7 @@
 // crm-push.js is dry-run by default and passcode-guarded; this module never passes commit
 // itself — the UI has to ask for it. HubSpot stays the CRM of record either way.
 
-import { writeAuthHeader } from "./auth-context.jsx";
+import { authHeaders } from "./auth-context.jsx";
 import { seedFor } from "./items-seeds.js";
 import { businessTypeLabel, contactRoleLabel, isMultiplierRole, channelForBusinessType } from "./lead-taxonomy.js";
 
@@ -869,7 +869,7 @@ export async function pushToHubspot(resolved, captures, { commit = false } = {})
   try {
     const res = await fetch("/.netlify/functions/crm-push", {
       method: "POST",
-      headers: { "content-type": "application/json", ...writeAuthHeader() },
+      headers: { "content-type": "application/json", ...(await authHeaders()) },
       body: JSON.stringify({ tenant: resolved.id, rows: ready.map((c) => toPushRow(c, { deals })), commit }),
     });
     const data = await res.json().catch(() => ({}));

@@ -158,7 +158,7 @@ function splitName(full) {
   return { firstname: parts.slice(0, -1).join(" "), lastname: parts[parts.length - 1] };
 }
 
-const rawHandler = async (event) => {
+const rawHandler = async (event, context) => {
   if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: CORS, body: "" };
   if (event.httpMethod !== "POST") return json(405, { error: "Method not allowed" });
 
@@ -167,7 +167,7 @@ const rawHandler = async (event) => {
   const tenant = (body.tenant || "").replace(/[^a-z0-9-]/gi, "");
   if (!tenant) return json(400, { error: "Missing tenant" });
 
-  const auth = requireWriteAuth(event, tenant);
+  const auth = requireWriteAuth(event, tenant, context);
   if (!auth.ok) {
     await logWrite(event, { fn: "crm-push", ok: false, status: auth.status });
     return jsonUnauthorized(auth);

@@ -66,7 +66,7 @@ const MAX_INSTRUCTION_LEN = 400;
 const IMAGE_KEY = /image/i;
 const IMG_N_KEY = /^img\d*$/i;
 
-const rawHandler = async (event) => {
+const rawHandler = async (event, context) => {
   if (event.httpMethod !== "POST") return json(405, { error: "Method not allowed" });
 
   let body;
@@ -75,7 +75,7 @@ const rawHandler = async (event) => {
   // Any unlocked portal tier may run a compose pass (mirrors listAssets()/media-list.js —
   // this doesn't write anything to Cloudinary; "Save to Library" is a separate, later action).
   const tenant = (body.tenant || "").toString().replace(/[^a-z0-9-]/gi, "");
-  const auth = requireReadAuth(event, tenant);
+  const auth = requireReadAuth(event, tenant, context);
   if (!auth.ok) {
     await logWrite(event, { fn: "ai-compose", ok: false, status: auth.status });
     return jsonUnauthorized(auth);

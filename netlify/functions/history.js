@@ -37,7 +37,7 @@ function sanitize(r) {
   };
 }
 
-const rawHandler = async (event) => {
+const rawHandler = async (event, context) => {
   if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: CORS, body: "" };
 
   // Any valid passcode tier (2026-07-16, wiring-audit P0 #1) — reps on the base client tier
@@ -49,7 +49,8 @@ const rawHandler = async (event) => {
   const readAuth = requireReadAuth(
     event,
     cleanTenant(event.queryStringParameters?.tenant) ||
-      (() => { try { return cleanTenant(JSON.parse(event.body || "{}").tenant); } catch { return ""; } })()
+      (() => { try { return cleanTenant(JSON.parse(event.body || "{}").tenant); } catch { return ""; } })(),
+    context
   );
   if (!readAuth.ok) {
     if (event.httpMethod === "POST") await logWrite(event, { fn: "history", ok: false, status: readAuth.status });

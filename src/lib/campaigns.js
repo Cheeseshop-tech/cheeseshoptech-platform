@@ -15,7 +15,7 @@
 // per-client code — tenant is data.
 
 import { rolesOf } from "./auth.js";
-import { writeAuthHeader } from "./auth-context.jsx";
+import { authHeaders } from "./auth-context.jsx";
 // Segment filters are expressed in the CRM's own region/state vocabulary — reuse its
 // normalizers rather than a second copy that could disagree about "NJ" vs "New Jersey".
 import { regionOf, stateOf } from "./crm.js";
@@ -260,7 +260,7 @@ export async function getCampaigns(resolved) {
   if (USE_MOCK) return SEEDS[resolved.id] || [];
   try {
     const res = await fetch(`/.netlify/functions/campaigns?tenant=${encodeURIComponent(resolved.id)}`, {
-      headers: { ...writeAuthHeader() },
+      headers: { ...(await authHeaders()) },
     });
     return res.ok ? await res.json() : [];
   } catch {
@@ -276,7 +276,7 @@ export async function getCampaigns(resolved) {
 export async function getCampaignState(resolved) {
   try {
     const res = await fetch(`/.netlify/functions/campaign-state?tenant=${encodeURIComponent(resolved.id)}`, {
-      headers: { ...writeAuthHeader() },
+      headers: { ...(await authHeaders()) },
     });
     if (!res.ok) return { entries: {}, updatedAt: null };
     return await res.json();
@@ -290,7 +290,7 @@ export async function saveCampaignState(resolved, entries) {
   try {
     const res = await fetch("/.netlify/functions/campaign-state", {
       method: "POST",
-      headers: { "content-type": "application/json", ...writeAuthHeader() },
+      headers: { "content-type": "application/json", ...(await authHeaders()) },
       body: JSON.stringify({ tenant: resolved.id, entries }),
     });
     return { ok: res.ok, status: res.status };
@@ -490,7 +490,7 @@ export function segmentEnrichment(campaign, companies, enrichment = {}, all = []
 export async function getEnrichment(resolved) {
   try {
     const res = await fetch(`/.netlify/functions/campaign-enrichment?tenant=${encodeURIComponent(resolved.id)}`, {
-      headers: { ...writeAuthHeader() },
+      headers: { ...(await authHeaders()) },
     });
     if (!res.ok) return { entries: {}, updatedAt: null };
     return await res.json();
@@ -503,7 +503,7 @@ export async function saveEnrichment(resolved, entries) {
   try {
     const res = await fetch("/.netlify/functions/campaign-enrichment", {
       method: "POST",
-      headers: { "content-type": "application/json", ...writeAuthHeader() },
+      headers: { "content-type": "application/json", ...(await authHeaders()) },
       body: JSON.stringify({ tenant: resolved.id, entries }),
     });
     return { ok: res.ok, status: res.status };
@@ -552,7 +552,7 @@ export async function pushToHubspot(resolved, rows, { commit = false } = {}) {
   try {
     const res = await fetch("/.netlify/functions/crm-push", {
       method: "POST",
-      headers: { "content-type": "application/json", ...writeAuthHeader() },
+      headers: { "content-type": "application/json", ...(await authHeaders()) },
       body: JSON.stringify({ tenant: resolved.id, rows, commit }),
     });
     const data = await res.json().catch(() => ({}));

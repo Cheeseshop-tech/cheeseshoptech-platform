@@ -10,7 +10,7 @@
 
 import { rolesOf } from "./auth.js";
 import { seedFor } from "./items-seeds.js";
-import { writeAuthHeader } from "./auth-context.jsx";
+import { authHeaders } from "./auth-context.jsx";
 import { RELOGIN_MSG } from "./media.js";
 
 // Same management tier as asset editing (2026-07-06: tightened to admin/client-admin — see
@@ -156,7 +156,7 @@ export async function loadItems(tenantFolder, tenantId = "") {
   // link never blanks — surfaces with error UI show the sign-out/sign-in fix instead.
   const res = await fetch(
     `/.netlify/functions/items-get?folder=${encodeURIComponent(tenantFolder)}&tenant=${encodeURIComponent(tenantId)}`,
-    { headers: { ...writeAuthHeader() } }
+    { headers: { ...(await authHeaders()) } }
   );
   if (res.status === 404) return withSeed(emptyDoc(), tenantFolder);
   if (res.status === 401) throw new Error(RELOGIN_MSG);
@@ -178,7 +178,7 @@ export async function saveItems(tenantFolder, doc, tenantId = "") {
   }
   const res = await fetch("/.netlify/functions/items-save", {
     method: "POST",
-    headers: { "content-type": "application/json", ...writeAuthHeader() },
+    headers: { "content-type": "application/json", ...(await authHeaders()) },
     body: JSON.stringify({ folder: tenantFolder, doc: out, tenant: tenantId }),
   });
   if (!res.ok) {

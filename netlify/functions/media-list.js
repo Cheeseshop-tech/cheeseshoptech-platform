@@ -65,7 +65,7 @@ function withLegacySku(r, legacy) {
   return r;
 }
 
-const rawHandler = async (event) => {
+const rawHandler = async (event, context) => {
   // Any valid passcode tier (2026-07-16, wiring-audit P0 #1) — the full asset list (including
   // unapproved/draft) used to be readable from a bare URL with zero auth.
   //
@@ -76,7 +76,7 @@ const rawHandler = async (event) => {
   // crm-hubspot.js, inventory.js, and history.js all already take an explicit `tenant` query
   // param instead — matching that pattern here so per-tenant manager passcodes actually work
   // on reads, not just at login (found live-testing the new Monti Trentini manager passcode).
-  const readAuth = requireReadAuth(event, (event.queryStringParameters?.tenant || "").replace(/[^a-z0-9-]/gi, ""));
+  const readAuth = requireReadAuth(event, (event.queryStringParameters?.tenant || "").replace(/[^a-z0-9-]/gi, ""), context);
   if (!readAuth.ok) return jsonUnauthorized(readAuth);
 
   const cloud = process.env.CLOUDINARY_CLOUD_NAME;

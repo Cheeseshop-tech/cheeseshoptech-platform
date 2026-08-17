@@ -7,7 +7,7 @@ import { SLIDE_TEMPLATES, getSlideTemplate, firstImageId } from "@/lib/slide-tem
 import { voiceOptions } from "@/lib/brand-tokens.js";
 import { directDraft } from "@/lib/studio-director.js";
 import { getBrandKit } from "@/lib/brandKit.js";
-import { useAuth, writeAuthHeader } from "@/lib/auth-context.jsx";
+import { useAuth, authHeaders } from "@/lib/auth-context.jsx";
 import { RELOGIN_MSG } from "@/lib/media.js";
 import { cldUrl } from "@/lib/cloudinary.js";
 
@@ -118,7 +118,7 @@ export function SlideStudio({ resolved, onClose, onSave, opportunity }) {
       const kit = getBrandKit(resolved);
       const res = await fetch("/.netlify/functions/ai-compose", {
         method: "POST",
-        headers: { "content-type": "application/json", ...writeAuthHeader() },
+        headers: { "content-type": "application/json", ...(await authHeaders()) },
         body: JSON.stringify({
           tenant: resolved.id,
           deck,

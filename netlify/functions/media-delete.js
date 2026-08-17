@@ -10,7 +10,7 @@ import { requireWriteAuth, jsonUnauthorized } from "./_write-guard.js";
 import { logWrite, tenantFromPath } from "./_write-log.js";
 
 import { withMonitoring } from "./_sentry.js";
-const rawHandler = async (event) => {
+const rawHandler = async (event, context) => {
   if (event.httpMethod !== "POST") return json(405, { error: "Method not allowed" });
 
   let body;
@@ -20,7 +20,7 @@ const rawHandler = async (event) => {
   // explicitly from the POST body (2026-07-18 fix, mirrors the items-get.js/media-list.js
   // read-side fix) — this used to call requireWriteAuth(event) with NO tenant at all, so a
   // per-tenant admin passcode could never delete an asset — only the generic admin/house passcode.
-  const writeAuth = requireWriteAuth(event, (body.tenant || "").replace(/[^a-z0-9-]/gi, ""));
+  const writeAuth = requireWriteAuth(event, (body.tenant || "").replace(/[^a-z0-9-]/gi, ""), context);
   if (!writeAuth.ok) {
     await logWrite(event, { fn: "media-delete", ok: false, status: writeAuth.status });
     return jsonUnauthorized(writeAuth);

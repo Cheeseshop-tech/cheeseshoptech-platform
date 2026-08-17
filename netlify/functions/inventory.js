@@ -20,14 +20,14 @@ const json = (status, body, extra = {}) => ({
   body: JSON.stringify(body),
 });
 
-const rawHandler = async (event) => {
+const rawHandler = async (event, context) => {
   if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: CORS, body: "" };
 
   const tenant = (event.queryStringParameters?.tenant || "").replace(/[^a-z0-9-]/gi, "");
 
   // Any valid passcode tier (2026-07-16, wiring-audit P0 #1) — live stock used to be readable
   // from a bare URL with zero auth. Guard sits AFTER the OPTIONS branch so preflight still works.
-  const readAuth = requireReadAuth(event, tenant);
+  const readAuth = requireReadAuth(event, tenant, context);
   if (!readAuth.ok) return jsonUnauthorized(readAuth);
 
   if (event.httpMethod !== "GET") return json(405, { error: "Method not allowed" });

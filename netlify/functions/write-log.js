@@ -5,10 +5,10 @@ import { connectLambda, getStore } from "@netlify/blobs";
 import { requireWriteAuth, jsonUnauthorized } from "./_write-guard.js";
 
 import { withMonitoring } from "./_sentry.js";
-const rawHandler = async (event) => {
+const rawHandler = async (event, context) => {
   if (event.httpMethod !== "GET") return json(405, { error: "Method not allowed" });
 
-  const auth = requireWriteAuth(event);
+  const auth = requireWriteAuth(event, "", context);
   if (!auth.ok) return jsonUnauthorized(auth);
   if (auth.role !== "admin") return json(403, { error: "House admin only" });
 

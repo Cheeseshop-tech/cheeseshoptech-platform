@@ -20,7 +20,7 @@
 // has replaced the class-of-trade preset with a typed margin or markup — and this log is what a
 // later Price Change Notification quotes back to the customer as their previous price.
 import { PRICING_BACKEND } from "@/lib/pricing.js";
-import { writeAuthHeader } from "@/lib/auth-context.jsx";
+import { authHeaders } from "@/lib/auth-context.jsx";
 
 // Tenant-scoped on purpose: the lookup is per customer + SKU within a tenant, and a shared key
 // would let one tenant's quote history pre-fill another's price-change notice.
@@ -45,13 +45,18 @@ export function appendQuoteLog(tenantId, records) {
   const stamped = (records || []).map((r) => ({ id: newId(), tenant: tenantId, ...r }));
   saveLocal(tenantId, loadLocal(tenantId).concat(stamped));
   if (PRICING_BACKEND !== "mock" && stamped.length) {
-    // Passcode header required server-side (any tier — reps included). A 401 (pre-update
-    // unlock) means the record stays local-only until the rep signs out/in.
-    fetch("/.netlify/functions/quotes", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", ...writeAuthHeader() },
-      body: JSON.stringify({ tenant: tenantId, records: stamped }),
-    }).catch(() => { /* offline — stays in localStorage, syncs implicitly next quote */ });
+    // Real Identity token or (legacy) passcode header, whichever this session holds — see
+    // authHeaders() (2026-08-17 fix). A 401 means the record stays local-only until the rep
+    // signs back in. Not awaited — this write is fire-and-forget/optimistic by design.
+    authHeaders()
+      .then((headers) =>
+        fetch("/.netlify/functions/quotes", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", ...headers },
+          body: JSON.stringify({ tenant: tenantId, records: stamped }),
+        })
+      )
+      .catch(() => { /* offline — stays in localStorage, syncs implicitly next quote */ });
   }
   return stamped;
 }
@@ -63,7 +68,7 @@ export async function loadQuoteLog(tenantId) {
   if (PRICING_BACKEND === "mock") return local;
   try {
     const res = await fetch(`/.netlify/functions/quotes?tenant=${encodeURIComponent(tenantId)}`, {
-      headers: { ...writeAuthHeader() },
+      headers: { ...(await authHeaders()) },
     });
     if (!res.ok) return local; // incl. 401 from a pre-update unlock — local log still shows
     const data = await res.json();

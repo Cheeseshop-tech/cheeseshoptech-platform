@@ -3,7 +3,7 @@
 // also sync to the central store (/.netlify/functions/history) so every rep shares one history
 // (one mind / one body). Same key as the legacy ledger so prior captures carry over.
 import { PRICING_BACKEND } from "@/lib/pricing.js";
-import { writeAuthHeader } from "@/lib/auth-context.jsx";
+import { authHeaders } from "@/lib/auth-context.jsx";
 
 const LS_KEY = "mt-movement-ledger";
 const newId = () => Date.now() + "-" + Math.random().toString(36).slice(2, 8);
@@ -21,13 +21,18 @@ export function appendHistory(tenantId, records) {
   const stamped = (records || []).map((r) => ({ id: newId(), ...r }));
   saveLocal(loadLocal().concat(stamped));
   if (PRICING_BACKEND !== "mock" && stamped.length) {
-    // Passcode header required server-side since 2026-07-16 (any tier — reps included). A 401
-    // (pre-update unlock) means the record stays local-only until the rep signs out/in.
-    fetch("/.netlify/functions/history", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", ...writeAuthHeader() },
-      body: JSON.stringify({ tenant: tenantId, records: stamped }),
-    }).catch(() => { /* offline — stays in localStorage, syncs implicitly next capture */ });
+    // Real Identity token or (legacy) passcode header, whichever this session holds — see
+    // authHeaders() (2026-08-17 fix). A 401 means the record stays local-only until the rep
+    // signs back in. Not awaited — this write is fire-and-forget/optimistic by design.
+    authHeaders()
+      .then((headers) =>
+        fetch("/.netlify/functions/history", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", ...headers },
+          body: JSON.stringify({ tenant: tenantId, records: stamped }),
+        })
+      )
+      .catch(() => { /* offline — stays in localStorage, syncs implicitly next capture */ });
   }
   return stamped;
 }
@@ -39,7 +44,7 @@ export async function loadHistory(tenantId) {
   if (PRICING_BACKEND === "mock") return local;
   try {
     const res = await fetch(`/.netlify/functions/history?tenant=${encodeURIComponent(tenantId)}`, {
-      headers: { ...writeAuthHeader() },
+      headers: { ...(await authHeaders()) },
     });
     if (!res.ok) return local; // incl. 401 from a pre-update unlock — local ledger still shows
     const data = await res.json();

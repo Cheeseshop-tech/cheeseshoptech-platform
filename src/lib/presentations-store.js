@@ -6,7 +6,7 @@
 // 2026-08-03: connected to a real backend. This was localStorage-only, which made the catalog
 // browser-local — see the "Backing store" note below for why that had to change.
 //
-import { writeAuthHeader } from "./auth-context.jsx";
+import { authHeaders } from "./auth-context.jsx";
 //
 // Entry shape:
 //   { key, title, eyebrow?, description?, cover, kind, category, url?, slides?, savedAt }
@@ -104,7 +104,7 @@ function localWrite(tenantId, list) {
 export async function fetchCatalog(tenantId) {
   try {
     const res = await fetch(`/.netlify/functions/content-library?tenant=${encodeURIComponent(tenantId)}`, {
-      headers: { ...writeAuthHeader() },
+      headers: { ...(await authHeaders()) },
     });
     const data = res.ok ? await res.json() : { entries: [] };
     let entries = Array.isArray(data.entries) ? data.entries : [];
@@ -146,7 +146,7 @@ function scheduleSave(tenantId) {
     try {
       const res = await fetch("/.netlify/functions/content-library", {
         method: "POST",
-        headers: { "content-type": "application/json", ...writeAuthHeader() },
+        headers: { "content-type": "application/json", ...(await authHeaders()) },
         body: JSON.stringify({ tenant: t, entries: cache.get(t) || [] }),
       });
       setSaveState(res.ok ? "saved" : res.status === 401 ? "denied" : "failed");

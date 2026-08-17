@@ -31,13 +31,13 @@ const json = (status, body) => ({
   body: JSON.stringify(body),
 });
 
-const rawHandler = async (event) => {
+const rawHandler = async (event, context) => {
   if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: CORS, body: "" };
 
   if (event.httpMethod === "GET") {
     const tenant = (event.queryStringParameters?.tenant || "").replace(/[^a-z0-9-]/gi, "");
     if (!tenant) return json(400, { error: "Missing tenant" });
-    const readAuth = requireReadAuth(event, tenant);
+    const readAuth = requireReadAuth(event, tenant, context);
     if (!readAuth.ok) return jsonUnauthorized(readAuth);
     try {
       connectLambda(event);
@@ -59,7 +59,7 @@ const rawHandler = async (event) => {
   if (!tenant) return json(400, { error: "Missing tenant" });
 
   // Writes are house/client-admin only — same tiers as every other write endpoint.
-  const writeAuth = requireWriteAuth(event, tenant);
+  const writeAuth = requireWriteAuth(event, tenant, context);
   if (!writeAuth.ok) {
     await logWrite(event, { fn: "crm-outreach", ok: false, status: writeAuth.status });
     return jsonUnauthorized(writeAuth);

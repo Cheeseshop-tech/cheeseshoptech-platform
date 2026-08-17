@@ -50,13 +50,13 @@ const int = (v) => {
   return Number.isFinite(n) && n >= 0 ? Math.min(Math.floor(n), 1e9) : 0;
 };
 
-const rawHandler = async (event) => {
+const rawHandler = async (event, context) => {
   if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: CORS, body: "" };
 
   if (event.httpMethod === "GET") {
     const tenant = (event.queryStringParameters?.tenant || "").replace(/[^a-z0-9-]/gi, "");
     if (!tenant) return json(400, { error: "Missing tenant" });
-    const readAuth = requireReadAuth(event, tenant);
+    const readAuth = requireReadAuth(event, tenant, context);
     if (!readAuth.ok) return jsonUnauthorized(readAuth);
     try {
       connectLambda(event);
@@ -80,7 +80,7 @@ const rawHandler = async (event) => {
 
   // Writes are house/client-admin only — same tiers as every other write endpoint (Rick
   // confirmed 2026-08-03: campaign ticks get the identical gate the CRM console has).
-  const writeAuth = requireWriteAuth(event, tenant);
+  const writeAuth = requireWriteAuth(event, tenant, context);
   if (!writeAuth.ok) {
     await logWrite(event, { fn: "campaign-state", ok: false, status: writeAuth.status });
     return jsonUnauthorized(writeAuth);

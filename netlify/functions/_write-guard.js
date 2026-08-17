@@ -21,12 +21,43 @@ function header(event, name) {
   return h[name] || h[name.toLowerCase()] || h[name.toUpperCase()] || "";
 }
 
+// Role/tenant resolution for a real Netlify Identity user (2026-08-17 fix). Mirrors
+// src/lib/auth.js's rolesOf()/tenantOf()/canAccessTenant(), re-implemented standalone here
+// because this runs server-side and can't import the browser GoTrue client.
+const ADMIN_ROLES = ["owner", "admin"];
+
+function identityRole(user, tenant) {
+  const roles = user?.app_metadata?.roles || [];
+  if (roles.some((r) => ADMIN_ROLES.includes(r))) return "admin"; // tenant-agnostic, CST staff
+  const userTenant =
+    user?.app_metadata?.tenant ||
+    roles.find((r) => r.startsWith("tenant:"))?.slice("tenant:".length) ||
+    null;
+  const tenantOk = !tenant || userTenant === tenant;
+  if (!tenantOk) return null; // signed in, but to a different tenant than this request is for
+  if (roles.includes("client-admin")) return "client-admin";
+  if (roles.includes("client")) return "client";
+  return null;
+}
+
 /**
  * @param {object} event   Netlify function event.
  * @param {string} [tenant] Optional tenant id/subdomain for the per-tenant admin passcode.
  * @returns {{ok:true, role:"admin"|"client-admin"} | {ok:false, status:number, error:string}}
  */
-export function requireWriteAuth(event, tenant = "") {
+export function requireWriteAuth(event, tenant = "", context = null) {
+  // Real Netlify Identity session, checked FIRST (2026-08-17 fix — see
+  // docs/HANDOFF_2026-08-17_identity-write-guard-fix.md). Netlify itself verifies the JWT
+  // signature and populates this before our code ever runs; we just read the role it decided.
+  const identityUser = context?.clientContext?.user || null;
+  if (identityUser) {
+    const role = identityRole(identityUser, tenant);
+    if (role === "admin" || role === "client-admin") return { ok: true, role };
+    return { ok: false, status: 403, error: "Signed in, but this account can't write here" };
+  }
+
+  // Legacy passcode path (pilot auth, docs/AUTH_AND_ROLES.md) — kept as a fallback rather than
+  // removed; harmless no-op now that the passcode env vars are deleted (2026-08-17).
   const provided = (header(event, "x-portal-passcode") || "").toString();
   if (!provided) return { ok: false, status: 401, error: "Missing passcode (x-portal-passcode header)" };
 
@@ -53,7 +84,18 @@ export function requireWriteAuth(event, tenant = "") {
  * @param {string} [tenant] Optional tenant id/subdomain for the per-tenant admin passcode.
  * @returns {{ok:true, role:"admin"|"client-admin"|"client"} | {ok:false, status:number, error:string}}
  */
-export function requireReadAuth(event, tenant = "") {
+export function requireReadAuth(event, tenant = "", context = null) {
+  // Real Netlify Identity session, checked FIRST — see requireWriteAuth() above for the full
+  // rationale (2026-08-17 fix, docs/HANDOFF_2026-08-17_identity-write-guard-fix.md).
+  const identityUser = context?.clientContext?.user || null;
+  if (identityUser) {
+    const role = identityRole(identityUser, tenant);
+    if (role) return { ok: true, role };
+    return { ok: false, status: 403, error: "Signed in, but this account can't read here" };
+  }
+
+  // Legacy passcode path — kept as a fallback, harmless no-op now that the passcode env vars are
+  // deleted (2026-08-17).
   const provided = (header(event, "x-portal-passcode") || "").toString();
   if (!provided) return { ok: false, status: 401, error: "Missing passcode (x-portal-passcode header)" };
 

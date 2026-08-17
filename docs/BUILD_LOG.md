@@ -6,6 +6,42 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 > Format convention: `## YYYY-MM-DD — Title` · **Decision / Action / Status** ·
 > keep entries short and factual. This file is the project's memory.
 
+## 2026-08-17 — Security & Auth: real Netlify Identity now actually live; write/read functions being migrated off the old passcode guard
+
+**Finding.** The "Identity has been live since June" belief recorded in earlier sessions was
+wrong. `VITE_AUTH_MODE=passcode` was set at the Netlify **team** level (Team settings →
+Environment variables) — a separate dashboard page from the project-level one, invisible from it,
+that silently overrides every build. Checking only the project-level page for months missed it.
+`PasscodeGate`, not `RequireAuth`, was the real, live gate the entire time.
+
+**Fixed today.** Deleted `PORTAL_PASSCODE` / `PORTAL_HOUSE_PASSCODE` / `PORTAL_ADMIN_PASSCODE` /
+`PORTAL_ADMIN_PASSCODE_MONTITRENTINI` / `VITE_AUTH_MODE` at BOTH the project and team level,
+redeployed, and verified live against the rendered app (not just the dashboard) —
+`admin.cheeseshoptech.com` now shows the real email+password Sign In screen. New guardrail added
+to `CLAUDE_CODE_BRIEF.md` (#8): env vars exist at two separate layers, check both; and don't trust
+the dashboard alone — verify live, because its own SPA can serve a stale cached view mid-session.
+Stefano Viero invited as a real Identity user (`client / tenant:montitrentini`).
+
+**New problem this surfaced (in progress).** Every Netlify Function that reads or writes real data
+(Media Hub, Items, CRM snapshot, Login log, Inventory, History, Campaigns, Quotes, Presentations)
+was guarded ONLY by the old shared passcode header (`_write-guard.js`'s `requireWriteAuth` /
+`requireReadAuth`) — never by real Identity. The client's `writeAuthHeader()` only ever sent that
+passcode header in passcode mode; now that real Identity is live and the passcode is deleted,
+EVERY one of those ~19 functions 401s for everyone, Rick included. Confirmed live via the Agency
+Console's own Integration Health panel: "HubSpot CRM: re-enter passcode" — except there's no
+passcode left to re-enter. `identityAuthHeader()` (an Identity bearer-token helper) already
+existed in `src/lib/auth.js`, half-wired — only `card-scan.js`/`card-ocr.js` used the
+dual-credential pattern it was built for. This closes the same gap everywhere else, following that
+exact precedent. Full detail + exact resume point: `docs/HANDOFF_2026-08-17_identity-write-guard-fix.md`.
+
+**Status: IN PROGRESS**, not yet deployed/verified live. Also surfaced along the way: Rick's own
+real Identity account (`Rick.posada@outlook.com`, created Jun 6) had never had a password
+confirmed — passcode mode was the only thing actually in use for two months, so this was the
+first real login attempt against it ever. Password reset sent; login not yet confirmed as of this
+entry.
+
+---
+
 ## 2026-08-14 — Error tracking + performance monitoring (Sentry), env-gated
 
 **Why.** An app-health audit run this session (`docs/APP_HEALTH_AND_ROADMAP_2026-08-14.md`) found

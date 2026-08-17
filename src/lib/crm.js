@@ -4,7 +4,7 @@
 // HUBSPOT_TOKEN). Direct-HubSpot, not Make (the Make proxy was deleted 2026-07-16).
 
 import { rolesOf } from "./auth.js";
-import { writeAuthHeader } from "./auth-context.jsx";
+import { authHeaders } from "./auth-context.jsx";
 
 export function hasCrm(resolved) {
   return resolved?.crm && resolved.crm !== "none";
@@ -197,7 +197,7 @@ export async function getCrmData(resolved, { force = false } = {}) {
   // so the cache entry has to be dropped inside the success path too, not just on .catch().
   const promise = (async () => {
     const res = await fetch(`/.netlify/functions/crm-hubspot?tenant=${encodeURIComponent(key)}`, {
-      headers: { ...writeAuthHeader() },
+      headers: { ...(await authHeaders()) },
     });
     if (!res.ok) { crmCache.delete(key); return emptyDataset(); }
     return await res.json();
@@ -220,7 +220,7 @@ function emptyDataset() {
 export async function getOutreach(resolved) {
   try {
     const res = await fetch(`/.netlify/functions/crm-outreach?tenant=${encodeURIComponent(resolved.id)}`, {
-      headers: { ...writeAuthHeader() },
+      headers: { ...(await authHeaders()) },
     });
     if (!res.ok) return { entries: {}, updatedAt: null };
     return await res.json();
@@ -234,7 +234,7 @@ export async function saveOutreach(resolved, entries) {
   try {
     const res = await fetch("/.netlify/functions/crm-outreach", {
       method: "POST",
-      headers: { "content-type": "application/json", ...writeAuthHeader() },
+      headers: { "content-type": "application/json", ...(await authHeaders()) },
       body: JSON.stringify({ tenant: resolved.id, entries }),
     });
     return { ok: res.ok, status: res.status };

@@ -8,7 +8,7 @@
 import { requireReadAuth, jsonUnauthorized } from "./_write-guard.js";
 
 import { withMonitoring } from "./_sentry.js";
-const rawHandler = async (event) => {
+const rawHandler = async (event, context) => {
   // Any valid passcode tier (2026-07-16, wiring-audit P0 #1) — item identity/copy docs used to
   // be readable from a bare URL with zero auth.
   //
@@ -19,7 +19,7 @@ const rawHandler = async (event) => {
   // crm-hubspot.js, inventory.js, and history.js all already take an explicit `tenant` query
   // param instead — matching that pattern here (found live-testing the new Monti Trentini
   // manager passcode: it unlocked the portal fine but every item/photo read still 401'd).
-  const readAuth = requireReadAuth(event, (event.queryStringParameters?.tenant || "").replace(/[^a-z0-9-]/gi, ""));
+  const readAuth = requireReadAuth(event, (event.queryStringParameters?.tenant || "").replace(/[^a-z0-9-]/gi, ""), context);
   if (!readAuth.ok) return jsonUnauthorized(readAuth);
 
   if (event.httpMethod !== "GET") return json(405, { error: "Method not allowed" });

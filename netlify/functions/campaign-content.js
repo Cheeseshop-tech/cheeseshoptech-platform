@@ -43,13 +43,13 @@ const json = (status, body) => ({
 });
 const str = (v, max) => (typeof v === "string" ? v.slice(0, max) : "");
 
-const rawHandler = async (event) => {
+const rawHandler = async (event, context) => {
   if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: CORS, body: "" };
 
   if (event.httpMethod === "GET") {
     const tenant = (event.queryStringParameters?.tenant || "").replace(/[^a-z0-9-]/gi, "");
     if (!tenant) return json(400, { error: "Missing tenant" });
-    const readAuth = requireReadAuth(event, tenant);
+    const readAuth = requireReadAuth(event, tenant, context);
     if (!readAuth.ok) return jsonUnauthorized(readAuth);
     try {
       connectLambda(event);
@@ -69,7 +69,7 @@ const rawHandler = async (event) => {
   const tenant = (body.tenant || "").replace(/[^a-z0-9-]/gi, "");
   if (!tenant) return json(400, { error: "Missing tenant" });
 
-  const writeAuth = requireWriteAuth(event, tenant);
+  const writeAuth = requireWriteAuth(event, tenant, context);
   if (!writeAuth.ok) {
     await logWrite(event, { fn: "campaign-content", ok: false, status: writeAuth.status });
     return jsonUnauthorized(writeAuth);

@@ -12,7 +12,7 @@ import { logWrite, tenantFromPath } from "./_write-log.js";
 import { withMonitoring } from "./_sentry.js";
 const MAX_BYTES = 900_000; // items.json is text; ~1 MB guard against runaway payloads
 
-const rawHandler = async (event) => {
+const rawHandler = async (event, context) => {
   if (event.httpMethod !== "POST") return json(405, { error: "Method not allowed" });
 
   let body;
@@ -23,7 +23,7 @@ const rawHandler = async (event) => {
   // used to call requireWriteAuth(event) with NO tenant at all, so a per-tenant admin passcode
   // (PORTAL_ADMIN_PASSCODE_<TENANT>, e.g. Monti Trentini's manager passcode) could never save
   // items — only the generic PORTAL_ADMIN_PASSCODE or house passcode ever worked here.
-  const writeAuth = requireWriteAuth(event, (body.tenant || "").replace(/[^a-z0-9-]/gi, ""));
+  const writeAuth = requireWriteAuth(event, (body.tenant || "").replace(/[^a-z0-9-]/gi, ""), context);
   if (!writeAuth.ok) {
     await logWrite(event, { fn: "items-save", ok: false, status: writeAuth.status });
     return jsonUnauthorized(writeAuth);

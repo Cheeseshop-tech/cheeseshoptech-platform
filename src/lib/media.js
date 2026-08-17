@@ -4,7 +4,7 @@
 // See docs/MEDIA_HUB.md.
 
 import { rolesOf } from "./auth.js";
-import { writeAuthHeader } from "./auth-context.jsx";
+import { authHeaders } from "./auth-context.jsx";
 
 // Approval states (lightweight, per POSITIONING.md content-studio → media-hub flow).
 export const APPROVAL = {
@@ -135,7 +135,7 @@ export async function listAssets({ folder, tenantFolder, legacyFolders, user, te
     // deriving it from `folder`, which never matched (see media-list.js for the full story).
     const res = await fetch(
       `/.netlify/functions/media-list?folder=${encodeURIComponent(tenantFolder)}${legacy}&tenant=${encodeURIComponent(tenantId)}`,
-      { headers: { ...writeAuthHeader() } }
+      { headers: { ...(await authHeaders()) } }
     );
     if (res.status === 401) throw new Error(RELOGIN_MSG); // pre-update unlock — no stashed passcode
     assets = res.ok ? await res.json() : [];
@@ -175,7 +175,7 @@ export async function listAssetsPage({ tenantFolder, legacyFolders, user, cursor
   // `tenantId` (2026-07-18 fix): see listAssets() above — same explicit tenant id/subdomain.
   const res = await fetch(
     `/.netlify/functions/media-list?paged=1&max_results=${maxResults}&folder=${encodeURIComponent(tenantFolder)}${legacy}${cursorParam}&tenant=${encodeURIComponent(tenantId)}`,
-    { headers: { ...writeAuthHeader() } }
+    { headers: { ...(await authHeaders()) } }
   );
   if (res.status === 401) throw new Error(RELOGIN_MSG);
   if (!res.ok) return { assets: [], nextCursor: null };
@@ -204,7 +204,7 @@ export async function updateAsset({ publicId, displayName, usage, sku, alt, desc
   // per-tenant admin passcode could never authorize this write — now sent explicitly.
   const res = await fetch("/.netlify/functions/media-update", {
     method: "POST",
-    headers: { "content-type": "application/json", ...writeAuthHeader() },
+    headers: { "content-type": "application/json", ...(await authHeaders()) },
     body: JSON.stringify({ publicId, displayName, usage, sku, alt, description, approvalState, tenant: tenantId }),
   });
   if (!res.ok) {
@@ -234,7 +234,7 @@ export async function deleteAsset({ publicId, resourceType = "image", tenantId =
   // updateAsset() above for the same story.
   const res = await fetch("/.netlify/functions/media-delete", {
     method: "POST",
-    headers: { "content-type": "application/json", ...writeAuthHeader() },
+    headers: { "content-type": "application/json", ...(await authHeaders()) },
     body: JSON.stringify({ publicId, resourceType, tenant: tenantId }),
   });
   if (!res.ok) {

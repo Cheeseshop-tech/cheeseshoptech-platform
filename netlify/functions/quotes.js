@@ -58,7 +58,7 @@ function sanitize(r) {
   };
 }
 
-const rawHandler = async (event) => {
+const rawHandler = async (event, context) => {
   if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: CORS, body: "" };
 
   // Any valid passcode tier, reads and writes alike — reps on the base client tier both issue
@@ -68,7 +68,8 @@ const rawHandler = async (event) => {
   const readAuth = requireReadAuth(
     event,
     cleanTenant(event.queryStringParameters?.tenant) ||
-      (() => { try { return cleanTenant(JSON.parse(event.body || "{}").tenant); } catch { return ""; } })()
+      (() => { try { return cleanTenant(JSON.parse(event.body || "{}").tenant); } catch { return ""; } })(),
+    context
   );
   if (!readAuth.ok) {
     if (event.httpMethod === "POST") await logWrite(event, { fn: "quotes", ok: false, status: readAuth.status });
