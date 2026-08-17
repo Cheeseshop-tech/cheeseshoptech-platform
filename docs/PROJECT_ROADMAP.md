@@ -35,11 +35,31 @@ auth means one client's admin passcode, if it ever leaked the way the house one 
 blast-radius containment. Real per-user accounts are the floor for "production-ready for more
 than one trusting client."
 
-**Next concrete action:** Rick decides to proceed, gives Stefano's email for the invite, and says
-whether to drive the Netlify dashboard himself or have Claude do it live via computer-use. Steps
-are already written in `docs/AUTH_AND_ROLES.md` and [[cst-auth-upgrade]] — this is flip-a-switch
-work (rotate `PORTAL_HOUSE_PASSCODE`, enable Identity, invite-only + strong passwords, unset
-`VITE_AUTH_MODE=passcode`, redeploy, verify tenant isolation), not a rebuild.
+**SUPERSEDED AGAIN, same day (this is now the third and current version of this thread's status —
+see [[cst-auth-upgrade]] for the full chain).** Live-checked Netlify Identity directly: it is NOT
+dormant. It has been the ACTIVE gate this whole time — `VITE_AUTH_MODE` was never set, so
+`src/App.jsx` has been resolving to `RequireAuth` (real Identity), not `PasscodeGate`, all along.
+Registration is already **Invite only** with **email confirmation required** — the secure baseline
+is already in place. Three real accounts exist, all created 2026-06-06: Rick (`admin/owner`), a
+`Richard`/`sales@montitrentini-usa.com` test account (`tenant:montitrentini`), and one unexplained
+account — **`ken.cha0528@gmail.com`, role `admin`, origin unknown, not in any project doc or
+memory.** All the `PORTAL_*` passcode env var work from earlier today is real and correctly built,
+but currently inert — not what's actually gating the live app.
+
+**2026-08-17, later same day: `ken.cha0528@gmail.com` removed from Identity.** Rick confirmed he
+didn't recognize the account and deleted it via Identity → Users. Unexplained-admin item closed.
+
+**Next concrete action — down to one real step:**
+1. ~~Rick identifies `ken.cha0528@gmail.com`~~ — done, removed.
+2. Invite Stefano (`stefano@montitrentini-usa.com`) via Identity → Invite users, then set role to
+   `client, tenant:montitrentini` once accepted. **This is the one remaining step to actually close
+   this thread.**
+3. Leave `VITE_AUTH_MODE` unset (that's what keeps the app on real Identity, not the passcode
+   fallback) — no code or env change needed here, already correct as-is.
+
+Open thread, not yet resolved: the original trigger for this whole upgrade ("Rick shared the house
+passcode with Stefano on 8/13") doesn't fully square with Identity having been the active gate
+since June — worth Rick's own recollection of what Stefano actually received that day.
 
 **Not in scope for this pass:** the Clerk migration (per-user + real multi-tenant orgs) that was
 the original plan for "when client #2 signs." That's still the right long-term answer at 10-client
