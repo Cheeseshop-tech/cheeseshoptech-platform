@@ -628,10 +628,26 @@ export function BoothTool({ resolved }) {
               ? `${landed} contact${landed === 1 ? "" : "s"} wrote before it stopped — marked synced, so they won't be sent twice.`
               : "Nothing was written.",
             `${Math.max(0, ready.length - landed)} still queued on this device.`,
-            // crm-push builds a precise 403 hint (which scope, which endpoint, dry-run vs commit).
-            // Surface it verbatim — discarding it is what turns "missing contacts.write" into an
-            // opaque number nobody can act on at a booth.
-            res.hint || (res.requiredScopes?.length ? `HubSpot requires: ${res.requiredScopes.join(", ")}.` : ""),
+            // HubSpot's OWN words come FIRST, and `res.hint` is deliberately NOT shown.
+            //
+            // 2026-08-17: this branch used to render only `res.hint`, which crm-push.js builds by
+            // appending "Add the scope on the SAME private app..." to EVERY 403 unconditionally.
+            // That hardcoded sentence was treated as a diagnosis across three sessions while the
+            // real cause was HUBSPOT_TOKEN pointing at a private app nobody had identified — both
+            // apps in the portal already had contacts.write. `res.error` and `res.category` were
+            // returned by crm-push and passed through by booth.js the whole time, and dropped here.
+            // Never show the guess without the evidence beside it.
+            res.error ? `HubSpot said: "${res.error}"` : "",
+            res.category ? `(${res.category})` : "",
+            res.failedOn ? `Failed on ${res.failedOn}.` : "",
+            // Only claim a scope is missing when HubSpot actually NAMED one. A MISSING_SCOPES
+            // category with a null scope list means the token lacks the permission — which is just
+            // as often the wrong token as a wrong scope. Send the reader to check both.
+            res.requiredScopes?.length
+              ? `HubSpot named the scopes it wants: ${res.requiredScopes.join(", ")}.`
+              : res.category === "MISSING_SCOPES"
+                ? "HubSpot reported a scope problem but did NOT name a scope. Before adding scopes, confirm HUBSPOT_TOKEN actually belongs to the private app you are editing — HubSpot → Legacy Apps → the app → Auth → compare the token prefix."
+                : "",
           ].filter(Boolean).join(" ")
       );
     } else if (res.dryRun) {
