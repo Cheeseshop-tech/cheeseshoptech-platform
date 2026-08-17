@@ -49,6 +49,23 @@ but currently inert — not what's actually gating the live app.
 **2026-08-17, later same day: `ken.cha0528@gmail.com` removed from Identity.** Rick confirmed he
 didn't recognize the account and deleted it via Identity → Users. Unexplained-admin item closed.
 
+**2026-08-17, same evening — "logged in with the MT admin password, still had full CST admin
+tools via the dropdown" report, investigated and closed, NOT a code bug:** Traced the actual
+dropdown — it's the tenant switcher in `src/App.jsx` (~line 153), a `<select>` gated only by
+`RoleGate roles={["admin"]}`, separate from which tenant/client URL is loaded. It renders for any
+session with the `admin` role, by design ("CST staff can preview/switch tenants; clients can't" —
+see `canAccessTenant()` in `src/lib/auth.js`). There is no passcode field anywhere on the live
+login screen (`login-screen.jsx` is real email + password only — the `PasscodeGate` UI that reads
+`PORTAL_ADMIN_PASSCODE_MONTITRENTINI` etc. is dead code in production, confirmed again). So
+whatever Rick believed he entered as "the MT admin password," what actually granted access was his
+own already-remembered `rick.posada@outlook.com` **owner** session — the same "logs in from
+memory" browser session flagged earlier this session. An owner/admin session will always show the
+tenant switcher and CST admin tools, regardless of which tenant's URL is open, because that's
+exactly what an owner account is for. Confirmed no code or config fix needed here. Real fix is
+testing method: before testing what a restricted user (Stefano, or an MT client-admin) would
+actually see, Rick needs to fully sign out first — LogOut icon, top-right corner, next to the
+tenant switcher — since a lingering owner session will out-rank any other input every time.
+
 **Next concrete action — down to one real step:**
 1. ~~Rick identifies `ken.cha0528@gmail.com`~~ — done, removed.
 2. Invite Stefano (`stefano@montitrentini-usa.com`) via Identity → Invite users, then set role to
