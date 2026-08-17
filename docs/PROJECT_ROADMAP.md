@@ -124,6 +124,21 @@ tenant switcher — since a lingering owner session will out-rank any other inpu
 This whole thread — Security & Auth upgrade — is now **✅ Live**, not just spec'd. Move status
 line at the top of this section to ✅ Live in the next full doc pass.
 
+**VERIFIED END-TO-END, 2026-08-17 ~8:40pm.** Earlier the same evening a second gap was found and
+fixed: every write/read Netlify Function trusted only the old passcode header, never real
+Identity, so login worked but every data read/write still 401'd (see
+docs/HANDOFF_2026-08-17_identity-write-guard-fix.md, commit `32a9da6`). That fix is now confirmed
+genuinely working, not just deployed: Rick logged in for real, and the Agency Console's CRM
+snapshot + Integration Health "HubSpot CRM" test both returned live data (826 contacts, 653
+companies, 0 deals) using his real Identity session — no passcode involved anywhere. Stefano is
+mid-password-reset as of this check, not yet confirmed logged in himself.
+
+**Follow-on, same check:** the Integration Health panel's "Passcode gate" row was found showing a
+permanent red false alarm (pings the now-retired `gate.js`, which will 500 forever since its env
+vars are intentionally deleted). Fixed in code (renamed to "Auth (Identity)", checks Netlify's
+public Identity settings endpoint instead) — commit ready in
+`COMMIT FIX PASSCODE GATE FALSE ALARM.command`, not yet pushed as of this check.
+
 **Resolved, 2026-08-17 evening — the 8/13 origin story, confirmed:** Rick confirmed the credential
 he gave Stefano on 8/13 was the CheeseShop TECH house/admin **passcode** (`PORTAL_HOUSE_PASSCODE`),
 never Rick's own real Netlify Identity email+password. Two things follow: (1) Rick's own real
@@ -215,4 +230,33 @@ Keys for exactly this kind of data-only integration (see [[hubspot-token-wrong-a
   item above; it changes the incentive structure around auth, IP, and pricing decisions once
   settled. Needs Rick's explicit decision, likely with legal counsel, before it's actionable here.
 - **In-app Progress/Onboarding tab** — see `docs/PROGRESS_TAB_SPEC_2026-08-17.md`, spec'd
-  2026-08-17, not built. This roadmap doc is its data source once it exists.
+  2026-08-17, PROMOTED TO ACTIVE BUILD 2026-08-17 evening (Rick's call — see Daily Accountability
+  section below). This roadmap doc is its data source once it exists.
+
+
+---
+
+## Daily accountability system (meta — how this doc itself gets used)
+
+**Status:** 🔧 In progress. Built 2026-08-17: this doc as single source of truth + the visual
+status page below. Blocked on one step only Rick can do.
+
+**What exists:**
+- This doc (`docs/PROJECT_ROADMAP.md`) — the source of truth every other piece reads from.
+- A standalone visual status page (HTML, sent + persisted as a Cowork artifact 2026-08-17
+  evening) rendering this doc's threads as cards with status badges, progress bars, and
+  "Next concrete action" call-outs — the "visible map" Rick asked for, and a working preview of
+  the in-app Progress tab below.
+- `docs/PROGRESS_TAB_SPEC_2026-08-17.md` — spec for the in-app version.
+
+**Decisions locked 2026-08-17 evening:**
+1. Daily email send time: **7:00 AM local**, once the send account is connected.
+2. Next active build thread (of Scale-to-10 / Ecommerce / Progress tab): **the in-app Progress /
+   Onboarding tab** — see its own section above, now promoted from spec'd to active build.
+
+**Still blocking the daily email specifically:** the Gmail account connected to this session sends
+as `sales@montitrentini-usa.com` (Monti's own mailbox), not a CheeseShop TECH address. Rick wants
+`Hello@cheeseshoptech.com` to send from. **This is Rick's action, not triggerable in-session** —
+connect it via the Claude app's Settings → Connectors, same way the Monti account is connected
+today. Once confirmed connected, the recurring scheduled task (`create_trigger`, real daily cron —
+never local/in-session cron, which doesn't survive) gets built against this doc + the status page.
