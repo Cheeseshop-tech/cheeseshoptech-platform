@@ -18,9 +18,56 @@ session so it stops disagreeing with reality).
 
 ---
 
-## 🔴 PRIORITY — Security & Auth upgrade
+## Security & Auth upgrade
 
-**Status:** 📋 Built, dormant, not flipped on. **Rick's call today: this is thread #1.**
+**Status:** ✅ Live — closed for real, 2026-08-17 late evening, after a mid-course correction
+(see below for the full story of what was missed and how it was actually verified).
+
+**CORRECTION, 2026-08-17 late evening:** everything below in this section describing Identity as
+the live gate since June was based on an incomplete check. Netlify has TWO separate layers of
+environment variables — project-level (`cheeseshoptech-platform` -> Environment variables, what
+this whole thread checked all night) and a second, separate TEAM-level set (Team settings ->
+Environment variables) that also applies to every build. The team-level set has its own
+`PORTAL_PASSCODE` / `PORTAL_HOUSE_PASSCODE` / `PORTAL_ADMIN_PASSCODE`, and **`VITE_AUTH_MODE` set
+to `passcode` there, last updated 2 months ago** — confirmed live by directly loading
+`admin.cheeseshoptech.com` and seeing the real passcode screen, then confirming the value in
+Netlify's team-level env vars page. `PasscodeGate` has been the actual live gate this whole time,
+not `RequireAuth` — the opposite of what was concluded earlier tonight.
+
+**What that means concretely:** the three passcode vars deleted from the PROJECT level tonight
+were only shadow copies — the TEAM-level ones (the real, functioning ones) were never touched.
+The house passcode originally given to Stefano on 8/13 may still work right now. All of tonight's
+real Identity work (invite-only confirmed, ken.cha0528 removed, Stefano invited with role
+client/tenant:montitrentini) is still real and still worth having, but it has not actually been
+what's gating access.
+
+**Next concrete action — the real remaining steps:**
+1. At **Team settings -> Environment variables** (not the project page): delete `PORTAL_PASSCODE`,
+   `PORTAL_HOUSE_PASSCODE`, `PORTAL_ADMIN_PASSCODE` there too.
+2. Decide on `VITE_AUTH_MODE`: delete it (or set to `identity`) at the team level so `RequireAuth`
+   actually becomes the live gate, making tonight's Identity work real instead of cosmetic.
+3. Trigger a redeploy afterward (guardrail #7) and re-verify live on `admin.cheeseshoptech.com` —
+   confirm it shows the real email+password screen, not the passcode screen, before calling this
+   closed again.
+
+**CLOSED FOR REAL, 2026-08-17 late evening.** Rick deleted `PORTAL_PASSCODE`,
+`PORTAL_HOUSE_PASSCODE`, `PORTAL_ADMIN_PASSCODE`, and `VITE_AUTH_MODE` at the TEAM level (Team
+settings -> Environment variables — took two passes since `VITE_AUTH_MODE` didn't take the first
+time), redeployed each time, all from his phone. Verified LIVE, not just in the dashboard: loading
+`admin.cheeseshoptech.com` fresh now shows the real "Sign in to your portal" email+password screen
+(`RequireAuth`/`login-screen.jsx`), not the passcode screen — confirmed with a genuinely new JS
+bundle hash each time, ruling out cache. `PasscodeGate` is no longer reachable in production.
+
+This means real per-user Netlify Identity is now, for the first time, what's actually gating the
+live app — everything from earlier tonight (invite-only registration, `ken.cha0528@gmail.com`
+removed, Stefano invited with role `client/tenant:montitrentini`) is now the real, functioning
+front door, not just correctly-configured-but-bypassed background setup. Thread genuinely done.
+
+**Lesson learned, now in CLAUDE_CODE_BRIEF.md territory:** Netlify has two separate environment
+variable layers — project-level and team-level (shared across every project) — and checking only
+one is not enough. When verifying "is X set," check both, and when in doubt, verify against the
+LIVE APP directly (not just the dashboard), since the dashboard can also show stale cached state
+mid-session.
 
 A full per-user login system (Netlify Identity — roles, tenant scoping, invite/recovery flows,
 `src/lib/auth.js` + `auth-context.jsx` + `login-screen.jsx`) has existed in the codebase since
@@ -66,17 +113,27 @@ testing method: before testing what a restricted user (Stefano, or an MT client-
 actually see, Rick needs to fully sign out first — LogOut icon, top-right corner, next to the
 tenant switcher — since a lingering owner session will out-rank any other input every time.
 
-**Next concrete action — down to one real step:**
+**CLOSED, 2026-08-17 evening.** Stefano invited to real Identity
+(`stefano@montitrentini-usa.com`), accepted, and given role `client / tenant:montitrentini`
+(confirmed on his Identity user page). Every item on this thread is now done:
 1. ~~Rick identifies `ken.cha0528@gmail.com`~~ — done, removed.
-2. Invite Stefano (`stefano@montitrentini-usa.com`) via Identity → Invite users, then set role to
-   `client, tenant:montitrentini` once accepted. **This is the one remaining step to actually close
-   this thread.**
-3. Leave `VITE_AUTH_MODE` unset (that's what keeps the app on real Identity, not the passcode
-   fallback) — no code or env change needed here, already correct as-is.
+2. ~~Invite Stefano, set role~~ — done, confirmed `client / tenant:montitrentini`.
+3. `VITE_AUTH_MODE` left unset (keeps the app on real Identity) — already correct, untouched.
+4. ~~Delete the three dead `PORTAL_*` passcode env vars~~ — done, redeployed, confirmed gone.
 
-Open thread, not yet resolved: the original trigger for this whole upgrade ("Rick shared the house
-passcode with Stefano on 8/13") doesn't fully square with Identity having been the active gate
-since June — worth Rick's own recollection of what Stefano actually received that day.
+This whole thread — Security & Auth upgrade — is now **✅ Live**, not just spec'd. Move status
+line at the top of this section to ✅ Live in the next full doc pass.
+
+**Resolved, 2026-08-17 evening — the 8/13 origin story, confirmed:** Rick confirmed the credential
+he gave Stefano on 8/13 was the CheeseShop TECH house/admin **passcode** (`PORTAL_HOUSE_PASSCODE`),
+never Rick's own real Netlify Identity email+password. Two things follow: (1) Rick's own real
+account was never shared or at risk — confirmed it still logs him in fine, untouched by anything
+today; (2) that shared passcode is now provably dead, since `PORTAL_HOUSE_PASSCODE` was one of the
+three passcode variables deleted this evening (see above) — Stefano's old credential cannot work
+again even if the passcode system were ever revived by mistake. Whether that passcode ever actually
+functioned as a real login for Stefano back on 8/13 (given `PasscodeGate` appears to have been dead
+code since June) is still an open historical question, but doesn't matter going forward — thread
+closed either way. His real, working access is still the pending Identity invite below.
 
 **Not in scope for this pass:** the Clerk migration (per-user + real multi-tenant orgs) that was
 the original plan for "when client #2 signs." That's still the right long-term answer at 10-client

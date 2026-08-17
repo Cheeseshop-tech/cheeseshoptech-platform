@@ -48,6 +48,16 @@ sprawl**, not architecture. This brief locks the canonical state so Claude Code 
    reuse near-identical filenames across builds; confirm a distinctive literal string from the actual code
    change is present in the live bundle (see `docs/HANDOFF_2026-08-16_crm-hubspot-close-out.md` §3 for the
    full false-positive trap writeup).
+8. **Netlify env vars exist at TWO separate layers — check both.** Project-level (a site's own
+   Environment variables page) and team-level (Team settings → Environment variables, shared silently
+   across every project in the account) are two different dashboard pages with no visual link between
+   them. A variable set only at the team level will never appear on the project-level page, but still
+   applies to every build. Confirmed live 2026-08-17: `VITE_AUTH_MODE=passcode` was set at the team level
+   only, missed all night while repeatedly checking just the project-level page, leading to a completely
+   wrong conclusion that real Identity (not the passcode gate) was live. When verifying "is X env var
+   set," check both layers. And don't stop at the dashboard — verify the actual LIVE APP behavior
+   directly (the dashboard's own SPA can also serve stale cached data mid-session; a hard page reload
+   resolved a false "still not deleted" reading during that same investigation).
 
 ## 3. CURRENT REAL STATE (verified against repo, 2026-06-06)
 
