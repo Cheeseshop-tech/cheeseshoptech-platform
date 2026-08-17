@@ -22,7 +22,10 @@ Build verified clean (2051 modules). Commit script:
 roadmap doc's delivery-mechanism update — see the Daily accountability system entry above
 in PROJECT_ROADMAP.md).
 
-**Status.** Code written, build-verified, not yet pushed/deployed/live-tested as of this entry.
+**Status.** VERIFIED LIVE, 2026-08-17 ~9:45pm. Pushed (commit `6446101`), Netlify
+published deploy confirmed (36s build), and the panel itself confirmed rendering with real
+data on `cheeseshoptech.com` (all four threads, correct status badges, next-action text,
+on-the-radar callout) via a live Claude-in-Chrome check — not just a green Netlify deploy.
 
 ## 2026-08-17 — Security & Auth: real Netlify Identity now actually live; write/read functions being migrated off the old passcode guard
 

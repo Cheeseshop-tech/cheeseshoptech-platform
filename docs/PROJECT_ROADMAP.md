@@ -231,7 +231,10 @@ Keys for exactly this kind of data-only integration (see [[hubspot-token-wrong-a
   settled. Needs Rick's explicit decision, likely with legal counsel, before it's actionable here.
 - **In-app Progress/Onboarding tab** — see `docs/PROGRESS_TAB_SPEC_2026-08-17.md`, spec'd
   2026-08-17, PROMOTED TO ACTIVE BUILD 2026-08-17 evening (Rick's call — see Daily Accountability
-  section below). This roadmap doc is its data source once it exists.
+  section below). This roadmap doc is its data source once it exists. **Agency Console (admin)
+  view SHIPPED AND VERIFIED LIVE, 2026-08-17 ~9:45pm** — "CheeseShop TECH — project status" panel
+  on the House Command Center, commit `6446101`, confirmed rendering real data on
+  `cheeseshoptech.com`. Client-scoped view still pending, once client #2 onboarding is underway.
 
 
 ---
@@ -273,3 +276,12 @@ the connector. Instead, send via Claude-in-Chrome BROWSER AUTOMATION logged into
   against) — kept here only as a historical note, not an active setting.
 - Content: pulls from this doc + the `cst-project-status.html` status page (send that file, or its
   content inline, as the email body/attachment).
+
+**SYNC NOTE, 2026-08-17 ~9:45pm:** whenever Rick prompts an update from here on, the routine is:
+(1) check for anything changed since the last check — new commits, deploy status, thread
+progress; (2) update this doc's thread statuses if anything moved; (3) sync
+`src/lib/project-status.js` to match (it's a hand-maintained mirror of this doc, not a live
+parse — it WILL drift if this step is skipped); (4) if code changed, build + create/update a
+COMMIT script for Rick to run; (5) live-verify via Claude-in-Chrome once deployed, not just trust
+a green Netlify build; (6) only then compose the on-demand email/update, so it reflects the same
+build status as the in-app panel — never two different pictures of "current state."
