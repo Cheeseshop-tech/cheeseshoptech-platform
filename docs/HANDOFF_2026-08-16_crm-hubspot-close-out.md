@@ -36,7 +36,13 @@ help. Everything else below is either done or waiting on that.
   — note the **double space** in the second folder name. Quote it. `~/Downloads/Publix` is not the repo.
 - **There is no test suite.** Nothing here is covered by tests.
 - `netlify/functions/*` are **server-side**; `src/*` is the browser bundle. A `VITE_*` var is
-  build-time and needs a redeploy; `HUBSPOT_TOKEN` is read per-request and does not.
+  build-time and needs a redeploy. `HUBSPOT_TOKEN` is read fresh from `process.env` on every
+  function invocation IN THE CODE — but that's not the same as it taking effect without a
+  redeploy. **CORRECTED 2026-08-17:** Netlify does not rebuild Functions just because an env var
+  changed in the dashboard; the new value only reaches production on the NEXT publish. Saving a
+  new `HUBSPOT_TOKEN` value and expecting it to work immediately cost real time — you must click
+  Deploys → Trigger deploy → Deploy site (or push a commit) before re-testing. See
+  `HANDOFF_2026-08-17_hubspot-403-root-cause.md`.
 - `BUILD_LOG.md` is append-only history. Do not "correct" it.
 
 ---

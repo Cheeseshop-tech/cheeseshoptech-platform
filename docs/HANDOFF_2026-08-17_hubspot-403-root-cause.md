@@ -1,3 +1,35 @@
+# HANDOFF — the booth→HubSpot 403, root-caused AND RESOLVED
+
+**Status: RESOLVED 2026-08-17, verified live.** A real HubSpot write succeeded (contact
+504097748710 updated, confirmed independently via the HubSpot MCP connection — not just a
+200 from our own app). Booth captures now sync.
+
+## What the "third credential" actually was
+The "Security" action item below asked to hunt down an unidentified credential with CRM read
+access. It's found, and it's not a leak: **`HUBSPOT_TOKEN` was pointing at a HubSpot Service
+Key** (`CheeseShop TECH Platform`, id 42938322, `pat-na2-2aed1d25…`, created 2026-06-17) — a
+credential system that lives under **Development → Keys → Service Keys**, completely separate
+from **Legacy Apps / Private Apps** (`/legacy-apps/<portal>`), which is the only place this
+investigation — and the original 2026-08-16 handoff — ever looked. Two credential systems, same
+portal, nobody checked the second one. Rick found it by noticing the Service Keys list existed
+at all.
+
+**Fix applied:** swapped `HUBSPOT_TOKEN` in Netlify to the **CheeseShop TECH** Private App token
+(`pat-na2-eab5f…`, id 44465792, confirmed write scopes) and **manually triggered a Netlify
+deploy**. That second step mattered: pasting a new env var value does NOT trigger a build by
+itself, and Netlify Functions bake env vars in at publish time — the earlier "no redeploy
+needed" claim below (and in `CLAUDE_CODE_BRIEF.md`) is true of the CODE (`crm-push.js` does
+read `process.env.HUBSPOT_TOKEN` fresh per invocation) but not of the PLATFORM. Confirmed via
+the live bundle hash changing (`index-BbauN4dY.js` → `index-IkOuFDhR.js`) and the build log
+showing `crm-push.js` re-bundled.
+
+**Open decision, not urgent:** production now runs on the Private App token instead of the
+Service Key it used since June. Two live "CheeseShop TECH"-named credentials now exist across
+two different systems — pick one going forward (see options at the bottom) rather than leaving
+both live indefinitely.
+
+---
+
 # HANDOFF — the booth→HubSpot 403, root-caused
 
 **Date:** 2026-08-17 · Supersedes §4.1 of `HANDOFF_2026-08-16_crm-hubspot-close-out.md`, which is WRONG.
@@ -43,15 +75,22 @@ production writes 403. Therefore production is authenticating as a third credent
    HubSpot's own sentence never once reached the screen.
 
 ## Actions
-- [ ] **Rick:** Netlify → cheeseshoptech-platform → Configuration → Environment variables →
-      `HUBSPOT_TOKEN` → paste the **CheeseShop TECH** app token. Re-run Sync.
+- [x] **Rick:** Netlify → cheeseshoptech-platform → Configuration → Environment variables →
+      `HUBSPOT_TOKEN` → pasted the **CheeseShop TECH** Private App token. Then **manually
+      triggered a deploy** (Deploys → Trigger deploy → Deploy site) — required, see above.
+      Re-ran Sync: confirmed live write, verified via HubSpot MCP.
 - [x] **Rick:** renamed the app `CheeseShop TECH-read-only` → **CheeseShop TECH** (2026-08-17). The old
       name claimed read-only while the app held write scopes. Renaming does not rotate the token.
-- [ ] **Code:** surface `res.category` + `res.error` in `booth-tool.jsx`'s failure branch.
-      Without this the next failure is equally undiagnosable.
-- [ ] **Security:** identify the third credential. Something outside these two apps has read
-      access to the whole CRM and nobody knows what it is. Once `HUBSPOT_TOKEN` is swapped,
-      the old one should be found and revoked.
+- [x] **Code:** surfaced `res.category` + `res.error` in `booth-tool.jsx`'s failure branch
+      (commit `56824be`, deployed). Confirmed live: a genuine 403 now shows HubSpot's verbatim
+      message instead of the old hardcoded scope-guess sentence.
+- [x] **Security:** identified. Not a leak — a legitimate Service Key (`CheeseShop TECH
+      Platform`, id 42938322) that Rick created 2026-06-17 under a different HubSpot credential
+      system than anyone thought to check. Nothing to revoke as a security incident.
+- [ ] **Rick, not urgent:** decide whether to keep production on the Private App token going
+      forward, or move it back to the Service Key with write scopes added there instead. Either
+      is fine; leaving BOTH live under near-identical "CheeseShop TECH" names is the trap that
+      caused this whole investigation and will confuse the next person just as easily.
 
 ## Method note
 A dry run cannot prove write permission (it only searches). The reproduction used a throwaway
