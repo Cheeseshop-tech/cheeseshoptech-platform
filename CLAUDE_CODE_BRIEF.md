@@ -36,6 +36,18 @@ sprawl**, not architecture. This brief locks the canonical state so Claude Code 
    Claude never enters credentials — those are Rick's actions.
 5. **One change = one commit; material decisions get a BUILD_LOG.md entry** (newest on top).
 6. **Git happens in Claude Code**, not the Cowork sandbox (sandbox has stale-lock + no-creds issues).
+7. **After every push, confirm the deploy — don't assume auto-publish fired.** Netlify's "Auto publishing
+   is on" normally builds+publishes automatically off the GitHub webhook within ~1-2 min of a push (this
+   worked correctly for 4-5 straight commits on 2026-08-17). But the webhook can silently miss a push —
+   confirmed live on commit `74864cc`: git showed the push reached GitHub fine (`HEAD` == `origin/<branch>`),
+   yet Netlify's Deploys page showed no deploy row at all for that commit, only the prior one. The fix in
+   that case was manual: Netlify UI → Deploys → **Trigger deploy → Deploy project**.
+   Practical rule: after pushing, open Netlify's Deploys page (or check via the API) and confirm a deploy
+   row exists for the new commit hash. If it's missing after ~2 minutes, trigger it manually rather than
+   waiting. Don't trust a changed bundle-filename hash alone as proof the new build shipped — Netlify can
+   reuse near-identical filenames across builds; confirm a distinctive literal string from the actual code
+   change is present in the live bundle (see `docs/HANDOFF_2026-08-16_crm-hubspot-close-out.md` §3 for the
+   full false-positive trap writeup).
 
 ## 3. CURRENT REAL STATE (verified against repo, 2026-06-06)
 
