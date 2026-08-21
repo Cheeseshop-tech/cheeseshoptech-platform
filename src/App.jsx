@@ -28,7 +28,7 @@ import { toolIcon } from "@/lib/icons.js";
 import { OrdersPage } from "@/components/crm/crm-dashboard.jsx";
 import { CrmPage } from "@/components/crm/crm-page.jsx";
 import { HomeHub } from "@/components/home/home-hub.jsx";
-import { ComingSoon } from "@/components/marketing/coming-soon.jsx";
+import { SignInPage } from "@/components/marketing/sign-in-page.jsx";
 import { RequireAuth, RoleGate } from "@/components/auth/require-auth.jsx";
 import { PasscodeGate } from "@/components/auth/passcode-gate.jsx";
 import { SetPassword } from "@/components/auth/set-password.jsx";
@@ -104,11 +104,13 @@ export default function App({ initialResolved }) {
   const STAFF_HOSTS = ["admin", "app", "console"];
   const staffEntry = params.has("app") || STAFF_HOSTS.includes(resolved.subdomain || "");
   if (resolved.isHouse && !staffEntry && !params.has("client")) {
-    // ONE ADDRESS (2026-07-02): the platform site serves the apex itself — public face = the
-    // coming-soon page with a quiet Sign in (?app=1 → gate). The separate Netlify Drop site
-    // retires once DNS points here (docs/DOMAIN_CONSOLIDATION_RUNBOOK.md). The invite-only
-    // LandingPage (marketing/landing-page.jsx) is kept for the real launch — swap back here.
-    return <ComingSoon />;
+    // ONE ADDRESS (2026-07-02): the platform site serves the apex itself.
+    // 2026-08-21 (Rick): the apex is now the SIGN-IN page — "CheeseShop TECH · Cheese Merchant
+    // Business Tools", one simple door with the real Identity form on it, no marketing detail.
+    // It hands off to ?app=1 on success, the same staff entry checked above. ComingSoon and the
+    // invite-only LandingPage (marketing/landing-page.jsx) are both kept for a future marketing
+    // launch — swap either back here.
+    return <SignInPage brand={resolved.brand} />;
   }
 
   // Role-based nav: external collaborators (pr/influencer/creator) see only the Media hub.

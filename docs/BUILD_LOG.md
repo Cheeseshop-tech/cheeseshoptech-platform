@@ -96,6 +96,38 @@ with `node --check` on all 29 function files before calling it done.
 
 ---
 
+## 2026-08-21 — The apex is now the sign-in page: "Cheese Merchant Business Tools"
+
+`cheeseshoptech.com` served `ComingSoon` (marketing copy + a quiet "Sign in" link). Rick's call:
+make the apex the **sign-in page itself** — one simple door, no marketing detail. New
+`marketing/sign-in-page.jsx`; `ComingSoon` and the invite-only `LandingPage` both stay on disk for
+a future marketing launch, and App.jsx says how to swap either back.
+
+**Naming — "Business Tools", not "Marketing Tools"** (Rick asked which). Behind that login sit
+pricing, quoting, inventory, orders, CRM and catalog alongside the content and campaign tools;
+"marketing" describes about a third of it and undersells the rest. A cheese merchant signing in is
+running a business, and it reads truer against CST's own sales-led positioning.
+
+**One login, not two.** The form was extracted from `auth/login-screen.jsx` as `LoginForm` and the
+new page renders that same live Identity component inside its own layout — there is one auth path
+in this app. `LoginScreen` still renders it in exactly the markup it always did, so the
+authenticated route is untouched. On success the page hands off to `?app=1`, the staff entry the
+router already understands, rather than inventing a second way in.
+
+**Imagery** — two Media Hub assets Rick picked: the alpine pasture as the full-height panel, the
+aged wedge as an inset. House palette, deliberately: the scrim is a Terracotta-to-ink gradient, not
+neutral black, so the agency's front door stays on its own colour rather than borrowing a client's
+green. Two fixes worth remembering: the wedge first rendered letterboxed in a white box because the
+`card` preset is `c_pad,b_white` — buyer-facing crops want `preview` (`c_limit`) plus CSS
+`object-cover`; and the pasture source was captured from a carousel with two slide dots baked into
+its bottom edge, held off with a 6% scale until the asset is re-cropped in the Media Hub.
+
+**Note on the ids.** These are pinned in one named const rather than resolved by `brandAssetUrl()`,
+because that resolver reads a TENANT manifest and the apex is house — no tenant, no manifest. They
+were verified live against `sofcvmwa` and should move to a house manifest when one exists. Local
+dev still falls back to Cloudinary's `demo` cloud, so the panel looks empty on `npm run dev` unless
+`VITE_CLOUDINARY_CLOUD=sofcvmwa` is set — the production build already bakes the real cloud in.
+
 ## 2026-08-21 — Quote Builder: full-bleed letterhead, Net 15 terms, footer corrections
 
 Against a real export (`New Customer Negotiation — Cowbell.pdf`), five changes from Rick.
