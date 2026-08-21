@@ -97,9 +97,11 @@ async function post(payload) {
 }
 
 /** Save the working draft. `prices` = { [skuCode]: { fob?|fobCase? } }. Admin / client-admin only
- *  server-side; the "who" is taken from the verified session, not from here. */
-export const savePriceDraft = (tenantId, prices, note = "") =>
-  post({ tenant: tenantId, action: "save-draft", prices, note });
+ *  server-side; the "who" is taken from the verified session, not from here.
+ *  `sourceDoc` optionally attaches the HQ price document these numbers came from — provenance
+ *  only, never parsed: a bad parse must not be able to move a price silently. */
+export const savePriceDraft = (tenantId, prices, note = "", sourceDoc = null) =>
+  post({ tenant: tenantId, action: "save-draft", prices, note, sourceDoc });
 
 /** Promote the draft to the live price list with its effective window. */
 export const publishPrices = (tenantId, { effectiveDate, validUntil = "", note = "" }) =>

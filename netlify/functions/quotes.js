@@ -51,6 +51,11 @@ function sanitize(r) {
     tierId: str(r.tierId, 40),
     priceMode: PRICE_MODES.has(r.priceMode) ? r.priceMode : "tier",
     pricePct: Number.isFinite(Number(r.pricePct)) ? Number(r.pricePct) : null,
+    // Was this line hand-priced by the rep, and what was the list price it departed from? The
+    // custom price itself is deliberately ephemeral in the UI, but once it has gone to a customer
+    // it is a fact — "we quoted them $8.40 against a $9.07 list" is exactly what you want later.
+    custom: r.custom === true,
+    listPrice: Number.isFinite(Number(r.listPrice)) ? Number(r.listPrice) : null,
     validUntil: str(r.validUntil, 10),
     effectiveDate: str(r.effectiveDate, 10),
     promoStart: str(r.promoStart, 10),

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Search, Plus, Check, X, FileText } from "lucide-react";
+import { Search, Plus, Check, X, FileText, Lock, Unlock } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card.jsx";
 import { Button } from "@/components/ui/button.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
@@ -232,6 +232,31 @@ export function QuoteBuilder({ data, brand, resolved, itemsDoc }) {
   }
 
   const regularPrice = (entry) => priceFor(entry.sku);
+
+  /* ---- Per-line CUSTOM PRICE (Rick, 2026-08-21) -----------------------------------------------
+     A rep negotiating live needs to put one number on one line without touching the price list.
+     It is deliberately gated behind a button per line: the field is read-only until you
+     explicitly unlock it, so a stray click in a table full of numbers can't quietly reprice a
+     quote. The unlock is a toggle — turning it off restores the list price immediately.
+
+     ONE-TIME BY DESIGN. This lives in React state only and is never persisted — no localStorage,
+     nothing sent to the price store — so it dies on reload, sign-out, or leaving the tab. A
+     negotiated one-off must not silently become the price next week; that is what the Price List
+     tab (draft → publish, audited) is for. It IS captured on the printed quote and in the
+     quotes-issued log, because what went to the customer is a fact worth keeping. */
+  const linePrice = (l) => {
+    if (l.customOn) {
+      const n = Number(l.customPrice);
+      if (l.customPrice !== "" && Number.isFinite(n) && n > 0) return PC.round2(n);
+    }
+    return priceFor(l.entry.sku);
+  };
+  /** True when this line is actually quoting a hand-typed number rather than the list price. */
+  const isCustom = (l) => {
+    if (!l.customOn) return false;
+    const n = Number(l.customPrice);
+    return l.customPrice !== "" && Number.isFinite(n) && n > 0 && n !== priceFor(l.entry.sku);
+  };
   /* Promo is a straight discount off the regular price shown above, so "You save 10%" means
      exactly 10%. (It previously rode the engine's additive customPct, which made a 10% promo on a
      +15% tier come out at 8.7% off — technically defensible, but it printed a number the rep did
@@ -239,7 +264,7 @@ export function QuoteBuilder({ data, brand, resolved, itemsDoc }) {
   const promoPrice = (l) => {
     const override = Number(l.promoPrice);
     if (l.promoPrice !== "" && Number.isFinite(override)) return PC.round2(override);
-    const reg = regularPrice(l.entry);
+    const reg = linePrice(l);
     if (reg == null) return null;
     return PC.round2(reg * (1 - Math.abs(Number(promoPct) || 0) / 100));
   };
@@ -260,7 +285,7 @@ export function QuoteBuilder({ data, brand, resolved, itemsDoc }) {
     const prior = purposeId === "price_change"
       ? lastQuotedPrice(quoteLog, customer, code, dates.effectiveDate)
       : null;
-    setLines((ls) => [...ls, { code, prevPrice: prior ? String(prior.unitPrice) : "", promoPrice: "" }]);
+    setLines((ls) => [...ls, { code, prevPrice: prior ? String(prior.unitPrice) : "", promoPrice: "", customOn: false, customPrice: "" }]);
     // Search is NOT cleared on add: the rep is usually adding several SKUs off one search
     // ("asiago"), and wiping it would send them back to the top of the full list every time.
   }
@@ -287,7 +312,7 @@ export function QuoteBuilder({ data, brand, resolved, itemsDoc }) {
     );
   }
 
-  const unpriced = selected.filter((l) => regularPrice(l.entry) == null).map((l) => l.code);
+  const unpriced = selected.filter((l) => linePrice(l) == null).map((l) => l.code);
   // Mixed unit selections would make a single "$ / LB" column header a lie.
   const units = new Set(selected.map((l) => l.entry.sku.unit === "case" ? "case" : "lb"));
   const priceHeader = units.size === 1 ? (units.has("case") ? "$ / CASE" : "$ / LB") : "PRICE";
@@ -328,7 +353,7 @@ export function QuoteBuilder({ data, brand, resolved, itemsDoc }) {
     const records = selected.map((l) => ({
       at, purpose: purposeId, quoteId, customer: customer || "(unspecified)",
       skuCode: l.code,
-      unitPrice: purposeId === "promo" ? promoPrice(l) : regularPrice(l.entry),
+      unitPrice: purposeId === "promo" ? promoPrice(l) : linePrice(l),
       unit: l.entry.sku.unit === "case" ? "case" : "lb",
       tierId,
       // How the number was arrived at. Without this a logged price can't be explained after the
@@ -336,6 +361,10 @@ export function QuoteBuilder({ data, brand, resolved, itemsDoc }) {
       // and this log is what a future Price Change Notification quotes back to the customer.
       priceMode,
       pricePct: priceMode === "tier" ? (tier.adjustPct ?? 0) : Number(manualPct),
+      // A one-off negotiated price is ephemeral in the UI but a FACT once it goes to a customer:
+      // record that this line departed from the list, and what the list price was at the time.
+      custom: isCustom(l),
+      listPrice: regularPrice(l.entry),
       validUntil: dates.validUntil, effectiveDate: dates.effectiveDate,
       promoStart: dates.promoStart, promoEnd: dates.promoEnd,
     }));
@@ -431,7 +460,7 @@ export function QuoteBuilder({ data, brand, resolved, itemsDoc }) {
         const badge = m.badge ? `<span class="badge${/pdo|dop/i.test(m.badge) ? " pdo" : ""}">${esc(m.badge.toUpperCase())}</span>` : "";
         return `<tr><td class="item">${esc(e.name)}</td><td>${badge}</td><td class="spec">${esc(formatAging(e))}</td>`
           + `<td class="sku">#${esc(e.sku.code)}</td>`
-          + `<td class="r price">${money(regularPrice(e))}<span class="u">${esc(unitSuffix(e))}</span></td>`
+          + `<td class="r price">${money(linePrice(l))}<span class="u">${esc(unitSuffix(e))}</span></td>`
           + `<td class="r wt">${esc(e.sku.pack?.netLb ?? "—")} lb net/case</td></tr>`;
       }).join("");
     } else if (purposeId === "price_change") {
@@ -439,7 +468,7 @@ export function QuoteBuilder({ data, brand, resolved, itemsDoc }) {
       head = `<tr><th>Item</th><th>SKU</th><th class="r">Previous</th><th class="r">New</th><th class="r">Change</th><th class="r">Effective</th></tr>`;
       body = selected.map((l) => {
         const e = l.entry;
-        const nw = regularPrice(e);
+        const nw = linePrice(l);
         const pv = l.prevPrice === "" ? null : Number(l.prevPrice);
         const has = pv != null && Number.isFinite(pv) && pv > 0;
         const d = has ? PC.round2(nw - pv) : null;
@@ -460,7 +489,7 @@ export function QuoteBuilder({ data, brand, resolved, itemsDoc }) {
       head = `<tr><th>Item</th><th>SKU</th><th class="r">Regular</th><th class="r">Promo</th><th class="r">You Save</th><th>Format</th></tr>`;
       body = selected.map((l) => {
         const e = l.entry;
-        const reg = regularPrice(e);
+        const reg = linePrice(l);
         const pro = promoPrice(l);
         const save = PC.round2(reg - pro);
         const savePct = reg > 0 ? Math.round((save / reg) * 1000) / 10 : 0;
@@ -861,7 +890,9 @@ export function QuoteBuilder({ data, brand, resolved, itemsDoc }) {
             <TableBody>
               {selected.map((l) => {
                 const e = l.entry;
-                const reg = regularPrice(e);
+                const reg = linePrice(l);            // honours this line's custom price
+                const listed = regularPrice(e);      // the list price it departs from
+                const custom = isCustom(l);
                 const suffix = e.sku.unit === "case" ? "/cs" : "/lb";
                 const pv = l.prevPrice === "" ? null : Number(l.prevPrice);
                 const hasPrev = pv != null && Number.isFinite(pv) && pv > 0;
@@ -878,7 +909,14 @@ export function QuoteBuilder({ data, brand, resolved, itemsDoc }) {
                       <>
                         <TableCell className="text-xs text-fg-muted">{blankish(e.product.marketing?.age) ? "—" : tidy(e.product.marketing.age)}</TableCell>
                         <TableCell className="text-right font-mono font-semibold">
-                          {reg == null
+                          {l.customOn ? (
+                            <input type="number" min="0" step="0.01" autoFocus
+                              value={l.customPrice}
+                              onChange={(ev) => setLineField(l.code, "customPrice", ev.target.value)}
+                              placeholder={listed == null ? "price" : String(listed)}
+                              title="Custom price for this quote only — not saved to the price list"
+                              className="w-28 rounded-base border border-brand-primary bg-bg px-2 py-1.5 text-right font-mono text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand" />
+                          ) : reg == null
                             ? <span className="text-[10px] font-semibold uppercase text-warning">POR</span>
                             : <>{money(reg)}<span className="text-xs text-fg-muted">{suffix}</span></>}
                         </TableCell>
@@ -895,7 +933,16 @@ export function QuoteBuilder({ data, brand, resolved, itemsDoc }) {
                             className="w-28 rounded-base border border-border bg-bg px-2 py-1.5 text-right font-mono text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand" />
                         </TableCell>
                         <TableCell className="text-right font-mono font-semibold">
-                          {reg == null ? <span className="text-[10px] uppercase text-warning">POR</span> : money(reg)}
+                          {l.customOn ? (
+                            <input type="number" min="0" step="0.01" autoFocus
+                              value={l.customPrice}
+                              onChange={(ev) => setLineField(l.code, "customPrice", ev.target.value)}
+                              placeholder={listed == null ? "price" : String(listed)}
+                              title="Custom price for this quote only — not saved to the price list"
+                              className="w-28 rounded-base border border-brand-primary bg-bg px-2 py-1.5 text-right font-mono text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand" />
+                          ) : reg == null
+                            ? <span className="text-[10px] font-semibold uppercase text-warning">POR</span>
+                            : <>{money(reg)}<span className="text-xs text-fg-muted">{suffix}</span></>}
                         </TableCell>
                         <TableCell className="text-right font-mono text-sm">
                           {hasPrev && reg != null
@@ -914,7 +961,14 @@ export function QuoteBuilder({ data, brand, resolved, itemsDoc }) {
                     {purposeId === "promo" && (
                       <>
                         <TableCell className="text-right font-mono text-fg-muted">
-                          {reg == null ? <span className="text-[10px] uppercase text-warning">POR</span> : <s>{money(reg)}</s>}
+                          {l.customOn ? (
+                            <input type="number" min="0" step="0.01" autoFocus
+                              value={l.customPrice}
+                              onChange={(ev) => setLineField(l.code, "customPrice", ev.target.value)}
+                              placeholder={listed == null ? "price" : String(listed)}
+                              title="Custom regular price for this quote only — the promo recomputes off it"
+                              className="w-28 rounded-base border border-brand-primary bg-bg px-2 py-1.5 text-right font-mono text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand" />
+                          ) : reg == null ? <span className="text-[10px] uppercase text-warning">POR</span> : <s>{money(reg)}</s>}
                         </TableCell>
                         <TableCell className="text-right">
                           <input type="number" min="0" step="0.01" value={l.promoPrice}
@@ -931,8 +985,34 @@ export function QuoteBuilder({ data, brand, resolved, itemsDoc }) {
                     )}
 
                     <TableCell className="text-right">
-                      <button type="button" onClick={() => removeSku(l.code)} title="Remove from this quote"
-                        className="rounded-base p-1 text-fg-muted hover:text-error"><X className="h-4 w-4" /></button>
+                      <div className="flex items-center justify-end gap-1">
+                        {/* Custom price — the gate. The price field above is read-only until this
+                            is switched on, so a stray click can't reprice a line. Toggling it off
+                            drops the typed number and restores the list price immediately. */}
+                        <button
+                          type="button"
+                          onClick={() => setLines((ls) => ls.map((x) => x.code === l.code
+                            ? { ...x, customOn: !x.customOn, customPrice: x.customOn ? "" : x.customPrice }
+                            : x))}
+                          title={l.customOn
+                            ? "Use the list price again (clears the custom price)"
+                            : "Set a custom price for this line — this quote only, never saved"}
+                          className={"inline-flex items-center gap-1 rounded-base border px-2 py-1 text-[11px] font-medium transition-colors "
+                            + (l.customOn
+                              ? "border-brand-primary bg-brand-primary text-brand-on-primary"
+                              : "border-border text-fg-muted hover:border-brand-primary hover:text-fg")}
+                        >
+                          {l.customOn ? <Unlock className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
+                          Custom
+                        </button>
+                        <button type="button" onClick={() => removeSku(l.code)} title="Remove from this quote"
+                          className="rounded-base p-1 text-fg-muted hover:text-error"><X className="h-4 w-4" /></button>
+                      </div>
+                      {custom && (
+                        <div className="mt-0.5 text-right text-[10px] text-fg-muted">
+                          was {listed == null ? "POR" : money(listed)}
+                        </div>
+                      )}
                     </TableCell>
                   </TableRow>
                 );

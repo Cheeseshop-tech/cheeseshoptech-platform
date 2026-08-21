@@ -10,8 +10,8 @@ cd "$(dirname "$0")" || exit 1
 export GIT_OPTIONAL_LOCKS=0
 
 echo "=============================================="
-echo " COMMIT: Price List of record"
-echo " editable + published + audited"
+echo " COMMIT: Price List of record + locked"
+echo " per-line custom price on quotes"
 echo "=============================================="
 echo
 
@@ -26,6 +26,8 @@ echo
 echo "Staging changed files..."
 git add \
   "netlify/functions/prices.js" \
+  "netlify/functions/quotes.js" \
+  "src/components/tools/quote-builder.jsx" \
   "src/lib/prices.js" \
   "src/lib/use-pricing-data.js" \
   "src/components/tools/price-list.jsx" \
@@ -43,9 +45,9 @@ echo "Staged."
 echo
 
 echo "Committing..."
-git commit -m "Price List of record: editable FOB costs, publish with effective window, audit trail
+git commit -m "Price List of record + locked per-line custom price on quotes
 
-New Price List tab — the pricing tool is now the pricing truth. Edit a base
+PRICE LIST (new tab). The pricing tool is now the pricing truth: edit a base
 cost, save a draft, publish it with an effective date and valid-until date, and
 every change is recorded against the person who made it.
 
@@ -55,32 +57,34 @@ tiers, manual margin/markup and promo prices together rather than three tier
 prices drifting apart.
 
 Two stages on purpose. Save writes a private draft nobody can quote; Publish is
-a separate act that stamps the window, bumps the version and goes live. Prices
-feed buyer-facing quote sheets that print without a second look, so a stray
-keystroke must not reach a customer. Publish stays disabled until a draft exists.
-
-The overlay is the trick: applyPublishedPrices() overlays published costs onto
-catalog.json at the single read point (use-pricing-data.js), so Pro Forma, the
+a separate act that stamps the window, bumps the version and goes live. Publish
+stays disabled until a draft exists. The overlay in use-pricing-data.js applies
+published costs onto catalog.json at the single read point, so Pro Forma, the
 Quote Builder, proposals and the storefront all quote the new number without
-knowing the price store exists. catalog.json keeps shipping the spreadsheet
-baseline and is never mutated; the table shows Bundled vs Published side by side.
-Inventory and prices are now awaited together and applied in one setData — two
-independent setData(base) calls would race and drop one another's result.
+knowing the price store exists; catalog.json is never mutated.
 
-Audit trail in Blobs store 'prices' (published / --draft / --log). One row per
-changed value with from/to, one per publish with version and window. The 'who'
-is read from the verified Identity session server-side, never from the request
-body — an audit trail the caller can forge is not an audit trail.
+Audit trail in Blobs store prices (published / --draft / --log). The who is read
+from the verified Identity session server-side, never from the request body.
+Writes are admin/client-admin only: a signed-in base rep gets 403 on write while
+reads still succeed.
 
-Writes are admin/client-admin only via requireWriteAuth: a signed-in base rep
-gets 403 on write while reads still succeed. Verified by test, along with a
-fat-finger guard that rejects negatives, zero, non-numeric and absurd values
-without storing them. 30/30 unit assertions across the overlay and validator,
-including that the original catalog object is never mutated.
+A drag-and-drop source document (xlsx/PDF/csv) attaches the HQ sheet as
+provenance and rides onto the published version. Deliberately NOT parsed — the
+numbers stay hand-typed so a misread cell can never move a price on its own.
 
-Not yet exercised against real Blobs — npm run dev does not serve functions, so
-Save/Publish were driven client-side and the handler smoke-tested in Node. First
-real write happens on the deploy."
+QUOTES: a locked custom-price field per line. Every sheet line ends with a
+Custom button; the price cell is plain text until pressed, so no accidental
+keystroke can reprice a quote. Verified: three selected lines expose zero
+editable price inputs until one is explicitly unlocked, and unlocking one leaves
+the others locked. Toggling off restores the list price.
+
+One-time by design — React state only, no localStorage, nothing sent to the
+price store, so it dies on reload or sign-out. But the issued-quote log now
+carries custom + listPrice per line, so the record reads we quoted this at 6.75
+against an 8.07 list. Ephemeral in the UI, permanent in the record.
+
+30/30 unit assertions on the price overlay and the fat-finger validator.
+Not yet exercised against real Blobs — npm run dev does not serve functions."
 if [ $? -ne 0 ]; then
   echo
   echo "❌ COMMIT FAILED (or nothing to commit) — see the message above."

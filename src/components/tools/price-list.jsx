@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Search, Save, Upload, RotateCcw, History, Lock } from "lucide-react";
+import { Search, Save, Upload, RotateCcw, History, Lock, Paperclip } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card.jsx";
 import { Button } from "@/components/ui/button.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
@@ -7,6 +7,7 @@ import { Stat } from "@/components/ui/stat.jsx";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table.jsx";
 import { useToast } from "@/components/ui/toast.jsx";
 import { useAuth } from "@/lib/auth-context.jsx";
+import { uploadFileAuto } from "@/lib/cloudinary.js";
 import { flattenSkus } from "@/lib/proposals.js";
 import {
   fetchPriceState, savePriceDraft, publishPrices, discardPriceDraft,
@@ -66,6 +67,9 @@ export function PriceList({ data, resolved, itemsDoc, priceList }) {
   // half-typed "8." doesn't get coerced to 8 mid-keystroke).
   const [edits, setEdits] = useState({});
   const [effectiveDate, setEffectiveDate] = useState("");
+  const [sourceDoc, setSourceDoc] = useState(null);
+  const [dragging, setDragging] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [validUntil, setValidUntil] = useState("");
   const [note, setNote] = useState("");
 
@@ -74,12 +78,15 @@ export function PriceList({ data, resolved, itemsDoc, priceList }) {
     setPublished(st.published);
     setDraft(st.draft);
     setLog(st.log);
+    setSourceDoc(st.draft?.sourceDoc || st.published?.sourceDoc || null);
     setLoading(false);
     return st;
   }
   useEffect(() => { let alive = true; fetchPriceState(resolved?.id).then((st) => {
     if (!alive) return;
-    setPublished(st.published); setDraft(st.draft); setLog(st.log); setLoading(false);
+    setPublished(st.published); setDraft(st.draft); setLog(st.log);
+    setSourceDoc(st.draft?.sourceDoc || st.published?.sourceDoc || null);
+    setLoading(false);
   }); return () => { alive = false; }; }, [resolved?.id]);
 
   /* The value in play for a SKU, in precedence order: your unsaved typing → the saved draft →
@@ -129,12 +136,37 @@ export function PriceList({ data, resolved, itemsDoc, priceList }) {
     return out;
   }
 
+  const MAX_DOC_BYTES = 20 * 1024 * 1024;
+  async function attachFile(file) {
+    if (!file) return;
+    if (file.size > MAX_DOC_BYTES) {
+      toast({ title: "File too large", description: `${(file.size / 1048576).toFixed(1)} MB — 20 MB max.`, tone: "warning" });
+      return;
+    }
+    setUploading(true);
+    try {
+      const up = await uploadFileAuto({ file, tenantFolder: resolved.cloudinaryFolder, subfolder: "price-lists" });
+      // Held in local state only until you Save — attaching a file is not itself a price change.
+      setSourceDoc({ name: file.name, url: up.secureUrl, publicId: up.publicId, format: up.format, bytes: up.bytes });
+      toast({ title: "Document attached", description: "Save the draft to record it against this price list.", tone: "success" });
+    } catch (e) {
+      toast({ title: "Upload failed", description: String(e.message || e), tone: "warning" });
+    } finally { setUploading(false); }
+  }
+  function onDropFile(e) {
+    e.preventDefault();
+    setDragging(false);
+    const f = e.dataTransfer?.files?.[0];
+    if (f) attachFile(f);
+  }
+
   async function onSaveDraft() {
-    if (!dirtyCodes.length) { toast({ title: "Nothing changed", description: "Edit a price first.", tone: "warning" }); return; }
+    const docChanged = (sourceDoc?.publicId || "") !== (draft?.sourceDoc?.publicId || "");
+    if (!dirtyCodes.length && !docChanged) { toast({ title: "Nothing changed", description: "Edit a price or attach a document first.", tone: "warning" }); return; }
     if (invalidCodes.length) { toast({ title: "Fix the invalid price(s)", description: invalidCodes.join(", "), tone: "warning" }); return; }
     setBusy("save");
     try {
-      const res = await savePriceDraft(resolved?.id, buildPriceMap(), note);
+      const res = await savePriceDraft(resolved?.id, buildPriceMap(), note, sourceDoc);
       setEdits({});
       await refresh();
       toast({ title: "Draft saved", description: `${res.changed} change(s) recorded. Not live until you publish.`, tone: "success" });
@@ -237,7 +269,8 @@ export function PriceList({ data, resolved, itemsDoc, priceList }) {
                 placeholder="e.g. 2026-09 list — milk and freight increase" />
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={onSaveDraft} disabled={!!busy || !dirtyCodes.length}>
+              <Button variant="outline" onClick={onSaveDraft}
+                disabled={!!busy || uploading || (!dirtyCodes.length && (sourceDoc?.publicId || "") === (draft?.sourceDoc?.publicId || ""))}>
                 <Save className="mr-1.5 h-4 w-4" />
                 {busy === "save" ? "Saving…" : `Save draft${dirtyCodes.length ? ` (${dirtyCodes.length})` : ""}`}
               </Button>
@@ -251,6 +284,48 @@ export function PriceList({ data, resolved, itemsDoc, priceList }) {
               quoted price everywhere, stamped with the effective window and your name.
               {dirtyCodes.length > 0 && <span className="ml-1 font-semibold text-warning">{dirtyCodes.length} unsaved edit(s).</span>}
             </p>
+
+            {/* Source document — drag the HQ price sheet in and it travels with the published
+                version as provenance. Deliberately NOT parsed: the numbers stay yours to type, so
+                a misread cell can never move a price on its own. */}
+            <div
+              onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+              onDragLeave={() => setDragging(false)}
+              onDrop={onDropFile}
+              className={"mt-1 w-full rounded-base border-2 border-dashed p-4 text-center transition-colors "
+                + (dragging ? "border-brand-primary bg-brand-primary/5" : "border-border")}
+            >
+              {sourceDoc ? (
+                <div className="flex flex-wrap items-center justify-center gap-2 text-xs">
+                  <Paperclip className="h-4 w-4 text-brand-primary" />
+                  <a href={sourceDoc.url} target="_blank" rel="noopener noreferrer"
+                    className="font-medium text-brand-primary hover:underline">{sourceDoc.name}</a>
+                  <span className="text-fg-muted">
+                    {sourceDoc.bytes ? `· ${(sourceDoc.bytes / 1024).toFixed(0)} KB ` : ""}
+                    · attached{sourceDoc.uploadedBy ? ` by ${sourceDoc.uploadedBy}` : ""}
+                    {sourceDoc.uploadedAt ? ` on ${fmtWhen(sourceDoc.uploadedAt)}` : ""}
+                  </span>
+                  <button type="button" onClick={() => setSourceDoc(null)}
+                    className="rounded-base border border-border px-2 py-0.5 text-fg-muted hover:text-error">Remove</button>
+                </div>
+              ) : (
+                <label className="block cursor-pointer text-xs text-fg-muted">
+                  <Upload className="mx-auto mb-1 h-4 w-4 text-fg-muted" />
+                  {uploading ? "Uploading…" : (
+                    <>
+                      <b className="text-fg">Drag the price document here</b> — or click to choose.
+                      <span className="mt-0.5 block">
+                        The HQ sheet these numbers came from (xlsx, PDF, csv). Attached as the source
+                        of record and published with the list; it is never read or parsed.
+                      </span>
+                    </>
+                  )}
+                  <input type="file" className="hidden" disabled={uploading}
+                    accept=".xlsx,.xls,.csv,.pdf,.numbers,application/pdf,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    onChange={(e) => { const f = e.target.files?.[0]; if (f) attachFile(f); e.target.value = ""; }} />
+                </label>
+              )}
+            </div>
           </CardContent>
         </Card>
       )}
@@ -340,6 +415,14 @@ export function PriceList({ data, resolved, itemsDoc, priceList }) {
         catalog.json; “Published” is what this tool has made the truth. Editing the{" "}
         <b className="text-fg">base cost</b> moves every class-of-trade, margin/markup and promo
         price derived from it.
+      </p>
+      {/* The boundary between this tab and Quotes, said out loud — the two are easy to confuse and
+          the consequences differ completely (Rick, 2026-08-21). */}
+      <p className="rounded-base border border-border bg-surface px-3 py-2 text-xs text-fg-muted">
+        This is the <b className="text-fg">official price list</b> — published, dated and permanent.
+        For a <b className="text-fg">one-off negotiated price on a single quote</b>, don't change it
+        here: use the Custom button on that line in the <b className="text-fg">Quotes</b> tab, which
+        applies to that quote only and never touches this list.
       </p>
 
       {/* Audit record */}

@@ -241,6 +241,43 @@ actual Identity sign-in against the deployed site (sign out, sign back in, check
 can't be done from this sandbox since Identity login is real credentials, not something to
 automate on Rick's behalf.
 
+## 2026-08-21 — Locked per-line custom price on quotes + price-document provenance
+
+Three follow-ons to the price-list work, drawing the line between *the official price* and *a
+price you negotiated once*.
+
+**Quotes: a locked custom-price field per line.** Rick: *"lets just lock the manual individual
+price augmentation field so its safe and no accidental price change can go in."* Every line on the
+sheet now ends with a **Custom** button; the price cell is plain text until you press it. Verified
+in-browser: with three lines selected there are **zero editable price inputs** — unlock one and
+exactly that row gains a field while the others stay locked. Toggling it back off drops the typed
+number and restores the list price. The row shows "was $8.07" under the button so the departure
+from list is visible while you're still looking at it. Works in all three arrangements (the promo
+one edits the *regular* price and the promo recomputes off it).
+
+**One-time by design.** The custom price lives in React state only — no localStorage, nothing sent
+to the price store — so it dies on reload, sign-out, or leaving the tab. Confirmed by search: after
+typing one, the only persistent trace anywhere is the issued-quote log, and a reload returns
+0 selections / 0 unlocked fields. A number negotiated once must not quietly become next week's
+price; that is what the Price List tab is for.
+
+**But it IS recorded once it goes to a customer.** The quotes-issued log now carries `custom` and
+`listPrice` per line, so the record reads "we quoted 20724 at $6.75 against an $8.07 list" —
+verified end-to-end: the printed sheet showed $6.75 for the custom line and list prices for the
+other two, and the log matched. Ephemeral in the UI, permanent in the record.
+
+**Price List: a drag-and-drop source document, deliberately NOT parsed.** Drop the HQ price sheet
+(xlsx/PDF/csv, 20 MB cap) onto the publish panel; it uploads to Cloudinary under the tenant's
+`price-lists` folder and rides along as `sourceDoc` on the draft and then the published version, so
+a published list can always be traced back to its paperwork. Rick chose attach-only over parsing:
+the numbers stay hand-typed, so a misread cell can never move a price on its own. Attaching is
+logged as its own `attach-source` event and is savable on its own (you can attach paperwork
+without touching a price).
+
+**The boundary, said out loud.** The two tabs are easy to confuse and the consequences differ
+completely, so the Price List now states it: this is the official, published, permanent list — for
+a one-off negotiated price use the Custom button in Quotes, which touches this list never.
+
 ## 2026-08-21 — The pricing tool is now the PRICE LIST OF RECORD (editable, published, audited)
 
 Rick: *"I want to use this pricing tool as pricing truth that will be updated and published with an

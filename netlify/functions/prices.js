@@ -58,6 +58,24 @@ function actorOf(context, fallbackRole) {
   return str(u?.email || u?.user_metadata?.full_name || `(${fallbackRole || "unknown"} — no Identity session)`, 120);
 }
 
+/** The attached source document (the HQ price sheet these numbers came from). Provenance only —
+ *  it is never parsed, so a bad read can't move a price. Stored on the draft and carried onto the
+ *  published version so a published list can always be traced back to its paperwork. */
+function sanitizeSourceDoc(d) {
+  if (!d || typeof d !== "object") return null;
+  const url = str(d.url, 500);
+  if (url && !/^https:\/\//i.test(url)) return null; // never store a non-https reference
+  return {
+    name: str(d.name, 200),
+    url,
+    publicId: str(d.publicId, 300),
+    format: str(d.format, 12),
+    bytes: Number.isFinite(Number(d.bytes)) ? Number(d.bytes) : null,
+    uploadedAt: str(d.uploadedAt, 30),
+    uploadedBy: str(d.uploadedBy, 120),
+  };
+}
+
 /** Normalise + validate the submitted price map. Returns {prices, errors}. */
 function sanitizePrices(raw) {
   const errors = [];
@@ -153,9 +171,15 @@ const rawHandler = async (event, context) => {
         }
       }
 
+      // A newly attached document wins; otherwise keep whatever the draft already carried.
+      const incomingDoc = sanitizeSourceDoc(body.sourceDoc);
+      const sourceDoc = incomingDoc
+        ? { ...incomingDoc, uploadedAt: incomingDoc.uploadedAt || at, uploadedBy: by }
+        : (prevDraft?.sourceDoc || null);
       await store.set(K.draft, JSON.stringify({
-        updatedAt: at, updatedBy: by, note: str(body.note, 300), prices,
+        updatedAt: at, updatedBy: by, note: str(body.note, 300), prices, sourceDoc,
       }));
+      if (incomingDoc) changes.push({ id: newId(), at, by, action: "attach-source", note: incomingDoc.name });
       if (changes.length) await appendLog(changes);
       await logWrite(event, {
         fn: "prices", ok: true, role: auth.role, tenant,
@@ -186,6 +210,8 @@ const rawHandler = async (event, context) => {
         validUntil: body.validUntil || "",
         note: str(body.note ?? draft.note, 300),
         prices: draft.prices,
+        // The paperwork travels with the published list, not just the draft.
+        sourceDoc: draft.sourceDoc || null,
       };
       await store.set(K.pub, JSON.stringify(doc));
       await store.delete(K.draft).catch(() => { /* draft already gone is fine */ });
@@ -193,6 +219,7 @@ const rawHandler = async (event, context) => {
         id: newId(), at, by, action: "publish", version,
         effectiveDate: doc.effectiveDate, validUntil: doc.validUntil,
         count: Object.keys(doc.prices).length, note: doc.note,
+        sourceDoc: doc.sourceDoc ? doc.sourceDoc.name : "",
       }]);
       await logWrite(event, {
         fn: "prices", ok: true, role: auth.role, tenant,
