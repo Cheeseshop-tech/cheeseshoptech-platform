@@ -50,7 +50,7 @@ const Gate = import.meta.env.VITE_AUTH_MODE === "passcode" ? PasscodeGate : Requ
 // hub, which would also surface Media Hub. Widen deliberately later, one line at a time.
 const NAV = [
   { key: "dashboard", label: "Dashboard", icon: LayoutDashboard, allowed: ["admin", "client"] },
-  { key: "campaigns", label: "Campaigns", icon: Megaphone, allowed: ["admin"] },
+  { key: "campaigns", label: "Campaign Management", icon: Megaphone, allowed: ["admin"] },
   { key: "orders", label: "Orders", icon: ShoppingCart, allowed: ["admin"] },
   { key: "crm", label: "CRM", icon: Contact, allowed: ["admin", "client"] },
   { key: "presentations", label: "Content Library", icon: MonitorPlay, allowed: ["admin", "client"] },

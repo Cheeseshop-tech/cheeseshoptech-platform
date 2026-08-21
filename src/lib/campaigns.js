@@ -255,8 +255,9 @@ const USE_MOCK = (import.meta.env.VITE_CAMPAIGNS_BACKEND || "mock") === "mock";
 // checklist/status state — that is always live from Blobs (campaign-state.js), even in mock mode.
 export const campaignsAreSample = USE_MOCK;
 
-/** Campaign definitions for a tenant. */
-export async function getCampaigns(resolved) {
+/** Seeded/webhook campaign definitions only — the read-only half. See getCampaigns() for the
+ *  merged list the UI actually renders. */
+async function getSourcedCampaigns(resolved) {
   if (USE_MOCK) return SEEDS[resolved.id] || [];
   try {
     const res = await fetch(`/.netlify/functions/campaigns?tenant=${encodeURIComponent(resolved.id)}`, {
@@ -265,6 +266,62 @@ export async function getCampaigns(resolved) {
     return res.ok ? await res.json() : [];
   } catch {
     return [];
+  }
+}
+
+// ---- Custom campaign definitions (Netlify Blobs, netlify/functions/campaign-defs.js) -------
+// The write path for a brand-new campaign (2026-08-21, "New Campaign" tab). Kept in their own
+// store, separate from SEEDS/the Make webhook, and folded into getCampaigns() below so the rest
+// of the app (pill nav, checklist, campaign-state.js overlay) never has to know which source a
+// campaign came from — same id space either way.
+
+/** Custom campaign definitions created in the UI: { entries: {id: def}, updatedAt }. */
+export async function getCampaignDefs(resolved) {
+  try {
+    const res = await fetch(`/.netlify/functions/campaign-defs?tenant=${encodeURIComponent(resolved.id)}`, {
+      headers: { ...(await authHeaders()) },
+    });
+    if (!res.ok) return { entries: {}, updatedAt: null };
+    return await res.json();
+  } catch {
+    return { entries: {}, updatedAt: null };
+  }
+}
+
+/** Campaign definitions for a tenant — seeded/webhook campaigns PLUS any created in the UI. */
+export async function getCampaigns(resolved) {
+  const [sourced, custom] = await Promise.all([getSourcedCampaigns(resolved), getCampaignDefs(resolved)]);
+  return [...sourced, ...Object.values(custom.entries || {})];
+}
+
+/** Turn a campaign name into a valid campaign id (mirrors the server's ID_RE), max 64 chars. */
+export function slugify(name) {
+  const base = String(name || "").toLowerCase().trim()
+    .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 64) || "campaign";
+  return /^[0-9]/.test(base) ? `c-${base}`.slice(0, 64) : base;
+}
+
+/**
+ * Create a new campaign definition via campaign-defs.js. Generates the id from the name and
+ * retries with a numeric suffix if it collides with `existingIds` (pass the ids already loaded
+ * in the UI) — the server still re-checks and returns 409 on a genuine race, which the caller
+ * should surface rather than silently retry (rare enough at this team's volume to just ask again).
+ */
+export async function createCampaign(resolved, campaign, existingIds = []) {
+  const taken = new Set(existingIds);
+  let id = slugify(campaign.name);
+  let n = 2;
+  while (taken.has(id) && n <= 50) { id = `${slugify(campaign.name)}-${n++}`; }
+  try {
+    const res = await fetch("/.netlify/functions/campaign-defs", {
+      method: "POST",
+      headers: { "content-type": "application/json", ...(await authHeaders()) },
+      body: JSON.stringify({ tenant: resolved.id, campaign: { ...campaign, id } }),
+    });
+    const data = await res.json().catch(() => ({}));
+    return { ok: res.ok, status: res.status, ...data };
+  } catch (e) {
+    return { ok: false, status: 0, error: String(e?.message || e) };
   }
 }
 

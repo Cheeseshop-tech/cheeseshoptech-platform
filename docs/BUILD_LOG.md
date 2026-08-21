@@ -96,6 +96,55 @@ with `node --check` on all 29 function files before calling it done.
 
 ---
 
+## 2026-08-21 — Campaigns tab retitled "Campaign Management"; new-campaign form + tab added
+
+**Action.** Rick: "the purpose here is to host campaign updates and details and manage call
+outreach for enrichment. so this is campaign management lets title it that. lets add a template
+form and tab for create a campaign." Two changes:
+
+1. **Rename.** "Campaigns" → "Campaign Management" everywhere it's a page/nav title — the
+   sidebar label (`src/App.jsx` `NAV`) and the page `h1` + subtitle
+   (`src/components/campaigns/campaigns-page.jsx`). Left the pill sub-nav labels (Email
+   Campaigns / Social Media / Enrichment Campaigns) and dashboard widget copy alone — those
+   describe the campaigns themselves, not the page.
+
+2. **New campaign write path + form.** Campaign DEFINITIONS (name, type, goal, audience, etc.)
+   had NO write path at all until today — they were either hardcoded `SEEDS` in
+   `src/lib/campaigns.js` (mock mode) or a read-only Make webhook fetch
+   (`netlify/functions/campaigns.js`). Only campaign STATE (status/checklist ticks/results) was
+   ever writable, via `campaign-state.js`. Added:
+   - `netlify/functions/campaign-defs.js` — new Netlify Function, same auth/Blobs pattern as
+     `campaign-state.js` (`requireReadAuth`/`requireWriteAuth`, `logWrite`, `withMonitoring`,
+     400KB cap). Shape deliberately differs from `campaign-state.js`'s "client sends the full
+     document" convention: this store only ever grows one campaign at a time from a single form,
+     so the server does a read-modify-write UPSERT keyed by campaign id instead of requiring the
+     client to hold/resend the whole document.
+   - `getCampaignDefs()` / `createCampaign()` / `slugify()` in `src/lib/campaigns.js`. `getCampaigns()`
+     now merges the seeded/webhook set with these custom defs, so a UI-created campaign is
+     indistinguishable from a seeded one everywhere downstream (pill nav, checklist, the
+     `campaign-state.js` status overlay).
+   - `src/components/campaigns/new-campaign-form.jsx` — the "template form": picking a campaign
+     type shows a live preview of that type's checklist template (`CHECKLIST_TEMPLATES`) — task
+     count and how many are required to reach "Ready to launch" — before the campaign is even
+     created, since a new campaign's checklist is seeded from exactly that template. Fields:
+     name, goal, type, channels, start/end, owner (defaults to the signed-in user), optional
+     audience label/size, optional strategy summary, and — for enrichment campaigns only — which
+     existing campaign this call pass "clears contacts for" (`serves`, feeds `scopeOf()`'s
+     campaign-scoped call console).
+   - Wired into `campaigns-page.jsx` as a literal new tab ("+ New campaign") alongside the
+     existing type pills. On success the new campaign is folded into local state and opened
+     straight into `CampaignDetail`, so Rick lands on its checklist immediately rather than
+     hunting for the new card in the list.
+
+Build verified clean (2052 modules). Commit script:
+`COMMIT CAMPAIGN MANAGEMENT.command`.
+
+**Status: awaiting push confirmation** (see also the still-unconfirmed push for the Integration
+health tenant-fix commit `a8e71c5`, immediately below — this session's `git push` will carry
+both).
+
+---
+
 ## 2026-08-21 — Integration health: fixed which tenant the new Test buttons probe
 
 **Found live-testing the panel just after it deployed** (clicking the new Test buttons for real,

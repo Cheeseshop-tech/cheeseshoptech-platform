@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Mail, Share2, PhoneCall, Megaphone, Rocket, ListChecks, Users, MessageSquare, Lock, Link2 } from "lucide-react";
+import { Mail, Share2, PhoneCall, Megaphone, Rocket, ListChecks, Users, MessageSquare, Lock, Link2, PlusCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
 import { Button } from "@/components/ui/button.jsx";
@@ -21,16 +21,22 @@ import {
   fetchCatalog, loadCatalog, addEntry, updateEntry, removeEntry, entriesForCampaign,
 } from "@/lib/presentations-store.js";
 import { CampaignDetail } from "./campaign-detail.jsx";
+import { NewCampaignForm } from "./new-campaign-form.jsx";
 
-// Campaigns tab — pill sub-nav by campaign type, then a lifecycle dashboard per campaign
-// (HANDOFF_2026-08-03). The pill row is driven entirely by CAMPAIGN_TYPES in lib/campaigns.js:
-// adding a type there grows the nav, which is the "easy to extend" the brief asked for. Only the
-// icon lives here, since lib/campaigns.js is a data module and shouldn't import lucide.
+// Campaign Management tab — pill sub-nav by campaign type, then a lifecycle dashboard per
+// campaign (HANDOFF_2026-08-03; retitled + "New campaign" tab added 2026-08-21, Rick: "the
+// purpose here is to host campaign updates and details and manage call outreach for enrichment").
+// The pill row is driven entirely by CAMPAIGN_TYPES in lib/campaigns.js: adding a type there
+// grows the nav, which is the "easy to extend" the brief asked for. Only the icon lives here,
+// since lib/campaigns.js is a data module and shouldn't import lucide.
 //
-// Wiring, mirroring the CRM tab: definitions come from getCampaigns(), while status + checklist
-// ticks + results are the platform-owned overlay saved through campaign-state.js to Netlify
-// Blobs (shared, survives any browser — never localStorage).
+// Wiring, mirroring the CRM tab: definitions come from getCampaigns() (seeded/webhook PLUS
+// anything created from the "New campaign" tab — see getCampaignDefs()/createCampaign() in
+// lib/campaigns.js), while status + checklist ticks + results are the platform-owned overlay
+// saved through campaign-state.js to Netlify Blobs (shared, survives any browser — never
+// localStorage).
 const TYPE_ICON = { email: Mail, social: Share2, enrichment: PhoneCall };
+const NEW_TAB = "__new__";
 
 export function CampaignsPage({ resolved }) {
   const { user } = useAuth();
@@ -133,6 +139,14 @@ export function CampaignsPage({ resolved }) {
     ...refs.current.enrich,
     [companyId]: { ...refs.current.enrich[companyId], ...part, calledAt: new Date().toISOString() },
   });
+  // A campaign created from the "New campaign" tab lands here already saved server-side
+  // (campaign-defs.js) — just fold it into local state and jump straight into its detail view
+  // so Rick can start ticking the seeded checklist without hunting for the new card.
+  const handleCreated = (campaign) => {
+    setDefs((cur) => [...(cur || []), campaign]);
+    setType(campaign.type);
+    setOpenId(campaign.id);
+  };
 
   const campaigns = useMemo(
     () => (defs || []).map((d) => mergeCampaign(d, entries[d.id] || {})),
@@ -164,8 +178,10 @@ export function CampaignsPage({ resolved }) {
     <div>
       <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="font-heading text-3xl text-fg">Campaigns</h1>
-          <p className="mt-1 text-fg-muted">{resolved.brand.name} · from draft through launch to results.</p>
+          <h1 className="font-heading text-3xl text-fg">Campaign Management</h1>
+          <p className="mt-1 text-fg-muted">
+            {resolved.brand.name} · campaign updates and details, plus call outreach for enrichment — from draft through launch to results.
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <SaveChip state={saveState} />
@@ -202,6 +218,9 @@ export function CampaignsPage({ resolved }) {
                 </TabsTrigger>
               );
             })}
+            <TabsTrigger value={NEW_TAB} className="text-brand-primary">
+              <PlusCircle className="mr-1.5 h-3.5 w-3.5" /> New campaign
+            </TabsTrigger>
           </TabsList>
 
           {CAMPAIGN_TYPES.map((t) => (
@@ -214,12 +233,16 @@ export function CampaignsPage({ resolved }) {
               />
             </TabsContent>
           ))}
+          <TabsContent value={NEW_TAB}>
+            <NewCampaignForm resolved={resolved} allCampaigns={campaigns} onCreated={handleCreated} />
+          </TabsContent>
         </Tabs>
       )}
 
       <p className="mt-8 border-t border-border pt-3 text-xs text-fg-muted">
-        Campaign definitions {campaignsAreSample ? "are seeded in the app" : "load from the configured backend"}; status,
-        checklist and results save to the platform (admin passcode) and are shared across the team.
+        Campaign definitions {campaignsAreSample ? "are seeded in the app" : "load from the configured backend"}, plus any
+        created from the New campaign tab; status, checklist and results save to the platform (admin passcode) and are
+        shared across the team.
       </p>
     </div>
   );
