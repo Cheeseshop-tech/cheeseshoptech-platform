@@ -241,6 +241,53 @@ actual Identity sign-in against the deployed site (sign out, sign back in, check
 can't be done from this sandbox since Identity login is real credentials, not something to
 automate on Rick's behalf.
 
+## 2026-08-21 — The pricing tool is now the PRICE LIST OF RECORD (editable, published, audited)
+
+Rick: *"I want to use this pricing tool as pricing truth that will be updated and published with an
+effective date and valid-till date. I want an editable price field for each item and a save button
+that records when and who updated the price and keeps a record."* New **Price List** tab, first in
+Pricing & Inventory.
+
+**What is edited: the FOB BASE COST** (Rick's call over per-tier prices) — `cost.fob` for
+catch-weight bulk, `cost.fobCase` for exact-weight precuts. That is the one number the engine
+derives from, so a single edit moves class-of-trade tiers, manual margin/markup and promo prices
+together instead of three tier prices drifting apart.
+
+**Two stages, deliberately** (Rick's call over save-goes-live). Save writes a private draft that
+nobody can quote; Publish is a separate act that stamps the effective/valid-until window, bumps the
+version, and goes live everywhere. Prices feed buyer-facing quote sheets that print without a
+second look — a stray keystroke must not reach a customer. Verified in the UI: with unsaved edits
+present, Save enables and **Publish stays disabled** until a draft exists.
+
+**The overlay is the whole trick.** `applyPublishedPrices()` overlays the published FOB costs onto
+`catalog.json` at the SINGLE read point (`use-pricing-data.js`), so Pro Forma, the Quote Builder,
+proposals and the storefront all quote the new number without any of them knowing the price store
+exists. catalog.json keeps shipping the spreadsheet-sync baseline and is never mutated — the table
+shows "Bundled" vs "Published" side by side so the provenance of every number is visible.
+Both fetches (inventory + prices) are now awaited together and applied in ONE `setData`: two
+independent `setData(base)` calls would race and whichever landed second would drop the other.
+
+**Audit trail** — `netlify/functions/prices.js` over Blobs store `prices`, three keys per tenant
+(`<tenant>` published · `<tenant>--draft` · `<tenant>--log` append-only). One log row per changed
+value with from/to, plus a row per publish with the version and window. **The "who" is read from
+the verified Identity session server-side, never from the request body** — an audit trail the
+caller can forge is not an audit trail. `from` is likewise computed from our own stored state;
+`null` means there was no prior override and the value in play was the bundled catalog's.
+
+**Writes are admin / client-admin only**, enforced by `requireWriteAuth` in the function. Confirmed
+by test: a signed-in base rep gets **403** on write while reads still succeed — a rep can quote a
+price but never change one. The UI hides the controls for them too, but hiding a button is not
+security; the function is the gate.
+
+**Tested** (both pure layers lifted out and run in Node): 15/15 on the overlay — including that the
+original catalog object is never mutated, pack specs/names survive, and an empty overlay returns
+the same object reference; and 15/15 on the price validator — negatives, zero, non-numeric and an
+absurd 1e9 fat-finger are all rejected *and not stored*, with one bad value failing the whole save.
+
+**Not yet exercised against real Blobs.** `npm run dev` doesn't serve Netlify Functions, so Save and
+Publish have only been driven client-side; the handler was smoke-tested directly in Node (OPTIONS
+204, unauthenticated 401, base-rep 403). First real write happens on the deploy.
+
 ## 2026-08-21 — The apex is now the sign-in page: "Cheese Merchant Business Tools"
 
 `cheeseshoptech.com` served `ComingSoon` (marketing copy + a quiet "Sign in" link). Rick's call:

@@ -14,6 +14,7 @@ import { usePricingData } from "@/lib/use-pricing-data.js";
 import { useItemsDoc } from "@/lib/use-items-doc.js";
 import { getItem } from "@/lib/items.js";
 import { QuoteBuilder } from "@/components/tools/quote-builder.jsx";
+import { PriceList } from "@/components/tools/price-list.jsx";
 import { codeImageUrl, isPlaceholderImage, placeholderNote } from "@/lib/images.js";
 import * as PC from "@/lib/pricing-core.js";
 import * as FC from "@/lib/forecast-core.js";
@@ -44,7 +45,7 @@ const selCls =
 const fieldLabel = "text-[10px] font-semibold uppercase tracking-wide text-fg-muted";
 
 export function PricingTool({ resolved, onNavigate }) {
-  const { data, stockSource } = usePricingData(resolved);
+  const { data, stockSource, priceList } = usePricingData(resolved);
   // Canonical item names (Media Hub items.js) — null until loaded; every consumer falls
   // back to catalog.json's name, so the tool renders instantly and never blanks a name.
   const itemsDoc = useItemsDoc(resolved);
@@ -86,12 +87,17 @@ export function PricingTool({ resolved, onNavigate }) {
       ) : (
         <Tabs defaultValue="proforma">
           <TabsList>
+            <TabsTrigger value="pricelist">Price List</TabsTrigger>
             <TabsTrigger value="proforma">Pro Forma</TabsTrigger>
             <TabsTrigger value="quotes">Quotes</TabsTrigger>
             <TabsTrigger value="shelflife">Shelf Life</TabsTrigger>
             <TabsTrigger value="movement">Movement</TabsTrigger>
             <TabsTrigger value="commitments">Commitments</TabsTrigger>
           </TabsList>
+          {/* The price list of record — editable FOB base costs, draft → publish with an
+              effective window, and a permanent who/when change record. Publishing here is what
+              every other tab quotes from (the overlay lives in use-pricing-data.js). */}
+          <TabsContent value="pricelist"><PriceList data={data} resolved={resolved} itemsDoc={itemsDoc} priceList={priceList} /></TabsContent>
           <TabsContent value="proforma"><Proforma data={data} brand={resolved.brand} resolved={resolved} onNavigate={onNavigate} itemsDoc={itemsDoc} /></TabsContent>
           {/* The one-page branded rate card (docs/QUOTE_BUILDER_SPEC_2026-08-13.md). Deliberately
               its own file — this one is already large, and the Quote Builder shares only the
