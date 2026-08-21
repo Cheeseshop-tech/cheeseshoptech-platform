@@ -391,9 +391,11 @@ function TenantPanel({ clients }) {
 /* ---------------- Integration health ---------------- */
 
 const ENV = import.meta.env;
-// Build-time backend switches: what each seam is wired to in THIS build.
+// Build-time backend switches: what each seam is wired to in THIS build. No "crm" row here —
+// the "HubSpot CRM (read-only)" row further down already live-tests CRM for real; a second,
+// build-flag-only CRM badge next to it could disagree with the real one and nobody should trust
+// a status panel that can contradict itself.
 const SEAMS = [
-  { key: "crm", label: "CRM", flag: ENV.VITE_CRM_BACKEND || "mock", liveWhen: "hubspot" },
   { key: "store", label: "Storefront", flag: ENV.VITE_STORE_BACKEND || "mock", liveWhen: "shopify" },
   { key: "media", label: "Media", flag: ENV.VITE_MEDIA_BACKEND || "mock", liveWhen: "cloudinary" },
   { key: "campaigns", label: "Campaigns", flag: ENV.VITE_CAMPAIGNS_BACKEND || "mock", liveWhen: "make" },
@@ -402,9 +404,90 @@ const SEAMS = [
   { key: "pricing", label: "Pricing data", flag: ENV.VITE_PRICING_BACKEND || "mock", liveWhen: "function" },
 ];
 
+// Real connectivity probes (2026-08-21, Rick: "wire live integration health status"). Before
+// this, a seam's badge came ONLY from whether its build flag literally equaled "mock" — so a
+// seam pointed at a dead token or a missing secret still showed a green "live" badge, the exact
+// false-positive class guardrails #7/#8 already exist for elsewhere in this app (the passcode
+// gate's permanent false alarm was the same failure mode in reverse: false RED instead of false
+// GREEN). Only seams with an actual backend function get a real probe here — Market
+// signals/Market news have no backend built yet at all, so there is nothing to call; their badge
+// stays the static build-flag one, which is already accurate (there's genuinely no live path).
+// Every probe returns a normalized { ok, reason?, detail? } shape so one badge renderer
+// (SeamStatusBadge) can handle all of them instead of copy-pasting per-seam JSX four more times.
+const SEAM_PINGS = {
+  media: async (tenant, folder) => {
+    if (!tenant || !folder) return { ok: false, reason: "no-tenant" };
+    const res = await fetch(
+      `/.netlify/functions/media-list?tenant=${encodeURIComponent(tenant)}&folder=${encodeURIComponent(folder)}&paged=1&max_results=1`,
+      { headers: await authHeaders() }
+    );
+    if (res.status === 401 || res.status === 403) return { ok: false, reason: "unauthorized" };
+    const data = await res.json().catch(() => null);
+    if (!res.ok) return { ok: false, reason: /not configured/i.test(data?.error || "") ? "not-configured" : "error", detail: data?.error };
+    return { ok: true, detail: `reachable (${tenant})` };
+  },
+  pricing: async (tenant) => {
+    if (!tenant) return { ok: false, reason: "no-tenant" };
+    const res = await fetch(`/.netlify/functions/inventory?tenant=${encodeURIComponent(tenant)}`, { headers: await authHeaders() });
+    if (res.status === 401 || res.status === 403) return { ok: false, reason: "unauthorized" };
+    const data = await res.json().catch(() => null);
+    if (!res.ok || !data) return { ok: false, reason: "error" };
+    if (data.source === "error") return { ok: false, reason: "error", detail: data.error };
+    if (data.source === "none" || !data.inventory) return { ok: false, reason: "empty", detail: `reachable, no data yet (${tenant})` };
+    return { ok: true, detail: `updated ${data.updatedAt ? new Date(data.updatedAt).toLocaleDateString() : "—"} (${tenant})` };
+  },
+  // Store (Shopify) is one storefront, not per-tenant today — see netlify/functions/store.js.
+  store: async () => {
+    const res = await fetch(`/.netlify/functions/store`, { headers: await authHeaders() });
+    if (res.status === 401 || res.status === 403) return { ok: false, reason: "unauthorized" };
+    const data = await res.json().catch(() => null);
+    if (!res.ok) return { ok: false, reason: /not configured/i.test(data?.error || "") ? "not-configured" : "error", detail: data?.error };
+    return { ok: true, detail: `${data?.products?.length ?? "—"} products` };
+  },
+  campaigns: async (tenant) => {
+    if (!tenant) return { ok: false, reason: "no-tenant" };
+    const res = await fetch(`/.netlify/functions/campaigns?tenant=${encodeURIComponent(tenant)}`, { headers: await authHeaders() });
+    if (res.status === 401 || res.status === 403) return { ok: false, reason: "unauthorized" };
+    const data = await res.json().catch(() => null);
+    if (!res.ok) return { ok: false, reason: /not configured/i.test(data?.error || "") ? "not-configured" : "error", detail: data?.error };
+    return { ok: true, detail: Array.isArray(data) ? `${data.length} campaigns (${tenant})` : `reachable (${tenant})` };
+  },
+};
+
+// Shared renderer for every SEAM_PINGS result — one place that decides what "live" vs
+// "not configured" vs "error" looks like, so all four probed seams read consistently.
+function SeamStatusBadge({ state }) {
+  if (state === "checking") return <Badge variant="muted">checking…</Badge>;
+  if (!state) return <Badge variant="muted">untested</Badge>;
+  if (state.ok) return <Badge variant="success"><CheckCircle2 className="mr-1 h-3 w-3" />live</Badge>;
+  if (state.reason === "not-configured") return <Badge variant="warning"><AlertTriangle className="mr-1 h-3 w-3" />not configured</Badge>;
+  if (state.reason === "empty") return <Badge variant="warning">reachable, empty</Badge>;
+  if (state.reason === "unauthorized") return <Badge variant="warning"><AlertTriangle className="mr-1 h-3 w-3" />not signed in</Badge>;
+  if (state.reason === "no-tenant") return <Badge variant="muted">no client to test against</Badge>;
+  return <Badge variant="error"><AlertTriangle className="mr-1 h-3 w-3" />error</Badge>;
+}
+
 function IntegrationPanel({ clients }) {
   const [gate, setGate] = useState(null); // null | "checking" | "ok" | "missing" | "unreachable"
   const [crm, setCrm] = useState(null); // null | "checking" | "error" | { counts }
+  // One real client stands in for "does this seam actually work" — there's only one live tenant
+  // (montitrentini) as of 2026-08-21, and per-tenant breakdown isn't the point here (that's
+  // PipelinePanel's job below); this panel just needs ONE real tenant to prove connectivity.
+  const testTenant = clients[0]?.id || null;
+  const testTenantFolder = clients[0]?.cloudinaryFolder || null;
+  const [seamStatus, setSeamStatus] = useState({}); // { [seamKey]: null | "checking" | {ok, reason?, detail?} }
+
+  async function pingSeam(key) {
+    const pinger = SEAM_PINGS[key];
+    if (!pinger) return;
+    setSeamStatus((prev) => ({ ...prev, [key]: "checking" }));
+    try {
+      const result = await pinger(testTenant, testTenantFolder);
+      setSeamStatus((prev) => ({ ...prev, [key]: result }));
+    } catch (err) {
+      setSeamStatus((prev) => ({ ...prev, [key]: { ok: false, reason: "error", detail: String(err?.message || err) } }));
+    }
+  }
 
   // Read-only direct-HubSpot check (separate from the Make seam). Returns live contact/company/deal totals.
   async function pingCrm() {
@@ -462,19 +545,34 @@ function IntegrationPanel({ clients }) {
           <TableBody>
             {SEAMS.map((s) => {
               const live = s.flag !== "mock";
+              const pinger = SEAM_PINGS[s.key];
+              const state = seamStatus[s.key];
               return (
                 <TableRow key={s.key}>
                   <TableCell className="font-medium">{s.label}</TableCell>
                   <TableCell><code className="font-mono text-xs">{s.flag}</code></TableCell>
                   <TableCell>
-                    {live
-                      ? <Badge variant="success"><CheckCircle2 className="mr-1 h-3 w-3" />live</Badge>
-                      : <Badge variant="muted"><CircleDashed className="mr-1 h-3 w-3" />mock</Badge>}
+                    {pinger ? (
+                      <SeamStatusBadge state={state} />
+                    ) : live ? (
+                      <Badge variant="success"><CheckCircle2 className="mr-1 h-3 w-3" />live</Badge>
+                    ) : (
+                      <Badge variant="muted"><CircleDashed className="mr-1 h-3 w-3" />mock</Badge>
+                    )}
                   </TableCell>
                   <TableCell className="text-xs text-fg-muted">
-                    {s.key === "crm" && clients.some((c) => c.crm === "hubspot") ? "Monti = HubSpot; wire Make once deals exist (CRM_CONNECTOR.md)" : ""}
-                    {s.key === "store" && !live ? "Needs real Shopify store + tokens (Phase D / STOREFRONT_STRATEGY.md)" : ""}
-                    {s.key === "media" && "Cloudinary delivery; archive layer = spec §6"}
+                    <span className="flex flex-wrap items-center gap-2">
+                      {pinger && (
+                        <Button size="sm" variant="outline" onClick={() => pingSeam(s.key)} disabled={state === "checking"}>
+                          <RefreshCw className={cn("h-3.5 w-3.5", state === "checking" && "animate-spin")} /> Test
+                        </Button>
+                      )}
+                      {s.key === "store" && !live && !(state && typeof state === "object") ? "Needs real Shopify store + tokens (Phase D / STOREFRONT_STRATEGY.md)" : ""}
+                      {s.key === "media" && !(state && typeof state === "object") && "Cloudinary delivery; archive layer = spec §6"}
+                      {state && typeof state === "object" && state.detail && (
+                        <span className={state.ok ? "text-fg" : "text-error"}>{state.detail}</span>
+                      )}
+                    </span>
                   </TableCell>
                 </TableRow>
               );
@@ -511,6 +609,9 @@ function IntegrationPanel({ clients }) {
                   {crm && typeof crm === "object" && <span className="text-fg">{crm.counts?.contacts ?? "—"} contacts · {crm.counts?.companies ?? "—"} cos · {crm.counts?.deals ?? "—"} deals</span>}
                   {crm === "error" && <span className="text-error">check token / scopes</span>}
                   {crm === "relogin" && <span className="text-fg-muted">sign in with your real Identity account, then retest</span>}
+                  {crm === null && clients.some((c) => c.crm === "hubspot") && (
+                    <span className="text-fg-muted">Monti = HubSpot; wire Make once deals exist (CRM_CONNECTOR.md)</span>
+                  )}
                 </span>
               </TableCell>
             </TableRow>

@@ -96,6 +96,46 @@ with `node --check` on all 29 function files before calling it done.
 
 ---
 
+## 2026-08-21 — Integration health panel: real connectivity Test buttons, not just build flags
+
+**Finding.** Rick asked to "wire live integration health status." The panel already looked like
+it tested things — every seam had a green "live" or grey "mock" badge — but for 5 of 7 rows that
+badge came ONLY from whether a build-time env flag (e.g. `VITE_STORE_BACKEND`) literally equaled
+the string `"mock"`. A seam pointed at a dead token or a missing secret would still show green.
+This is the same false-positive failure mode as the passcode gate's false-red alarm fixed
+2026-08-17 (guardrail #7/#8) — just inverted (false green instead of false red). Two live-tested
+rows already existed and were the right pattern to extend: "Auth (Identity)" (`pingGate`) and
+"HubSpot CRM read-only" (`pingCrm`), both added 2026-07-18/08-17.
+
+**Action.** Added a real `Test` button + probe for the 4 seams that have an actual backend
+function: Media (Cloudinary, `media-list.js`), Pricing (`inventory.js`), Storefront
+(`store.js`), Campaigns (`campaigns.js`) -- one shared `SEAM_PINGS` map + `SeamStatusBadge`
+renderer in `agency-console.jsx` instead of copy-pasting pingCrm/pingGate's JSX four more times.
+Each returns a normalized `{ok, reason?, detail?}` so the badge can distinguish live / not
+configured / reachable-but-empty / not signed in / error, not just live-vs-mock. Market
+signals and Market news have NO backend function at all yet -- there's nothing to probe -- so
+their badge is unchanged (the static flag badge is already accurate there; a Test button that
+always fails the same way would just be noise). Dropped the old static "CRM" row from the
+generic SEAMS table entirely -- it was a build-flag badge sitting right next to the real,
+live-tested HubSpot row and could in principle disagree with it; its one useful note ("Monti =
+HubSpot; wire Make once deals exist") moved into the HubSpot row instead so nothing was lost.
+
+**Found + fixed along the way.** `store.js` and `campaigns.js` had NO auth guard at all --
+every other read function got `requireReadAuth` in the 2026-08-17 write-guard migration
+(HANDOFF_2026-08-17_identity-write-guard-fix.md), but these two were missed. Harmless today
+(Shopify/Make aren't configured, so every request 500s "not configured" regardless of who asks)
+but would otherwise become live, completely open reads of real product/campaign data the moment
+those secrets get set. Closed with the same guard used everywhere else. This is exactly the kind
+of gap a real connectivity Test button is supposed to surface -- these got noticed *because* the
+new Storefront/Campaigns pings needed a request shape to test against, not from a dedicated audit.
+
+Build verified clean (2051 modules, `--emptyOutDir false` workaround as usual). Commit script:
+`COMMIT INTEGRATION HEALTH LIVE STATUS.command`.
+
+**Status.** Built and verified, NOT yet committed/pushed/live-tested. Live verification needs a
+real signed-in session hitting each Test button against the deployed site (can be done via the
+device bridge once pushed, the same way the Access log's identity row was confirmed).
+
 ## 2026-08-21 — Access log rewired to show WHO logged in, not just IP/tier
 
 **Finding.** Rick asked the Access log (Agency Console -> "Access log" panel,

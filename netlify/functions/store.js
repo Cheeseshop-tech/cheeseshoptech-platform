@@ -4,6 +4,17 @@
 // Shopify). This function covers the products read path only. The Storefront access token + store
 // domain are server-side secrets — never in the browser bundle. Activates when SHOPIFY_STORE_DOMAIN
 // + SHOPIFY_STOREFRONT_TOKEN are set (see .env.example). Front end uses it when VITE_STORE_BACKEND=shopify.
+//
+// AUTH FIX (2026-08-21, found while wiring the Integration health panel's live Test button): this
+// had NO auth guard at all -- every other read function got requireReadAuth in the 2026-08-17
+// write-guard migration (docs/HANDOFF_2026-08-17_identity-write-guard-fix.md), but this one was
+// missed -- likely because it's never been reachable in practice (Shopify isn't configured yet).
+// Harmless today (a curl just gets "not configured" either way), but the moment SHOPIFY_STORE_
+// DOMAIN/TOKEN get set this would otherwise become a live, completely open read of real product
+// data. Closing it now, same guard/pattern as inventory.js and media-list.js. Single storefront,
+// not per-tenant today, so the tenant arg is optional (blank = any signed-in role may read).
+
+import { requireReadAuth, jsonUnauthorized } from "./_write-guard.js";
 
 const API_VERSION = "2024-10";
 const PRODUCTS_QUERY = `
@@ -25,7 +36,11 @@ const PRODUCTS_QUERY = `
 
 import { withMonitoring } from "./_sentry.js";
 
-const rawHandler = async () => {
+const rawHandler = async (event, context) => {
+  const tenant = (event?.queryStringParameters?.tenant || "").replace(/[^a-z0-9-]/gi, "");
+  const readAuth = requireReadAuth(event, tenant, context);
+  if (!readAuth.ok) return jsonUnauthorized(readAuth);
+
   const domain = process.env.SHOPIFY_STORE_DOMAIN;       // e.g. monti-trentini.myshopify.com
   const token = process.env.SHOPIFY_STOREFRONT_TOKEN;    // Storefront API access token
   if (!domain || !token) {
