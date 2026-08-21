@@ -470,11 +470,15 @@ function SeamStatusBadge({ state }) {
 function IntegrationPanel({ clients }) {
   const [gate, setGate] = useState(null); // null | "checking" | "ok" | "missing" | "unreachable"
   const [crm, setCrm] = useState(null); // null | "checking" | "error" | { counts }
-  // One real client stands in for "does this seam actually work" — there's only one live tenant
-  // (montitrentini) as of 2026-08-21, and per-tenant breakdown isn't the point here (that's
-  // PipelinePanel's job below); this panel just needs ONE real tenant to prove connectivity.
-  const testTenant = clients[0]?.id || null;
-  const testTenantFolder = clients[0]?.cloudinaryFolder || null;
+  // One real client stands in for "does this seam actually work" — per-tenant breakdown isn't
+  // the point here (that's PipelinePanel's job below); this panel just needs ONE real tenant to
+  // prove connectivity. listClients() returns Demo Client before Monti Trentini (alphabetical:
+  // "demo" < "montitrentini"), and demo has no real Cloudinary assets or published inventory of
+  // its own — testing against it would report Media/Pricing as merely "reachable" instead of the
+  // genuinely live status they have for the one real tenant. Skip "demo"/"_template" explicitly.
+  const testClient = clients.find((c) => c.id !== "demo" && c.id !== "_template") || clients[0] || null;
+  const testTenant = testClient?.id || null;
+  const testTenantFolder = testClient?.cloudinaryFolder || null;
   const [seamStatus, setSeamStatus] = useState({}); // { [seamKey]: null | "checking" | {ok, reason?, detail?} }
 
   async function pingSeam(key) {

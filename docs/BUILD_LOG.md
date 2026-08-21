@@ -96,6 +96,21 @@ with `node --check` on all 29 function files before calling it done.
 
 ---
 
+## 2026-08-21 — Integration health: fixed which tenant the new Test buttons probe
+
+**Found live-testing the panel just after it deployed** (clicking the new Test buttons for real,
+signed in as admin, against the actual site — not just a clean build). Media showed
+`LIVE — reachable (demo)` and Pricing data showed `REACHABLE, EMPTY — reachable, no data yet
+(demo)`. Both genuinely reachable, but understated: `testClient = clients[0]` picked up Demo
+Client, not Monti Trentini, because `listClients()` returns `Object.values(REGISTRY)` and
+`"demo" < "montitrentini"` alphabetically. Demo has no real Cloudinary assets and no published
+inventory of its own, so testing against it can never show the TRUE live status those two seams
+actually have for the one real tenant.
+
+**Fix.** `testClient` now explicitly skips `"demo"`/`"_template"` and picks the first real
+client, falling back to `clients[0]` only if somehow none exist. Build verified clean (2051
+modules) again after the change.
+
 ## 2026-08-21 — Integration health panel: real connectivity Test buttons, not just build flags
 
 **Finding.** Rick asked to "wire live integration health status." The panel already looked like
