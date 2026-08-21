@@ -1,11 +1,22 @@
 // Login-attempt log — mirrors _write-log.js's audit-trail pattern (Trust-by-design review,
-// 2026-07-07) but for the passcode gate itself (netlify/functions/gate.js). Until 2026-07-18 the
-// login step recorded nothing at all — no IP, no timestamp, not even success vs failure — while
-// everything AFTER login (writes) has been logged since 2026-07-06. This closes that gap.
+// 2026-07-07). Until 2026-07-18 the login step recorded nothing at all — no IP, no timestamp,
+// not even success vs failure — while everything AFTER login (writes) has been logged since
+// 2026-07-06. This closes that gap.
 //
 // Same Netlify Blobs pattern, same "never block or fail the request it's describing" contract,
 // but its OWN store — login volume (every portal open) is a different shape than write volume
 // (occasional edits), so it gets its own rolling window rather than crowding write-log's.
+//
+// TWO call sites write here, so entries have two shapes (2026-08-21, Rick: "show names of who
+// is logging in"):
+//   - gate.js (legacy passcode gate, VITE_AUTH_MODE=passcode): { ok, role, tenant } — a shared
+//     secret has no individual identity behind it, so these rows never carry a name/email.
+//   - record-login.js (real Netlify Identity, the live mode since 2026-08-17): adds
+//     { source: "identity", email, name, roles }, verified server-side from the Identity JWT —
+//     never client-supplied, so it can't be spoofed. This is the source that actually answers
+//     "who logged in" and the reason record-login.js exists.
+// Readers (login-log.js, the Access log UI) must treat name/email/source as OPTIONAL and fall
+// back gracefully — most history predates this and plenty of rows will always be passcode-era.
 import { connectLambda, getStore } from "@netlify/blobs";
 import { callerIp } from "./_write-log.js";
 

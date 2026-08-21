@@ -154,7 +154,7 @@ function LoginLogPanel() {
         <PanelIcon icon={ShieldCheck} />
         <div>
           <CardTitle>Access log <span className="text-xs font-normal text-fg-muted">· portal logins</span></CardTitle>
-          <CardDescription>Every passcode attempt — who (IP), when, which tier, success or failure. Newest first.</CardDescription>
+          <CardDescription>Every sign-in — name, when, which tier, success or failure. Newest first.</CardDescription>
         </div>
         <div className="ml-auto flex items-center gap-2">
           <Button size="sm" variant="outline" onClick={() => setExpanded(true)} disabled={!ok || rows.length === 0}>
@@ -199,7 +199,7 @@ function LoginLogPanel() {
           <DialogHeader>
             <DialogTitle>Access log — full history</DialogTitle>
             <DialogDescription>
-              Every passcode attempt recorded — who (IP), when, which tier, success or failure. Newest first.
+              Every sign-in recorded — name, when, which tier, success or failure. Newest first.
             </DialogDescription>
           </DialogHeader>
           <div className="min-h-0 flex-1 overflow-y-auto">
@@ -220,6 +220,7 @@ function LoginLogTable({ rows }) {
       <TableHeader className="sticky top-0 z-10 bg-bg">
         <TableRow>
           <TableHead>When</TableHead>
+          <TableHead>Who</TableHead>
           <TableHead>IP</TableHead>
           <TableHead>Location</TableHead>
           <TableHead>Tenant</TableHead>
@@ -231,6 +232,19 @@ function LoginLogTable({ rows }) {
         {rows.map((r, i) => (
           <TableRow key={i}>
             <TableCell className="whitespace-nowrap text-xs">{r.ts}</TableCell>
+            {/* Name/email only exist on real Identity rows (record-login.js) — every row from
+                the legacy passcode gate (gate.js) is a shared secret with no individual behind
+                it, so this falls back to the tier label rather than showing a blank cell. */}
+            <TableCell className="text-xs">
+              {r.name || r.email ? (
+                <div className="leading-tight">
+                  {r.name && <div className="font-medium text-fg">{r.name}</div>}
+                  {r.email && <div className="text-fg-muted">{r.email}</div>}
+                </div>
+              ) : (
+                <span className="text-fg-muted">{r.source === "identity" ? "—" : "shared passcode"}</span>
+              )}
+            </TableCell>
             <TableCell className="font-mono text-xs">{r.ip || "—"}</TableCell>
             <TableCell className="text-xs">{[r.city, r.region].filter(Boolean).join(", ") || "—"}</TableCell>
             <TableCell className="text-xs">{r.tenant || "—"}</TableCell>

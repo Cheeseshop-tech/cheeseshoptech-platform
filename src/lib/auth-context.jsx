@@ -77,6 +77,7 @@ export function AuthProvider({ children }) {
     try {
       const u = await doLogin(email, password);
       setUser(u);
+      recordLogin(); // fire-and-forget — see below; never blocks or fails the actual sign-in
       return u;
     } catch (err) {
       const msg = err?.json?.error_description || err?.message || "Login failed.";
@@ -134,4 +135,20 @@ export function writeAuthHeader() {
  */
 export async function authHeaders() {
   return { ...writeAuthHeader(), ...(await identityAuthHeader()) };
+}
+
+/**
+ * Record a real Identity sign-in to the house Access log (2026-08-21, Rick: "show names of who
+ * is logging in" — netlify/functions/record-login.js). Fire-and-forget from login() above: the
+ * server re-derives who this is from the verified Identity JWT itself, so nothing sent from here
+ * is trusted — this call carries no body, just the auth header. Never awaited by the caller and
+ * every failure is swallowed, matching the "logging never blocks or breaks the real action"
+ * contract the rest of this app's audit logging already follows (_write-log.js, _login-log.js).
+ * Not called in passcode mode (no per-user identity to attribute) or the dev bypass (not a real
+ * login) — only from an actual Identity login() success.
+ */
+function recordLogin() {
+  authHeaders()
+    .then((headers) => fetch("/.netlify/functions/record-login", { method: "POST", headers }))
+    .catch(() => { /* best-effort — see doc comment */ });
 }

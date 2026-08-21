@@ -96,6 +96,47 @@ with `node --check` on all 29 function files before calling it done.
 
 ---
 
+## 2026-08-21 — Access log rewired to show WHO logged in, not just IP/tier
+
+**Finding.** Rick asked the Access log (Agency Console -> "Access log" panel,
+`netlify/functions/login-log.js`) to show names. It never could. Every row it has ever shown
+came from exactly one call site, `gate.js` — the legacy shared-passcode gate — which logs
+`{ ok, role, tenant }` because a shared secret has no individual identity behind it to record.
+The portal has signed people in with real per-user Netlify Identity since 2026-08-17
+([[cst-auth-upgrade]]), but nothing was ever added to log THAT login path, so since the passcode
+->Identity switch the Access log has been silently frozen — recording nothing real.
+
+**Action.** New function `netlify/functions/record-login.js`: POST-only, no request body. Auth
+is just "does Netlify's own JWT verification say someone is signed in" — `context.clientContext
+.user`, the exact same trust Netlify already extends to every write function (`_write-guard.js`).
+Name/email/roles/tenant are read from that verified identity, never from anything the client
+sends, so a signed-in user cannot claim to be someone else in this log. Called fire-and-forget
+from `login()` in `src/lib/auth-context.jsx` right after a real sign-in succeeds — not a Netlify
+Identity webhook/trigger, to stay in the same simple pattern the app's other audit logging
+already uses (`_write-log.js`, `_login-log.js`). `_login-log.js`'s shared store now carries two
+row shapes (passcode-era vs identity, documented in its header comment); `login-log.js` (the
+reader) needed no changes. UI: `LoginLogTable` (`src/components/home/agency-console.jsx`) gets a
+new "Who" column — name on top, email below, falling back to "shared passcode" for old
+passcode-era rows that never had an individual behind them.
+
+**Scope call.** This only ever logs successful Identity logins. A FAILED real-Identity attempt
+(wrong password) has no verifiable "who" — GoTrue rejects it before any JWT exists — so there is
+nothing trustworthy to attribute it to; the old passcode gate could log failed attempts because
+the whole point there was testing a guess against a known secret. If Rick wants failed real
+logins tracked too, that's a second, separate piece of work (would need a client-supplied,
+UNVERIFIED "attempted email" clearly labeled as such, or a Netlify Identity `identity-login`
+external-trigger function instead of this client-called approach).
+
+Build verified clean (2051 modules, `--emptyOutDir false` to route around this sandbox's
+long-standing can't-delete-a-synced-file quirk on `dist/.DS_Store` — same family as the
+`.git/*.lock` trap, not a code problem; see `sandbox-git-lock-trap` memory). Commit script:
+`COMMIT ACCESS LOG NAMES.command`.
+
+**Status.** Built and verified, NOT yet committed/pushed/live-tested. Live verification needs an
+actual Identity sign-in against the deployed site (sign out, sign back in, check the panel) —
+can't be done from this sandbox since Identity login is real credentials, not something to
+automate on Rick's behalf.
+
 ## 2026-08-21 — The apex is now the sign-in page: "Cheese Merchant Business Tools"
 
 `cheeseshoptech.com` served `ComingSoon` (marketing copy + a quiet "Sign in" link). Rick's call:
