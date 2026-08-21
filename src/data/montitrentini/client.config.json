@@ -9,7 +9,7 @@
     "logo": "monti/brand/logo",
     "_contactNote": "The sales contact block printed in the footer of buyer-facing documents (Quote Builder rate cards today). Canonical here rather than hardcoded in a component so it changes in one place and every future tenant carries its own.",
     "contact": {
-      "ordersEmail": "order@montitrentini-usa.com",
+      "ordersEmail": "Customerservice@montitrentini-USA.com",
       "name": "Stefano Viero",
       "phone": "(516) 507-9658",
       "company": "Monti Trentini USA, LLC",
@@ -24,6 +24,8 @@
   "pricing": {
     "costBasis": "FOB SEAFRIGO",
     "defaultTier": "distributor",
+    "_paymentTermsNote": "Standing payment terms printed on every buyer-facing quote (Rick, 2026-08-21). Canonical here rather than hardcoded in the component so it changes in one place and each tenant carries its own.",
+    "paymentTerms": "Net 15",
     "_note": "The price list is HQ/Stefano's numbers — the engine does NOT invent pricing strategy. Class-of-trade only applies to DIRECT sales (Monti absorbs the distributor margin but holds market value to protect the channel). Distributor sales = base list price + delivery/minimum/fees. Real %s pending Stefano review (post first team review).",
 
     "tiers": [

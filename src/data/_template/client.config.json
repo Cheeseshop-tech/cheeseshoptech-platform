@@ -7,7 +7,7 @@
     "tagline": "",
     "accent": "#6B7280",
     "logo": "",
-    "_contactNote": "Sales contact printed in the footer of buyer-facing documents (Quote Builder rate cards). Leave blank and the footer simply omits the line.",
+    "_contactNote": "Sales contact printed in the footer of buyer-facing documents (Quote Builder rate cards). Leave blank and the footer simply omits the line. Standing payment terms live at pricing.paymentTerms.",
     "contact": {
       "ordersEmail": "",
       "name": "",
@@ -23,6 +23,7 @@
     "folder": "clients/_template"
   },
   "pricing": {
+    "paymentTerms": "",
     "costBasis": "FOB",
     "defaultTier": "distributor",
     "_note": "Placeholder structure \u2014 the price list is the CLIENT'S numbers; the engine never invents pricing strategy. Set real tier %s, volume breaks, and freight rules per client during onboarding.",

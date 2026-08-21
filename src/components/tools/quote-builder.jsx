@@ -392,6 +392,7 @@ export function QuoteBuilder({ data, brand, resolved, itemsDoc }) {
     const heritage = kit?.voice?.heritage || "";
     const attribution = kit?.attribution || "";
     const basisLabel = config.pricing?.costBasis || "FOB";
+    const paymentTerms = config.pricing?.paymentTerms || "";
 
     /* ---- header block, per purpose ---- */
     const eyebrow = purposeId === "price_change" ? "PRICE UPDATE NOTICE"
@@ -409,6 +410,10 @@ export function QuoteBuilder({ data, brand, resolved, itemsDoc }) {
     if (purposeId === "new_customer") rightLines.push(`<div class="key">Quote valid until ${esc(fmtDate(dates.validUntil))}</div>`);
     if (purposeId === "price_change") rightLines.push(`<div class="key">Effective ${esc(fmtDate(dates.effectiveDate))}</div>`);
     if (purposeId === "promo") rightLines.push(`<div class="key">Offer ${esc(fmtDate(dates.promoStart))} – ${esc(fmtDate(dates.promoEnd))}</div>`);
+    // Standing payment terms, on every purpose (Rick, 2026-08-21: "baked in"). Read from
+    // config.pricing.paymentTerms, so it is the tenant's number and not a literal in this file;
+    // a tenant that hasn't set terms simply prints no line.
+    if (paymentTerms) rightLines.push(`<div class="terms">Payment terms: <b>${esc(paymentTerms)}</b></div>`);
 
     /* ---- story panels ---- */
     const panels = showStory && storyBlocks.length
@@ -493,9 +498,17 @@ export function QuoteBuilder({ data, brand, resolved, itemsDoc }) {
     <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-      @page { size: letter portrait; margin: 0.4in; }
+      /* Full-bleed letterhead. The @page margin MUST stay 0: that band is where the browser
+         prints its own header and footer (document title + the portal URL), and it was also the
+         white edge around the cream on the exported PDF. No margin, no band — the browser drops
+         both and the cream runs to the paper edge. The page inset lives in body padding instead,
+         clear of the ~0.25in most printers physically cannot mark. A background on body
+         propagates to the page canvas, so the cream fills every sheet, not just the first.
+         (Deliberately no house name in this file's printed output — see the build log.) */
+      @page { size: letter portrait; margin: 0; }
       *{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-      body{margin:0;padding:26px 30px 20px;background:${cream};color:${ink};font-family:${ui};font-size:11px;line-height:1.45}
+      html{background:${cream}}
+      body{margin:0;padding:38px 44px 30px;background:${cream};color:${ink};font-family:${ui};font-size:11px;line-height:1.45}
       .num{font-family:${display};font-style:italic;font-size:1.28em;color:${primary};font-weight:600}
 
       /* header */
@@ -505,6 +518,10 @@ export function QuoteBuilder({ data, brand, resolved, itemsDoc }) {
       .prep{font-size:10.5px;font-weight:700;letter-spacing:.09em;color:${primary};text-transform:uppercase}
       .dim{color:${muted};font-size:10px;margin-top:2px}
       .key{color:${accent};font-size:10.5px;font-weight:700;margin-top:4px}
+      /* Payment terms sit under the date line in Mountain Ink, not the accent green — the date is
+         the one thing that expires, and two competing green lines would flatten that. */
+      .terms{color:${ink};font-size:10px;margin-top:3px}
+      .terms b{color:${primary}}
       .eyebrow{margin:16px 0 0;font-size:9.5px;font-weight:700;letter-spacing:.22em;color:${accent};text-transform:uppercase}
       h1{font-family:${display};font-style:italic;font-weight:600;color:${primary};font-size:28px;line-height:1.12;margin:5px 0 0}
       .sub{font-family:${display};font-style:italic;color:${muted};font-size:11.5px;margin:7px 0 0;max-width:78%}

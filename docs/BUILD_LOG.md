@@ -96,6 +96,40 @@ with `node --check` on all 29 function files before calling it done.
 
 ---
 
+## 2026-08-21 — Quote Builder: full-bleed letterhead, Net 15 terms, footer corrections
+
+Against a real export (`New Customer Negotiation — Cowbell.pdf`), five changes from Rick.
+
+**The white border and the "CheeseShop TECH reference" were the same bug.** The printed sheet set
+`@page { margin: 0.4in }`, and that margin band is exactly where the browser draws its OWN header
+and footer — on the export: the document title, `8/20/26, 4:02 PM`, **`https://cheeseshoptech.com/?client=montitrentini`**,
+and "Page 1 of 1". The house URL on a buyer-facing quote was the browser, not our markup. Margin is
+now `0`: no band, so the browser drops both, and the page inset moved into `body` padding
+(`38px 44px 30px`), clear of the ~0.25in most printers physically cannot mark.
+
+**The cream also stopped partway down the page** — `body` carried the background but its box is
+only content-tall, so a short quote printed cream over the top ~80% and white below the contact
+line. Fixed by putting the background on `html` as well: the root element's background propagates
+to the page canvas, so the cream now fills the whole sheet, and every sheet on a multi-page quote.
+Verified at true Letter pixel size (816×1056) with content 884px tall — the 172px that used to be
+white is now cream.
+
+**Payment terms Net 15, baked in** on all three purposes, under the date line in Mountain Ink
+rather than the accent green (the date is the thing that expires; two green lines would flatten
+that). Canonical at `config.pricing.paymentTerms`, not a literal in the component — a tenant with
+no terms set simply prints no line. Slot added to the tenant template.
+
+**Footer corrections:** `brand.contact.ordersEmail` → `Customerservice@montitrentini-USA.com`, and
+brand-kit `attribution` "Imported by Monti Trentini USA" → **"from Monti Trentini"** — it reads as a
+signature under the motto, not an importer-of-record statement. Note the attribution also surfaces
+on the Proposal cover eyebrow and in Content Engine copy; changed at the kit so there is still one
+source rather than a special case in this component.
+
+**Caveat carried forward:** whether Chrome actually suppresses its header/footer depends on the
+print dialog's Margins setting being Default (which honours `@page`). If a URL still appears on an
+export, set Margins → None or untick "Headers and footers". That is a dialog setting CSS cannot
+reach.
+
 ## 2026-08-13 — Quote Builder (one-page rate card) + quotes-issued log + Media Hub asset directive
 
 Built to `docs/QUOTE_BUILDER_SPEC_2026-08-13.md`, reference `FreshDirect_PricingAOneSheet.pdf`.

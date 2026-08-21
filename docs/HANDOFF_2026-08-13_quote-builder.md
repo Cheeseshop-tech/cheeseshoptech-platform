@@ -35,6 +35,24 @@ copied from `printProforma()`'s approach. **No PDF library** — deliberate, don
 - **Print gated** on: at least one SKU, no unpriced lines, the purpose's date(s) set, a valid
   percentage, and (promo only) a headline.
 
+## 2b. Locked output standard (2026-08-21) — do not regress these
+
+These are baked into `buildQuoteHtml()`, which **every** purpose runs through. None of them is a
+per-document tweak; changing any one changes all three arrangements.
+
+| Rule | Where it lives | Why it must stay |
+|---|---|---|
+| `@page { margin: 0 }` | printed CSS | The margin band is where the browser draws its own header/footer. A non-zero margin puts the document title, the timestamp and **`https://cheeseshoptech.com/...`** on a buyer-facing quote. This is the single most important line in the stylesheet. |
+| Page inset via `body{padding:38px 44px 30px}` | printed CSS | Replaces the page margin; clear of the ~0.25in printers can't mark. |
+| `html{background:<cream>}` | printed CSS | The root background propagates to the page canvas, so cream fills the **whole** sheet and every sheet. On `body` alone it only paints the content box — a short quote printed white below the contact line. |
+| `Payment terms: Net 15` | `config.pricing.paymentTerms` | Standing terms on every quote. Config-driven so it's the tenant's number; blank prints no line. |
+| `Customerservice@montitrentini-USA.com` | `config.brand.contact.ordersEmail` | Replaced `order@…`. |
+| `from Monti Trentini` | brand-kit `attribution` | Replaced "Imported by Monti Trentini USA". Also shows on the Proposal cover eyebrow + Content Engine — one source, deliberately. |
+
+**Known limit CSS cannot reach:** Chrome only honours `@page` margins when the print dialog's
+Margins is set to *Default*. If a URL reappears on an export, set Margins → None or untick
+"Headers and footers". Worth saying to any rep who exports these.
+
 ## 3. Static appearance — the palette is measured, don't re-guess it
 
 Every surface colour was sampled from `FreshDirect_PricingAOneSheet.pdf` rendered at 150 dpi, and
