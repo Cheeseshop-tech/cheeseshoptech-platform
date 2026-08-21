@@ -96,124 +96,92 @@ with `node --check` on all 29 function files before calling it done.
 
 ---
 
-## 2026-08-13 — DIRECTIVE: brand assets resolve through the Media Hub, never a hand-typed id
+## 2026-08-13 — Quote Builder (one-page rate card) + quotes-issued log + Media Hub asset directive
 
-**Rick:** "Cloudinary is the database for images, Media Hub is the local UI — would it be better to
-reference Media Hub and trigger the Cloudinary transfer/link?" Yes, and a live bug proved it.
+Built to `docs/QUOTE_BUILDER_SPEC_2026-08-13.md`, reference `FreshDirect_PricingAOneSheet.pdf`.
+Commits `2e603c1`, `61cc700`, `d2294a2`. Handoff: `docs/HANDOFF_2026-08-13_quote-builder.md`.
 
-`brand-kit.json` stored `identity.logo.primary` as the bare `tswf07fmciwdpp13facm`, and
-`wordmark` / `favicon` / `seal` / `imagery.hero` under a `monti/brand/*` folder **that does not
-exist in the account**. All of them 404'd. So the Monti logo has been silently missing from every
-surface that renders it — including the Proposal cover a buyer sees — on production, not just dev.
-The real asset is `monti-trentini/library/tswf07fmciwdpp13facm` ("MT Official oval logo_trim"), and
-the Media Hub manifest had it correct the whole time; the kit was a hand-typed copy that rotted.
+**What it is.** A fourth quoting surface: Pro Forma is the internal working order, Proposal is the
+multi-page deck on a shareable link, this is the **one page you print or email as a PDF**. Header,
+optional story panels, one pricing table, footer. Print-only for v1 — a trackable link stays the
+Proposal engine's job. New `Quotes` tab in Pricing & Inventory; `quote-builder.jsx` kept out of
+`pricing-tool.jsx` (already 57KB), which only gained the tab wiring.
 
-**`brandAssetUrl()` in `lib/images.js`** now treats a brand-kit reference as a *hint* and resolves
-it against the manifest (exact id → folder-less id → basename → title), returning a URL only once
-the manifest confirms the asset exists, and `""` when it doesn't — a missing logo is visible and
-fixable, a broken `<img>` is neither. Delivery is transparent-safe: these marks are PNGs with real
-alpha and the old `c_pad,b_white` path would have painted a white box behind the oval on the cream
-sheet. Add an asset → re-run `sync-images.mjs` → it resolves, no code change. One front door.
+**One engine, three arrangements** (purpose selector swaps columns, header framing, footer copy):
+New Customer Negotiation (Item/Type/Format & Aging/SKU/price/net wt; story panels on, filtered to
+the audience the tier implies) · Price Change Notification (Previous/New/Δ$/Δ%/effective date;
+panels off; "Previous" auto-filled from the log) · Promo Offer (Regular/Promo/You Save; offer
+window; order-level discount with a per-line override).
 
-Fixed `primary` (now the verified full id) and `imagery.hero` (→ `montitrentini-mainbanner`).
-Deliberately did NOT invent mappings for `wordmark` / `favicon` / `seal`: they are not in the
-account under any name, and the two Casa Finco SVGs in the library are heritage marks, not the
-Monti wordmark. They render nothing until someone uploads them. Proposal view rewired to the same
-resolver, so its cover logo appears for the first time.
+**Closes QUOTING_TOOL_PRINCIPLES §9's last "not captured yet" row.** Issued quotes now log to a
+shared Blobs store (`netlify/functions/quotes.js` + `src/lib/quotes-log.js`), mirroring the
+movement-history pair exactly. One record per SKU line, grouped by `quoteId`, written only on the
+explicit Generate/Print action. It records `priceMode` + `pricePct` as well as `tierId`, because
+once a typed margin can replace the tier preset `tierId` alone no longer explains a logged price —
+and this log is what a later Price Change Notification quotes back to the customer. Remaining gap:
+quote **approvals** (accepted/declined). The log accrues **forward only**; "no prior quote on file"
+is the honest first answer for every customer, not a bug.
 
-## 2026-08-13 — Quote Builder: exact reference palette + margin/markup pricing methods
+**DIRECTIVE (Rick) — brand assets resolve through the Media Hub, never a hand-typed Cloudinary id.**
+A live bug forced this: `brand-kit.json` stored the logo as a folder-less id and
+`wordmark`/`favicon`/`seal`/`hero` under a `monti/brand/*` folder **that does not exist in the
+account**. All 404'd, so the Monti logo was silently missing from every surface that renders it —
+including the buyer-facing Proposal cover — in production. The manifest had the right id
+(`monti-trentini/library/tswf07fmciwdpp13facm`) all along. `brandAssetUrl()` in `lib/images.js` now
+treats a kit reference as a *hint*, resolves it against the manifest (exact id → folder-less id →
+basename → title), and returns a URL only once the manifest confirms the asset exists — `""`
+otherwise, because a missing logo is visible and fixable and a broken `<img>` is neither. Delivery
+is transparent-safe (these marks carry alpha; `c_pad,b_white` would box them in white on cream).
+Fixed `primary` and `imagery.hero`; deliberately did NOT invent mappings for `wordmark`/`favicon`/
+`seal` — they are not in the account under any name. Proposal view rewired to the same resolver.
+Add an asset → re-run `sync-images.mjs` → it resolves, no code change.
 
-**Colours are now sampled, not eyeballed.** Rendered `FreshDirect_PricingAOneSheet.pdf` at 150 dpi
-and read the actual pixels. Three things in my first pass were wrong: alternating table rows were a
-4%-alpha green tint (the sample alternates the two page neutrals, Heritage Cream ↔ Casa Paper), the
-divider bar and PDO badge used a washed accent (the sample uses **Alpine Mint `#C8E2C5`**, which was
-sitting unused in the kit's `secondary`), and the non-PDO badge was green (the sample uses a warm
-khaki `#EFE8D1` with bronze `#796A2E` text, so "Mountain" reads as *not* a protected designation).
-All thirteen surface colours now match the reference to ≤1/255 per channel. Two of them — the
-hairline rule `#E3DEC7` and that khaki badge pair — are not brand-kit tokens and are labelled as
-literals in the component rather than faked out of the green palette.
+**Palette is sampled, not eyeballed.** Rendered the reference PDF at 150 dpi and read the pixels.
+Three first-pass errors: row banding was a green tint (the sample alternates Heritage Cream ↔ Casa
+Paper), the divider bar and PDO badge used a washed accent (the sample uses **Alpine Mint
+`#C8E2C5`**, already sitting unused in the kit's `secondary`), and the non-PDO badge was green (the
+sample uses khaki `#EFE8D1` on bronze `#796A2E` so "Mountain" reads as *not* a PDO). All 13 surface
+colours now match to ≤1/255 per channel. The hairline rule `#E3DEC7` and that khaki pair are NOT
+kit tokens and are labelled as literals rather than faked out of the green palette.
 
-**Pricing method (Rick's ask): two dropdowns, class of trade + how the uplift is expressed.**
-The tiers are preset uplifts on FOB (+0/+15/+35); this adds typing your own figure in either of the
-two ways the trade actually quotes it, because they are *not* the same arithmetic:
+**Pricing method — two dropdowns, class of trade + how the uplift is expressed.** The tiers are
+preset uplifts on FOB (+0/+15/+35); this adds typing your own figure in either of the two ways the
+trade quotes it, because they are different arithmetic: markup is `cost × (1+p)`, gross margin is
+`cost ÷ (1−p)` — 25% on $8.07 is **$10.09** vs **$10.76**. Confusing them is how margin gets given
+away, so they are separate options and a live worked example off a real SKU prints both readings
+while choosing. **A manual figure replaces the tier preset rather than stacking** (stacking would
+compound an uplift on an uplift); the tier still sets the audience line on the sheet. Margin guarded
+to 0–99.9%; Print blocked while invalid. The picker list reprices with the method so what the rep
+reads is what prints. Promo consequently changed from the additive `customPct` lever (a 10% promo on
+a +15% tier printed 8.7% off) to a straight discount off the regular price — 10% now means 10%.
 
-    Markup %        price = cost × (1 + p/100)     25% on $8.07 → $10.09
-    Gross margin %  price = cost ÷ (1 − p/100)     25% on $8.07 → $10.76
+**Picker: the price list is open on arrival.** First pass was a search box that revealed nothing
+until you typed — wrong instrument for "arrange the price list for this conversation," since a rep
+builds a rate card by browsing what's for sale. All 106 SKUs now render in a scrollable window on
+open; search *narrows* rather than summons, and is the same element as Pro Forma's (identical
+placeholder, classes, position). Click adds, click again removes; added rows stay marked through a
+filter; the search is not wiped on add.
 
-Gross margin is the share of the *selling price* that is profit; markup is the share of *cost*
-added on. Confusing them is the classic way to give away margin, so they are separate options, and
-a live worked example off a real SKU on the sheet prints both readings ("a 20.0% margin, 25.0%
-markup") at the moment of choosing. A manual figure **replaces** the tier preset rather than
-stacking on it (stacking would compound an uplift on an uplift); the class of trade still sets the
-audience line printed on the sheet. Margin is guarded to 0–99.9% — at 100% the price is infinite —
-and Print is blocked while the figure is invalid.
+**Also fixed:** `pricing-tool.jsx`'s hardcoded `TODAY = "2026-06-06"` (flagged 2026-07-28) — every
+recorded sale was landing in that month's movement bucket and every printed proforma carried that
+date. Now a real local-calendar date (timezone-offset before `toISOString`, so a US evening doesn't
+roll into tomorrow). Added `brand.contact` to `client.config.json` + the tenant template so the
+footer contact block is canonical rather than hardcoded in the component.
 
-The picker list reprices with the method too, so what a rep reads while choosing is what prints.
-The quote log now records `priceMode` + `pricePct`: once a typed margin can replace the tier,
-`tierId` alone no longer explains a logged price, and that log is what a later Price Change
-Notification quotes back to the customer as their previous price.
+**Known gating issue for the next thread:** the sheet fits **~11 rows on page 1 against the
+reference's 18**, and there is no page-break handling at all. Measured, not estimated — 40 SKUs
+renders 2046px against 979px of Letter content. Two causes: story panels run 200px vs the
+reference's 132px (we print the full brand-kit body at 61–70 words; the reference's copy was edited
+to ~35–40), and 14 of 40 rows wrap `Format & Aging` to a second line on long `packing` strings.
+Normal row height matches the reference exactly at 32px. Detail + order of attack in the handoff.
 
-**Promo changed as a consequence.** It previously rode the engine's additive `customPct`, so a 10%
-promo on a +15% tier printed 8.7% off — defensible, but not the number the rep typed. It is now a
-straight discount off the regular price shown, so "You save 10%" means 10%.
-
-## 2026-08-13 — Quote Builder follow-up: the price list is open on arrival
-
-**Rick, on first use of the shipped tab:** the SKU picker was a search box that revealed nothing
-until you typed a query. That is the wrong instrument for a tool whose whole job is "arrange the
-price list for this conversation" — a rep builds a rate card by *browsing what's for sale*, not by
-already knowing the code. The empty box was a mis-read of the workflow on my part.
-
-Now the full list (106 SKUs) renders the moment the tab opens, in a 460px scrollable window, priced
-at the selected class of trade so what's on screen is what will print. Search **narrows** it rather
-than summoning it, and the search field is now literally the same element as Pro Forma's —
-identical placeholder, classes and position directly above the list it filters, verified by
-comparing the two rendered DOM nodes. One search bar, one behaviour, whichever tab you're on.
-
-Also: click a row to add, click again to remove; added rows stay marked and survive filtering; the
-search is no longer wiped on add (reps add several SKUs off one search like "asiago"); each row
-carries the packshot, category, tier price with unit and SKU code, with POR on unpriced SKUs.
-
-## 2026-08-13 — Feature: Quote Builder (one-page branded rate card) + the quotes-issued log
-
-**Built to `docs/QUOTE_BUILDER_SPEC_2026-08-13.md`**, reference `FreshDirect_PricingAOneSheet.pdf`.
-A fourth quoting surface, distinct from the three that existed: Pro Forma is the internal dense
-working order, Proposal is the buyer-facing multi-page deck on a shareable link, and this is the
-**one page you print or email as a PDF** — header, optional story panels, one pricing table, footer.
-"Here is our price list, arranged for this specific conversation." Print-only for v1 on purpose; a
-trackable link stays the Proposal engine's job and is not duplicated.
-
-**One engine, three arrangements** — a purpose selector swaps the table columns, header framing and
-footer copy while SKU picking, pricing and logging stay shared:
-- *New Customer Negotiation* — Item / Type badge / Format & Aging / SKU / $ per lb / Net wt per case;
-  story panels on by default, filtered to the audience the class-of-trade tier implies.
-- *Price Change Notification* — Previous / New / Δ$ and Δ% / Effective date; story panels off;
-  "Previous" auto-fills from the new quotes log.
-- *Promo Offer* — Regular / Promo / You Save / Format; offer window replaces valid-until. The promo %
-  rides the engine's existing `customPct` (same additive mechanism as Pro Forma's Custom ±%), with a
-  per-line override. Labelled in the UI, because 10% off a +15% tier lands at ~8.7% off the regular
-  price and the rep should not learn that from the printed sheet.
-
-**Closes the last "not captured yet" row in QUOTING_TOOL_PRINCIPLES §9.** `netlify/functions/quotes.js`
-(Blobs store `quotes`) + `src/lib/quotes-log.js` mirror the movement-history pair exactly — same
-guards (`requireReadAuth`), same self-logging on write, same batch/stored caps, same optimistic
-localStorage-then-POST client seam. One record per SKU line, grouped by `quoteId`. Written on the
-explicit Generate/Print action only. Approvals (accepted/declined) are the remaining gap.
-
-**Also fixed in the same pass: `pricing-tool.jsx`'s hardcoded `TODAY = "2026-06-06"`** (flagged
-2026-07-28). Every recorded sale was landing in that month's movement bucket and every printed
-proforma carried that date regardless of when it was issued. Now a real local-calendar date
-(timezone-offset before `toISOString`, so a US evening doesn't roll into tomorrow).
-
-**New canonical field:** `client.config.json` → `brand.contact` (orders email, rep, phone, company,
-city) — the footer contact block, in config rather than hardcoded in a component, and stubbed in
-`_template/client.config.json` so a new tenant carries its own.
-
-**Verified live:** all three arrangements generated against real catalog data. At the direct-retail
-tier the sheet reproduces the FreshDirect reference exactly ($9.07 / $9.28 / $8.85 / $9.32 / $6.70 /
-$8.59 / $16.05 / $8.61). The previous-price lookup was unit-tested across cutoff, customer, SKU and
-unpriced-record boundaries. Netlify Functions can't run under plain `npm run dev`, so `quotes.js`
-was smoke-tested directly in Node (OPTIONS 204, unauthenticated GET/POST 401).
+**Verified:** at the direct-retail tier the sheet reproduces the reference exactly ($9.07 / $9.28 /
+$8.85 / $9.32 / $6.70 / $8.59 / $16.05 / $8.61). Previous-price lookup unit-tested across cutoff,
+customer, SKU and unpriced-record boundaries. Netlify Functions don't run under plain `npm run dev`,
+so `quotes.js` was smoke-tested in Node (OPTIONS 204, unauthenticated GET/POST 401) — first real
+exercise is on the deploy. NOTE: the 2026-08-17 Identity migration (`32a9da6`) subsequently moved
+`quotes.js` and `quotes-log.js` onto the real Netlify Identity guard, so the passcode-era testing
+notes above no longer describe the live auth path.
 
 ## 2026-07-25 — Session close: both fixes live, inventory watch rewired, and a log-coverage gap found
 
