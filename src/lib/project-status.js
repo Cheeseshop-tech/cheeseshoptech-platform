@@ -11,7 +11,7 @@
 // Admin-only, read-only (no write-back to the doc from the UI — same "out of scope for v1" call
 // as the spec). Consumed by ProjectStatusPanel in agency-console.jsx.
 
-export const PROJECT_STATUS_UPDATED = "2026-08-17";
+export const PROJECT_STATUS_UPDATED = "2026-08-23";
 
 export const PROJECT_THREADS = [
   {
@@ -50,11 +50,21 @@ export const PROJECT_THREADS = [
     nextAction:
       "Upkeep only. Open, not urgent: decide whether HUBSPOT_TOKEN should move to a Service Key per HubSpot's current guidance.",
   },
+  {
+    id: "cheese-signs",
+    label: "Cheese Signs — printed retail signage",
+    status: "in-progress",
+    statusLabel: "In progress",
+    progress: 45,
+    nextAction:
+      "Pick a composition from design/cheese-signs/cheese-signs-composition-studio.html (six layouts, A\u2013F). Then send Stefano the two questions that gate printing: pasteurized vs raw milk (unknown for every cheese), and confirmation of the shipped minimum ages.",
+  },
 ];
 
 // Items flagged in the doc's "Also on the radar, not yet a tracked thread" section — surfaced
 // here so they don't quietly fall off Rick's radar between full roadmap re-reads.
 export const PROJECT_RADAR = [
+  "Brand type is running on FALLBACKS platform-wide \u2014 brand-kit.json names Cora + Futura PT but no Adobe Fonts kit is loaded anywhere in the repo. Kit sac6xdz now exists; adding its <link> to index.html is a one-line fix, pending a domain-authorisation check on cheeseshoptech.com.",
   "CST business model crossroads — Stefano's interest in partnering in CST itself (not just being a client) is unresolved and higher-stakes than any thread above.",
   "This panel is the Agency Console (admin) view of the in-app Progress/Onboarding tab spec — the client-scoped view is next, once client #2's onboarding is actually underway.",
 ];

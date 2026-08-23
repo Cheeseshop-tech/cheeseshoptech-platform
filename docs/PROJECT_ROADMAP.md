@@ -11,7 +11,8 @@ vague goal. The daily email pulls "Next concrete action" from whichever thread i
 PRIORITY. Update this file (not just BUILD_LOG.md) whenever a thread's status changes — that's
 what keeps the email honest instead of stale.
 
-**Last synced against repo:** 2026-08-17 (commit `74864cc`). Cross-referenced against
+**Last synced against repo:** 2026-08-23 — Cheese Signs added as a tracked thread
+(previous sync 2026-08-17, commit `74864cc`). Cross-referenced against
 `CLAUDE_CODE_BRIEF.md` §3 (last updated 2026-06-06 — that file is stale by ~2.5 months of shipped
 work; treat THIS doc as more current, and fix CLAUDE_CODE_BRIEF.md's state section in a future
 session so it stops disagreeing with reality).
@@ -220,6 +221,81 @@ click-tested live.
 **Open, not urgent:** decide whether `HUBSPOT_TOKEN` should move from the Private App token
 (today's fix) onto a Service Key deliberately — HubSpot's own current guidance recommends Service
 Keys for exactly this kind of data-only integration (see [[hubspot-token-wrong-app]] update).
+
+---
+
+## Cheese Signs — printed retail signage
+
+**Status:** 🔧 In progress — v1 template family built and proofed 2026-08-23; composition round
+open, awaiting Rick's picks. **Blocked on client data for a commercial print run** (see below).
+
+**What this is:** a printed card that sits with the cheese in a service case or on a shelf and
+does the selling when nobody is standing there. It is the Content Engine's first **retail-facing,
+physical** output — same slot/token/paint engine as slides and proposals, but the canvas is a
+sheet of paper instead of a screen. New template family `cheese-sign`, alongside
+`slide-templates.js`. Full spec: `docs/CHEESE_SIGNS_SPEC.md`.
+
+**Decisions locked (Rick, 2026-08-23):**
+- **One sign per CHEESE, not per SKU.** The sign sells the cheese; pack format is a purchasing
+  detail. Each record still carries its `skus[]`, so the join to the item master and to inventory
+  survives — "which signs are for cheeses we're out of" is answerable.
+- **Two sizes × two modes = four templates.** 3″×4″ and 4″×5″, each in a short mode (short
+  description + packshot) and a long mode (long description, no photo). A 3×4 card holds a picture
+  or a paragraph, not both.
+- Flat portrait cards for case holders. 0.125″ bleed. **No price zone in v1** — if a retailer asks,
+  it becomes a blank box they fill, not a printed number.
+- On the face: spotted-cow milk icon, minimum age, region illustration, QR, DOP/PDO mark,
+  "Product of Italy" + tricolore, flavor profile, unique attribute.
+
+**Built and verified (2026-08-23):** ten sign records covering four Asiagos, four caciottas,
+Imbriago and the aged black truffle Fioretto; four template manifests; the icon set; a printable
+proof of all 40 faces. Trim measures exactly 3×4 and 4×5 in, 0 of 40 faces overflow their fixed
+height, and all 10 QR codes were machine-decoded back to the intended URL.
+
+**Brand Kit corrections found in round 2 — these are platform-wide, not sign-specific:**
+1. **The whole app has been rendering in fallback type.** `brand-kit.json` names **Cora** and
+   **Futura PT**, but no Typekit kit is loaded anywhere in the repo, so everything falls back to
+   Fraunces/Inter. An Adobe Fonts kit now exists covering both: **`sac6xdz`**
+   (`<link rel="stylesheet" href="https://use.typekit.net/sac6xdz.css">`). One line in
+   `index.html` lights up real brand type across the platform — but the kit is domain-authorised
+   and did NOT load from a local file, so verify it on `cheeseshoptech.com` before relying on it.
+2. **Wrong ground color.** The kit's primary page background is Heritage Cream `#FFFBDC`; Casa
+   Paper `#FAF9F5` is the *secondary* card canvas. v1 signs used the wrong one.
+3. **The logo already contains the black-and-white spotted cow** — the official oval mark has a
+   Holstein above the wordmark and the "M" is a mountain peak. The sign's milk icon is now that
+   cow, lifted from the logo artwork. Don't draw a different one.
+4. **Pantone equivalents exist** in the kit — Forest Green = 357 C, Italia Green = 355 C. They
+   belong on the print spec so no printer guesses the green.
+5. **Packshots ship with wide white margins.** Auto-trim before fitting or the product looks tiny
+   in any frame.
+
+**The QR weak link:** the producer's site has **no per-cheese pages** — only family pages
+(`/en/cheeses/asiago-pdo`, `/caciotta`, `/regional-specialites`), so all four Asiago signs point at
+the same page. `montitrentini.it` also redirects to `.com` and throws an SSL error over HTTPS, so
+the QR encodes the `.com` URL directly. `qrUrl` is per record, so repointing every sign is a
+one-string change. The real fix is ungated `/p/<code>` pages on
+`montitrentini.cheeseshoptech.com` — English, US formats, our photography, a destination we
+control permanently, and it turns the sign into a lead surface instead of a referral to a page we
+don't own.
+
+**Blocked on Stefano — a printed sign is a claim, a spreadsheet is not:**
+- **Pasteurized vs raw milk is unknown for every cheese.** Not in the item master, not stated on
+  the producer's site. The field exists and prints when filled.
+- **Shipped minimum ages need confirming.** The item master and the producer state different
+  numbers (item master = what ships, producer = the PDO/category minimum).
+
+**Also open:** the DOP and "Product of the Mountain" badges on the face are **house-drawn
+stand-ins** — the official EU PDO and consortium artwork has to replace them before any commercial
+run. And Red Chili Pepper Caciotta showed 0 cases available on the 8/15 availability sheet; its
+sign is built, but confirm before printing it.
+
+**Next concrete action:** pick a composition. `design/cheese-signs/cheese-signs-composition-studio.html`
+shows six layouts of the same cheese (A Band · B Green cap · C Photo hero · D Oval medallion ·
+E Left rail · F Type first), each repeated on two other cheeses, plus a knob-by-knob table of every
+adjustable parameter. Recommendation: **B** for the case (the name reversed out of Forest Green
+reads from six feet, which is the actual job) and **F** for a full-service counter. Then send the
+two milk/age questions to Stefano — they gate printing, and everything else is cosmetic by
+comparison.
 
 ---
 
