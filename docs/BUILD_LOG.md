@@ -6,6 +6,53 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 > Format convention: `## YYYY-MM-DD — Title` · **Decision / Action / Status** ·
 > keep entries short and factual. This file is the project's memory.
 
+## 2026-08-25 — Sign Composer: every image slot audited; one asset resolver instead of three
+
+**Action.** Rick: "the DOP stamp and the ASIAGO Consortium stamp are miss wired to Monti Trentini
+logo for editing. check all assets and blocks to make sure they are wired properly."
+
+**He was right, and it was wider than the two he saw.** Enumerating every image slot across all
+seven templates found **five** slots showing the Monti Trentini logo in the editor:
+`dop_badge`, `consorzio_mark`, `mountain_badge`, `region_icon` and `milk_icon`.
+
+**Root cause: three code paths resolved assets independently.** The canvas, the editor preview and
+the PNG rasteriser each had their own logic. The editor's was the thin one —
+
+```js
+const pid = sl.binds ? bindValue(r, sl.binds) : "monti-trentini/library/tswf07fmciwdpp13facm";
+```
+
+— so *any* slot without a `binds` fell through to the logo's public id. Marks and icons carry an
+`asset` token, not `binds`, so every one of them previewed as the logo. It was never a wiring
+mistake on the marks themselves; the canvas had them right the whole time. The editor simply had a
+second, worse copy of the resolution rule.
+
+Replaced with one `resolveAsset(slot, record)` returning a tagged shape — `mark` / `svg` / `cloud` /
+`none` — and one `assetEl()` that builds the DOM from it. Canvas, editor preview and PNG export all
+call the same two functions, so they cannot disagree again.
+
+**A second inconsistency the audit turned up.** `dop_badge` resolved to the **official PNG** in the
+talker presets but the **house-drawn SVG** in the four shipped templates — the same slot id showing
+two different marks depending on which template was loaded. Since the house badge was only ever a
+stand-in for exactly this artwork (spec §9 item 3), `$icon:dop` now resolves to the official seal
+too, so the shipped templates pick it up without their source being rewritten.
+
+**Two smaller things, both wrong before.** The editor's source line said "brand mark · logo" for
+everything; it now names the real origin — `official artwork · assets/…`, `drawn in
+src/lib/sign-icons.js · $icon:…`, or the Cloudinary id and its binding. And **"Crop in tight" now
+appears only on a photograph**. A mark or an icon is already trimmed to its own bounds, so offering
+to crop one meant offering to quietly clip the artwork.
+
+**Verification.** All **35** image slots across all **7** templates re-audited: zero mis-wired, no
+logo leaking into a non-logo slot, nothing unresolved. Editor previews checked block by block —
+DOP and Consorzio show their own PNGs, mountain and region show inline SVG, packshot shows the
+Cloudinary derivative and is the only block offering the crop toggle.
+
+**Worth recording about the process.** `node --check` on the extracted `<script>` body passed while
+the browser reported `SyntaxError` — the console message was stale from an earlier fix and the page
+was cached. A `?v=` cache-bust settled it. Reading a stale console and trusting it cost a detour;
+the lesson is to confirm the page actually reloaded before believing what it says.
+
 ## 2026-08-25 — Real Asiago consortium + EU PDO artwork in; and the 4×5 signs run off the trim
 
 **Action.** Rick supplied `logo_c_consorzio_formaggio_asiago--sm.png` — the **Consorzio Tutela

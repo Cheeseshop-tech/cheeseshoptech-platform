@@ -392,6 +392,30 @@ const MARKS = {
   "dop-stamp":  { src: "assets/dop-stamp.png",        w: 143, h: 142, maxUnits: 47,  label: "EU PDO seal" },
   "consorzio":  { src: "assets/consorzio-asiago.png", w: 401, h: 308, maxUnits: 103, label: "Consorzio Tutela Formaggio Asiago" },
 };
+// ONE resolver for every image slot, used by the canvas, the editor preview and the
+// PNG rasteriser. Those three used to resolve assets independently, which is how the
+// editor came to show the Monti Trentini logo for every mark and icon: its fallback
+// for "no binds" was the logo's public id.
+function resolveAsset(slot, record) {
+  const direct = markFor(slot.asset);
+  if (direct) return { kind: "mark", src: direct.src, label: direct.label, mark: direct };
+  // $icon:dop was the house-drawn stand-in. The official seal is what it stood in FOR,
+  // so it resolves here too and the shipped templates pick it up without being rewritten.
+  if (slot.asset === "$icon:dop") {
+    const m = MARKS["dop-stamp"];
+    return { kind: "mark", src: m.src, label: m.label, mark: m, supersedes: "$icon:dop" };
+  }
+  const svg = iconFor(slot.asset, record);
+  if (svg) return { kind: "svg", svg: paintIcon(svg), label: slot.label || slot.asset };
+  if (slot.asset === "$brand:primary")
+    return { kind: "cloud", pid: "monti-trentini/library/tswf07fmciwdpp13facm", cutout: false, label: "Monti Trentini mark" };
+  if (slot.binds) {
+    const pid = bindValue(record, slot.binds);
+    return pid ? { kind: "cloud", pid, cutout: S.cutout, label: slot.label || "Packshot", binds: slot.binds }
+               : { kind: "none", label: "nothing on this cheese yet" };
+  }
+  return { kind: "none", label: slot.label || "image" };
+}
 function markFor(ref) {
   const k = String(ref || "").replace("$mark:", "");
   return MARKS[k] || null;
@@ -901,30 +925,36 @@ function slotEl(slot, record) {
     d.textContent = textOf(slot, record);
     if (slot.fit === "shrink") d.style.fontSize = shrinkToFit(slot, record) + "px";
   } else if (slot.kind === "image") {
-    const mk = markFor(slot.asset);
-    if (mk) {
-      const img = new Image();
-      img.src = mk.src; img.alt = mk.label;
-      Object.assign(img.style, { width: "100%", height: "100%", objectFit: "contain" });
-      img.onerror = () => { d.innerHTML = ""; d.append(ph(slot, mk.label)); };
-      d.append(img);
-      if (slot.w > mk.maxUnits * 1.02) d.title = `${mk.label} — placed at ${Math.round(slot.w)} units; the artwork is only clean to ${mk.maxUnits} at 300 DPI`;
-      return d;
-    }
-    const svg = iconFor(slot.asset, record);
-    if (svg) { d.innerHTML = paintIcon(svg); const s0 = d.firstElementChild; if (s0) { s0.style.width = "100%"; s0.style.height = "100%"; } }
-    else if (slot.asset === "$brand:primary") d.append(cldImg(slot, "monti-trentini/library/tswf07fmciwdpp13facm", false, "MT logo"));
-    else if (slot.binds) {
-      const pid = bindValue(record, slot.binds);
-      if (pid) { d.style.position = "relative"; d.append(cldImg(slot, pid, S.cutout, "packshot")); }
-      else d.append(ph(slot, "no image"));
-    } else d.append(ph(slot, slot.label || "image"));
+    d.style.position = "relative";
+    d.append(assetEl(slot, record, resolveAsset(slot, record)));
   } else if (slot.kind === "qr") {
     d.style.background = "#fff"; d.style.border = "0.8px solid " + TOKENS.ink;
     d.style.backgroundImage = "repeating-linear-gradient(0deg,#141413 0 2px,transparent 2px 4px),repeating-linear-gradient(90deg,#141413 0 2px,transparent 2px 4px)";
     d.title = "QR placeholder — real code renders from " + slot.binds;
   }
   return d;
+}
+// Build the DOM for one resolved asset. Same function for the canvas and the editor
+// preview, so the two can never disagree about what a slot shows.
+function assetEl(slot, record, a) {
+  if (a.kind === "svg") {
+    const w = document.createElement("div");
+    w.style.cssText = "width:100%;height:100%";
+    w.innerHTML = a.svg;
+    const s0 = w.firstElementChild; if (s0) { s0.style.width = "100%"; s0.style.height = "100%"; }
+    return w;
+  }
+  if (a.kind === "mark") {
+    const img = new Image();
+    img.src = a.src; img.alt = a.label;
+    Object.assign(img.style, { width: "100%", height: "100%", objectFit: "contain" });
+    img.onerror = () => { const p = img.parentNode; if (p) { p.innerHTML = ""; p.append(ph(slot, a.label)); } };
+    if (slot.w > a.mark.maxUnits * 1.02)
+      img.title = `${a.label} — placed at ${Math.round(slot.w)} units; this artwork is only clean to ${a.mark.maxUnits} at 300 DPI`;
+    return img;
+  }
+  if (a.kind === "cloud") return cldImg(slot, a.pid, a.cutout, a.label);
+  return ph(slot, a.label);
 }
 function cldImg(slot, publicId, cutout, failLabel) {
   const o = slotOpts(slot.id), img = new Image();
@@ -1343,20 +1373,30 @@ function openEditor(i) {
           switch is your latitude on the template, not a door out of the brand.</div>
         </div>` : "");
     } else {
-      const pid = sl.binds ? bindValue(r, sl.binds) : "logo";
+      const a = resolveAsset(sl, r);
+      const where =
+        a.kind === "mark"  ? `official artwork · <b>${a.src}</b>${a.supersedes ? ` <span class="edited" style="background:var(--primary)">replaces ${a.supersedes}</span>` : ""}`
+      : a.kind === "svg"   ? `drawn in <b>src/lib/sign-icons.js</b> · ${sl.asset}`
+      : a.kind === "cloud" ? `${a.binds ? "from <b>" + a.binds + "</b> · " : "brand mark · "}${a.pid}`
+      :                      "nothing wired to this slot";
+      // Cropping only means something for a photograph. A mark or an icon is already
+      // trimmed, and "crop in tight" on one would just quietly clip its artwork.
+      const photo = a.kind === "cloud" && !!a.binds;
       box.innerHTML = `<h4>${sl.id.replace(/_/g, " ")}</h4>
-        <div class="src">${sl.binds ? "from <b>" + sl.binds + "</b>" : "brand mark"} · ${pid}</div>
+        <div class="src">${where}</div>
         <div class="ctl">
           <div class="imgprev" data-prev="${sl.id}"></div>
           <div style="flex:1; min-width:210px">
-            <div class="ctl" style="margin-top:0">
+            ${photo ? `<div class="ctl" style="margin-top:0">
               <label><input type="checkbox" data-tight="${sl.id}" ${o.tight ? "checked" : ""}> Crop in tight</label>
-            </div>
+            </div>` : ""}
             <div class="ctl">
               <label>Size</label>
               <input type="range" min="40" max="170" value="${Math.round((o.scale || 1) * 100)}" data-scale="${sl.id}">
               <span class="pct" data-pct="${sl.id}">${Math.round((o.scale || 1) * 100)}%</span>
             </div>
+            ${a.kind === "mark" && sl.w > a.mark.maxUnits * 1.02
+              ? `<div class="pathhint" style="color:#8E1B24">Placed ${Math.round(sl.w)} units wide; this artwork is only clean to ${a.mark.maxUnits} at 300 DPI.</div>` : ""}
           </div>
         </div>`;
     }
@@ -1374,9 +1414,7 @@ function drawPrev(host, sl, r) {
   if (!host) return;
   host.innerHTML = "";
   const fake = { ...sl, w: host.clientWidth || 150, h: host.clientHeight || 110 };
-  const pid = sl.binds ? bindValue(r, sl.binds) : "monti-trentini/library/tswf07fmciwdpp13facm";
-  if (!pid) return;
-  host.append(cldImg(fake, pid, sl.binds ? S.cutout : false, "image"));
+  host.append(assetEl(fake, r, resolveAsset(sl, r)));
 }
 
 editBody.addEventListener("input", ev => {
@@ -1564,15 +1602,13 @@ async function drawSlot(ctx, sl, r) {
   }
   if (sl.kind === "image") {
     const o = slotOpts(sl.id);
-    const mk = markFor(sl.asset);
-    const svg = mk ? null : iconFor(sl.asset, r);
+    const a = resolveAsset(sl, r);
+    const mk = a.kind === "mark" ? a.mark : null;
+    const svg = a.kind === "svg";
     let img = null;
-    if (mk) img = await loadImg(mk.src);
-    else if (svg) img = await loadImg("data:image/svg+xml;charset=utf-8," + encodeURIComponent(paintIcon(svg)));
-    else {
-      const pid = sl.asset === "$brand:primary" ? "monti-trentini/library/tswf07fmciwdpp13facm" : (sl.binds ? bindValue(r, sl.binds) : "");
-      if (pid) img = await loadImg(cldUrl(pid, sl.w, { cutout: sl.asset === "$brand:primary" ? false : S.cutout }));
-    }
+    if (a.kind === "mark") img = await loadImg(a.src);
+    else if (a.kind === "svg") img = await loadImg("data:image/svg+xml;charset=utf-8," + encodeURIComponent(a.svg));
+    else if (a.kind === "cloud") img = await loadImg(cldUrl(a.pid, sl.w, { cutout: a.cutout }));
     if (!img) { ctx.strokeStyle = TOKENS.charcoal; ctx.setLineDash([2, 2]); ctx.strokeRect(sl.x, sl.y, sl.w, sl.h); ctx.setLineDash([]); return; }
     const box = (!svg && !mk && o.tight) ? tightBox(img) : null;
     if (box) {
