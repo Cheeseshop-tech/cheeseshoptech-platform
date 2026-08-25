@@ -53,7 +53,8 @@ h3.sec + h3.sec{margin-top:14px;}
 /* ---------- block palette ---------- */
 .pblock{display:block; width:100%; text-align:left; margin-bottom:5px; padding:6px 8px; font-size:12px; border-radius:4px;}
 .pblock small{display:block; color:var(--ui-dim); font-size:10px; margin-top:1px;}
-.pblock.used{opacity:.42;}
+.pblock.used{opacity:.55;}
+  .pblock.selnow{opacity:1; border-color:var(--accent); box-shadow:inset 3px 0 0 var(--accent);}
 .pblock.na{opacity:.3; cursor:not-allowed;}
 
 /* ---------- canvas ---------- */
@@ -141,6 +142,7 @@ dialog .dhead b{font-family:var(--display); font-style:italic; font-size:15px; c
   <div class="grp">
     <button id="undoBtn" title="Cmd/Ctrl-Z">Undo</button>
     <button id="redoBtn" title="Shift-Cmd/Ctrl-Z">Redo</button>
+    <button id="resetBtn" title="Put this template back the way it came">Reset</button>
   </div>
   <div class="spacer"></div>
   <label class="ownersw" title="Widens the type and copy controls while you are authoring a template">
@@ -154,7 +156,7 @@ dialog .dhead b{font-family:var(--display); font-style:italic; font-size:15px; c
 <main>
   <div class="col palette">
     <h3 class="sec">What goes on the sign</h3>
-    <p class="hint">Click a piece to put it on the sign, click it again to take it off. A tick means it is already there.</p>
+    <p class="hint">Click a piece to put it on the sign. A tick means it is already there — click a ticked one to find it and select it. Taking a piece off is done in Edit, so it never happens by accident.</p>
     <div id="palette"></div>
     <h3 class="sec">Guides</h3>
     <div class="row"><label><input type="checkbox" id="gSafe" checked> Safe area</label></div>
@@ -180,6 +182,7 @@ dialog .dhead b{font-family:var(--display); font-style:italic; font-size:15px; c
   <div class="dhead">
     <b id="editTitle">Edit</b>
     <div class="spacer"></div>
+    <button id="editReset" title="Back to where this piece started, at the size it started">Put this piece back</button>
     <button id="editDel" class="danger">Delete from sign</button>
     <button id="editDone" class="on">Done</button>
   </div>
@@ -1181,11 +1184,15 @@ function renderPalette() {
     const used = L.findIndex(e => e.block === key);
     const b = document.createElement("button");
     b.className = "pblock" + (used >= 0 ? " used" : "");
-    b.innerHTML = `${def.label}${used >= 0 ? " ✓" : ""}<small>${def.hint}</small>`;
+    b.innerHTML = `${def.label}${used >= 0 ? " ✓" : ""}<small>${used >= 0 && S.sel === used ? "selected" : def.hint}</small>`;
+    if (used >= 0 && S.sel === used) b.classList.add("selnow");
+    b.title = used >= 0 ? "Already on the sign — click to select it" : "Click to put it on the sign";
     b.onclick = () => {
+      if (used >= 0) { S.sel = used; renderAll(); return; }   // select, never silently remove
       push();
-      if (used >= 0) { L.splice(used, 1); S.sel = null; }
-      else { const t = tpl(); L.push({ block: key, pres: def.pres[0], x: t.pad, y: t.pad, w: t.canvas.w - t.pad * 2, h: def.h[def.pres[0]] || 30, binds: null }); S.sel = L.length - 1; }
+      const t = tpl(), h = def.h[def.pres[0]] || 30;
+      L.push({ block: key, pres: def.pres[0], x: t.pad, y: t.pad, w: t.canvas.w - t.pad * 2, h, binds: null, w0: t.canvas.w - t.pad * 2, h0: h });
+      S.sel = L.length - 1;
       renderAll();
     };
     host.append(b);
@@ -1331,6 +1338,15 @@ editBody.addEventListener("click", ev => {
     renderAll(); openEditor(editIdx);
   }
 });
+document.getElementById("editReset").onclick = () => {
+  const e = layout()[editIdx];
+  const def = (tpl().blocks || []).find(b => b.block === e.block);
+  if (!def) { alert("This piece was added by hand, so there is no original to go back to."); return; }
+  push();
+  Object.assign(e, { x: def.x, y: def.y, w: def.w, h: def.h, pres: def.pres, hidden: false });
+  slotsFor(e, rec(), tpl().canvas.w).forEach(sl => { if (S.opts[S.tplId]) delete S.opts[S.tplId][sl.id]; });
+  renderAll(); openEditor(editIdx);
+};
 document.getElementById("editDone").onclick = () => { editDlg.close(); renderAll(); };
 document.getElementById("editDel").onclick = () => {
   const e = layout()[editIdx];
@@ -1597,6 +1613,18 @@ gBleed.onchange = e => { S.guides.bleed = e.target.checked; renderCanvas(); };
 gSnap.onchange = e => { S.snap = e.target.checked; };
 gCut.onchange = e => { S.cutout = e.target.checked; renderAll(); };
 undoBtn.onclick = undo; redoBtn.onclick = redo;
+resetBtn.onclick = () => {
+  const t = tpl();
+  if (!confirm(`Put "${t.label}" back the way it came?\n\n` +
+    `Every piece returns to where it started, at the size it started, and any type you set by hand ` +
+    `on this template is cleared.\n\nWording you have edited on a cheese is kept — that lives with the ` +
+    `cheese, not the layout. Undo will bring this back.`)) return;
+  push();
+  delete S.layouts[t.id];
+  delete S.opts[t.id];
+  S.sel = null;
+  renderAll();
+};
 ownerSw.checked = S.owner;
 document.body.classList.toggle("owner", S.owner);
 ownerSw.onchange = e => {

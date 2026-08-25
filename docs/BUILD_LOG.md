@@ -6,6 +6,34 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 > Format convention: `## YYYY-MM-DD — Title` · **Decision / Action / Status** ·
 > keep entries short and factual. This file is the project's memory.
 
+## 2026-08-25 — Sign Composer: Reset, and a palette click no longer deletes a block
+
+**Action.** Rick: "the name block got buried lets put in a reset button."
+
+**The likely cause was worse than the symptom.** Clicking a block in the palette *toggled* it —
+so clicking "Name" to find or select it **silently removed it from the sign**, one click, no
+confirm. That is almost certainly how the Name block went missing. Changed: a palette click on a
+piece already on the sign now **selects** it and marks it in the list. Taking a piece off is a
+deliberate act in the editor, never a stray click in a list. Palette copy corrected to match — it
+still said "click it again to take it off."
+
+**Reset**, in the header beside Undo/Redo. Puts the current template back the way it ships: every
+piece to its starting position and size, presentation restored, and any type set by hand on that
+template cleared. It **keeps copy edits**, because those live with the cheese rather than the
+layout — the confirm says so rather than making Rick guess. Goes through `push()`, so Undo brings
+the old arrangement straight back; verified by burying a block at -400,-400, resetting, and
+undoing back to -400.
+
+**Put this piece back**, in the editor header, for when only one thing has gone wrong and a whole
+reset is too blunt. Restores that block's position, size and presentation from the template
+definition and clears type overrides on its slots. If the block was added by hand there is no
+original to return to, and it says so instead of doing something surprising.
+
+**Verification.** Palette click on a placed block leaves the count at 9 and selects the Name block
+rather than deleting it. Reset returned a block buried at -400,-400 to 0,0 with type overrides
+cleared, and Undo restored the buried state. Per-piece reset restored 0,0 / 250x62 exactly and
+cleared the 44pt override.
+
 ## 2026-08-25 — Sign Composer: Owner mode — full type and copy control while authoring
 
 **Action.** Rick: "lets make the acception for me the owner as I develop the templets and fine tune
