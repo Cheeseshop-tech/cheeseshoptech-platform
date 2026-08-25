@@ -1,14 +1,14 @@
 {
   "schemaVersion": "1.2",
   "clientId": "monti-trentini",
-  "lastUpdated": "2026-08-20",
+  "lastUpdated": "2026-08-24",
   "lastUpdatedSource": "drive-modifiedTime",
   "sheetStatedUpdate": "2026-08-20",
-  "sheetModifiedAt": "2026-08-20T19:16:46.667Z",
+  "sheetModifiedAt": "2026-08-24T18:15:28.195Z",
   "sheetFileId": "1meZQQ_0dA1S1IR5xjVWzFvuqCJE6DLgVd-fOfSMGvCk",
   "sheetOwner": "order@montitrentini-usa.com",
-  "source": "availability_2026-08-24.csv",
-  "generatedAt": "2026-08-24T11:31:45.682Z",
+  "source": "availability_2026-08-25.csv",
+  "generatedAt": "2026-08-25T15:33:29.795Z",
   "generatedBy": "scripts/sync-inventory.mjs",
   "skus": {
     "20141": {
@@ -123,102 +123,6 @@
       "comment": "TJ preorder",
       "commentEn": "",
       "lots": [
-        {
-          "lotNum": "1312781",
-          "status": "on_hand",
-          "receiptDate": "2026-07-23",
-          "eta": null,
-          "cases": 60,
-          "reserved": 60,
-          "netAvailLb": 1680,
-          "expDate": "2027-06-20",
-          "expMonth": null,
-          "comment": "TJ"
-        },
-        {
-          "lotNum": "1316571",
-          "status": "on_hand",
-          "receiptDate": "2026-08-06",
-          "eta": null,
-          "cases": 60,
-          "reserved": 60,
-          "netAvailLb": 1680,
-          "expDate": "2027-06-28",
-          "expMonth": null,
-          "comment": "TJ"
-        },
-        {
-          "lotNum": "1316575",
-          "status": "on_hand",
-          "receiptDate": "2026-08-06",
-          "eta": null,
-          "cases": 60,
-          "reserved": 60,
-          "netAvailLb": 1680,
-          "expDate": "2027-06-28",
-          "expMonth": null,
-          "comment": "TJ"
-        },
-        {
-          "lotNum": "1316576",
-          "status": "on_hand",
-          "receiptDate": "2026-08-06",
-          "eta": null,
-          "cases": 60,
-          "reserved": 60,
-          "netAvailLb": 1680,
-          "expDate": "2027-06-28",
-          "expMonth": null,
-          "comment": "TJ"
-        },
-        {
-          "lotNum": "1316578",
-          "status": "on_hand",
-          "receiptDate": "2026-08-06",
-          "eta": null,
-          "cases": 60,
-          "reserved": 60,
-          "netAvailLb": 1680,
-          "expDate": "2027-07-03",
-          "expMonth": null,
-          "comment": "TJ"
-        },
-        {
-          "lotNum": "1316589",
-          "status": "on_hand",
-          "receiptDate": "2026-08-06",
-          "eta": null,
-          "cases": 60,
-          "reserved": 60,
-          "netAvailLb": 1680,
-          "expDate": "2027-07-03",
-          "expMonth": null,
-          "comment": "TJ"
-        },
-        {
-          "lotNum": "1316564",
-          "status": "on_hand",
-          "receiptDate": "2026-08-06",
-          "eta": null,
-          "cases": 60,
-          "reserved": 60,
-          "netAvailLb": 1680,
-          "expDate": "2027-07-09",
-          "expMonth": null,
-          "comment": "TJ"
-        },
-        {
-          "lotNum": "1316567",
-          "status": "on_hand",
-          "receiptDate": "2026-08-06",
-          "eta": null,
-          "cases": 60,
-          "reserved": 60,
-          "netAvailLb": 1680,
-          "expDate": "2027-07-09",
-          "expMonth": null,
-          "comment": "TJ"
-        },
         {
           "lotNum": "1316574",
           "status": "on_hand",
@@ -1134,34 +1038,22 @@
     "20533": {
       "code": "20533",
       "name": "AGED TRUFFLE CHEESE BLACK",
-      "casesAvail": 150,
+      "casesAvail": 116,
       "casesInTransit": 0,
       "comment": "News about production? Baldor",
       "commentEn": "",
       "lots": [
-        {
-          "lotNum": "1296197",
-          "status": "on_hand",
-          "receiptDate": "2026-05-15",
-          "eta": null,
-          "cases": 30,
-          "reserved": 0,
-          "netAvailLb": 142.59,
-          "expDate": "2026-12-16",
-          "expMonth": null,
-          "comment": ""
-        },
         {
           "lotNum": "1316590",
           "status": "on_hand",
           "receiptDate": "2026-08-06",
           "eta": null,
           "cases": 120,
-          "reserved": 0,
+          "reserved": 4,
           "netAvailLb": 609.14,
           "expDate": "2027-03-12",
           "expMonth": null,
-          "comment": ""
+          "comment": "4x Baldor 101-0001466048"
         },
         {
           "lotNum": "269458815",
@@ -1945,7 +1837,7 @@
     "02073": {
       "code": "02073",
       "name": "ASIAGO FRESCO PDO 1/4 WHEEL NT",
-      "casesAvail": 546,
+      "casesAvail": 518,
       "casesInTransit": 0,
       "comment": "Cowbell monthly plan 50x, average purchase TONY 10x, ACE Endico sometimes, Baldor 108x",
       "commentEn": "",
@@ -1955,7 +1847,7 @@
           "status": "on_hand",
           "receiptDate": "2026-06-18",
           "eta": null,
-          "cases": 66,
+          "cases": 38,
           "reserved": 0,
           "netAvailLb": 470.968,
           "expDate": "2027-01-09",
