@@ -2,40 +2,46 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Sign Composer — CheeseShop TECH</title>
+<title>Sign Composer — Monti Trentini</title>
 <style>
 :root{
   --primary:#064E22; --accent:#009640; --sage:#70C883; --mint:#C8E2C5;
   --cream:#FFFBDC; --paper:#FAF9F5; --charcoal:#716A6A; --ink:#141413;
   --display:"Cora","Fraunces",Georgia,serif;
   --ui:"Futura PT","Futura",Inter,system-ui,sans-serif;
-  --ui-bg:#20211F; --ui-panel:#2A2C29; --ui-line:#3B3E3A; --ui-text:#E8E6DF; --ui-dim:#9B9A92;
+  /* Monti Trentini Brand Kit — src/data/montitrentini/brand-kit.json.
+     Heritage Cream is the primary page background; Casa Paper the secondary canvas;
+     Forest Green the headline + logo ground. The display face is italic-only and never
+     sets a button or a nav label — brand kit: "doNotUseFor: Buttons and navigation". */
+  --ui-bg:#FFFBDC; --ui-panel:#FAF9F5; --ui-line:#DDD8C2; --ui-text:#141413; --ui-dim:#716A6A;
+  --stage:#053F1C;
 }
 *{box-sizing:border-box;}
 body{margin:0; background:var(--ui-bg); color:var(--ui-text); font:13px/1.45 var(--ui); height:100vh; display:flex; flex-direction:column; overflow:hidden;}
 button,select,input{font:inherit; color:inherit;}
-button{background:var(--ui-panel); border:1px solid var(--ui-line); border-radius:4px; padding:5px 10px; cursor:pointer;}
-button:hover{background:#343732;}
+button{background:#fff; border:1px solid var(--ui-line); border-radius:4px; padding:5px 10px; cursor:pointer; font-family:var(--ui); color:var(--primary);}
+button:hover{background:var(--mint); border-color:var(--sage);}
 button.on{background:var(--accent); border-color:var(--accent); color:#fff;}
 button:disabled{opacity:.4; cursor:default;}
-select{background:var(--ui-panel); border:1px solid var(--ui-line); border-radius:4px; padding:4px 6px; max-width:100%;}
+select{background:#fff; border:1px solid var(--ui-line); border-radius:4px; padding:4px 6px; max-width:100%; font-family:var(--ui); color:var(--ink);}
 
 /* ---------- top bar ---------- */
-header{display:flex; align-items:center; gap:14px; padding:9px 14px; background:var(--ui-panel); border-bottom:1px solid var(--ui-line); flex-shrink:0; flex-wrap:wrap;}
-header h1{margin:0; font-size:14px; font-weight:700; letter-spacing:.02em;}
-header h1 span{color:var(--sage); font-weight:400;}
+header{display:flex; align-items:center; gap:14px; padding:10px 16px; background:var(--primary); color:var(--cream); border-bottom:3px solid var(--accent); flex-shrink:0; flex-wrap:wrap;}
+header h1{margin:0; font-family:var(--display); font-style:italic; font-weight:700; font-size:19px; color:var(--cream); line-height:1.1;}
+header h1 span{display:block; font-family:var(--ui); font-style:normal; font-size:8.5px; font-weight:400; letter-spacing:.19em; text-transform:uppercase; color:var(--sage); margin-top:3px;}
 .grp{display:flex; align-items:center; gap:6px;}
-.grp label{color:var(--ui-dim); font-size:11px; text-transform:uppercase; letter-spacing:.07em;}
+.grp label{color:var(--mint); font-size:10px; text-transform:uppercase; letter-spacing:.1em;}
 .spacer{flex:1;}
-.snapshot{font-size:10.5px; color:var(--ui-dim); letter-spacing:.04em;}
+.snapshot{font-size:10px; color:var(--sage); letter-spacing:.05em;}
 
 /* ---------- layout ---------- */
 main{flex:1; display:grid; grid-template-columns:186px 1fr 290px; min-height:0;}
 .col{overflow-y:auto; min-height:0;}
 .palette{background:var(--ui-panel); border-right:1px solid var(--ui-line); padding:10px;}
-.stage{position:relative; overflow:auto; background:#191A18; display:flex; flex-direction:column; align-items:center; padding:26px 20px 20px;}
+.stage{position:relative; overflow:auto; background:var(--stage); display:flex; flex-direction:column; align-items:center; padding:26px 20px 24px;}
 .inspector{background:var(--ui-panel); border-left:1px solid var(--ui-line); padding:10px 12px;}
-h3.sec{margin:0 0 7px; font-size:10.5px; text-transform:uppercase; letter-spacing:.1em; color:var(--sage); font-weight:700;}
+h3.sec{margin:0 0 7px; font-family:var(--display); font-style:italic; font-weight:700; font-size:15px; text-transform:none; letter-spacing:.01em; color:var(--primary);}
+  .stage > h3.sec{color:var(--mint);}
 h3.sec + h3.sec{margin-top:14px;}
 .hint{color:var(--ui-dim); font-size:11px; line-height:1.45; margin:0 0 10px;}
 
@@ -71,8 +77,8 @@ h3.sec + h3.sec{margin-top:14px;}
 .film{display:flex; gap:12px; margin-top:22px; align-items:flex-start; flex-wrap:wrap; justify-content:center;}
 .fcard{text-align:center;}
 .fcard .mini{position:relative; background:var(--cream); box-shadow:0 2px 10px rgba(0,0,0,.4); transform-origin:top left;}
-.fcard .cap{font-size:10px; margin-top:5px; color:var(--ui-dim); max-width:150px;}
-.fcard.bad .cap{color:#FF8A93;}
+.fcard .cap{font-size:10.5px; margin-top:6px; color:var(--mint); max-width:150px; font-family:var(--display); font-style:italic;}
+.fcard.bad .cap{color:#F5B7BB;}
 .fcard.bad .mini{outline:2px solid #CE2B37;}
 .fcard button.pick{margin-top:3px; font-size:10px; padding:2px 7px;}
 
@@ -80,26 +86,26 @@ h3.sec + h3.sec{margin-top:14px;}
 .row{margin-bottom:9px;}
 .row > label{display:block; font-size:10.5px; color:var(--ui-dim); text-transform:uppercase; letter-spacing:.06em; margin-bottom:3px;}
 .row select, .row input{width:100%;}
-.prev{font-size:11px; color:var(--sage); margin-top:2px; word-break:break-word; line-height:1.35; max-height:44px; overflow:hidden;}
-.prev.empty{color:#E0A96D; font-style:italic;}
+.prev{font-size:11px; color:var(--primary); margin-top:2px; word-break:break-word; line-height:1.35; max-height:44px; overflow:hidden;}
+.prev.empty{color:#8A5F1E; font-style:italic;}
 .pathhint{font-size:10px; color:var(--ui-dim); margin-top:1px;}
-.warn{background:rgba(206,43,55,.14); border:1px solid rgba(206,43,55,.5); border-radius:4px; padding:7px 9px; font-size:11px; line-height:1.45; margin-bottom:10px; color:#FFC9CD;}
-.note{background:rgba(0,150,64,.1); border:1px solid rgba(0,150,64,.35); border-radius:4px; padding:7px 9px; font-size:11px; line-height:1.45; margin-bottom:10px;}
+.warn{background:#FBEEEF; border:1px solid rgba(206,43,55,.35); border-left:3px solid #CE2B37; border-radius:3px; padding:8px 10px; font-size:11px; line-height:1.5; margin-bottom:10px; color:#5E1218;}
+.note{background:var(--mint); border:1px solid var(--sage); border-left:3px solid var(--accent); border-radius:3px; padding:8px 10px; font-size:11px; line-height:1.5; margin-bottom:10px; color:#0A3D1C;}
 .xy{display:grid; grid-template-columns:1fr 1fr; gap:6px;}
-.xy input{width:100%; background:var(--ui-bg); border:1px solid var(--ui-line); border-radius:3px; padding:3px 5px;}
+.xy input{width:100%; background:#fff; border:1px solid var(--ui-line); border-radius:3px; padding:3px 5px; font-family:var(--ui);}
 
 /* ---------- export dialog ---------- */
 dialog{background:var(--ui-panel); color:var(--ui-text); border:1px solid var(--ui-line); border-radius:6px; width:min(900px,92vw); padding:0;}
 dialog::backdrop{background:rgba(0,0,0,.62);}
 dialog .dhead{display:flex; align-items:center; gap:10px; padding:11px 14px; border-bottom:1px solid var(--ui-line);}
-dialog .dhead b{font-size:13px;}
-dialog textarea{width:100%; height:52vh; background:#161715; color:#D8E6D8; border:0; border-top:1px solid var(--ui-line);
+dialog .dhead b{font-family:var(--display); font-style:italic; font-size:15px; color:var(--primary);}
+dialog textarea{width:100%; height:52vh; background:#12210F; color:#DCEBD9; border:0; border-top:1px solid var(--ui-line);
   font:11.5px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace; padding:12px; resize:none;}
 </style>
 </head>
 <body>
 <header>
-  <h1>Sign Composer <span>· CheeseShop TECH</span></h1>
+  <h1>Sign Composer<span>Monti Trentini · Casari dal 1925</span></h1>
   <div class="grp"><label>Template</label><select id="tplSel"></select></div>
   <div class="grp"><label>Record</label><select id="recSel"></select></div>
   <div class="grp"><label>Zoom</label>
@@ -111,25 +117,25 @@ dialog textarea{width:100%; height:52vh; background:#161715; color:#D8E6D8; bord
   </div>
   <div class="spacer"></div>
   <span class="snapshot" id="snapLine"></span>
-  <button id="saveBtn" title="Validate across all four records">Save composition</button>
+  <button id="saveBtn" title="Check it against all four cheeses first">Save this composition</button>
   <button id="expBtn" class="on">Export</button>
 </header>
 
 <main>
   <div class="col palette">
-    <h3 class="sec">Blocks</h3>
-    <p class="hint">Click to add or remove. Greyed = not supported by this template.</p>
+    <h3 class="sec">What goes on the sign</h3>
+    <p class="hint">Click a piece to put it on the sign, click it again to take it off. A tick means it is already there.</p>
     <div id="palette"></div>
     <h3 class="sec">Guides</h3>
     <div class="row"><label><input type="checkbox" id="gSafe" checked> Safe area</label></div>
     <div class="row"><label><input type="checkbox" id="gBleed" checked> Bleed</label></div>
     <div class="row"><label><input type="checkbox" id="gSnap" checked> Snapping</label></div>
-    <p class="hint" style="margin-top:12px">Arrow keys nudge 1 unit, Shift 10.<br>Hold <b>Alt</b> while dragging to suspend snapping.</p>
+    <p class="hint" style="margin-top:14px">Arrow keys move a piece one unit at a time, ten with Shift.<br>Hold <b>Alt</b> while dragging if you want it to sit somewhere the snapping will not let it.</p>
   </div>
 
   <div class="col stage">
     <div class="canvaswrap"><div class="canvas" id="canvas"></div></div>
-    <h3 class="sec" style="margin-top:24px; align-self:flex-start">Series — all four records through this manifest</h3>
+    <h3 class="sec" style="margin-top:26px; align-self:flex-start">The same composition, all four Asiagos</h3>
     <div class="film" id="film"></div>
   </div>
 
@@ -527,6 +533,24 @@ const BLOCKS = {
       font: F_("$ui", 6.7, { color: "$ink" }) }]),
   },
 
+  unique: {
+    label: "Worth knowing", hint: "the 'unique' callout, ruled left", pres: ["shipped"],
+    fields: [{ k: "unique", label: "Copy", def: "unique" }], h: { shipped: 26 },
+    build: (c) => ([{ id: "unique", role: "var", kind: "text", binds: c.b.unique, fit: "shrink",
+      x: c.x, y: c.y, w: c.w, h: c.h, z: 5, rule: { side: "left", w: 1.6, color: "$accent" },
+      font: F_("$ui", 6.2, { color: "$ink" }) }]),
+  },
+
+  originMark: {
+    label: "Provenance mark", hint: "tricolore + Product of Italy", pres: ["shipped"],
+    fields: [{ k: "origin", label: "Origin line", def: "origin" }], h: { shipped: 27 },
+    build: (c) => ([
+      { id: "tricolore", role: "lock", kind: "shape", x: c.x, y: c.y, w: 34, h: 2.4, z: 6, fill: "$tricolore" },
+      { id: "origin", role: "var", kind: "text", binds: c.b.origin, x: c.x, y: c.y + 6, w: c.w, h: 9, z: 6,
+        font: F_("$ui", 5.2, { bold: true, uppercase: true, tracking: 0.05, color: "$ink" }) },
+    ]),
+  },
+
   accentBar: {
     label: "Accent bar", hint: "brand furniture", pres: ["top"],
     fields: [], h: { top: 5.5 },
@@ -539,6 +563,14 @@ const BLOCKS = {
    arrangements. Switching re-presents every block; bindings survive.)
    ========================================================================== */
 const B = (block, pres, x, y, w, h, binds) => ({ block, pres, x, y, w, h, binds: binds || null });
+
+/* --- The four SHIPPED templates, extracted by running src/lib/sign-templates.js
+   through node on 2026-08-25, then grouped into semantic blocks. Slot geometry is
+   VERBATIM — these are the real signs, not a re-creation. Slots are stored as
+   offsets from their block's bounding box, so dragging a block translates its
+   slots and never rearranges their internals (spec §1).
+   Regenerate: node design/sign-composer/dump-shipped.mjs                        --- */
+const SHIPPED = [{"id":"sign-3x4/short","label":"Case sign 3\" × 4\" — short + photo  (shipped)","family":"cheese-sign","canvas":{"w":300,"h":400},"base":300,"pad":17,"bleed":12.5,"safe":12,"shipped":true,"blocks":[{"block":"accentBar","literal":true,"x":0,"y":0,"w":300,"h":5.5,"slots":[{"id":"accent_bar","role":"lock","kind":"shape","w":300,"h":5.5,"z":2,"fill":"$accent","dx":0,"dy":0}]},{"block":"companyId","literal":true,"x":0,"y":13,"w":300,"h":19,"slots":[{"id":"brand_wordmark","role":"lock","kind":"text","w":300,"h":11,"z":8,"value":"MONTI TRENTINI","font":{"font":"$ui","size":8.8896,"bold":true,"uppercase":true,"tracking":0.2,"color":"$primary","align":"center"},"dx":0,"dy":0},{"id":"brand_line","role":"lock","kind":"text","w":300,"h":9,"z":8,"value":"Casari dal 1925 · Grigno, Valsugana","font":{"font":"$display","size":6.945,"italic":true,"color":"$muted","align":"center"},"dx":0,"dy":10}]},{"block":"packshot","literal":true,"x":0,"y":33,"w":300,"h":115,"slots":[{"id":"packshot","role":"var","kind":"image","fit":"contain","bg":"$paper","binds":"image","w":300,"h":115,"z":3,"required":true,"tag":"packshot","label":"Packshot","dx":0,"dy":0}]},{"block":"name","literal":true,"x":17,"y":155,"w":266,"h":39,"slots":[{"id":"name","role":"var","kind":"text","binds":"name","w":266,"h":30,"z":5,"fit":"shrink","font":{"font":"$display","size":18.7515,"italic":true,"bold":true,"color":"$primary"},"dx":0,"dy":0},{"id":"italian_name","role":"var","kind":"text","binds":"italianName","w":266,"h":10,"z":5,"font":{"font":"$ui","size":7.7783999999999995,"uppercase":true,"tracking":0.11,"color":"$muted"},"dx":0,"dy":29}]},{"block":"flavor","literal":true,"x":17,"y":236,"w":266,"h":18,"slots":[{"id":"flavor","role":"var","kind":"text","binds":"flavorProfile","w":266,"h":18,"z":5,"font":{"font":"$display","size":10.2786,"italic":true,"color":"$accent"},"dx":0,"dy":0}]},{"block":"origin","literal":true,"x":117,"y":202,"w":94,"h":20,"slots":[{"id":"region_icon","role":"lock","kind":"image","fit":"contain","w":28,"h":19,"z":5,"asset":"$icon:region","bindsAsset":"region.icon","label":"Region illustration","dx":0,"dy":0},{"id":"region_label","role":"var","kind":"text","binds":"region.label","w":62,"h":9,"z":5,"font":{"font":"$ui","size":7.7783999999999995,"bold":true,"color":"$primary"},"dx":32,"dy":0},{"id":"region_sub","role":"var","kind":"text","binds":"region.sub","w":62,"h":11,"z":5,"font":{"font":"$ui","size":6.528300000000001,"color":"$muted"},"clamp":2,"dx":32,"dy":9}]},{"block":"verify","literal":true,"x":17,"y":201,"w":266,"h":23,"slots":[{"id":"milk_icon","role":"lock","kind":"image","fit":"contain","w":28,"h":19,"z":5,"asset":"$icon:cow","label":"Milk icon","dx":0,"dy":1},{"id":"milk_type","role":"var","kind":"text","binds":"milk.type","w":62,"h":9,"z":5,"font":{"font":"$ui","size":7.7783999999999995,"bold":true,"color":"$primary"},"dx":32,"dy":1},{"id":"milk_detail","role":"var","kind":"text","binds":"milk.detail","w":62,"h":11,"z":5,"font":{"font":"$ui","size":6.528300000000001,"color":"$muted"},"clamp":2,"dx":32,"dy":10},{"id":"min_age","role":"var","kind":"text","binds":"minAge","w":78,"h":15,"z":5,"font":{"font":"$display","size":14.5845,"italic":true,"bold":true,"color":"$accent","align":"right"},"dx":188,"dy":0},{"id":"min_age_label","role":"lock","kind":"text","value":"Minimum age","w":78,"h":8,"z":5,"font":{"font":"$ui","size":6.528300000000001,"uppercase":true,"tracking":0.1,"color":"$muted","align":"right"},"dx":188,"dy":15}]},{"block":"description","literal":true,"x":17,"y":256,"w":266,"h":56,"slots":[{"id":"description","role":"var","kind":"text","binds":"shortDescription","w":266,"h":56,"z":5,"font":{"font":"$ui","size":9.3063,"color":"$ink"},"maxChars":165,"dx":0,"dy":0}]},{"block":"dop","literal":true,"x":17,"y":340,"w":74,"h":34,"slots":[{"id":"dop_badge","role":"brand","kind":"image","fit":"contain","w":34,"h":34,"z":6,"asset":"$icon:dop","showIf":"designation","label":"DOP / PDO mark","dx":0,"dy":0},{"id":"mountain_badge","role":"brand","kind":"image","fit":"contain","w":34,"h":34,"z":6,"asset":"$icon:mountain","showIf":"mountainMark","label":"Product of the Mountain","dx":40,"dy":0}]},{"block":"originMark","literal":true,"x":97,"y":352,"w":90,"h":15,"slots":[{"id":"tricolore","role":"lock","kind":"shape","w":34,"h":2.4,"z":6,"fill":"$tricolore","dx":0,"dy":0},{"id":"origin","role":"var","kind":"text","binds":"origin","w":90,"h":9,"z":6,"font":{"font":"$ui","size":7.2228,"bold":true,"uppercase":true,"tracking":0.05,"color":"$ink"},"dx":0,"dy":6}]},{"block":"qr","literal":true,"x":221,"y":312,"w":62,"h":72,"slots":[{"id":"qr","role":"var","kind":"qr","binds":"qrUrl","w":62,"h":62,"z":6,"ec":"M","quiet":1,"label":"QR — product page","dx":0,"dy":0},{"id":"qr_caption","role":"lock","kind":"text","value":"Scan for the story","w":62,"h":8,"z":6,"font":{"font":"$ui","size":6.389399999999999,"uppercase":true,"tracking":0.06,"color":"$muted","align":"center"},"dx":0,"dy":64}]}]},{"id":"sign-3x4/long","label":"Case sign 3\" × 4\" — long description  (shipped)","family":"cheese-sign","canvas":{"w":300,"h":400},"base":300,"pad":17,"bleed":12.5,"safe":12,"shipped":true,"blocks":[{"block":"accentBar","literal":true,"x":0,"y":0,"w":300,"h":5.5,"slots":[{"id":"accent_bar","role":"lock","kind":"shape","w":300,"h":5.5,"z":2,"fill":"$accent","dx":0,"dy":0}]},{"block":"companyId","literal":true,"x":0,"y":13,"w":300,"h":19,"slots":[{"id":"brand_wordmark","role":"lock","kind":"text","w":300,"h":11,"z":8,"value":"MONTI TRENTINI","font":{"font":"$ui","size":8.8896,"bold":true,"uppercase":true,"tracking":0.2,"color":"$primary","align":"center"},"dx":0,"dy":0},{"id":"brand_line","role":"lock","kind":"text","w":300,"h":9,"z":8,"value":"Casari dal 1925 · Grigno, Valsugana","font":{"font":"$display","size":6.945,"italic":true,"color":"$muted","align":"center"},"dx":0,"dy":10}]},{"block":"name","literal":true,"x":17,"y":40,"w":266,"h":44,"slots":[{"id":"name","role":"var","kind":"text","binds":"name","w":266,"h":34,"z":5,"fit":"shrink","font":{"font":"$display","size":22.224,"italic":true,"bold":true,"color":"$primary"},"dx":0,"dy":0},{"id":"italian_name","role":"var","kind":"text","binds":"italianName","w":266,"h":10,"z":5,"font":{"font":"$ui","size":7.7783999999999995,"uppercase":true,"tracking":0.11,"color":"$muted"},"dx":0,"dy":34}]},{"block":"flavor","literal":true,"x":17,"y":90,"w":266,"h":20,"slots":[{"id":"flavor","role":"var","kind":"text","binds":"flavorProfile","w":266,"h":20,"z":5,"font":{"font":"$display","size":10.2786,"italic":true,"color":"$accent"},"dx":0,"dy":0}]},{"block":"origin","literal":true,"x":117,"y":118,"w":94,"h":20,"slots":[{"id":"region_icon","role":"lock","kind":"image","fit":"contain","w":28,"h":19,"z":5,"asset":"$icon:region","bindsAsset":"region.icon","label":"Region illustration","dx":0,"dy":0},{"id":"region_label","role":"var","kind":"text","binds":"region.label","w":62,"h":9,"z":5,"font":{"font":"$ui","size":7.7783999999999995,"bold":true,"color":"$primary"},"dx":32,"dy":0},{"id":"region_sub","role":"var","kind":"text","binds":"region.sub","w":62,"h":11,"z":5,"font":{"font":"$ui","size":6.528300000000001,"color":"$muted"},"clamp":2,"dx":32,"dy":9}]},{"block":"verify","literal":true,"x":17,"y":117,"w":266,"h":23,"slots":[{"id":"milk_icon","role":"lock","kind":"image","fit":"contain","w":28,"h":19,"z":5,"asset":"$icon:cow","label":"Milk icon","dx":0,"dy":1},{"id":"milk_type","role":"var","kind":"text","binds":"milk.type","w":62,"h":9,"z":5,"font":{"font":"$ui","size":7.7783999999999995,"bold":true,"color":"$primary"},"dx":32,"dy":1},{"id":"milk_detail","role":"var","kind":"text","binds":"milk.detail","w":62,"h":11,"z":5,"font":{"font":"$ui","size":6.528300000000001,"color":"$muted"},"clamp":2,"dx":32,"dy":10},{"id":"min_age","role":"var","kind":"text","binds":"minAge","w":78,"h":15,"z":5,"font":{"font":"$display","size":14.5845,"italic":true,"bold":true,"color":"$accent","align":"right"},"dx":188,"dy":0},{"id":"min_age_label","role":"lock","kind":"text","value":"Minimum age","w":78,"h":8,"z":5,"font":{"font":"$ui","size":6.528300000000001,"uppercase":true,"tracking":0.1,"color":"$muted","align":"right"},"dx":188,"dy":15}]},{"block":"description","literal":true,"x":17,"y":156,"w":266,"h":150,"slots":[{"id":"description","role":"var","kind":"text","binds":"longDescription","w":266,"h":150,"z":5,"font":{"font":"$ui","size":9.723,"color":"$ink","align":"justify"},"maxChars":900,"dx":0,"dy":0}]},{"block":"unique","literal":true,"x":17,"y":310,"w":266,"h":26,"slots":[{"id":"unique","role":"var","kind":"text","binds":"unique","w":266,"h":26,"z":5,"rule":{"side":"left","w":1.6,"color":"$accent"},"eyebrow":"Worth knowing","font":{"font":"$ui","size":8.6118,"color":"$ink"},"dx":0,"dy":0}]},{"block":"dop","literal":true,"x":17,"y":340,"w":74,"h":34,"slots":[{"id":"dop_badge","role":"brand","kind":"image","fit":"contain","w":34,"h":34,"z":6,"asset":"$icon:dop","showIf":"designation","label":"DOP / PDO mark","dx":0,"dy":0},{"id":"mountain_badge","role":"brand","kind":"image","fit":"contain","w":34,"h":34,"z":6,"asset":"$icon:mountain","showIf":"mountainMark","label":"Product of the Mountain","dx":40,"dy":0}]},{"block":"originMark","literal":true,"x":97,"y":352,"w":90,"h":15,"slots":[{"id":"tricolore","role":"lock","kind":"shape","w":34,"h":2.4,"z":6,"fill":"$tricolore","dx":0,"dy":0},{"id":"origin","role":"var","kind":"text","binds":"origin","w":90,"h":9,"z":6,"font":{"font":"$ui","size":7.2228,"bold":true,"uppercase":true,"tracking":0.05,"color":"$ink"},"dx":0,"dy":6}]},{"block":"qr","literal":true,"x":221,"y":312,"w":62,"h":72,"slots":[{"id":"qr","role":"var","kind":"qr","binds":"qrUrl","w":62,"h":62,"z":6,"ec":"M","quiet":1,"label":"QR — product page","dx":0,"dy":0},{"id":"qr_caption","role":"lock","kind":"text","value":"Scan for the story","w":62,"h":8,"z":6,"font":{"font":"$ui","size":6.389399999999999,"uppercase":true,"tracking":0.06,"color":"$muted","align":"center"},"dx":0,"dy":64}]}]},{"id":"sign-4x5/short","label":"Case sign 4\" × 5\" — short + photo  (shipped)","family":"cheese-sign","canvas":{"w":400,"h":500},"base":300,"pad":22,"bleed":12.5,"safe":12,"shipped":true,"blocks":[{"block":"accentBar","literal":true,"x":0,"y":0,"w":400,"h":5.5,"slots":[{"id":"accent_bar","role":"lock","kind":"shape","w":400,"h":5.5,"z":2,"fill":"$accent","dx":0,"dy":0}]},{"block":"companyId","literal":true,"x":0,"y":17.33,"w":400,"h":25.33,"slots":[{"id":"brand_wordmark","role":"lock","kind":"text","w":400,"h":14.666666666666666,"z":8,"value":"MONTI TRENTINI","font":{"font":"$ui","size":11.852799999999998,"bold":true,"uppercase":true,"tracking":0.2,"color":"$primary","align":"center"},"dx":0,"dy":0.0},{"id":"brand_line","role":"lock","kind":"text","w":400,"h":12,"z":8,"value":"Casari dal 1925 · Grigno, Valsugana","font":{"font":"$display","size":9.26,"italic":true,"color":"$muted","align":"center"},"dx":0,"dy":13.33}]},{"block":"packshot","literal":true,"x":0,"y":44,"w":400,"h":153.33,"slots":[{"id":"packshot","role":"var","kind":"image","fit":"contain","bg":"$paper","binds":"image","w":400,"h":153.33333333333331,"z":3,"required":true,"tag":"packshot","label":"Packshot","dx":0,"dy":0}]},{"block":"name","literal":true,"x":22,"y":206.67,"w":356,"h":52.0,"slots":[{"id":"name","role":"var","kind":"text","binds":"name","w":356,"h":40,"z":5,"fit":"shrink","font":{"font":"$display","size":25.002,"italic":true,"bold":true,"color":"$primary"},"dx":0,"dy":0.0},{"id":"italian_name","role":"var","kind":"text","binds":"italianName","w":356,"h":13.333333333333332,"z":5,"font":{"font":"$ui","size":10.371199999999998,"uppercase":true,"tracking":0.11,"color":"$muted"},"dx":0,"dy":38.67}]},{"block":"flavor","literal":true,"x":22,"y":314.67,"w":356,"h":24.0,"slots":[{"id":"flavor","role":"var","kind":"text","binds":"flavorProfile","w":356,"h":24,"z":5,"font":{"font":"$display","size":13.7048,"italic":true,"color":"$accent"},"dx":0,"dy":0.0}]},{"block":"origin","literal":true,"x":155.33,"y":269.33,"w":125.33,"h":26.67,"slots":[{"id":"region_icon","role":"lock","kind":"image","fit":"contain","w":37.33333333333333,"h":25.333333333333332,"z":5,"asset":"$icon:region","bindsAsset":"region.icon","label":"Region illustration","dx":0.0,"dy":0.0},{"id":"region_label","role":"var","kind":"text","binds":"region.label","w":82.66666666666666,"h":12,"z":5,"font":{"font":"$ui","size":10.371199999999998,"bold":true,"color":"$primary"},"dx":42.67,"dy":0.0},{"id":"region_sub","role":"var","kind":"text","binds":"region.sub","w":82.66666666666666,"h":14.666666666666666,"z":5,"font":{"font":"$ui","size":8.7044,"color":"$muted"},"clamp":2,"dx":42.67,"dy":12.0}]},{"block":"verify","literal":true,"x":22,"y":268,"w":356,"h":30.67,"slots":[{"id":"milk_icon","role":"lock","kind":"image","fit":"contain","w":37.33333333333333,"h":25.333333333333332,"z":5,"asset":"$icon:cow","label":"Milk icon","dx":0,"dy":1.33},{"id":"milk_type","role":"var","kind":"text","binds":"milk.type","w":82.66666666666666,"h":12,"z":5,"font":{"font":"$ui","size":10.371199999999998,"bold":true,"color":"$primary"},"dx":42.67,"dy":1.33},{"id":"milk_detail","role":"var","kind":"text","binds":"milk.detail","w":82.66666666666666,"h":14.666666666666666,"z":5,"font":{"font":"$ui","size":8.7044,"color":"$muted"},"clamp":2,"dx":42.67,"dy":13.33},{"id":"min_age","role":"var","kind":"text","binds":"minAge","w":104,"h":20,"z":5,"font":{"font":"$display","size":19.445999999999998,"italic":true,"bold":true,"color":"$accent","align":"right"},"dx":252,"dy":0},{"id":"min_age_label","role":"lock","kind":"text","value":"Minimum age","w":104,"h":10.666666666666666,"z":5,"font":{"font":"$ui","size":8.7044,"uppercase":true,"tracking":0.1,"color":"$muted","align":"right"},"dx":252,"dy":20}]},{"block":"description","literal":true,"x":22,"y":341.33,"w":356,"h":74.67,"slots":[{"id":"description","role":"var","kind":"text","binds":"shortDescription","w":356,"h":74.66666666666666,"z":5,"font":{"font":"$ui","size":12.4084,"color":"$ink"},"maxChars":165,"dx":0,"dy":0.0}]},{"block":"dop","literal":true,"x":22,"y":453.33,"w":98.67,"h":45.33,"slots":[{"id":"dop_badge","role":"brand","kind":"image","fit":"contain","w":45.33333333333333,"h":45.33333333333333,"z":6,"asset":"$icon:dop","showIf":"designation","label":"DOP / PDO mark","dx":0,"dy":0.0},{"id":"mountain_badge","role":"brand","kind":"image","fit":"contain","w":45.33333333333333,"h":45.33333333333333,"z":6,"asset":"$icon:mountain","showIf":"mountainMark","label":"Product of the Mountain","dx":53.33,"dy":0.0}]},{"block":"originMark","literal":true,"x":128.67,"y":469.33,"w":120.0,"h":20.0,"slots":[{"id":"tricolore","role":"lock","kind":"shape","w":45.33333333333333,"h":2.4,"z":6,"fill":"$tricolore","dx":0.0,"dy":0.0},{"id":"origin","role":"var","kind":"text","binds":"origin","w":120,"h":12,"z":6,"font":{"font":"$ui","size":9.6304,"bold":true,"uppercase":true,"tracking":0.05,"color":"$ink"},"dx":0.0,"dy":8.0}]},{"block":"qr","literal":true,"x":295.33,"y":416,"w":82.67,"h":96.0,"slots":[{"id":"qr","role":"var","kind":"qr","binds":"qrUrl","w":82.66666666666666,"h":82.66666666666666,"z":6,"ec":"M","quiet":1,"label":"QR — product page","dx":0.0,"dy":0},{"id":"qr_caption","role":"lock","kind":"text","value":"Scan for the story","w":82.66666666666666,"h":10.666666666666666,"z":6,"font":{"font":"$ui","size":8.519199999999998,"uppercase":true,"tracking":0.06,"color":"$muted","align":"center"},"dx":0.0,"dy":85.33}]}]},{"id":"sign-4x5/long","label":"Case sign 4\" × 5\" — long description  (shipped)","family":"cheese-sign","canvas":{"w":400,"h":500},"base":300,"pad":22,"bleed":12.5,"safe":12,"shipped":true,"blocks":[{"block":"accentBar","literal":true,"x":0,"y":0,"w":400,"h":5.5,"slots":[{"id":"accent_bar","role":"lock","kind":"shape","w":400,"h":5.5,"z":2,"fill":"$accent","dx":0,"dy":0}]},{"block":"companyId","literal":true,"x":0,"y":17.33,"w":400,"h":25.33,"slots":[{"id":"brand_wordmark","role":"lock","kind":"text","w":400,"h":14.666666666666666,"z":8,"value":"MONTI TRENTINI","font":{"font":"$ui","size":11.852799999999998,"bold":true,"uppercase":true,"tracking":0.2,"color":"$primary","align":"center"},"dx":0,"dy":0.0},{"id":"brand_line","role":"lock","kind":"text","w":400,"h":12,"z":8,"value":"Casari dal 1925 · Grigno, Valsugana","font":{"font":"$display","size":9.26,"italic":true,"color":"$muted","align":"center"},"dx":0,"dy":13.33}]},{"block":"name","literal":true,"x":22,"y":53.33,"w":356,"h":58.67,"slots":[{"id":"name","role":"var","kind":"text","binds":"name","w":356,"h":45.33333333333333,"z":5,"fit":"shrink","font":{"font":"$display","size":29.631999999999998,"italic":true,"bold":true,"color":"$primary"},"dx":0,"dy":0.0},{"id":"italian_name","role":"var","kind":"text","binds":"italianName","w":356,"h":13.333333333333332,"z":5,"font":{"font":"$ui","size":10.371199999999998,"uppercase":true,"tracking":0.11,"color":"$muted"},"dx":0,"dy":45.33}]},{"block":"flavor","literal":true,"x":22,"y":120,"w":356,"h":26.67,"slots":[{"id":"flavor","role":"var","kind":"text","binds":"flavorProfile","w":356,"h":26.666666666666664,"z":5,"font":{"font":"$display","size":13.7048,"italic":true,"color":"$accent"},"dx":0,"dy":0}]},{"block":"origin","literal":true,"x":155.33,"y":157.33,"w":125.33,"h":26.67,"slots":[{"id":"region_icon","role":"lock","kind":"image","fit":"contain","w":37.33333333333333,"h":25.333333333333332,"z":5,"asset":"$icon:region","bindsAsset":"region.icon","label":"Region illustration","dx":0.0,"dy":0.0},{"id":"region_label","role":"var","kind":"text","binds":"region.label","w":82.66666666666666,"h":12,"z":5,"font":{"font":"$ui","size":10.371199999999998,"bold":true,"color":"$primary"},"dx":42.67,"dy":0.0},{"id":"region_sub","role":"var","kind":"text","binds":"region.sub","w":82.66666666666666,"h":14.666666666666666,"z":5,"font":{"font":"$ui","size":8.7044,"color":"$muted"},"clamp":2,"dx":42.67,"dy":12.0}]},{"block":"verify","literal":true,"x":22,"y":156.0,"w":356,"h":30.67,"slots":[{"id":"milk_icon","role":"lock","kind":"image","fit":"contain","w":37.33333333333333,"h":25.333333333333332,"z":5,"asset":"$icon:cow","label":"Milk icon","dx":0,"dy":1.33},{"id":"milk_type","role":"var","kind":"text","binds":"milk.type","w":82.66666666666666,"h":12,"z":5,"font":{"font":"$ui","size":10.371199999999998,"bold":true,"color":"$primary"},"dx":42.67,"dy":1.33},{"id":"milk_detail","role":"var","kind":"text","binds":"milk.detail","w":82.66666666666666,"h":14.666666666666666,"z":5,"font":{"font":"$ui","size":8.7044,"color":"$muted"},"clamp":2,"dx":42.67,"dy":13.33},{"id":"min_age","role":"var","kind":"text","binds":"minAge","w":104,"h":20,"z":5,"font":{"font":"$display","size":19.445999999999998,"italic":true,"bold":true,"color":"$accent","align":"right"},"dx":252,"dy":0.0},{"id":"min_age_label","role":"lock","kind":"text","value":"Minimum age","w":104,"h":10.666666666666666,"z":5,"font":{"font":"$ui","size":8.7044,"uppercase":true,"tracking":0.1,"color":"$muted","align":"right"},"dx":252,"dy":20.0}]},{"block":"description","literal":true,"x":22,"y":208,"w":356,"h":200,"slots":[{"id":"description","role":"var","kind":"text","binds":"longDescription","w":356,"h":200,"z":5,"font":{"font":"$ui","size":12.964,"color":"$ink","align":"justify"},"maxChars":900,"dx":0,"dy":0}]},{"block":"unique","literal":true,"x":22,"y":413.33,"w":356,"h":34.67,"slots":[{"id":"unique","role":"var","kind":"text","binds":"unique","w":356,"h":34.666666666666664,"z":5,"rule":{"side":"left","w":1.6,"color":"$accent"},"eyebrow":"Worth knowing","font":{"font":"$ui","size":11.4824,"color":"$ink"},"dx":0,"dy":0.0}]},{"block":"dop","literal":true,"x":22,"y":453.33,"w":98.67,"h":45.33,"slots":[{"id":"dop_badge","role":"brand","kind":"image","fit":"contain","w":45.33333333333333,"h":45.33333333333333,"z":6,"asset":"$icon:dop","showIf":"designation","label":"DOP / PDO mark","dx":0,"dy":0.0},{"id":"mountain_badge","role":"brand","kind":"image","fit":"contain","w":45.33333333333333,"h":45.33333333333333,"z":6,"asset":"$icon:mountain","showIf":"mountainMark","label":"Product of the Mountain","dx":53.33,"dy":0.0}]},{"block":"originMark","literal":true,"x":128.67,"y":469.33,"w":120.0,"h":20.0,"slots":[{"id":"tricolore","role":"lock","kind":"shape","w":45.33333333333333,"h":2.4,"z":6,"fill":"$tricolore","dx":0.0,"dy":0.0},{"id":"origin","role":"var","kind":"text","binds":"origin","w":120,"h":12,"z":6,"font":{"font":"$ui","size":9.6304,"bold":true,"uppercase":true,"tracking":0.05,"color":"$ink"},"dx":0.0,"dy":8.0}]},{"block":"qr","literal":true,"x":295.33,"y":416,"w":82.67,"h":96.0,"slots":[{"id":"qr","role":"var","kind":"qr","binds":"qrUrl","w":82.66666666666666,"h":82.66666666666666,"z":6,"ec":"M","quiet":1,"label":"QR — product page","dx":0.0,"dy":0},{"id":"qr_caption","role":"lock","kind":"text","value":"Scan for the story","w":82.66666666666666,"h":10.666666666666666,"z":6,"font":{"font":"$ui","size":8.519199999999998,"uppercase":true,"tracking":0.06,"color":"$muted","align":"center"},"dx":0.0,"dy":85.33}]}]}];
 
 const TEMPLATES = [
   { id: "talker/G", label: 'Talker 2.5×3.5 — G green cap', family: "talker",
@@ -568,24 +600,7 @@ const TEMPLATES = [
       B("origin","stack",14,246,222,34), B("verify","rail",14,282,222,26),
       B("qr","block",190,296,46,56), B("companyId","inline",14,306,130,26),
     ] },
-  { id: "sign-3x4/short", label: 'Case sign 3×4 — short + photo', family: "cheese-sign",
-    canvas: { w: 300, h: 400 }, base: 300, pad: 17, bleed: 12.5, safe: 12,
-    blocks: [
-      B("accentBar","top",0,0,300,5.5), B("companyId","stack",0,10,300,40),
-      B("packshot","band",0,56,300,110), B("name","stack",17,172,266,44),
-      B("origin","rail",17,220,266,22), B("verify","rail",17,246,266,26),
-      B("flavor","plain",17,276,266,30), B("description","plain",17,310,266,38),
-      B("dop","row",17,350,74,34), B("qr","block",237,330,46,58),
-    ] },
-  { id: "sign-3x4/long", label: 'Case sign 3×4 — long description', family: "cheese-sign",
-    canvas: { w: 300, h: 400 }, base: 300, pad: 17, bleed: 12.5, safe: 12,
-    blocks: [
-      B("accentBar","top",0,0,300,5.5), B("companyId","stack",0,10,300,40),
-      B("name","stack",17,58,266,44), B("flavor","plain",17,104,266,30),
-      B("origin","rail",17,138,266,26), B("verify","rail",17,168,266,26),
-      B("description","plain",17,200,266,146,{ text:"longDescription" }),
-      B("dop","row",17,350,74,34), B("qr","block",237,330,46,58),
-    ] },
+  ...SHIPPED,
 ];
 
 /* ============================================================================
@@ -600,7 +615,7 @@ const S = {
 const tpl = () => TEMPLATES.find(t => t.id === S.tplId);
 const rec = () => RECORDS[S.recIdx];
 const layout = () => {
-  if (!S.layouts[S.tplId]) S.layouts[S.tplId] = tpl().blocks.map(b => ({ ...b, binds: b.binds ? { ...b.binds } : null }));
+  if (!S.layouts[S.tplId]) S.layouts[S.tplId] = JSON.parse(JSON.stringify(tpl().blocks)).map(b => ({ ...b, binds: b.binds ? { ...b.binds } : null }));
   return S.layouts[S.tplId];
 };
 const snapshotState = () => JSON.stringify(S.layouts);
@@ -611,6 +626,7 @@ function syncUndo() { undoBtn.disabled = !S.undo.length; redoBtn.disabled = !S.r
 
 // Resolve a block entry to its concrete slots for a given record.
 function slotsFor(entry, record, cw) {
+  if (entry.literal) return entry.slots.map(sl => ({ ...sl, x: entry.x + sl.dx, y: entry.y + sl.dy }));
   const def = BLOCKS[entry.block];
   const binds = {};
   def.fields.forEach(f => { binds[f.k] = (entry.binds && entry.binds[f.k]) || f.def; });
@@ -622,6 +638,18 @@ function visible(entry) { return !entry.hidden; }
    4. RENDER — slots to DOM. 1 canvas unit = 1 px; zoom is a CSS transform, so
    nothing here ever sees the zoom factor (spec §3: zoom is display-only).
    ========================================================================== */
+function fontInstalled(family) {
+  const probe = document.createElement("span");
+  probe.textContent = "MMMMMWWWWWiiiii0123";
+  Object.assign(probe.style, { position: "absolute", visibility: "hidden", fontSize: "72px", left: "-9999px" });
+  document.body.appendChild(probe);
+  probe.style.fontFamily = "monospace"; const base = probe.offsetWidth;
+  probe.style.fontFamily = `"${family}", monospace`; const test = probe.offsetWidth;
+  probe.remove();
+  return test !== base;
+}
+const FONTS_OK = { display: fontInstalled("Cora") || fontInstalled("Fraunces"), ui: fontInstalled("Futura PT") || fontInstalled("futura-pt") };
+
 const measurer = document.createElement("div");
 Object.assign(measurer.style, { position: "absolute", visibility: "hidden", left: "-9999px", top: "0" });
 document.body.appendChild(measurer);
@@ -665,7 +693,7 @@ function overflowOf(slot, record) {
     const sz = shrinkToFit(slot, record);
     return sz <= slot.font.size * 0.61 ? "will not fit even shrunk to 60%" : null;
   }
-  if (measurer.scrollHeight > slot.h + 0.6) return "text taller than box";
+  if (lines > 1 && measurer.scrollHeight > slot.h + 0.6) return `wraps to ${lines} lines, past the box`;
   return null;
 }
 function slotEl(slot, record) {
@@ -751,7 +779,7 @@ function renderCanvas() {
     tag.style.transform = `scale(${1 / S.zoom})`; tag.style.transformOrigin = "bottom left";
     b.append(tag);
     if (blockOverflows(e, r, t.canvas.w)) b.classList.add("over");
-    if (S.sel === i) ["nw","n","ne","e","se","s","sw","w"].forEach(k => {
+    if (S.sel === i && !e.literal) ["nw","n","ne","e","se","s","sw","w"].forEach(k => {
       const h = document.createElement("div"); h.className = "h " + k; h.dataset.dir = k;
       h.style.transform = `scale(${1 / S.zoom})`; b.append(h);
     });
@@ -787,7 +815,7 @@ function onDrag(ev) {
   if (!drag) return;
   const e = layout()[drag.i], t = tpl();
   const dx = (ev.clientX - drag.x0) / S.zoom, dy = (ev.clientY - drag.y0) / S.zoom;
-  if (!drag.dir) { e.x = drag.o.x + dx; e.y = drag.o.y + dy; }
+  if (!drag.dir || e.literal) { e.x = drag.o.x + dx; e.y = drag.o.y + dy; }
   else {
     if (drag.dir.includes("w")) { e.x = drag.o.x + dx; e.w = Math.max(12, drag.o.w - dx); }
     if (drag.dir.includes("e")) { e.w = Math.max(12, drag.o.w + dx); }
@@ -879,20 +907,33 @@ function bindingPaths(record) {
   walk(record, "");
   return out.sort();
 }
+// Never let an overflow count be read as fact when the faces it was measured with
+// are not the faces that will print.
+function fontCaveat() {
+  if (FONTS_OK.display && FONTS_OK.ui) return "";
+  const missing = [!FONTS_OK.display && "Cora", !FONTS_OK.ui && "Futura PT"].filter(Boolean).join(" and ");
+  return `<div class="warn" style="margin-top:8px"><b>Measured without ${missing}.</b>
+    Georgia and the system sans are standing in, and both are wider than the real faces —
+    so the count above over-reports wrapping. Read it as a list to check on a real proof,
+    not a list of faults.${tpl().shipped ? "<br><br>This is a <b>shipped</b> template that has already been proofed on press, which is the stronger evidence." : ""}</div>`;
+}
 function renderInspector() {
   const r = rec(), t = tpl();
   if (S.sel == null) {
     const probs = seriesProblems();
-    inspector.innerHTML = `<h3 class="sec">No block selected</h3>
-      <p class="hint">Click a block on the canvas to edit its content, presentation and size.
-      Drag to reposition. The filmstrip below the canvas renders all four records through this
-      same manifest — that is where a layout breaks.</p>
-      <h3 class="sec">Series check</h3>` +
+    inspector.innerHTML = `<h3 class="sec">Nothing picked yet</h3>
+      <p class="hint">Click a piece on the sign to change what it says or how it sits. Drag it to
+      move it. Underneath the sign you will see the same composition on all four Asiagos at once —
+      that is where you find out whether it really works, because Fresco is a short name and
+      Stagionato is not.</p>
+      <h3 class="sec">All four cheeses</h3>` +
       (probs.length
-        ? `<div class="warn"><b>${probs.length} overflow${probs.length > 1 ? "s" : ""}</b><br>` + probs.slice(0, 8).map(p => "• " + p).join("<br>") + (probs.length > 8 ? `<br>…and ${probs.length - 8} more` : "") + `</div>`
-        : `<div class="note">All four records fit this manifest.</div>`) +
-      `<h3 class="sec">Template</h3><p class="hint">${t.label}<br>Canvas ${t.canvas.w}×${t.canvas.h} · pad ${t.pad} · base ${t.base}<br>
-       ${layout().filter(visible).length} of ${layout().length} blocks shown</p>`;
+        ? `<div class="warn"><b>${probs.length} to check</b><br>` + probs.slice(0, 8).map(p => "• " + p).join("<br>") + (probs.length > 8 ? `<br>…and ${probs.length - 8} more` : "") + `</div>`
+        : `<div class="note">All four cheeses sit comfortably in this one.</div>`) +
+      fontCaveat() +
+      `<h3 class="sec">This sign</h3><p class="hint">${t.label}<br>
+       ${t.canvas.w} × ${t.canvas.h} units · ${(t.canvas.w / 100).toFixed(2)}″ × ${(t.canvas.h / 100).toFixed(2)}″ · margin ${t.pad}<br>
+       ${layout().filter(visible).length} of ${layout().length} pieces showing</p>`;
     return;
   }
   const e = layout()[S.sel], def = BLOCKS[e.block];
@@ -900,24 +941,34 @@ function renderInspector() {
   let html = `<h3 class="sec">${def.label}</h3><p class="hint">${def.hint}</p>`;
 
   if (e.block === "verify" && String(r.id).includes("vecchio"))
-    html += `<div class="warn"><b>Do not ship this block for Vecchio.</b> It prints the DOP floor
-      beside the actual age, which makes the 9-vs-10-month contradiction visible to a shopper.
-      Open item 2 — Stefano. (spec §1)</div>`;
+    html += `<div class="warn"><b>Hold this one back on the Vecchio.</b> It sets the shipped age
+      right beside the DOP floor, and on this cheese those two numbers disagree — nine months
+      against the consortium's ten. A shopper would see it. Waiting on Stefano.</div>`;
   if (e.block === "packshot")
-    html += `<div class="note">Choose an image that shows the <b>cut face and interior paste</b>.
-      A packshot of an identical wrapped wedge does not earn its space beside the real product.</div>`;
+    html += `<div class="note">Pick the shot that shows the <b>cut face and the paste</b>. The sign
+      sits next to the cheese, so a photo of the same wrapped wedge tells a shopper nothing they
+      cannot already see — the inside is what they cannot.</div>`;
 
-  html += `<div class="row"><label>Presentation</label><select id="presSel">` +
-    def.pres.map(p => `<option value="${p}"${p === e.pres ? " selected" : ""}>${p}</option>`).join("") +
-    `</select><div class="pathhint">Changing form is how G/H/I hybrids get made — bindings survive.</div></div>`;
+  if (e.literal) {
+    html += `<div class="note">Straight from <b>src/lib/sign-templates.js</b>. Geometry is the real
+      sign's, to the unit. Move the whole block to try a new composition; the pieces inside keep
+      their arrangement, which is what keeps every sign in the family looking related.</div>`;
+  } else {
+    html += `<div class="row"><label>Presentation</label><select id="presSel">` +
+      def.pres.map(p => `<option value="${p}"${p === e.pres ? " selected" : ""}>${p}</option>`).join("") +
+      `</select><div class="pathhint">Change the form and the content stays put — this is how you end up with your own layout rather than one of the three.</div></div>`;
+  }
 
-  html += `<div class="row"><label>Position &amp; size</label><div class="xy">
+  html += `<div class="row"><label>Where it sits</label><div class="xy">
     <input id="fx" type="number" value="${Math.round(e.x)}" title="x"><input id="fy" type="number" value="${Math.round(e.y)}" title="y">
     <input id="fw" type="number" value="${Math.round(e.w)}" title="w"><input id="fh" type="number" value="${Math.round(e.h)}" title="h">
-  </div><div class="pathhint">canvas units · 100 per inch</div></div>`;
+  </div><div class="pathhint">units — a hundred to the inch</div></div>`;
 
-  def.fields.forEach(f => {
-    const cur = (e.binds && e.binds[f.k]) || f.def;
+  const fieldRows = e.literal
+    ? e.slots.filter(sl => sl.binds).map(sl => ({ k: sl.id, label: sl.id.replace(/_/g, " "), def: sl.binds, slot: sl }))
+    : def.fields;
+  fieldRows.forEach(f => {
+    const cur = f.slot ? f.slot.binds : ((e.binds && e.binds[f.k]) || f.def);
     const val = bindValue(r, cur);
     const empty = val === "" || val == null;
     html += `<div class="row"><label>${f.label}</label>
@@ -925,24 +976,30 @@ function renderInspector() {
       paths.map(p => `<option value="${p}"${p === cur ? " selected" : ""}>${p}</option>`).join("") +
       (paths.includes(cur) ? "" : `<option value="${cur}" selected>${cur} (not on record)</option>`) +
       `</select>
-      <div class="prev ${empty ? "empty" : ""}">${empty ? "— empty on this record; renders as a placeholder here and will not print" : String(val).slice(0, 150)}</div></div>`;
+      <div class="prev ${empty ? "empty" : ""}">${empty ? "— nothing here yet on this cheese. It shows as a placeholder while you work and simply will not print." : String(val).slice(0, 150)}</div></div>`;
   });
 
-  html += `<div class="row"><label>Visibility</label>
-    <button id="hideBtn">${e.hidden ? "Show block" : "Hide block"}</button>
-    <button id="delBtn" title="Remove from this template">Remove</button></div>`;
-  html += `<div class="row"><label>Per-record override</label>
+  html += `<div class="row"><label>On the sign</label>
+    <button id="hideBtn">${e.hidden ? "Put it back" : "Take it off"}</button>
+    <button id="delBtn" title="Take it off this sign for good">Remove</button></div>`;
+  html += `<div class="row"><label>Only on this cheese</label>
     <label style="text-transform:none;font-size:11px;color:var(--ui-text)">
-      <input type="checkbox" id="ovr" ${e.override ? "checked" : ""}> Specific to ${r.name}</label>
-    <div class="pathhint">Flagged by name when Save copies across the series.</div></div>`;
+      <input type="checkbox" id="ovr" ${e.override ? "checked" : ""}> Just for the ${r.name}</label>
+    <div class="pathhint">Called out by name when you save, so it never gets copied over by accident.</div></div>`;
 
   inspector.innerHTML = html;
-  presSel.onchange = ev => { push(); e.pres = ev.target.value; const dh = BLOCKS[e.block].h[e.pres]; if (dh) e.h = dh; renderAll(); };
+  if (presSel) presSel.onchange = ev => { push(); e.pres = ev.target.value; const dh = BLOCKS[e.block].h[e.pres]; if (dh) e.h = dh; renderAll(); };
   ["fx","fy","fw","fh"].forEach((id, k) => {
     document.getElementById(id).onchange = ev => { push(); e[["x","y","w","h"][k]] = +ev.target.value; renderAll(); };
   });
   inspector.querySelectorAll("select[data-field]").forEach(sel => {
-    sel.onchange = ev => { push(); e.binds = e.binds || {}; e.binds[ev.target.dataset.field] = ev.target.value; renderAll(); };
+    sel.onchange = ev => {
+      push();
+      const key = ev.target.dataset.field;
+      if (e.literal) { const sl = e.slots.find(x => x.id === key); if (sl) sl.binds = ev.target.value; }
+      else { e.binds = e.binds || {}; e.binds[key] = ev.target.value; }
+      renderAll();
+    };
     sel.title = "binding path on the sign record";
   });
   hideBtn.onclick = () => { push(); e.hidden = !e.hidden; renderAll(); };
@@ -975,12 +1032,12 @@ function renderPalette() {
 document.getElementById("saveBtn").onclick = () => {
   const probs = seriesProblems();
   const overrides = layout().filter(e => e.override).map(e => BLOCKS[e.block].label);
-  let msg = `Save composition — ${tpl().label}\n\n`;
-  msg += `Layout is shared: one manifest renders all four records.\n`;
-  msg += overrides.length ? `\nPer-record overrides that will NOT be copied:\n  • ${overrides.join("\n  • ")}\n` : `\nNo per-record overrides set.\n`;
+  let msg = `Save this composition — ${tpl().label}\n\n`;
+  msg += `The arrangement is shared. One composition, all four cheeses — move a piece here and it moves on every one of them.\n`;
+  msg += overrides.length ? `\nSet for one cheese only, so these stay as they are:\n  • ${overrides.join("\n  • ")}\n` : `\nNothing is set for one cheese only.\n`;
   msg += probs.length
-    ? `\n⚠ ${probs.length} overflow(s) across the series — export will carry a warning header:\n  • ${probs.slice(0, 6).join("\n  • ")}${probs.length > 6 ? `\n  • …and ${probs.length - 6} more` : ""}`
-    : `\n✓ All four records fit. Clean to export.`;
+    ? `\n${probs.length} thing(s) to look at before this goes to print — the export will say so at the top:\n  • ${probs.slice(0, 6).join("\n  • ")}${probs.length > 6 ? `\n  • …and ${probs.length - 6} more` : ""}`
+    : `\nAll four sit comfortably. Ready when you are.`;
   alert(msg);
 };
 
@@ -1080,8 +1137,8 @@ tplSel.onchange = ev => {
   const from = tpl();
   if (S.layouts[S.tplId] && !confirm(
     `Switch to ${TEMPLATES.find(t => t.id === ev.target.value).label}?\n\n` +
-    `Content configuration survives — field bindings, show/hide and overrides are kept.\n` +
-    `POSITION does not: every block is re-presented for the new layout.`)) { ev.target.value = S.tplId; return; }
+    `What each piece says stays with you — the fields, what is on and off, anything set for one cheese only.\n` +
+    `Where things sit does not. Every piece is laid out fresh for the new shape.`)) { ev.target.value = S.tplId; return; }
   // carry content configuration across (spec §1, consequence 3)
   const carry = {};
   (S.layouts[S.tplId] || []).forEach(e => { carry[e.block] = { binds: e.binds, hidden: e.hidden, override: e.override }; });
@@ -1100,7 +1157,7 @@ gSafe.onchange = e => { S.guides.safe = e.target.checked; renderCanvas(); };
 gBleed.onchange = e => { S.guides.bleed = e.target.checked; renderCanvas(); };
 gSnap.onchange = e => { S.snap = e.target.checked; };
 undoBtn.onclick = undo; redoBtn.onclick = redo;
-document.getElementById("snapLine").textContent = `data snapshot: ${SNAPSHOT_DATE} · records: ${RECORDS.length}`;
+document.getElementById("snapLine").textContent = `Cheese as of ${SNAPSHOT_DATE} · ${RECORDS.length} Asiagos`;
 
 function renderAll() { renderCanvas(); renderPalette(); renderInspector(); renderFilm(); }
 renderAll(); syncUndo();

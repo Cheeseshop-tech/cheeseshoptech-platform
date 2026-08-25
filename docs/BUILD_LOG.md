@@ -6,6 +6,66 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 > Format convention: `## YYYY-MM-DD — Title` · **Decision / Action / Status** ·
 > keep entries short and factual. This file is the project's memory.
 
+## 2026-08-25 — Sign Composer: the four shipped templates loaded, UI put in Monti Trentini's voice
+
+**Action.** Rick: "load the templates already built in to the Sign composer and brand this one to
+monti trentini brand Voice."
+
+**The shipped templates are now the real ones, not a re-creation.** My first pass shipped two
+hand-authored case-sign presets that *approximated* `sign-3x4/short` and `/long`. They also
+**collided by id** with the real templates, which meant the shipped ones were shadowed and had
+never actually been tested. Both hand-made presets are deleted. In their place all four real
+templates — 3x4 and 4x5, short and long — are extracted by **running `src/lib/sign-templates.js`
+through node** (`design/sign-composer/dump-shipped.mjs`) rather than transcribed, so the geometry
+is verbatim. Regenerate any time the source changes.
+
+They load as **literal-slot blocks**: slots stored as offsets from their block's bounding box, so
+dragging a block translates its slots and never rearranges what is inside it. That is the spec's
+own rule — block internals are not draggable — and it is what keeps the family looking related.
+Literal blocks move but do not resize, and offer no presentation switch, because they have none.
+
+This is the **mapping layer** the spec names as the alternative to refactoring `sign-templates.js`
+(build-order step 0, still not done). `rail()` splits into Origin + How to verify, `foot()` into
+DOP + Provenance mark + QR, `wordmark()` becomes Company ID. Two new block groupings exist only
+here: **Worth knowing** (the `unique` callout) and **Provenance mark** (tricolore + Product of
+Italy).
+
+**Loading the real templates immediately surfaced 16-20 flags each** — and the honest reading
+matters more than the number:
+
+- **`flavor` is a real overflow and font-independent.** `shortTemplate` gives it `h: 18 * s` with
+  no `clamp` and no `fit`. The flavor lines run 80-95 characters at 7.4pt in a 266-unit column,
+  which is two lines under any typeface; two lines need ~26 units against the 18 available. Worth
+  checking on a proof — the real renderer may let it spill rather than clip, which would explain
+  why it survived proofing.
+- **The single-line label flags are probably artifacts.** `region_label`, `milk_type`,
+  `min_age_label` sit in 9-unit boxes holding 5.6pt type. **Futura PT is not installed here** —
+  the composer now detects this and says so — and the system sans standing in is wider than Futura,
+  so they wrap in the preview and very likely do not on press.
+
+Two changes came out of that. The overflow rule now only flags text that **actually wraps** past
+its box; a single line overshooting its positioning box is typographic overshoot, not a defect, and
+flagging it made every 9-unit label read as broken. And a **font-substitution caveat** is rendered
+next to any count, naming the missing face and noting that a shipped, already-proofed template is
+the stronger evidence. A number nobody can interpret is worse than no number.
+
+**Brand.** Chrome moved off the generic dark editor palette onto the Brand Kit
+(`src/data/montitrentini/brand-kit.json`): Heritage Cream ground, Casa Paper panels, Forest Green
+header with an Italia Green rule, a deep forest stage so the cream signs read against it. Type
+follows the kit's own rule — the display face is italic-only and **never sets a button or a nav
+label** (`doNotUseFor: "Buttons and navigation labels"`), so Cora/Fraunces carries headings and the
+UI family carries every control.
+
+Copy rewritten to the voice's stated attributes — authentic, warm, rooted — and against its
+`avoid` list, which names corporate jargon and cold, impersonal language. "No block selected"
+became "Nothing picked yet"; "Series check" became "All four cheeses"; the Vecchio warning now
+reads "Hold this one back on the Vecchio… those two numbers disagree" instead of citing an open
+item number. The signs themselves are untouched — they were already the brand artifact.
+
+**Verification.** All seven templates render; every one of the seven JS exports parses under node
+with correct slot counts (24 for the talkers, 23 for each shipped template, matching source). Font
+detection reports Fraunces present, Futura PT absent — which is why the caveat names only Futura.
+
 ## 2026-08-25 — Sign Composer built: block-based drag-and-drop layout editor
 
 **Action.** Rick: "lets build the sign creator." Built
