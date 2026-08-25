@@ -6,6 +6,54 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 > Format convention: `## YYYY-MM-DD — Title` · **Decision / Action / Status** ·
 > keep entries short and factual. This file is the project's memory.
 
+## 2026-08-25 — Sign Composer: packshots and logo render cut out, not boxed in white
+
+**Action.** Rick: "render pack shots with removed background and logo as well." The composer was
+requesting `c_pad,b_white,…,f_auto,q_auto/<id>.jpg` — which pads a **white box** behind the image
+and, because JPEG has no alpha channel, throws away any transparency the source already had. Signs
+sit on Heritage Cream, so a white box reads as a printing defect rather than a photo.
+
+**What the sources actually are** (checked, not assumed — fetched each candidate and read the alpha
+channel):
+
+| Asset | As requested before | Reality |
+|---|---|---|
+| MT oval logo | `.jpg`, mode P, alpha 255 everywhere — flattened | **already a PNG with real alpha**; it only needed us to stop flattening it |
+| Asiago packshots | `.jpg`, RGB, no alpha | studio shots on **uniform white** — nothing to preserve, so they have to be cut |
+
+**Chose `e_make_transparent` over `e_background_removal`.** Both return clean alpha on these
+images. `e_make_transparent` is a **core transformation** — no paid add-on, no async
+first-request behaviour where Cloudinary hands back the original while it processes — and uniform
+white studio product shots are precisely its case. `e_background_removal` also works and is the
+better tool the day a shot arrives on a non-uniform ground; noted in the code comment rather than
+wired, so it is a one-word change.
+
+Delivery is `.png`, not `f_auto` — `f_auto` negotiates a format per browser and can hand back one
+without an alpha channel, which would silently reinstate the white box.
+
+**Made it a switch, not a silent change.** "Cut the background out" sits under **Photos**, on by
+default. When on, the packshot's own `bg: "$paper"` fill is suppressed too — otherwise cutting the
+photo out just reveals a Casa Paper rectangle instead of a white one. Turning it off shows the
+photo as stored, on the panel the shipped template actually asks for. The shipped templates declare
+that `bg`, and that is a real design decision, so the tool shows both rather than overruling it.
+
+**The export says so, because this is a preview-only fix.** The print path resolves its own URLs.
+`src/lib/cloudinary.js` already carries a `transparent` option and a `PRESETS_TRANSPARENT` map, so
+the app-side support exists — sign packshots simply have to ask for it. Until they do, **the
+printed sign keeps the white box this preview no longer shows**, and the export header now states
+that in full.
+
+**One self-inflicted bug worth recording.** The first patch escaped a backtick as `\\\`` inside a
+template literal, which closes the literal and threw `SyntaxError: Invalid or unexpected token` —
+the whole script failed to parse, so the canvas rendered empty. Found it by reading the browser
+console rather than guessing. Now syntax-checked with `node --check` against the extracted
+`<script>` body before reload, which is a cheap step that would have caught it immediately.
+
+**Verification.** Live in the browser: two images, zero broken, requesting
+`c_fit,w_750,h_750,e_make_transparent:12/…png` and `c_fit,w_120,h_120/…png`. Inspected at 200% —
+the wheel and wedge sit on Heritage Cream with clean edges and no halo, and the MT oval carries no
+white plate.
+
 ## 2026-08-25 — Sign Composer: the four shipped templates loaded, UI put in Monti Trentini's voice
 
 **Action.** Rick: "load the templates already built in to the Sign composer and brand this one to
