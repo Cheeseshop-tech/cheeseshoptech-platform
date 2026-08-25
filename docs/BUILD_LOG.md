@@ -6,6 +6,70 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 > Format convention: `## YYYY-MM-DD — Title` · **Decision / Action / Status** ·
 > keep entries short and factual. This file is the project's memory.
 
+## 2026-08-25 — Sign Composer built: block-based drag-and-drop layout editor
+
+**Action.** Rick: "lets build the sign creator." Built
+`design/sign-composer/sign-composer.html` against `docs/SIGN_COMPOSER_SPEC_2026-08-25.md` —
+one standalone file, no build step, opens from `file://`. Covers build-order steps 1-5, 7 and 8:
+static render, block drag/resize with snapping and safe-area guides, arrow-key nudge, undo/redo
+(40 deep), the inspector sidebar, the series filmstrip, both exports, and all five presets
+(talker G/H/I plus case-sign short/long at 3x4).
+
+Ten semantic blocks — Name, Packshot, Flavor, Recognition cue, Origin, How to verify, DOP marks,
+Company ID, QR, Description, plus the accent bar. Each declares its **presentations** (band / rail
+/ stack / inline / quote), so switching G to H re-presents a block rather than repositioning it,
+and a G/H hybrid is two dropdown choices rather than a fourth preset — which is what "keep all
+layouts" was asking for. Content configuration survives a template switch; position does not, and
+the confirm says so.
+
+Every field control in the sidebar is a **dropdown over binding paths that exist on the record**,
+never a text input — the Studio Director contract from `CHEESE_SIGNS_SPEC.md`. An empty binding
+(`milk.treatment` on all four Asiagos) renders a labelled placeholder rather than collapsing
+silently, so nobody lays out a composition around a field that vanishes at proof time.
+
+**Decision — did NOT refactor `sign-templates.js` (spec build-order step 0).** The spec recommends
+replacing `rail()`/`foot()`/`wordmark()` with semantic block builders. The composer instead carries
+its own block layer and maps to the existing grammar on export. Reasons: spec §9 says no renderer
+changes, and the refactor's blast radius is the 4 shipped templates plus 10 proofed case signs
+needing a pixel-parity diff — a separate job with its own risk, not something to fold into building
+the tool. Cost of the deferral is the one the spec names: the composer's vocabulary and the code's
+vocabulary still disagree, so that mapping is maintained in one place until step 0 is done.
+
+**The overflow detector earned its keep immediately** — it is the feature with the real value, and
+it failed the first five presets I wrote. Fixes went into the block builders, not the presets, so
+they cannot recur:
+
+- `clamp` now **derives from box height** (`linesIn(h, pt)`) instead of being a hard-coded 2. A
+  hard-coded clamp is wrong the moment a block is resized, which is the entire point of the tool.
+- `fit: "shrink"` was declared in the grammar and **not honoured by the preview**. Implemented,
+  with a 60% floor so a runaway string reports as overflow instead of shrinking to illegibility.
+- Several builder boxes were one line-height short of their own type (rail region label at h 9
+  against a 10-unit line; `brand_wordmark` likewise).
+
+**A finding about shipped code, not just the presets.** `longTemplate`'s description box is
+`h: 150 * s` at 7pt in a 266-unit column, guarded only by `maxChars: 900`. Asiago Stagionato
+(786 chars) and Vecchio (787) are inside that guard and still overflow the box — maxChars is a
+character count, not a height check, and they are different tests. The composer measures both.
+**Caveat: measured with fallback font metrics** (Futura PT is not installed), so confirm against a
+real render before treating it as certain. The composer's own Description block carries
+`fit: "shrink"`, which is the cheap fix if it holds.
+
+**Spec contradiction worth resolving.** §1's block table adds Packshot to the talker, reversing the
+handoff — "we should include a pack shot. it seems there is enough room" — and the height budget
+supports it. But §1's own consequence 1 then says "The talker has no Packshot block at all." Built
+it **with** the packshot, per the explicit reversal and the arithmetic; the sentence in consequence
+1 should be struck.
+
+**Verification.** Exported JS parsed under Node: 24 slots, no duplicate ids, all geometry numeric,
+`pad`/`inner` identifiers and `N * s` / `PT * s` expressions preserved. JSON export parses. All
+five presets render clean across all four records — zero overflow. Cloudinary packshots and the MT
+logo load from `file://` as expected (§6b-D: inline the JSON, fetch the images).
+
+**Status.** Usable. Not built yet: the asset library (§6b — Icons tab reuses `sign-icons.js` and is
+mostly wiring; Accents need drawing first) and a real QR encoder (placeholder pattern for now).
+Blocks unchanged: the Vecchio DOP-floor contradiction still gates that block, and the sidebar warns
+on it when a Vecchio record is selected.
+
 ## 2026-08-25 — Asiago provenance cards + DOP origin map, drawn from real boundary data
 
 **Action.** Rick: "4 cards to support the asiago set focusing on authenticity and provenance and

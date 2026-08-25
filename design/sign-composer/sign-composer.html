@@ -1,0 +1,1109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sign Composer — CheeseShop TECH</title>
+<style>
+:root{
+  --primary:#064E22; --accent:#009640; --sage:#70C883; --mint:#C8E2C5;
+  --cream:#FFFBDC; --paper:#FAF9F5; --charcoal:#716A6A; --ink:#141413;
+  --display:"Cora","Fraunces",Georgia,serif;
+  --ui:"Futura PT","Futura",Inter,system-ui,sans-serif;
+  --ui-bg:#20211F; --ui-panel:#2A2C29; --ui-line:#3B3E3A; --ui-text:#E8E6DF; --ui-dim:#9B9A92;
+}
+*{box-sizing:border-box;}
+body{margin:0; background:var(--ui-bg); color:var(--ui-text); font:13px/1.45 var(--ui); height:100vh; display:flex; flex-direction:column; overflow:hidden;}
+button,select,input{font:inherit; color:inherit;}
+button{background:var(--ui-panel); border:1px solid var(--ui-line); border-radius:4px; padding:5px 10px; cursor:pointer;}
+button:hover{background:#343732;}
+button.on{background:var(--accent); border-color:var(--accent); color:#fff;}
+button:disabled{opacity:.4; cursor:default;}
+select{background:var(--ui-panel); border:1px solid var(--ui-line); border-radius:4px; padding:4px 6px; max-width:100%;}
+
+/* ---------- top bar ---------- */
+header{display:flex; align-items:center; gap:14px; padding:9px 14px; background:var(--ui-panel); border-bottom:1px solid var(--ui-line); flex-shrink:0; flex-wrap:wrap;}
+header h1{margin:0; font-size:14px; font-weight:700; letter-spacing:.02em;}
+header h1 span{color:var(--sage); font-weight:400;}
+.grp{display:flex; align-items:center; gap:6px;}
+.grp label{color:var(--ui-dim); font-size:11px; text-transform:uppercase; letter-spacing:.07em;}
+.spacer{flex:1;}
+.snapshot{font-size:10.5px; color:var(--ui-dim); letter-spacing:.04em;}
+
+/* ---------- layout ---------- */
+main{flex:1; display:grid; grid-template-columns:186px 1fr 290px; min-height:0;}
+.col{overflow-y:auto; min-height:0;}
+.palette{background:var(--ui-panel); border-right:1px solid var(--ui-line); padding:10px;}
+.stage{position:relative; overflow:auto; background:#191A18; display:flex; flex-direction:column; align-items:center; padding:26px 20px 20px;}
+.inspector{background:var(--ui-panel); border-left:1px solid var(--ui-line); padding:10px 12px;}
+h3.sec{margin:0 0 7px; font-size:10.5px; text-transform:uppercase; letter-spacing:.1em; color:var(--sage); font-weight:700;}
+h3.sec + h3.sec{margin-top:14px;}
+.hint{color:var(--ui-dim); font-size:11px; line-height:1.45; margin:0 0 10px;}
+
+/* ---------- block palette ---------- */
+.pblock{display:block; width:100%; text-align:left; margin-bottom:5px; padding:6px 8px; font-size:12px; border-radius:4px;}
+.pblock small{display:block; color:var(--ui-dim); font-size:10px; margin-top:1px;}
+.pblock.used{opacity:.42;}
+.pblock.na{opacity:.3; cursor:not-allowed;}
+
+/* ---------- canvas ---------- */
+.canvaswrap{position:relative; flex-shrink:0;}
+.canvas{position:relative; background:var(--cream); box-shadow:0 6px 30px rgba(0,0,0,.5); transform-origin:top left;}
+.slot{position:absolute; overflow:hidden;}
+.blk{position:absolute; cursor:move;}
+.blk .blkbox{position:absolute; inset:0; border:1px dashed rgba(6,78,34,.34); pointer-events:none;}
+.blk.sel .blkbox{border:1.5px solid var(--accent); box-shadow:0 0 0 1px rgba(0,150,64,.3);}
+.blk.locked .blkbox{border-color:rgba(206,43,55,.42); border-style:dotted;}
+.blk .tag{position:absolute; top:-15px; left:0; font-size:9px; letter-spacing:.05em; background:var(--accent); color:#fff; padding:1px 5px; border-radius:2px 2px 0 0; white-space:nowrap; pointer-events:none; opacity:0;}
+.blk.sel .tag, .blk:hover .tag{opacity:1;}
+.blk.locked .tag{background:#CE2B37;}
+.blk.over .blkbox{border-color:#CE2B37; background:rgba(206,43,55,.1);}
+.h{position:absolute; width:8px; height:8px; background:#fff; border:1.5px solid var(--accent); border-radius:1px;}
+.h.nw{left:-4px;top:-4px;cursor:nwse-resize;} .h.n{left:calc(50% - 4px);top:-4px;cursor:ns-resize;}
+.h.ne{right:-4px;top:-4px;cursor:nesw-resize;} .h.e{right:-4px;top:calc(50% - 4px);cursor:ew-resize;}
+.h.se{right:-4px;bottom:-4px;cursor:nwse-resize;} .h.s{left:calc(50% - 4px);bottom:-4px;cursor:ns-resize;}
+.h.sw{left:-4px;bottom:-4px;cursor:nesw-resize;} .h.w{left:-4px;top:calc(50% - 4px);cursor:ew-resize;}
+.guide{position:absolute; pointer-events:none; border:1px dashed;}
+.guide.safe{border-color:rgba(0,150,64,.5);}
+.guide.bleed{border-color:rgba(206,43,55,.42);}
+.snapline{position:absolute; background:var(--accent); pointer-events:none; z-index:99;}
+
+/* ---------- filmstrip ---------- */
+.film{display:flex; gap:12px; margin-top:22px; align-items:flex-start; flex-wrap:wrap; justify-content:center;}
+.fcard{text-align:center;}
+.fcard .mini{position:relative; background:var(--cream); box-shadow:0 2px 10px rgba(0,0,0,.4); transform-origin:top left;}
+.fcard .cap{font-size:10px; margin-top:5px; color:var(--ui-dim); max-width:150px;}
+.fcard.bad .cap{color:#FF8A93;}
+.fcard.bad .mini{outline:2px solid #CE2B37;}
+.fcard button.pick{margin-top:3px; font-size:10px; padding:2px 7px;}
+
+/* ---------- inspector ---------- */
+.row{margin-bottom:9px;}
+.row > label{display:block; font-size:10.5px; color:var(--ui-dim); text-transform:uppercase; letter-spacing:.06em; margin-bottom:3px;}
+.row select, .row input{width:100%;}
+.prev{font-size:11px; color:var(--sage); margin-top:2px; word-break:break-word; line-height:1.35; max-height:44px; overflow:hidden;}
+.prev.empty{color:#E0A96D; font-style:italic;}
+.pathhint{font-size:10px; color:var(--ui-dim); margin-top:1px;}
+.warn{background:rgba(206,43,55,.14); border:1px solid rgba(206,43,55,.5); border-radius:4px; padding:7px 9px; font-size:11px; line-height:1.45; margin-bottom:10px; color:#FFC9CD;}
+.note{background:rgba(0,150,64,.1); border:1px solid rgba(0,150,64,.35); border-radius:4px; padding:7px 9px; font-size:11px; line-height:1.45; margin-bottom:10px;}
+.xy{display:grid; grid-template-columns:1fr 1fr; gap:6px;}
+.xy input{width:100%; background:var(--ui-bg); border:1px solid var(--ui-line); border-radius:3px; padding:3px 5px;}
+
+/* ---------- export dialog ---------- */
+dialog{background:var(--ui-panel); color:var(--ui-text); border:1px solid var(--ui-line); border-radius:6px; width:min(900px,92vw); padding:0;}
+dialog::backdrop{background:rgba(0,0,0,.62);}
+dialog .dhead{display:flex; align-items:center; gap:10px; padding:11px 14px; border-bottom:1px solid var(--ui-line);}
+dialog .dhead b{font-size:13px;}
+dialog textarea{width:100%; height:52vh; background:#161715; color:#D8E6D8; border:0; border-top:1px solid var(--ui-line);
+  font:11.5px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace; padding:12px; resize:none;}
+</style>
+</head>
+<body>
+<header>
+  <h1>Sign Composer <span>· CheeseShop TECH</span></h1>
+  <div class="grp"><label>Template</label><select id="tplSel"></select></div>
+  <div class="grp"><label>Record</label><select id="recSel"></select></div>
+  <div class="grp"><label>Zoom</label>
+    <button data-zoom="1">100%</button><button data-zoom="1.5" class="on">150%</button><button data-zoom="2">200%</button>
+  </div>
+  <div class="grp">
+    <button id="undoBtn" title="Cmd/Ctrl-Z">Undo</button>
+    <button id="redoBtn" title="Shift-Cmd/Ctrl-Z">Redo</button>
+  </div>
+  <div class="spacer"></div>
+  <span class="snapshot" id="snapLine"></span>
+  <button id="saveBtn" title="Validate across all four records">Save composition</button>
+  <button id="expBtn" class="on">Export</button>
+</header>
+
+<main>
+  <div class="col palette">
+    <h3 class="sec">Blocks</h3>
+    <p class="hint">Click to add or remove. Greyed = not supported by this template.</p>
+    <div id="palette"></div>
+    <h3 class="sec">Guides</h3>
+    <div class="row"><label><input type="checkbox" id="gSafe" checked> Safe area</label></div>
+    <div class="row"><label><input type="checkbox" id="gBleed" checked> Bleed</label></div>
+    <div class="row"><label><input type="checkbox" id="gSnap" checked> Snapping</label></div>
+    <p class="hint" style="margin-top:12px">Arrow keys nudge 1 unit, Shift 10.<br>Hold <b>Alt</b> while dragging to suspend snapping.</p>
+  </div>
+
+  <div class="col stage">
+    <div class="canvaswrap"><div class="canvas" id="canvas"></div></div>
+    <h3 class="sec" style="margin-top:24px; align-self:flex-start">Series — all four records through this manifest</h3>
+    <div class="film" id="film"></div>
+  </div>
+
+  <div class="col inspector" id="inspector"></div>
+</main>
+
+<dialog id="expDlg">
+  <div class="dhead">
+    <b id="expTitle">Export</b>
+    <button id="expJs" class="on">JS snippet</button>
+    <button id="expJson">JSON</button>
+    <div class="spacer"></div>
+    <button id="expCopy">Copy</button>
+    <button id="expDl">Download</button>
+    <button onclick="document.getElementById('expDlg').close()">Close</button>
+  </div>
+  <textarea id="expOut" spellcheck="false"></textarea>
+</dialog>
+
+<script>
+/* ============================================================================
+   Sign Composer — standalone layout editor for the cheese-sign family.
+   Spec: docs/SIGN_COMPOSER_SPEC_2026-08-25.md
+   Emits the slot grammar of src/lib/sign-templates.js (role/kind/x,y,w,h/z/$tokens).
+   Opens from file:// — record JSON is inlined (spec §8); images fetch from Cloudinary.
+   ========================================================================== */
+
+const PT = 1.389;                 // canvas units per typographic point
+const CLOUD = "sofcvmwa";         // src/data/montitrentini/client.config.json
+
+const TOKENS = {                  // src/lib/brand-tokens.js defaults
+  primary:"#064E22", accent:"#009640", sage:"#70C883", mint:"#C8E2C5",
+  cream:"#FFFBDC", paper:"#FAF9F5", charcoal:"#716A6A", ink:"#141413",
+  muted:"#716A6A", tricolore:"linear-gradient(90deg,#008C45 33.3%,#F4F5F0 33.3% 66.6%,#CD212A 66.6%)",
+  display:'"Cora","Fraunces",Georgia,serif', ui:'"Futura PT","Futura",Inter,system-ui,sans-serif',
+};
+const tok = (v) => (typeof v === "string" && v[0] === "$") ? (TOKENS[v.slice(1)] ?? v) : v;
+
+// --- data snapshot: 2026-08-25 — src/data/montitrentini/signs.json (family "asiago") ---
+// Inlined because the editor opens from file:// and fetch() would fail on CORS (spec §8).
+// Paste fresher records via the button in the footer rather than editing this by hand.
+const SNAPSHOT_DATE = "2026-08-25";
+const RECORDS = [
+  {
+    "id": "asiago-fresco-dop",
+    "name": "Asiago Fresco",
+    "italianName": "Asiago DOP Fresco",
+    "designation": "DOP",
+    "family": "asiago",
+    "skus": [
+      "02005",
+      "02073",
+      "02091",
+      "02302"
+    ],
+    "formats": "Whole wheel · 1/4 wheel · 7 oz wedge · square for slicing",
+    "milk": {
+      "type": "Cow's milk",
+      "detail": "Whole (full-fat)",
+      "treatment": ""
+    },
+    "minAge": "30–40 days",
+    "dopMinimum": "20 days",
+    "region": {
+      "label": "Trentino & Veneto",
+      "sub": "PDO milkshed",
+      "icon": "trentino-veneto"
+    },
+    "mountainMark": false,
+    "origin": "Product of Italy",
+    "flavorProfile": "Sweet and milky, with yoghurt's faint acidity — soft as sponge cake, pale straw.",
+    "unique": "Milk collected only inside the PDO area. Certified organic version available.",
+    "shortDescription": "Sweet and milky, with the gentle acidity of yoghurt and a texture soft as sponge cake — white to pale straw. Full-fat milk from the farms of Trentino and Veneto.",
+    "longDescription": "Asiago DOP Fresco is the young face of Italy's most-produced PDO mountain cheese. Monti Trentini makes it with full-fat cow's milk collected daily from farms inside the protected milkshed of Trentino and Veneto — the same valleys the family has bought milk from for four generations. Aged 30 to 40 days, it comes out mild and sweet, with the faint yoghurt-like acidity and buttery aroma the Asiago DOP consortium itself uses to describe it — soft as sponge cake in the hand, never sticky or greasy, white to pale straw. It slices, melts and cubes well, which makes it the workhorse of the case: as good on a board with fruit as it is in a panino, a gratin or a lasagne. Rich in protein with a well-balanced fat content.",
+    "image": "monti-trentini/asiago/asiago-fresco-dop-1awu-z",
+    "qrUrl": "https://www.montitrentini.com/en/cheeses/asiago-pdo",
+    "stock": "in stock"
+  },
+  {
+    "id": "asiago-fresco-montagna",
+    "name": "Asiago Fresco di Montagna",
+    "italianName": "Asiago DOP Fresco Prodotto della Montagna",
+    "designation": "DOP",
+    "family": "asiago",
+    "skus": [
+      "02206"
+    ],
+    "formats": "Whole wheel",
+    "milk": {
+      "type": "Cow's milk",
+      "detail": "Whole, above 2,000 ft",
+      "treatment": ""
+    },
+    "minAge": "60–70 days",
+    "dopMinimum": "30 days",
+    "region": {
+      "label": "Altopiano di Asiago · Enego",
+      "sub": "Caseificio Finco, Enego",
+      "icon": "altopiano-asiago"
+    },
+    "mountainMark": true,
+    "origin": "Product of Italy",
+    "flavorProfile": "Sweet, full-bodied and delicate — soft as sponge cake, with high-pasture aromatics.",
+    "unique": "\"Product of the Mountain\": milk collected AND processed above 2,000 feet. First prize, Caseus Veneti 2025.",
+    "shortDescription": "Particularly sweet and full-bodied, soft as sponge cake with a pale straw color. Made at Caseificio Finco in Enego from Asiago-plateau milk.",
+    "longDescription": "To carry the \"Product of the Mountain\" mark, every step — the milk, the make, the aging — has to happen above 2,000 feet. This Asiago does. It is produced at Monti Trentini's own Caseificio Finco in Enego, on the Asiago plateau, from full-fat milk rigorously selected from high-pasture herds. The result is what a mountain cheese is supposed to taste like: sweeter and more full-bodied than a valley Asiago, with the flower-and-grass aromatics that come from what the cows actually eat, soft as sponge cake in the hand and never greasy, with the same faint yoghurt-like acidity that marks a young Asiago DOP. Caseificio Finco took first prize for exactly this cheese at Caseus Veneti 2025.",
+    "image": "monti-trentini/asiago/asiago-fresco-pdm-1ldlkv",
+    "qrUrl": "https://www.montitrentini.com/en/cheeses/asiago-pdo",
+    "stock": "in stock"
+  },
+  {
+    "id": "asiago-stagionato-dop",
+    "name": "Asiago Stagionato",
+    "italianName": "Asiago DOP Stagionato",
+    "designation": "DOP",
+    "family": "asiago",
+    "skus": [
+      "03023",
+      "03010",
+      "03044"
+    ],
+    "formats": "Whole wheel · 1/4 wheel · 7 oz wedge",
+    "milk": {
+      "type": "Cow's milk",
+      "detail": "Semi-skimmed",
+      "treatment": ""
+    },
+    "minAge": "5 months",
+    "dopMinimum": "90 days",
+    "region": {
+      "label": "Trentino & Veneto",
+      "sub": "PDO milkshed",
+      "icon": "trentino-veneto"
+    },
+    "mountainMark": false,
+    "origin": "Product of Italy",
+    "flavorProfile": "Sweet like a boiled chestnut, turning aromatic and salty — close-textured yet soft, straw-gold.",
+    "unique": "Five months of natural aging — inside the window the Asiago DOP consortium itself calls Mezzano.",
+    "shortDescription": "Sweet like a boiled chestnut turning aromatic and salty, close-textured yet soft — what the consortium calls Mezzano. Small scattered eyes, straw-gold paste.",
+    "longDescription": "Where the Fresco is a young cheese, the Stagionato is Asiago growing into itself. Monti Trentini makes it from semi-skimmed cow's milk selected in the mountain and valley farms of Trentino and Veneto, then holds it five months — inside the four-to-six-month window the Asiago DOP consortium itself calls Mezzano. Aging concentrates it: the paste turns straw-gold and close-textured yet still soft (the consortium's own tasting notes compare the texture to a good frankfurter), with small scattered eyes and a flavor that starts sweet like a boiled chestnut and turns aromatic and salty toward the rind. Excellent with nothing but bread, and the Asiago most chefs reach for when they want the cheese to be tasted rather than melted away. High in protein with a well-balanced fat content.",
+    "image": "monti-trentini/asiago/asiago-stagionato-dop-1yjo6f",
+    "qrUrl": "https://www.montitrentini.com/en/cheeses/asiago-pdo",
+    "stock": "in stock"
+  },
+  {
+    "id": "asiago-vecchio-dop",
+    "name": "Asiago Vecchio",
+    "italianName": "Asiago DOP Vecchio",
+    "designation": "DOP",
+    "family": "asiago",
+    "skus": [
+      "03003",
+      "03014",
+      "03073"
+    ],
+    "formats": "Whole wheel · 1/4 wheel · 7 oz wedge",
+    "milk": {
+      "type": "Cow's milk",
+      "detail": "Semi-skimmed",
+      "treatment": ""
+    },
+    "minAge": "9 months",
+    "dopMinimum": "9 months (Vecchio)",
+    "region": {
+      "label": "Trentino & Veneto",
+      "sub": "PDO milkshed",
+      "icon": "trentino-veneto"
+    },
+    "mountainMark": false,
+    "origin": "Product of Italy",
+    "flavorProfile": "Deep and piquant, the same boiled-chestnut sweetness gone savory — semi-hard, granular.",
+    "unique": "Nine months of natural aging, carrying the sweet-to-savory character the consortium describes in every aged Asiago, further and more piquant.",
+    "shortDescription": "Aged, unmistakable and piquant — the same boiled-chestnut sweetness the consortium describes, turned deep and savory. Semi-hard, granular, straw-gold.",
+    "longDescription": "Nine months of patient natural aging turn Asiago into something else entirely. Made from semi-skimmed milk selected from small farms in Trentino and Veneto, it comes out semi-hard and granular, straw-gold, with scattered eyes and the beginnings of crystal crunch. The flavor follows the same arc the Asiago DOP consortium describes for every aged Asiago — sweet like a boiled chestnut turning aromatic and salty, with spice building toward the rind — carried further here: deep, savory, faintly piquant on the finish. The kind of cheese that holds its own next to a big red instead of disappearing under it. Serve it in shards with honey, mostarda or aged balsamic; grate it over pasta where you would otherwise reach for something one-dimensional. Rich in protein, well-balanced in fat.",
+    "image": "monti-trentini/asiago/asiago-vecchio-stravecchio-1p7rbd",
+    "qrUrl": "https://www.montitrentini.com/en/cheeses/asiago-pdo",
+    "stock": "in stock"
+  }
+];
+
+// --- src/lib/sign-icons.js, inlined verbatim (spec §6b palette note) ---
+const SIGN_ICONS = {
+  cow: "<svg viewBox=\"0 0 120 82\" xmlns=\"http://www.w3.org/2000/svg\" class=\"ic ic-cow\" aria-label=\"Cow's milk\">\n<g fill=\"none\" stroke=\"{ink}\" stroke-width=\"2.6\" stroke-linejoin=\"round\" stroke-linecap=\"round\">\n<path d=\"M34 30 Q34 17 52 17 L84 17 Q100 17 103 31 Q106 45 96 52 L40 52 Q30 45 34 30 Z\" fill=\"{paper}\"/>\n<path d=\"M36 33 L18 37 Q8 39 8 47 Q8 55 18 55 L28 53 Q34 51 36 46 Z\" fill=\"{paper}\"/>\n<path d=\"M17 34 Q9 28 12 24 Q17 22 22 30\" fill=\"{paper}\"/>\n<path d=\"M8 47 L18 47\" />\n<path d=\"M44 52 L44 72 M58 52 L58 72 M84 52 L84 72 M96 52 L96 72\"/>\n<path d=\"M101 26 Q112 22 112 34 Q112 44 106 47\"/>\n<path d=\"M62 52 Q68 62 76 58\"/>\n</g>\n<g fill=\"{ink}\">\n<circle cx=\"15\" cy=\"43\" r=\"2.1\"/>\n<path d=\"M52 22 Q66 19 74 26 Q78 34 68 37 Q56 39 51 32 Q48 25 52 22 Z\"/>\n<path d=\"M86 30 Q98 30 99 39 Q100 47 91 47 Q83 46 82 38 Q82 31 86 30 Z\"/>\n<path d=\"M40 40 Q49 41 50 47 L38 48 Q36 43 40 40 Z\"/>\n</g>\n</svg>",
+  region: {
+    valsugana: "<svg viewBox=\"0 0 120 82\" xmlns=\"http://www.w3.org/2000/svg\" class=\"ic\" aria-label=\"Valsugana\">\n<g fill=\"none\" stroke=\"{ink}\" stroke-width=\"2.6\" stroke-linejoin=\"round\" stroke-linecap=\"round\">\n<path d=\"M4 58 L30 20 L46 42 L56 30 L78 58 Z\" fill=\"{paper}\"/>\n<path d=\"M62 58 L86 24 L116 58 Z\" fill=\"{paper}\"/>\n<path d=\"M22 32 L30 20 L38 32 L33 29 L27 33 Z\" fill=\"{ink}\"/>\n<path d=\"M78 36 L86 24 L94 36 L89 33 L83 37 Z\" fill=\"{ink}\"/>\n<path d=\"M4 62 L116 62\"/>\n<path d=\"M18 72 Q38 64 58 72 Q78 80 102 71\"/>\n</g></svg>",
+    "altopiano-asiago": "<svg viewBox=\"0 0 120 82\" xmlns=\"http://www.w3.org/2000/svg\" class=\"ic\" aria-label=\"Altopiano di Asiago\">\n<g fill=\"none\" stroke=\"{ink}\" stroke-width=\"2.6\" stroke-linejoin=\"round\" stroke-linecap=\"round\">\n<path d=\"M6 56 L26 30 Q34 21 48 21 L78 21 Q92 21 100 32 L116 56 Z\" fill=\"{paper}\"/>\n<path d=\"M40 21 L48 12 L56 21\" fill=\"{ink}\"/>\n<path d=\"M6 60 L116 60\"/>\n<path d=\"M20 60 L20 74 M44 60 L44 74 M68 60 L68 74 M92 60 L92 74\"/>\n<path d=\"M12 66 L100 66\"/>\n</g></svg>",
+    "trentino-veneto": "<svg viewBox=\"0 0 120 82\" xmlns=\"http://www.w3.org/2000/svg\" class=\"ic\" aria-label=\"Trentino and Veneto\">\n<g fill=\"none\" stroke=\"{ink}\" stroke-width=\"2.6\" stroke-linejoin=\"round\" stroke-linecap=\"round\">\n<path d=\"M2 56 L24 26 L40 48 L52 34 L68 56 Z\" fill=\"{paper}\"/>\n<path d=\"M54 56 L76 22 L98 50 L106 40 L118 56 Z\" fill=\"{paper}\"/>\n<path d=\"M17 36 L24 26 L31 36 L27 33 L21 37 Z\" fill=\"{ink}\"/>\n<path d=\"M69 32 L76 22 L83 32 L79 29 L73 33 Z\" fill=\"{ink}\"/>\n<path d=\"M2 60 L118 60\"/>\n<path d=\"M14 70 Q40 62 60 70 Q84 79 108 69\"/>\n</g></svg>",
+  },
+  dop: "<svg viewBox=\"0 0 100 100\" xmlns=\"http://www.w3.org/2000/svg\" class=\"ic-badge\" aria-label=\"DOP protected designation of origin\">\n<circle cx=\"50\" cy=\"50\" r=\"46\" fill=\"none\" stroke=\"{accent}\" stroke-width=\"4\"/>\n<circle cx=\"50\" cy=\"50\" r=\"38\" fill=\"{accent}\"/>\n<text x=\"50\" y=\"46\" text-anchor=\"middle\" font-family=\"Georgia,serif\" font-weight=\"700\" font-size=\"26\" fill=\"{paper}\">DOP</text>\n<text x=\"50\" y=\"64\" text-anchor=\"middle\" font-family=\"Inter,sans-serif\" font-weight=\"600\" font-size=\"11\" letter-spacing=\"1.2\" fill=\"{paper}\">PDO</text>\n</svg>",
+  mountain: "<svg viewBox=\"0 0 100 100\" xmlns=\"http://www.w3.org/2000/svg\" class=\"ic-badge\" aria-label=\"Product of the Mountain\">\n<circle cx=\"50\" cy=\"50\" r=\"46\" fill=\"none\" stroke=\"{primary}\" stroke-width=\"4\"/>\n<circle cx=\"50\" cy=\"50\" r=\"38\" fill=\"{paper}\"/>\n<path d=\"M22 64 L40 34 L52 52 L60 42 L78 64 Z\" fill=\"{primary}\"/>\n<path d=\"M34 48 L40 34 L46 48 L41 45 L37 49 Z\" fill=\"{paper}\"/>\n<text x=\"50\" y=\"80\" text-anchor=\"middle\" font-family=\"Inter,sans-serif\" font-weight=\"700\" font-size=\"10\" letter-spacing=\"0.6\" fill=\"{primary}\">MOUNTAIN</text>\n</svg>",
+  italy: "<svg viewBox=\"0 0 60 100\" xmlns=\"http://www.w3.org/2000/svg\" class=\"ic-italy\" aria-label=\"Italy\">\n<path d=\"M20 6 L27 4 L31 12 L38 15 L36 24 L44 34 L52 48 L50 58 L42 62 L36 74 L28 86 L20 94 L14 90 L18 78 L14 68 L8 60 L12 50 L10 38 L14 26 L18 16 Z\"\n      fill=\"{ink}\" opacity=\".9\"/>\n<path d=\"M50 74 L56 70 L58 78 L52 82 Z\" fill=\"{ink}\" opacity=\".9\"/>\n</svg>",
+};
+
+function paintIcon(svg, t = TOKENS) {
+  return String(svg).replaceAll("{primary}", t.primary).replaceAll("{accent}", t.accent)
+                    .replaceAll("{ink}", t.ink).replaceAll("{paper}", t.paper);
+}
+function regionIcon(key) { return SIGN_ICONS.region[key] || SIGN_ICONS.region.valsugana; }
+function iconFor(ref, rec) {
+  if (ref === "$icon:region") return regionIcon(rec?.region?.icon);
+  const k = String(ref || "").replace("$icon:", "");
+  return typeof SIGN_ICONS[k] === "string" ? SIGN_ICONS[k] : null;
+}
+function cldUrl(publicId, px) {
+  const w = Math.max(120, Math.round(px * 3));
+  return `https://res.cloudinary.com/${CLOUD}/image/upload/c_pad,b_white,w_${w},h_${w},f_auto,q_auto/${publicId}.jpg`;
+}
+function bindValue(rec, path) {
+  if (!path) return "";
+  return path.split(".").reduce((o, k) => (o == null ? o : o[k]), rec) ?? "";
+}
+
+/* ============================================================================
+   1. THE BLOCK MODEL  (spec §1)
+   A block is the semantic unit. It owns its internal arrangement — internals are
+   never draggable. `pres` (presentation) is how the block renders in this layout;
+   switching G→H changes presentation, not binding. Blocks emit sign-templates.js
+   slots, so the export is a direct mapping.
+   ========================================================================== */
+
+const F_ = (font, ptSize, extra = {}) => ({ font, size: ptSize * PT, ...extra });
+// How many lines of `pt` type actually fit in `h` units — so clamp follows the box
+// instead of being a hard-coded guess that breaks the moment a block is resized.
+const linesIn = (h, pt) => Math.max(1, Math.floor(h / (pt * PT * 1.28)));
+
+const BLOCKS = {
+  name: {
+    label: "Name", hint: "cheese name + Italian name", pres: ["band", "stack", "rail"],
+    fields: [{ k: "name", label: "Name", def: "name" }, { k: "italianName", label: "Italian name", def: "italianName" }],
+    h: { band: 62, stack: 44, rail: 120 },
+    build(c) {
+      const { x, y, w, h, b } = c, P = c.pres;
+      if (P === "band") return [
+        { id: "name_band", role: "lock", kind: "shape", x, y, w, h, z: 4, fill: "$primary" },
+        { id: "name", role: "var", kind: "text", binds: b.name, x: x + 15, y: y + 14, w: w - 30, h: 26, z: 5, fit: "shrink",
+          font: F_("$display", 13.5, { italic: true, bold: true, color: "$cream" }) },
+        { id: "italian_name", role: "var", kind: "text", binds: b.italianName, x: x + 15, y: y + 41, w: w - 30, h: 10, z: 5,
+          font: F_("$ui", 5, { uppercase: true, tracking: 0.11, color: "$mint" }) },
+      ];
+      if (P === "rail") return [
+        { id: "name_rail", role: "lock", kind: "shape", x, y, w: 46, h, z: 4, fill: "$primary" },
+        { id: "name", role: "var", kind: "text", binds: b.name, x, y, w: 46, h, z: 5, vertical: true, fit: "shrink",
+          font: F_("$display", 12.5, { italic: true, bold: true, color: "$cream", align: "center" }) },
+        { id: "italian_name", role: "var", kind: "text", binds: b.italianName, x: x + 52, y: y + 2, w: w - 52, h: 20, z: 5, clamp: 2,
+          font: F_("$ui", 5, { uppercase: true, tracking: 0.11, color: "$muted" }) },
+      ];
+      return [
+        { id: "name", role: "var", kind: "text", binds: b.name, x, y, w, h: h - 12, z: 5, fit: "shrink",
+          font: F_("$display", 13.5, { italic: true, bold: true, color: "$primary" }) },
+        { id: "italian_name", role: "var", kind: "text", binds: b.italianName, x, y: y + h - 12, w, h: 10, z: 5,
+          font: F_("$ui", 5, { uppercase: true, tracking: 0.11, color: "$muted" }) },
+      ];
+    },
+  },
+
+  packshot: {
+    label: "Packshot", hint: "product photo — cut face if possible", pres: ["band", "inline"],
+    fields: [{ k: "image", label: "Image", def: "image" }],
+    h: { band: 96, inline: 62 },
+    build: (c) => ([{ id: "packshot", role: "var", kind: "image", fit: "contain", bg: "$paper", binds: c.b.image,
+      x: c.x, y: c.y, w: c.w, h: c.h, z: 3, tag: "packshot", label: "Packshot" }]),
+  },
+
+  flavor: {
+    label: "Flavor", hint: "italic flavor tag", pres: ["plain"],
+    fields: [{ k: "flavorProfile", label: "Flavor line", def: "flavorProfile" }],
+    h: { plain: 20 },
+    build: (c) => ([{ id: "flavor", role: "var", kind: "text", binds: c.b.flavorProfile,
+      x: c.x, y: c.y, w: c.w, h: c.h, z: 5, clamp: linesIn(c.h, 7.4),
+      font: F_("$display", 7.4, { italic: true, color: "$accent" }) }]),
+  },
+
+  cue: {
+    label: "Recognition cue", hint: "one-line sensory detail — NEW field", pres: ["plain", "quote"],
+    fields: [{ k: "recognitionCue", label: "Cue", def: "recognitionCue" }],
+    h: { plain: 16, quote: 22 },
+    build(c) {
+      const s = { id: "recognition_cue", role: "var", kind: "text", binds: c.b.recognitionCue,
+        x: c.x, y: c.y, w: c.w, h: c.h, z: 5, maxChars: 70, clamp: linesIn(c.h, 5.4),
+        font: F_("$ui", 5.4, { color: "$ink" }) };
+      if (c.pres === "quote") { s.font.italic = true; s.font.font = "$display"; s.rule = { side: "left", w: 1.6, color: "$accent" }; s.x += 6; s.w -= 6; }
+      return [s];
+    },
+  },
+
+  origin: {
+    label: "Origin", hint: "region label + sub + illustration", pres: ["rail", "stack"],
+    fields: [{ k: "label", label: "Region", def: "region.label" }, { k: "sub", label: "Sub-label", def: "region.sub" }],
+    h: { rail: 22, stack: 32 },
+    build(c) {
+      const { x, y, w, b } = c;
+      const ic = { id: "region_icon", role: "lock", kind: "image", fit: "contain", x, y, w: 28, h: 19, z: 5,
+        asset: "$icon:region", bindsAsset: "region.icon", label: "Region illustration" };
+      if (c.pres === "stack") return [
+        { ...ic, x: x + w / 2 - 14 }, 
+        { id: "region_label", role: "var", kind: "text", binds: b.label, x, y: y + 21, w, h: 11, z: 5,
+          font: F_("$ui", 5.6, { bold: true, color: "$primary", align: "center" }) },
+        { id: "region_sub", role: "var", kind: "text", binds: b.sub, x, y: y + 32, w, h: 11, z: 5,
+          font: F_("$ui", 4.7, { color: "$muted", align: "center" }), clamp: 1 },
+      ];
+      return [ic,
+        { id: "region_label", role: "var", kind: "text", binds: b.label, x: x + 32, y, w: w - 32, h: 11, z: 5,
+          font: F_("$ui", 5.6, { bold: true, color: "$primary" }) },
+        { id: "region_sub", role: "var", kind: "text", binds: b.sub, x: x + 32, y: y + 11, w: w - 32, h: 13, z: 5,
+          font: F_("$ui", 4.7, { color: "$muted" }), clamp: 2 },
+      ];
+    },
+  },
+
+  verify: {
+    label: "How to verify", hint: "age vs DOP floor + milk", pres: ["rail", "stack"],
+    fields: [
+      { k: "minAge", label: "Shipped age", def: "minAge" },
+      { k: "dopMinimum", label: "DOP floor", def: "dopMinimum" },
+      { k: "milkType", label: "Milk", def: "milk.type" },
+      { k: "milkDetail", label: "Milk detail", def: "milk.detail" },
+    ],
+    h: { rail: 26, stack: 40 },
+    build(c) {
+      const { x, y, w, b } = c, third = w / 3;
+      const cell = (i, key, path, id) => ([
+        { id: `${id}_k`, role: "lock", kind: "text", value: key, x: x + third * i + 4, y: y + 3, w: third - 8, h: 7, z: 5,
+          font: F_("$ui", 3.9, { uppercase: true, tracking: 0.09, color: "$muted" }) },
+        { id, role: "var", kind: "text", binds: path, x: x + third * i + 4, y: y + 10, w: third - 8, h: 11, z: 5, fit: "shrink",
+          font: F_("$ui", 5.2, { bold: true, color: "$primary" }) },
+      ]);
+      if (c.pres === "stack") return [
+        { id: "milk_icon", role: "lock", kind: "image", fit: "contain", x, y, w: 28, h: 19, z: 5, asset: "$icon:cow", label: "Milk icon" },
+        { id: "min_age", role: "var", kind: "text", binds: b.minAge, x: x + 32, y, w: w - 32, h: 15, z: 5,
+          font: F_("$display", 10.5, { italic: true, bold: true, color: "$accent" }) },
+        { id: "min_age_label", role: "lock", kind: "text", value: "Minimum age", x: x + 32, y: y + 15, w: w - 32, h: 8, z: 5,
+          font: F_("$ui", 4.7, { uppercase: true, tracking: 0.1, color: "$muted" }) },
+        { id: "dop_floor", role: "var", kind: "text", binds: b.dopMinimum, x: x + 32, y: y + 24, w: w - 32, h: 9, z: 5,
+          font: F_("$ui", 4.7, { color: "$muted" }) },
+      ];
+      return [
+        ...cell(0, "Aged", b.minAge, "min_age"),
+        ...cell(1, "DOP floor", b.dopMinimum, "dop_floor"),
+        ...cell(2, "Milk", b.milkType, "milk_type"),
+        { id: "verify_frame", role: "lock", kind: "shape", x, y, w, h: c.h, z: 4, stroke: "$primary", fill: "none" },
+      ];
+    },
+  },
+
+  dop: {
+    label: "DOP marks", hint: "DOP + Product of the Mountain", pres: ["row"],
+    fields: [], h: { row: 34 },
+    build: (c) => ([
+      { id: "dop_badge", role: "brand", kind: "image", fit: "contain", x: c.x, y: c.y, w: 34, h: 34, z: 6,
+        asset: "$icon:dop", showIf: "designation", label: "DOP / PDO mark" },
+      { id: "mountain_badge", role: "brand", kind: "image", fit: "contain", x: c.x + 40, y: c.y, w: 34, h: 34, z: 6,
+        asset: "$icon:mountain", showIf: "mountainMark", label: "Product of the Mountain" },
+    ]),
+  },
+
+  companyId: {
+    label: "Company ID", hint: "MT logo + wordmark (spec §6)", pres: ["stack", "inline"],
+    fields: [], h: { stack: 40, inline: 26 },
+    build(c) {
+      const { x, y, w } = c;
+      if (c.pres === "inline") return [
+        { id: "brand_logo", role: "brand", kind: "image", fit: "contain", x, y, w: 24, h: 24, z: 6,
+          asset: "$brand:primary", label: "Monti Trentini mark" },
+        { id: "brand_wordmark", role: "lock", kind: "text", value: "MONTI TRENTINI", x: x + 28, y: y + 3, w: w - 28, h: 11, z: 6,
+          font: F_("$ui", 5.2, { bold: true, uppercase: true, tracking: 0.16, color: "$primary" }) },
+        { id: "brand_line", role: "lock", kind: "text", value: "Casari dal 1925 · Grigno, Valsugana", x: x + 28, y: y + 14, w: w - 28, h: 10, z: 6,
+          font: F_("$display", 4.3, { italic: true, color: "$muted" }) },
+      ];
+      return [
+        { id: "brand_logo", role: "brand", kind: "image", fit: "contain", x: x + w / 2 - 15, y, w: 30, h: 30, z: 6,
+          asset: "$brand:primary", label: "Monti Trentini mark" },
+        { id: "brand_wordmark", role: "lock", kind: "text", value: "MONTI TRENTINI", x, y: y + 31, w, h: 11, z: 6,
+          font: F_("$ui", 5.6, { bold: true, uppercase: true, tracking: 0.2, color: "$primary", align: "center" }) },
+      ];
+    },
+  },
+
+  qr: {
+    label: "QR", hint: "code + caption", pres: ["block"],
+    fields: [{ k: "qrUrl", label: "URL", def: "qrUrl" }],
+    h: { block: 56 },
+    build: (c) => ([
+      { id: "qr", role: "var", kind: "qr", binds: c.b.qrUrl, x: c.x, y: c.y, w: 46, h: 46, z: 6, ec: "M", quiet: 1, label: "QR — product page" },
+      { id: "qr_caption", role: "lock", kind: "text", value: "Scan for the story", x: c.x - 10, y: c.y + 48, w: 66, h: 9, z: 6,
+        font: F_("$ui", 3.9, { uppercase: true, tracking: 0.06, color: "$muted", align: "center" }) },
+    ]),
+  },
+
+  description: {
+    label: "Description", hint: "short or long copy", pres: ["plain"],
+    fields: [{ k: "text", label: "Copy", def: "shortDescription" }],
+    h: { plain: 56 },
+    build: (c) => ([{ id: "description", role: "var", kind: "text", binds: c.b.text, fit: "shrink",
+      x: c.x, y: c.y, w: c.w, h: c.h, z: 5, maxChars: c.b.text === "longDescription" ? 900 : 165,
+      font: F_("$ui", 6.7, { color: "$ink" }) }]),
+  },
+
+  accentBar: {
+    label: "Accent bar", hint: "brand furniture", pres: ["top"],
+    fields: [], h: { top: 5.5 },
+    build: (c) => ([{ id: "accent_bar", role: "lock", kind: "shape", x: 0, y: c.y, w: c.cw, h: 5.5, z: 2, fill: "$accent" }]),
+  },
+};
+
+/* ============================================================================
+   2. TEMPLATES / PRESETS  (spec §5 — G/H/I are presentation sets, not just
+   arrangements. Switching re-presents every block; bindings survive.)
+   ========================================================================== */
+const B = (block, pres, x, y, w, h, binds) => ({ block, pres, x, y, w, h, binds: binds || null });
+
+const TEMPLATES = [
+  { id: "talker/G", label: 'Talker 2.5×3.5 — G green cap', family: "talker",
+    canvas: { w: 250, h: 350 }, base: 250, pad: 14, bleed: 12.5, safe: 12,
+    blocks: [
+      B("name","band",0,0,250,62), B("packshot","band",0,66,250,96),
+      B("flavor","plain",14,168,222,28), B("cue","plain",14,198,222,18),
+      B("origin","rail",14,218,222,26), B("verify","rail",14,246,222,26),
+      B("dop","row",14,276,74,34), B("qr","block",190,272,46,58),
+      B("companyId","inline",14,310,130,26),
+    ] },
+  { id: "talker/H", label: 'Talker 2.5×3.5 — H left rail', family: "talker",
+    canvas: { w: 250, h: 350 }, base: 250, pad: 14, bleed: 12.5, safe: 12,
+    blocks: [
+      B("name","rail",0,0,250,350), B("packshot","inline",58,14,178,62),
+      B("flavor","plain",58,82,178,42), B("cue","plain",58,126,178,18),
+      B("origin","rail",58,148,178,26), B("verify","rail",58,178,178,26),
+      B("dop","row",58,210,74,34), B("qr","block",190,206,46,58),
+      B("companyId","inline",58,300,178,26),
+    ] },
+  { id: "talker/I", label: 'Talker 2.5×3.5 — I badge-forward', family: "talker",
+    canvas: { w: 250, h: 350 }, base: 250, pad: 14, bleed: 12.5, safe: 12,
+    blocks: [
+      B("accentBar","top",0,0,250,5.5), B("dop","row",88,16,74,34),
+      B("name","stack",14,58,222,44), B("packshot","band",0,106,250,86),
+      B("flavor","plain",14,196,222,28), B("cue","quote",14,226,222,18),
+      B("origin","stack",14,246,222,34), B("verify","rail",14,282,222,26),
+      B("qr","block",190,296,46,56), B("companyId","inline",14,306,130,26),
+    ] },
+  { id: "sign-3x4/short", label: 'Case sign 3×4 — short + photo', family: "cheese-sign",
+    canvas: { w: 300, h: 400 }, base: 300, pad: 17, bleed: 12.5, safe: 12,
+    blocks: [
+      B("accentBar","top",0,0,300,5.5), B("companyId","stack",0,10,300,40),
+      B("packshot","band",0,56,300,110), B("name","stack",17,172,266,44),
+      B("origin","rail",17,220,266,22), B("verify","rail",17,246,266,26),
+      B("flavor","plain",17,276,266,30), B("description","plain",17,310,266,38),
+      B("dop","row",17,350,74,34), B("qr","block",237,330,46,58),
+    ] },
+  { id: "sign-3x4/long", label: 'Case sign 3×4 — long description', family: "cheese-sign",
+    canvas: { w: 300, h: 400 }, base: 300, pad: 17, bleed: 12.5, safe: 12,
+    blocks: [
+      B("accentBar","top",0,0,300,5.5), B("companyId","stack",0,10,300,40),
+      B("name","stack",17,58,266,44), B("flavor","plain",17,104,266,30),
+      B("origin","rail",17,138,266,26), B("verify","rail",17,168,266,26),
+      B("description","plain",17,200,266,146,{ text:"longDescription" }),
+      B("dop","row",17,350,74,34), B("qr","block",237,330,46,58),
+    ] },
+];
+
+/* ============================================================================
+   3. STATE + UNDO
+   ========================================================================== */
+const S = {
+  tplId: "talker/G", recIdx: 0, zoom: 1.5, sel: null,
+  snap: true, guides: { safe: true, bleed: true },
+  layouts: {},            // tplId -> [{block,pres,x,y,w,h,binds,hidden,override}]
+  undo: [], redo: [],
+};
+const tpl = () => TEMPLATES.find(t => t.id === S.tplId);
+const rec = () => RECORDS[S.recIdx];
+const layout = () => {
+  if (!S.layouts[S.tplId]) S.layouts[S.tplId] = tpl().blocks.map(b => ({ ...b, binds: b.binds ? { ...b.binds } : null }));
+  return S.layouts[S.tplId];
+};
+const snapshotState = () => JSON.stringify(S.layouts);
+function push() { S.undo.push(snapshotState()); if (S.undo.length > 40) S.undo.shift(); S.redo.length = 0; syncUndo(); }
+function undo() { if (!S.undo.length) return; S.redo.push(snapshotState()); S.layouts = JSON.parse(S.undo.pop()); S.sel = null; syncUndo(); renderAll(); }
+function redo() { if (!S.redo.length) return; S.undo.push(snapshotState()); S.layouts = JSON.parse(S.redo.pop()); S.sel = null; syncUndo(); renderAll(); }
+function syncUndo() { undoBtn.disabled = !S.undo.length; redoBtn.disabled = !S.redo.length; }
+
+// Resolve a block entry to its concrete slots for a given record.
+function slotsFor(entry, record, cw) {
+  const def = BLOCKS[entry.block];
+  const binds = {};
+  def.fields.forEach(f => { binds[f.k] = (entry.binds && entry.binds[f.k]) || f.def; });
+  return def.build({ x: entry.x, y: entry.y, w: entry.w, h: entry.h, pres: entry.pres, b: binds, rec: record, cw });
+}
+function visible(entry) { return !entry.hidden; }
+
+/* ============================================================================
+   4. RENDER — slots to DOM. 1 canvas unit = 1 px; zoom is a CSS transform, so
+   nothing here ever sees the zoom factor (spec §3: zoom is display-only).
+   ========================================================================== */
+const measurer = document.createElement("div");
+Object.assign(measurer.style, { position: "absolute", visibility: "hidden", left: "-9999px", top: "0" });
+document.body.appendChild(measurer);
+
+function fontCss(f) {
+  if (!f) return {};
+  return {
+    fontFamily: tok(f.font), fontSize: f.size + "px",
+    fontWeight: f.bold ? "700" : "400", fontStyle: f.italic ? "italic" : "normal",
+    letterSpacing: (f.tracking || 0) + "em", color: tok(f.color) || "inherit",
+    textTransform: f.uppercase ? "uppercase" : "none", textAlign: f.align || "left",
+    lineHeight: f.italic && f.size > 12 ? 1.06 : 1.28,
+  };
+}
+// fit:"shrink" — step the size down until the text fits its box. Floor at 60% so a
+// runaway string reports as overflow instead of shrinking into illegibility.
+function shrinkToFit(slot, record) {
+  const base = slot.font.size, css = fontCss(slot.font), t = textOf(slot, record);
+  for (let size = base; size >= base * 0.6; size -= base * 0.04) {
+    Object.assign(measurer.style, css, { fontSize: size + "px", width: slot.w + "px", whiteSpace: "normal", height: "auto" });
+    measurer.textContent = t;
+    if (measurer.scrollHeight <= slot.h + 0.6) return +size.toFixed(2);
+  }
+  return +(base * 0.6).toFixed(2);
+}
+function textOf(slot, record) {
+  if (slot.value != null) return slot.value;
+  return String(bindValue(record, slot.binds) ?? "");
+}
+// Overflow: honour fit/clamp/maxChars separately (spec §5).
+function overflowOf(slot, record) {
+  if (slot.kind !== "text") return null;
+  const t = textOf(slot, record);
+  if (slot.maxChars && t.length > slot.maxChars) return `over maxChars (${t.length}/${slot.maxChars})`;
+  const css = fontCss(slot.font);
+  Object.assign(measurer.style, css, { width: slot.w + "px", whiteSpace: "normal", height: "auto" });
+  measurer.textContent = t;
+  const lines = Math.round(measurer.scrollHeight / (parseFloat(css.fontSize) * parseFloat(css.lineHeight)));
+  if (slot.clamp && lines > slot.clamp) return `over clamp (${lines}/${slot.clamp} lines)`;
+  if (slot.fit === "shrink") {
+    const sz = shrinkToFit(slot, record);
+    return sz <= slot.font.size * 0.61 ? "will not fit even shrunk to 60%" : null;
+  }
+  if (measurer.scrollHeight > slot.h + 0.6) return "text taller than box";
+  return null;
+}
+function slotEl(slot, record) {
+  const d = document.createElement("div");
+  d.className = "slot";
+  Object.assign(d.style, { left: slot.x + "px", top: slot.y + "px", width: slot.w + "px", height: slot.h + "px", zIndex: slot.z || 1 });
+  if (slot.kind === "shape") {
+    if (slot.fill === "$tricolore") d.style.background = TOKENS.tricolore;
+    else if (slot.fill && slot.fill !== "none") d.style.background = tok(slot.fill);
+    if (slot.stroke) { d.style.border = "0.8px solid " + tok(slot.stroke); d.style.borderRadius = "1.5px"; }
+  } else if (slot.kind === "text") {
+    Object.assign(d.style, fontCss(slot.font));
+    if (slot.rule) d.style.borderLeft = `${slot.rule.w}px solid ${tok(slot.rule.color)}`;
+    if (slot.rule) d.style.paddingLeft = "3px";
+    if (slot.vertical) { d.style.writingMode = "vertical-rl"; d.style.transform = "rotate(180deg)"; d.style.display = "flex"; d.style.alignItems = "center"; d.style.justifyContent = "center"; }
+    d.textContent = textOf(slot, record);
+    if (slot.fit === "shrink") d.style.fontSize = shrinkToFit(slot, record) + "px";
+  } else if (slot.kind === "image") {
+    const svg = iconFor(slot.asset, record);
+    if (svg) { d.innerHTML = paintIcon(svg); const s0 = d.firstElementChild; if (s0) { s0.style.width = "100%"; s0.style.height = "100%"; } }
+    else if (slot.asset === "$brand:primary") {
+      const img = new Image(); img.src = cldUrl("monti-trentini/library/tswf07fmciwdpp13facm", slot.w);
+      Object.assign(img.style, { width: "100%", height: "100%", objectFit: "contain" });
+      img.onerror = () => { d.innerHTML = ""; d.append(ph(slot, "MT logo")); }; d.append(img);
+    } else if (slot.binds) {
+      const pid = bindValue(record, slot.binds);
+      if (pid) { const img = new Image(); img.src = cldUrl(pid, slot.w);
+        Object.assign(img.style, { width: "100%", height: "100%", objectFit: "contain", background: tok(slot.bg || "$paper") });
+        img.onerror = () => { d.innerHTML = ""; d.append(ph(slot, "packshot")); }; d.append(img);
+      } else d.append(ph(slot, "no image"));
+    } else d.append(ph(slot, slot.label || "image"));
+  } else if (slot.kind === "qr") {
+    d.style.background = "#fff"; d.style.border = "0.8px solid " + TOKENS.ink;
+    d.style.backgroundImage = "repeating-linear-gradient(0deg,#141413 0 2px,transparent 2px 4px),repeating-linear-gradient(90deg,#141413 0 2px,transparent 2px 4px)";
+    d.title = "QR placeholder — real code renders from " + slot.binds;
+  }
+  return d;
+}
+function ph(slot, label) {
+  const p = document.createElement("div");
+  Object.assign(p.style, { width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center",
+    border: "0.8px dashed " + TOKENS.charcoal, color: TOKENS.charcoal, fontSize: "5px", textAlign: "center", background: "rgba(0,0,0,.02)" });
+  p.textContent = label;
+  return p;
+}
+
+/* ============================================================================
+   5. CANVAS — slots, block hit-boxes, guides, drag/resize/snap
+   ========================================================================== */
+const canvas = document.getElementById("canvas");
+const wrap = document.querySelector(".canvaswrap");
+
+function renderCanvas() {
+  const t = tpl(), r = rec(), L = layout();
+  canvas.innerHTML = "";
+  canvas.style.width = t.canvas.w + "px"; canvas.style.height = t.canvas.h + "px";
+  canvas.style.transform = `scale(${S.zoom})`;
+  wrap.style.width = t.canvas.w * S.zoom + "px"; wrap.style.height = t.canvas.h * S.zoom + "px";
+
+  // ground is never draggable and never hit-tested (spec §4)
+  const g = document.createElement("div");
+  Object.assign(g.style, { position: "absolute", inset: "0", background: TOKENS.cream, zIndex: 0 });
+  canvas.append(g);
+
+  L.forEach((e, i) => {
+    if (!visible(e)) return;
+    slotsFor(e, r, t.canvas.w).forEach(sl => { if (!hiddenByShowIf(sl, r)) canvas.append(slotEl(sl, r)); else canvas.append(ghost(sl)); });
+  });
+
+  if (S.guides.bleed) addGuide("bleed", -t.bleed, -t.bleed, t.canvas.w + t.bleed * 2, t.canvas.h + t.bleed * 2);
+  if (S.guides.safe) addGuide("safe", t.safe, t.safe, t.canvas.w - t.safe * 2, t.canvas.h - t.safe * 2);
+
+  // block hit-boxes on top
+  L.forEach((e, i) => {
+    if (!visible(e)) return;
+    const def = BLOCKS[e.block];
+    const b = document.createElement("div");
+    b.className = "blk" + (S.sel === i ? " sel" : "") + (isLocked(e) ? " locked" : "");
+    Object.assign(b.style, { left: e.x + "px", top: e.y + "px", width: e.w + "px", height: e.h + "px", zIndex: 50 });
+    const box = document.createElement("div"); box.className = "blkbox"; b.append(box);
+    const tag = document.createElement("div"); tag.className = "tag";
+    tag.textContent = def.label + (e.pres !== def.pres[0] ? " · " + e.pres : "");
+    tag.style.transform = `scale(${1 / S.zoom})`; tag.style.transformOrigin = "bottom left";
+    b.append(tag);
+    if (blockOverflows(e, r, t.canvas.w)) b.classList.add("over");
+    if (S.sel === i) ["nw","n","ne","e","se","s","sw","w"].forEach(k => {
+      const h = document.createElement("div"); h.className = "h " + k; h.dataset.dir = k;
+      h.style.transform = `scale(${1 / S.zoom})`; b.append(h);
+    });
+    b.addEventListener("pointerdown", ev => startDrag(ev, i));
+    canvas.append(b);
+  });
+}
+function hiddenByShowIf(sl, r) { return sl.showIf ? !bindValue(r, sl.showIf) : false; }
+function ghost(sl) { const d = slotEl(sl, null); d.style.opacity = ".22"; d.title = "not carried by this record (showIf: " + sl.showIf + ")"; return d; }
+function isLocked(e) { return ["accentBar", "companyId"].includes(e.block); }
+function blockOverflows(e, r, cw) { return slotsFor(e, r, cw).some(sl => overflowOf(sl, r)); }
+function addGuide(cls, x, y, w, h) {
+  const d = document.createElement("div"); d.className = "guide " + cls;
+  Object.assign(d.style, { left: x + "px", top: y + "px", width: w + "px", height: h + "px", zIndex: 40 });
+  canvas.append(d);
+}
+
+let drag = null;
+function startDrag(ev, i) {
+  ev.preventDefault(); ev.stopPropagation();
+  const e = layout()[i];
+  if (S.sel !== i) { S.sel = i; renderCanvas(); renderInspector(); }
+  if (isLocked(e) && !e._ack) {
+    if (!confirm(`"${BLOCKS[e.block].label}" is brand-fixed furniture — the piece that makes every sign look like the same brand.\n\nMove it anyway?`)) return;
+    e._ack = true;
+  }
+  push();
+  drag = { i, dir: ev.target.dataset?.dir || null, x0: ev.clientX, y0: ev.clientY, o: { ...e } };
+  window.addEventListener("pointermove", onDrag);
+  window.addEventListener("pointerup", endDrag, { once: true });
+}
+function onDrag(ev) {
+  if (!drag) return;
+  const e = layout()[drag.i], t = tpl();
+  const dx = (ev.clientX - drag.x0) / S.zoom, dy = (ev.clientY - drag.y0) / S.zoom;
+  if (!drag.dir) { e.x = drag.o.x + dx; e.y = drag.o.y + dy; }
+  else {
+    if (drag.dir.includes("w")) { e.x = drag.o.x + dx; e.w = Math.max(12, drag.o.w - dx); }
+    if (drag.dir.includes("e")) { e.w = Math.max(12, drag.o.w + dx); }
+    if (drag.dir.includes("n")) { e.y = drag.o.y + dy; e.h = Math.max(8, drag.o.h - dy); }
+    if (drag.dir.includes("s")) { e.h = Math.max(8, drag.o.h + dy); }
+  }
+  if (S.snap && !ev.altKey) applySnap(e, t);
+  e.x = Math.round(e.x); e.y = Math.round(e.y); e.w = Math.round(e.w); e.h = Math.round(e.h);
+  renderCanvas(); renderInspector();
+}
+function endDrag() { drag = null; window.removeEventListener("pointermove", onDrag); renderFilm(); }
+
+// Snap to pad / inner edges first — by far the most common intent (spec §5).
+function applySnap(e, t) {
+  const pad = t.pad, cw = t.canvas.w, ch = t.canvas.h, T = 4;
+  const xs = [pad, cw - pad, 0, cw, t.safe, cw - t.safe, cw / 2];
+  const ys = [pad, ch - pad, 0, ch, t.safe, ch - t.safe];
+  layout().forEach((o, j) => { if (j !== S.sel && visible(o)) { xs.push(o.x, o.x + o.w); ys.push(o.y, o.y + o.h); } });
+  const near = (v, arr) => { for (const a of arr) if (Math.abs(v - a) <= T) return a; return null; };
+  let s;
+  if ((s = near(e.x, xs)) !== null) e.x = s;
+  else if ((s = near(e.x + e.w, xs)) !== null) e.x = s - e.w;
+  if ((s = near(e.y, ys)) !== null) e.y = s;
+  else if ((s = near(e.y + e.h, ys)) !== null) e.y = s - e.h;
+  if ((s = near(e.x + e.w, xs)) !== null && Math.abs(e.x + e.w - s) <= T) e.w = s - e.x;
+  if (e.w > cw - e.x) e.w = cw - e.x;
+}
+
+document.addEventListener("keydown", ev => {
+  if (ev.target.tagName === "INPUT" || ev.target.tagName === "SELECT" || ev.target.tagName === "TEXTAREA") return;
+  const meta = ev.metaKey || ev.ctrlKey;
+  if (meta && ev.key.toLowerCase() === "z") { ev.preventDefault(); ev.shiftKey ? redo() : undo(); return; }
+  if (S.sel == null) return;
+  const e = layout()[S.sel], step = ev.shiftKey ? 10 : 1;
+  const map = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] };
+  if (map[ev.key]) { ev.preventDefault(); push(); e.x += map[ev.key][0]; e.y += map[ev.key][1]; renderCanvas(); renderInspector(); renderFilm(); }
+  if (ev.key === "Escape") { S.sel = null; renderCanvas(); renderInspector(); }
+});
+canvas.addEventListener("pointerdown", ev => { if (ev.target === canvas) { S.sel = null; renderCanvas(); renderInspector(); } });
+
+/* ============================================================================
+   6. SERIES FILMSTRIP — edit one, see all four (spec §2). This is the feature
+   with the real value: a position that works under Fresco can break Stagionato.
+   ========================================================================== */
+const film = document.getElementById("film");
+function renderFilm() {
+  const t = tpl(), L = layout(), Z = 0.52;
+  film.innerHTML = "";
+  RECORDS.forEach((r, ri) => {
+    const bad = L.filter(visible).filter(e => blockOverflows(e, r, t.canvas.w));
+    const card = document.createElement("div"); card.className = "fcard" + (bad.length ? " bad" : "");
+    const mini = document.createElement("div"); mini.className = "mini";
+    Object.assign(mini.style, { width: t.canvas.w + "px", height: t.canvas.h + "px", transform: `scale(${Z})` });
+    L.forEach(e => { if (visible(e)) slotsFor(e, r, t.canvas.w).forEach(sl => { if (!hiddenByShowIf(sl, r)) mini.append(slotEl(sl, r)); }); });
+    const holder = document.createElement("div");
+    Object.assign(holder.style, { width: t.canvas.w * Z + "px", height: t.canvas.h * Z + "px", position: "relative", overflow: "hidden" });
+    holder.append(mini); card.append(holder);
+    const cap = document.createElement("div"); cap.className = "cap";
+    cap.textContent = bad.length ? `${r.name} — ${bad.length} block${bad.length > 1 ? "s" : ""} overflow` : r.name;
+    card.append(cap);
+    const pick = document.createElement("button"); pick.className = "pick" + (ri === S.recIdx ? " on" : "");
+    pick.textContent = ri === S.recIdx ? "editing" : "edit this";
+    pick.onclick = () => { S.recIdx = ri; recSel.value = ri; renderAll(); };
+    card.append(pick); film.append(card);
+  });
+}
+function seriesProblems() {
+  const t = tpl(), L = layout(), out = [];
+  RECORDS.forEach(r => L.filter(visible).forEach(e => {
+    slotsFor(e, r, t.canvas.w).forEach(sl => { const o = overflowOf(sl, r); if (o) out.push(`${r.name} · ${BLOCKS[e.block].label} · ${sl.id}: ${o}`); });
+  }));
+  return out;
+}
+
+/* ============================================================================
+   7. INSPECTOR — content per block. Every field control is a DROPDOWN over the
+   record's own binding paths, never a text input (spec §5b, Studio Director
+   contract): a field can only ever show something the data actually contains.
+   ========================================================================== */
+const inspector = document.getElementById("inspector");
+
+function bindingPaths(record) {
+  const out = [];
+  const walk = (o, pre) => Object.entries(o || {}).forEach(([k, v]) => {
+    const p = pre ? pre + "." + k : k;
+    if (v && typeof v === "object" && !Array.isArray(v)) walk(v, p);
+    else out.push(p);
+  });
+  walk(record, "");
+  return out.sort();
+}
+function renderInspector() {
+  const r = rec(), t = tpl();
+  if (S.sel == null) {
+    const probs = seriesProblems();
+    inspector.innerHTML = `<h3 class="sec">No block selected</h3>
+      <p class="hint">Click a block on the canvas to edit its content, presentation and size.
+      Drag to reposition. The filmstrip below the canvas renders all four records through this
+      same manifest — that is where a layout breaks.</p>
+      <h3 class="sec">Series check</h3>` +
+      (probs.length
+        ? `<div class="warn"><b>${probs.length} overflow${probs.length > 1 ? "s" : ""}</b><br>` + probs.slice(0, 8).map(p => "• " + p).join("<br>") + (probs.length > 8 ? `<br>…and ${probs.length - 8} more` : "") + `</div>`
+        : `<div class="note">All four records fit this manifest.</div>`) +
+      `<h3 class="sec">Template</h3><p class="hint">${t.label}<br>Canvas ${t.canvas.w}×${t.canvas.h} · pad ${t.pad} · base ${t.base}<br>
+       ${layout().filter(visible).length} of ${layout().length} blocks shown</p>`;
+    return;
+  }
+  const e = layout()[S.sel], def = BLOCKS[e.block];
+  const paths = bindingPaths(r);
+  let html = `<h3 class="sec">${def.label}</h3><p class="hint">${def.hint}</p>`;
+
+  if (e.block === "verify" && String(r.id).includes("vecchio"))
+    html += `<div class="warn"><b>Do not ship this block for Vecchio.</b> It prints the DOP floor
+      beside the actual age, which makes the 9-vs-10-month contradiction visible to a shopper.
+      Open item 2 — Stefano. (spec §1)</div>`;
+  if (e.block === "packshot")
+    html += `<div class="note">Choose an image that shows the <b>cut face and interior paste</b>.
+      A packshot of an identical wrapped wedge does not earn its space beside the real product.</div>`;
+
+  html += `<div class="row"><label>Presentation</label><select id="presSel">` +
+    def.pres.map(p => `<option value="${p}"${p === e.pres ? " selected" : ""}>${p}</option>`).join("") +
+    `</select><div class="pathhint">Changing form is how G/H/I hybrids get made — bindings survive.</div></div>`;
+
+  html += `<div class="row"><label>Position &amp; size</label><div class="xy">
+    <input id="fx" type="number" value="${Math.round(e.x)}" title="x"><input id="fy" type="number" value="${Math.round(e.y)}" title="y">
+    <input id="fw" type="number" value="${Math.round(e.w)}" title="w"><input id="fh" type="number" value="${Math.round(e.h)}" title="h">
+  </div><div class="pathhint">canvas units · 100 per inch</div></div>`;
+
+  def.fields.forEach(f => {
+    const cur = (e.binds && e.binds[f.k]) || f.def;
+    const val = bindValue(r, cur);
+    const empty = val === "" || val == null;
+    html += `<div class="row"><label>${f.label}</label>
+      <select data-field="${f.k}">` +
+      paths.map(p => `<option value="${p}"${p === cur ? " selected" : ""}>${p}</option>`).join("") +
+      (paths.includes(cur) ? "" : `<option value="${cur}" selected>${cur} (not on record)</option>`) +
+      `</select>
+      <div class="prev ${empty ? "empty" : ""}">${empty ? "— empty on this record; renders as a placeholder here and will not print" : String(val).slice(0, 150)}</div></div>`;
+  });
+
+  html += `<div class="row"><label>Visibility</label>
+    <button id="hideBtn">${e.hidden ? "Show block" : "Hide block"}</button>
+    <button id="delBtn" title="Remove from this template">Remove</button></div>`;
+  html += `<div class="row"><label>Per-record override</label>
+    <label style="text-transform:none;font-size:11px;color:var(--ui-text)">
+      <input type="checkbox" id="ovr" ${e.override ? "checked" : ""}> Specific to ${r.name}</label>
+    <div class="pathhint">Flagged by name when Save copies across the series.</div></div>`;
+
+  inspector.innerHTML = html;
+  presSel.onchange = ev => { push(); e.pres = ev.target.value; const dh = BLOCKS[e.block].h[e.pres]; if (dh) e.h = dh; renderAll(); };
+  ["fx","fy","fw","fh"].forEach((id, k) => {
+    document.getElementById(id).onchange = ev => { push(); e[["x","y","w","h"][k]] = +ev.target.value; renderAll(); };
+  });
+  inspector.querySelectorAll("select[data-field]").forEach(sel => {
+    sel.onchange = ev => { push(); e.binds = e.binds || {}; e.binds[ev.target.dataset.field] = ev.target.value; renderAll(); };
+    sel.title = "binding path on the sign record";
+  });
+  hideBtn.onclick = () => { push(); e.hidden = !e.hidden; renderAll(); };
+  delBtn.onclick = () => { push(); layout().splice(S.sel, 1); S.sel = null; renderAll(); };
+  ovr.onchange = ev => { push(); e.override = ev.target.checked; renderAll(); };
+}
+
+/* ---------- block palette ---------- */
+function renderPalette() {
+  const L = layout(), host = document.getElementById("palette");
+  host.innerHTML = "";
+  Object.entries(BLOCKS).forEach(([key, def]) => {
+    const used = L.findIndex(e => e.block === key);
+    const b = document.createElement("button");
+    b.className = "pblock" + (used >= 0 ? " used" : "");
+    b.innerHTML = `${def.label}${used >= 0 ? " ✓" : ""}<small>${def.hint}</small>`;
+    b.onclick = () => {
+      push();
+      if (used >= 0) { L.splice(used, 1); S.sel = null; }
+      else { const t = tpl(); L.push({ block: key, pres: def.pres[0], x: t.pad, y: t.pad, w: t.canvas.w - t.pad * 2, h: def.h[def.pres[0]] || 30, binds: null }); S.sel = L.length - 1; }
+      renderAll();
+    };
+    host.append(b);
+  });
+}
+
+/* ============================================================================
+   8. SAVE + EXPORT (spec §2, §7)
+   ========================================================================== */
+document.getElementById("saveBtn").onclick = () => {
+  const probs = seriesProblems();
+  const overrides = layout().filter(e => e.override).map(e => BLOCKS[e.block].label);
+  let msg = `Save composition — ${tpl().label}\n\n`;
+  msg += `Layout is shared: one manifest renders all four records.\n`;
+  msg += overrides.length ? `\nPer-record overrides that will NOT be copied:\n  • ${overrides.join("\n  • ")}\n` : `\nNo per-record overrides set.\n`;
+  msg += probs.length
+    ? `\n⚠ ${probs.length} overflow(s) across the series — export will carry a warning header:\n  • ${probs.slice(0, 6).join("\n  • ")}${probs.length > 6 ? `\n  • …and ${probs.length - 6} more` : ""}`
+    : `\n✓ All four records fit. Clean to export.`;
+  alert(msg);
+};
+
+// Emit in the source file's own idiom: N * s expressions, pad/inner identifiers.
+function num(v, base, pad, inner) {
+  const r = Math.round(v);
+  if (Math.abs(r - pad) <= 1) return "pad";
+  if (Math.abs(r - inner) <= 1) return "inner";
+  if (r === 0) return "0";
+  return `${r} * s`;
+}
+function jsExport() {
+  const t = tpl(), r = rec(), L = layout().filter(visible), pad = t.pad, inner = t.canvas.w - pad * 2;
+  const probs = seriesProblems();
+  const q = v => typeof v === "string" ? JSON.stringify(v) : v;
+  let out = `// ${t.label}\n// Generated by design/sign-composer/sign-composer.html — ${new Date().toISOString().slice(0, 10)}\n`;
+  out += `// Preset: ${t.id} · canvas ${t.canvas.w}x${t.canvas.h} · base ${t.base} · pad ${pad} · inner ${inner}\n`;
+  out += `// Data snapshot: ${SNAPSHOT_DATE} (src/data/montitrentini/signs.json)\n`;
+  if (probs.length) {
+    out += `//\n// !! EXPORTED WITH ${probs.length} UNRESOLVED OVERFLOW(S) — DO NOT PRINT UNTIL FIXED:\n`;
+    probs.forEach(p => { out += `//    ${p}\n`; });
+  }
+  out += `//\n// Paste into src/lib/sign-templates.js. \`s\` is the family scale factor (w / ${t.base}).\n`;
+  out += `// Blocks below are semantic groupings from the composer; the slot grammar is unchanged.\n\nslots: [\n`;
+  out += `  { id: "ground", role: "lock", kind: "shape", x: 0, y: 0, w, h, z: 1, fill: "$cream" },\n`;
+  L.forEach(e => {
+    out += `\n  // —— ${BLOCKS[e.block].label} (${e.pres})${e.override ? " — PER-RECORD OVERRIDE" : ""}\n`;
+    slotsFor(e, r, t.canvas.w).forEach(sl => {
+      const parts = [`id: ${q(sl.id)}`, `role: ${q(sl.role)}`, `kind: ${q(sl.kind)}`];
+      if (sl.fit) parts.push(`fit: ${q(sl.fit)}`);
+      if (sl.binds) parts.push(`binds: ${q(sl.binds)}`);
+      if (sl.value != null) parts.push(`value: ${q(sl.value)}`);
+      parts.push(`x: ${num(sl.x, t.base, pad, inner)}`, `y: ${num(sl.y, t.base, pad, inner)}`,
+                 `w: ${num(sl.w, t.base, pad, inner)}`, `h: ${num(sl.h, t.base, pad, inner)}`, `z: ${sl.z}`);
+      if (sl.asset) parts.push(`asset: ${q(sl.asset)}`);
+      if (sl.bindsAsset) parts.push(`bindsAsset: ${q(sl.bindsAsset)}`);
+      if (sl.showIf) parts.push(`showIf: ${q(sl.showIf)}`);
+      if (sl.fill) parts.push(`fill: ${q(sl.fill)}`);
+      if (sl.bg) parts.push(`bg: ${q(sl.bg)}`);
+      if (sl.clamp) parts.push(`clamp: ${sl.clamp}`);
+      if (sl.maxChars) parts.push(`maxChars: ${sl.maxChars}`);
+      if (sl.label) parts.push(`label: ${q(sl.label)}`);
+      if (sl.font) {
+        const f = sl.font, fp = [`font: ${q(f.font)}`, `size: ${+(f.size / PT).toFixed(2)} * PT * s`];
+        if (f.bold) fp.push("bold: true");
+        if (f.italic) fp.push("italic: true");
+        if (f.uppercase) fp.push("uppercase: true");
+        if (f.tracking) fp.push(`tracking: ${f.tracking}`);
+        if (f.color) fp.push(`color: ${q(f.color)}`);
+        if (f.align) fp.push(`align: ${q(f.align)}`);
+        parts.push(`\n      font: { ${fp.join(", ")} }`);
+      }
+      out += `  { ${parts.join(", ")} },\n`;
+    });
+  });
+  out += `],\n`;
+  return out;
+}
+function jsonExport() {
+  const t = tpl(), r = rec();
+  return JSON.stringify({
+    template: t.id, label: t.label, canvas: t.canvas, base: t.base, pad: t.pad, bleed: t.bleed, safe: t.safe,
+    snapshot: SNAPSHOT_DATE, generated: new Date().toISOString(),
+    seriesOverflow: seriesProblems(),
+    blocks: layout().filter(visible).map(e => ({ block: e.block, pres: e.pres, x: e.x, y: e.y, w: e.w, h: e.h,
+      binds: e.binds || undefined, override: e.override || undefined })),
+    slots: layout().filter(visible).flatMap(e => slotsFor(e, r, t.canvas.w)),
+  }, null, 2);
+}
+let expMode = "js";
+function showExport() {
+  document.getElementById("expOut").value = expMode === "js" ? jsExport() : jsonExport();
+  document.getElementById("expTitle").textContent = "Export — " + tpl().label;
+  document.getElementById("expJs").classList.toggle("on", expMode === "js");
+  document.getElementById("expJson").classList.toggle("on", expMode === "json");
+}
+document.getElementById("expBtn").onclick = () => { showExport(); document.getElementById("expDlg").showModal(); };
+document.getElementById("expJs").onclick = () => { expMode = "js"; showExport(); };
+document.getElementById("expJson").onclick = () => { expMode = "json"; showExport(); };
+document.getElementById("expCopy").onclick = () => { const o = document.getElementById("expOut"); o.select(); document.execCommand("copy"); };
+document.getElementById("expDl").onclick = () => {
+  const blob = new Blob([document.getElementById("expOut").value], { type: "text/plain" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = tpl().id.replace(/\//g, "-") + (expMode === "js" ? ".js.txt" : ".json");
+  a.click();
+};
+
+/* ============================================================================
+   9. WIRING
+   ========================================================================== */
+const tplSel = document.getElementById("tplSel"), recSel = document.getElementById("recSel");
+TEMPLATES.forEach(t => tplSel.add(new Option(t.label, t.id)));
+RECORDS.forEach((r, i) => recSel.add(new Option(r.name, i)));
+tplSel.value = S.tplId;
+tplSel.onchange = ev => {
+  const from = tpl();
+  if (S.layouts[S.tplId] && !confirm(
+    `Switch to ${TEMPLATES.find(t => t.id === ev.target.value).label}?\n\n` +
+    `Content configuration survives — field bindings, show/hide and overrides are kept.\n` +
+    `POSITION does not: every block is re-presented for the new layout.`)) { ev.target.value = S.tplId; return; }
+  // carry content configuration across (spec §1, consequence 3)
+  const carry = {};
+  (S.layouts[S.tplId] || []).forEach(e => { carry[e.block] = { binds: e.binds, hidden: e.hidden, override: e.override }; });
+  S.tplId = ev.target.value; S.sel = null;
+  delete S.layouts[S.tplId];
+  layout().forEach(e => { const c = carry[e.block]; if (c) Object.assign(e, { binds: c.binds, hidden: c.hidden, override: c.override }); });
+  renderAll();
+};
+recSel.onchange = ev => { S.recIdx = +ev.target.value; renderAll(); };
+document.querySelectorAll("[data-zoom]").forEach(b => b.onclick = () => {
+  S.zoom = +b.dataset.zoom;
+  document.querySelectorAll("[data-zoom]").forEach(x => x.classList.toggle("on", x === b));
+  renderCanvas();
+});
+gSafe.onchange = e => { S.guides.safe = e.target.checked; renderCanvas(); };
+gBleed.onchange = e => { S.guides.bleed = e.target.checked; renderCanvas(); };
+gSnap.onchange = e => { S.snap = e.target.checked; };
+undoBtn.onclick = undo; redoBtn.onclick = redo;
+document.getElementById("snapLine").textContent = `data snapshot: ${SNAPSHOT_DATE} · records: ${RECORDS.length}`;
+
+function renderAll() { renderCanvas(); renderPalette(); renderInspector(); renderFilm(); }
+renderAll(); syncUndo();
+</script>
+</body>
+</html>
