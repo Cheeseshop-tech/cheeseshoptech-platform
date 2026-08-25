@@ -6,6 +6,63 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 > Format convention: `## YYYY-MM-DD — Title` · **Decision / Action / Status** ·
 > keep entries short and factual. This file is the project's memory.
 
+## 2026-08-25 — Asiago provenance cards + DOP origin map, drawn from real boundary data
+
+**Action.** Rick: "4 cards to support the asiago set focusing on authenticity and provenance and
+origin... recreate the location map on one slide." Built
+`design/asiago-shelf-talkers/asiago-provenance-cards-and-map.html` — a second theme on the
+2.5" x 3.5" shelf-talker canvas, alongside the sensory-cue G/H/I round. Same no-photo decision,
+built on layout G. Each card runs origin line -> verification -> shipped age against the DOP
+floor. The verification block is the strongest content the booklet gave us: two independent
+traceability marks (rind stamp, plus a casein stamp in the paste carrying the wheel's own ID
+number), from booklet p.6-7. Plus a 16:9 origin slide that drops into a deck as-is.
+
+**Decision — boundaries are data, not illustration.** The first pass hand-drew the province
+polygons from estimated lat/long. It looked like blobs, and Rick's reaction ("omg what is that?")
+was correct. Rick asked whether to move to Cowork and use Firefly. **We did not**, and the reason
+generalizes: a generative image model produces something that *resembles* the region and is wrong
+in detail. For a piece whose entire argument is "legally certified to come from exactly here," a
+wrong border is the one error that invites the challenge we cannot answer.
+
+Rebuilt from **official ISTAT province boundaries** (openpolis/geojson-italy), projected
+equirectangular with a cos(lat) correction and simplified with Ramer-Douglas-Peucker at three
+tolerances — slide, card mini-map, country inset. Generator archived at
+`design/asiago-shelf-talkers/build-dop-zone-map.py` so the map is reproducible rather than a
+one-off artifact. Trento + Vicenza render solid as the zone; Padova + Treviso hatched as partial;
+**Bolzano deliberately left grey just outside the line, because that exclusion is the argument.**
+
+Method captured as a project skill: `.claude/skills/accurate-maps/SKILL.md`. Adobe tools are right
+for *finishing* a map — type, styling, print prep on accurate vector — not for deriving geometry.
+
+**Verification.** Rendered headless and read back at each step. Contrast measured, not eyeballed:
+14 text/ground pairs, all pass AA except accent-green-on-cream at **3.69** — which is also the
+smallest type on the card (4.35pt), so it is the one real accessibility defect. Type converted to
+print points: the scale runs 12.75pt (name) down to **3.82pt** (spec keys). For calibration the
+house engine at 3x4" runs 6.7pt body / 4.6pt muted labels, which scaled to this canvas lands at
+5.6pt / 3.8pt — so these sizes are not out of line with `sign-templates.js`, but the whole family
+runs small and at talker scale the bottom crosses into "will not hold on press."
+
+**Status.** Comp only — **nothing shipped**. Three items block print, on top of the handoff's
+existing four:
+
+1. **The Vecchio card cannot ship.** An authenticity-themed card is exactly where the open
+   9-vs-10-month question bites hardest: the card argues the regulator guarantees this, while the
+   consortium defines Vecchio as over 10 months. Its DOP-floor cell reads `see note` rather than
+   print a number contradicting the regulator. Stefano's answer decides it. (Handoff open item #2.)
+2. **Zone boundary needs the disciplinare.** `ASIAGO_DOP_CONSORTIUM_BOOKLET.md` describes the zone
+   as "Trento, Vicenza, Belluno and part of Padova," but Belluno reads as outside on the booklet's
+   own map and the disciplinare is generally cited as Vicenza + Trento plus parts of Padova and
+   Treviso. Drawn as Trento + Vicenza solid with the rest hatched. The zone is defined at *comune*
+   level and the same data source has comune boundaries — with the disciplinare's comune list this
+   becomes exact instead of hatched.
+3. **Make location is claimed only on card 2.** `signs.json` names Caseificio Finco / Enego for the
+   Montagna record only; the other three claim the milkshed, not a dairy.
+
+**Unblocks.** Rick picks a theme (sensory cue vs. provenance) and a layout, then
+`talkerTemplate()` + `SIGN_SIZES` land per the handoff's build order. This theme needs two new
+optional fields on the four Asiago records — `originLine` and `authenticityNote` — same pattern as
+the proposed `recognitionCue`.
+
 ## 2026-08-17 — Project status panel added to the House Command Center (Agency Console)
 
 **Action.** Rick asked to surface the daily-accountability status directly inside the app,
