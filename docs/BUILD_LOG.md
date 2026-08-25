@@ -6,6 +6,62 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 > Format convention: `## YYYY-MM-DD — Title` · **Decision / Action / Status** ·
 > keep entries short and factual. This file is the project's memory.
 
+## 2026-08-25 — Marks uploaded to the Media Hub; Sign Composer installed as a Compose tab
+
+**Action.** Rick: "Lets up load and lets install this app into Cheese shop tech platform in a tab
+under compose."
+
+**Uploaded.** Both official marks are in Cloudinary under `monti-trentini/marks/`, tagged
+`sign-mark` + `official-artwork` and captioned with their usage:
+
+- `monti-trentini/marks/dop-stamp` — 143×142 PNG, EU PDO seal
+- `monti-trentini/marks/consorzio-asiago` — 401×308 PNG, Consorzio Tutela Formaggio Asiago
+
+Delivery verified through the CDN with the alpha channel intact. The MCP `upload-asset` tool
+rejects `file://`, so this went the documented route for local files — `sign-upload` for signed
+params, then a direct multipart POST — which also keeps 70 KB of base64 out of the transcript.
+
+The composer now resolves marks from Cloudinary rather than the repo, per `CLAUDE.md` ("Cloudinary
+is the database, the Media Hub is the front door"). The repo copies stay as an **offline fallback
+only**: if the CDN request fails the `<img>` retries the local file once, so the tool still works
+without a network, but the shipped source is the Media Hub.
+
+**Installed** as a fourth tab in Compose — `src/components/proposals/content-studio.jsx` gains
+`cheese-signs`, rendering the new `src/components/signs/sign-composer-panel.jsx`.
+
+**It is framed, not ported, and that is a deliberate call.** The composer is copied to
+`public/sign-composer/` and embedded. `SIGN_COMPOSER_SPEC_2026-08-25.md` §9 says "not the in-app
+editor — a standalone tool for settling layouts", and one source of truth beats two copies that
+drift. A native React port is still the real integration; this puts the tool in front of people now.
+
+**What framing would have cost, and what was done about it.** An iframe gets no app state, so the
+tool would have kept running off its build-time snapshot inside the platform — the worst of both
+worlds. Instead the panel hands in **live data over `postMessage`**: the tenant's real sign records
+from `signs.json` and the resolved Brand Kit from `brandTokens(resolved)`. The composer announces
+`ready`, the host replies with `records` + `tokens`, and the status line switches from "Cheese as
+of <date>" to "Live from Monti Trentini". Opened standalone from disk it still falls back to the
+snapshot, which is what keeps it usable without the app at all.
+
+**One bug I introduced and caught.** After the install, marks and the packshot went "off grid and
+all over the place" (Rick). Cause was mine, from the resolver refactor: the image branch of
+`slotEl` set `d.style.position = "relative"`, overriding `.slot`'s own `position:absolute`. That
+drops every image slot out of absolute positioning into normal document flow — so they scatter, and
+the `overflow:hidden` that crops a tight-cropped packshot stops applying, which is why one packshot
+rendered 268px over the filmstrip. The override was never needed: `position:absolute` is already
+its own containing block for the absolutely-placed `<img>` that `fitTight()` produces. Removed,
+with a comment saying why, since it looks like a harmless line. Re-checked: 24 slots, all absolute,
+nothing escaping the canvas bounds.
+
+**Verification.** `npm run build` clean — 2056 modules, no new warnings; the composer and both PNGs
+land in `dist/sign-composer/`; the tab label is in the bundle. The live-data path was proved with a
+harness on the built app's own origin: frame sends `ready`, host posts two synthetic records, and
+the frame's record dropdown, status line, sign copy and filmstrip all switch to them.
+
+**Not verified: the authenticated view.** The app is behind sign-in, and serving `dist/` statically
+cannot run the auth function (`Unsupported method ('POST')`). Signing in would mean handling Rick's
+credentials, which is not something to do on his behalf — **Rick should open Compose → Cheese signs
+and confirm it himself.** Everything up to the auth boundary checks out.
+
 ## 2026-08-25 — Sign Composer: every image slot audited; one asset resolver instead of three
 
 **Action.** Rick: "the DOP stamp and the ASIAGO Consortium stamp are miss wired to Monti Trentini

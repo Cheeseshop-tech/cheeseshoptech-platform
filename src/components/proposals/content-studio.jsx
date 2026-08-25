@@ -6,6 +6,7 @@ import { loadCatalog, addEntry, DEFAULT_QUOTA } from "@/lib/presentations-store.
 import { loadDraft } from "@/lib/proposals.js";
 import { SlideStudio } from "@/components/presentations/slide-studio.jsx";
 import { ProposalBuilder } from "./proposal-builder.jsx";
+import { SignComposerPanel } from "@/components/signs/sign-composer-panel.jsx";
 
 // Compose — one shell over every content format. Compose (the pitch + range + pricing proposal
 // builder) is the default tab; Slide deck is the template engine (gallery → filmstrip + slot
@@ -14,6 +15,7 @@ import { ProposalBuilder } from "./proposal-builder.jsx";
 const CONTENT_TYPES = [
   { id: "compose", label: "Compose" },
   { id: "slide-deck", label: "Slide deck" },
+  { id: "cheese-signs", label: "Cheese signs" },
   { id: "blog", label: "Blog" },
   { id: "email", label: "Email" },
   { id: "social-post", label: "Social post" },
@@ -43,6 +45,8 @@ export function ContentStudio({ resolved }) {
 
       {ctype === "compose" ? (
         <ProposalBuilder resolved={resolved} />
+      ) : ctype === "cheese-signs" ? (
+        <SignComposerPanel resolved={resolved} />
       ) : ctype === "slide-deck" ? (
         <SlideStudio
           resolved={resolved}
