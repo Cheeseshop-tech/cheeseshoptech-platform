@@ -383,6 +383,19 @@ function paintIcon(svg, t = TOKENS) {
                     .replaceAll("{ink}", t.ink).replaceAll("{paper}", t.paper);
 }
 function regionIcon(key) { return SIGN_ICONS.region[key] || SIGN_ICONS.region.valsugana; }
+
+// Official artwork supplied by Rick 2026-08-25 — the Consorzio Tutela Formaggio Asiago
+// mark and the EU PDO seal, split from one transparent PNG at a clean gutter.
+// These replace the house-drawn badges that CHEESE_SIGNS_SPEC.md §9 item 3 flagged.
+// RASTER, not vector: clean up to the sizes below at 300 DPI, and no further.
+const MARKS = {
+  "dop-stamp":  { src: "assets/dop-stamp.png",        w: 143, h: 142, maxUnits: 47,  label: "EU PDO seal" },
+  "consorzio":  { src: "assets/consorzio-asiago.png", w: 401, h: 308, maxUnits: 103, label: "Consorzio Tutela Formaggio Asiago" },
+};
+function markFor(ref) {
+  const k = String(ref || "").replace("$mark:", "");
+  return MARKS[k] || null;
+}
 function iconFor(ref, rec) {
   if (ref === "$icon:region") return regionIcon(rec?.region?.icon);
   const k = String(ref || "").replace("$icon:", "");
@@ -539,12 +552,28 @@ const BLOCKS = {
   },
 
   dop: {
-    label: "DOP marks", hint: "DOP + Product of the Mountain", pres: ["row"],
-    fields: [], h: { row: 34 },
+    label: "DOP stamp", hint: "the EU PDO seal — official artwork", pres: ["mark"],
+    fields: [], h: { mark: 40 },
     build: (c) => ([
-      { id: "dop_badge", role: "brand", kind: "image", fit: "contain", x: c.x, y: c.y, w: 34, h: 34, z: 6,
-        asset: "$icon:dop", showIf: "designation", label: "DOP / PDO mark" },
-      { id: "mountain_badge", role: "brand", kind: "image", fit: "contain", x: c.x + 40, y: c.y, w: 34, h: 34, z: 6,
+      { id: "dop_badge", role: "brand", kind: "image", fit: "contain", x: c.x, y: c.y, w: c.w, h: c.h, z: 6,
+        asset: "$mark:dop-stamp", showIf: "designation", label: "EU PDO seal" },
+    ]),
+  },
+
+  consorzio: {
+    label: "Consorzio mark", hint: "Consorzio Tutela Formaggio Asiago", pres: ["mark"],
+    fields: [], h: { mark: 42 },
+    build: (c) => ([
+      { id: "consorzio_mark", role: "brand", kind: "image", fit: "contain", x: c.x, y: c.y, w: c.w, h: c.h, z: 6,
+        asset: "$mark:consorzio", label: "Consorzio Tutela Formaggio Asiago" },
+    ]),
+  },
+
+  mountain: {
+    label: "Mountain mark", hint: "Product of the Mountain — still house-drawn", pres: ["mark"],
+    fields: [], h: { mark: 34 },
+    build: (c) => ([
+      { id: "mountain_badge", role: "brand", kind: "image", fit: "contain", x: c.x, y: c.y, w: c.w, h: c.h, z: 6,
         asset: "$icon:mountain", showIf: "mountainMark", label: "Product of the Mountain" },
     ]),
   },
@@ -637,8 +666,8 @@ const TEMPLATES = [
       B("name","band",0,0,250,62), B("packshot","band",0,66,250,96),
       B("flavor","plain",14,168,222,28), B("cue","plain",14,198,222,18),
       B("origin","rail",14,218,222,26), B("verify","rail",14,246,222,26),
-      B("dop","row",14,276,74,34), B("qr","block",190,272,46,58),
-      B("companyId","inline",14,310,130,26),
+      B("dop","mark",14,276,34,34), B("mountain","mark",52,278,30,30), B("consorzio","mark",88,278,44,34),
+      B("qr","block",190,272,46,58), B("companyId","inline",14,314,130,22),
     ] },
   { id: "talker/H", label: 'Talker 2.5×3.5 — H left rail', family: "talker",
     canvas: { w: 250, h: 350 }, base: 250, pad: 14, bleed: 12.5, safe: 12,
@@ -646,17 +675,17 @@ const TEMPLATES = [
       B("name","rail",0,0,250,350), B("packshot","inline",58,14,178,62),
       B("flavor","plain",58,82,178,42), B("cue","plain",58,126,178,18),
       B("origin","rail",58,148,178,26), B("verify","rail",58,178,178,26),
-      B("dop","row",58,210,74,34), B("qr","block",190,206,46,58),
-      B("companyId","inline",58,300,178,26),
+      B("dop","mark",58,208,34,34), B("mountain","mark",96,210,30,30), B("consorzio","mark",132,210,44,34),
+      B("qr","block",190,206,46,58), B("companyId","inline",58,306,178,22),
     ] },
   { id: "talker/I", label: 'Talker 2.5×3.5 — I badge-forward', family: "talker",
     canvas: { w: 250, h: 350 }, base: 250, pad: 14, bleed: 12.5, safe: 12,
     blocks: [
-      B("accentBar","top",0,0,250,5.5), B("dop","row",88,16,74,34),
+      B("accentBar","top",0,0,250,5.5), B("dop","mark",78,14,40,40), B("consorzio","mark",126,16,55,42),
       B("name","stack",14,58,222,44), B("packshot","band",0,106,250,86),
       B("flavor","plain",14,196,222,28), B("cue","quote",14,226,222,18),
-      B("origin","stack",14,246,222,34), B("verify","rail",14,282,222,26),
-      B("qr","block",190,296,46,56), B("companyId","inline",14,306,130,26),
+      B("origin","stack",14,246,222,32), B("verify","rail",14,282,170,26),
+      B("qr","block",190,278,46,58), B("companyId","inline",14,312,170,22),
     ] },
   ...SHIPPED,
 ];
@@ -872,6 +901,16 @@ function slotEl(slot, record) {
     d.textContent = textOf(slot, record);
     if (slot.fit === "shrink") d.style.fontSize = shrinkToFit(slot, record) + "px";
   } else if (slot.kind === "image") {
+    const mk = markFor(slot.asset);
+    if (mk) {
+      const img = new Image();
+      img.src = mk.src; img.alt = mk.label;
+      Object.assign(img.style, { width: "100%", height: "100%", objectFit: "contain" });
+      img.onerror = () => { d.innerHTML = ""; d.append(ph(slot, mk.label)); };
+      d.append(img);
+      if (slot.w > mk.maxUnits * 1.02) d.title = `${mk.label} — placed at ${Math.round(slot.w)} units; the artwork is only clean to ${mk.maxUnits} at 300 DPI`;
+      return d;
+    }
     const svg = iconFor(slot.asset, record);
     if (svg) { d.innerHTML = paintIcon(svg); const s0 = d.firstElementChild; if (s0) { s0.style.width = "100%"; s0.style.height = "100%"; } }
     else if (slot.asset === "$brand:primary") d.append(cldImg(slot, "monti-trentini/library/tswf07fmciwdpp13facm", false, "MT logo"));
@@ -931,8 +970,10 @@ function renderCanvas() {
   if (S.guides.bleed) addGuide("bleed", -t.bleed, -t.bleed, t.canvas.w + t.bleed * 2, t.canvas.h + t.bleed * 2);
   if (S.guides.safe) addGuide("safe", t.safe, t.safe, t.canvas.w - t.safe * 2, t.canvas.h - t.safe * 2);
 
-  // block hit-boxes on top
-  L.forEach((e, i) => {
+  // block hit-boxes on top. Smallest last: the shipped rail() interleaves Origin and
+  // How to verify across the same band, so their bounding boxes nest even though no slot
+  // actually overlaps. Without this the inner block cannot be clicked.
+  L.map((e, i) => [e, i]).sort((a, b) => (b[0].w * b[0].h) - (a[0].w * a[0].h)).forEach(([e, i]) => {
     if (!visible(e)) return;
     const def = BLOCKS[e.block];
     const b = document.createElement("div");
@@ -1055,6 +1096,24 @@ function seriesProblems() {
   return out;
 }
 
+// Geometry, not copy — a slot can sit outside the trim no matter what the record says,
+// so this is checked once per template rather than once per cheese.
+function geometryProblems() {
+  const t = tpl(), out = [];
+  layout().filter(visible).forEach(e => {
+    if (e.block === "name" && e.pres === "rail") return;        // full-bleed rail, by design
+    if (e.block === "accentBar") return;
+    slotsFor(e, RECORDS[0], t.canvas.w).forEach(sl => {
+      const bot = sl.y + sl.h, rgt = sl.x + sl.w;
+      if (bot > t.canvas.h + 0.01 || rgt > t.canvas.w + 0.01)
+        out.push({ sev: "off", txt: `${sl.id} runs off the sign — bottom ${Math.round(bot)} on a canvas ${t.canvas.h} tall` });
+      else if (bot > t.canvas.h - t.safe + 0.01)
+        out.push({ sev: "safe", txt: `${sl.id} crosses the safe line — bottom ${Math.round(bot)}, safe line ${t.canvas.h - t.safe}` });
+    });
+  });
+  return out;
+}
+
 /* ============================================================================
    7. INSPECTOR — content per block. Every field control is a DROPDOWN over the
    record's own binding paths, never a text input (spec §5b, Studio Director
@@ -1074,6 +1133,23 @@ function bindingPaths(record) {
 }
 // Never let an overflow count be read as fact when the faces it was measured with
 // are not the faces that will print.
+function geometryPanel() {
+  const g = geometryProblems();
+  if (!g.length) return "";
+  const off = g.filter(x => x.sev === "off"), near = g.filter(x => x.sev === "safe");
+  const t = tpl();
+  let h = `<div class="warn" style="margin-top:8px"><b>Trim risk on this template.</b><br>`;
+  if (off.length) h += off.map(x => "• " + x.txt).join("<br>") + "<br>";
+  if (near.length) h += near.map(x => "• " + x.txt).join("<br>");
+  if (t.shipped && t.canvas.w === 400)
+    h += `<br><br><b>This is shipped code, not your layout.</b> <code>sign-templates.js</code> scales
+      every position by <code>s = w / 300</code>, but 3×4 and 4×5 are not the same shape —
+      3×4 is ${(400 / 300).toFixed(3)} tall for its width, 4×5 only ${(500 / 400).toFixed(3)}. Multiplying a
+      <em>y</em> by 1.333 into a canvas that only grew 1.25 pushes everything low on the sign
+      downward. The foot lands at ${Math.round(340 * 400 / 300)} instead of ${Math.round(340 / 400 * 500)}.`;
+  h += `</div>`;
+  return h;
+}
 function fontCaveat() {
   if (FONTS_OK.display && FONTS_OK.ui) return "";
   const missing = [!FONTS_OK.display && "Cora", !FONTS_OK.ui && "Futura PT"].filter(Boolean).join(" and ");
@@ -1095,6 +1171,7 @@ function renderInspector() {
       (probs.length
         ? `<div class="warn"><b>${probs.length} to check</b><br>` + probs.slice(0, 8).map(p => "• " + p).join("<br>") + (probs.length > 8 ? `<br>…and ${probs.length - 8} more` : "") + `</div>`
         : `<div class="note">All four cheeses sit comfortably in this one.</div>`) +
+      geometryPanel() +
       fontCaveat() +
       `<h3 class="sec">This sign</h3><p class="hint">${t.label}<br>
        ${t.canvas.w} × ${t.canvas.h} units · ${(t.canvas.w / 100).toFixed(2)}″ × ${(t.canvas.h / 100).toFixed(2)}″ · margin ${t.pad}<br>
@@ -1487,15 +1564,17 @@ async function drawSlot(ctx, sl, r) {
   }
   if (sl.kind === "image") {
     const o = slotOpts(sl.id);
-    const svg = iconFor(sl.asset, r);
+    const mk = markFor(sl.asset);
+    const svg = mk ? null : iconFor(sl.asset, r);
     let img = null;
-    if (svg) img = await loadImg("data:image/svg+xml;charset=utf-8," + encodeURIComponent(paintIcon(svg)));
+    if (mk) img = await loadImg(mk.src);
+    else if (svg) img = await loadImg("data:image/svg+xml;charset=utf-8," + encodeURIComponent(paintIcon(svg)));
     else {
       const pid = sl.asset === "$brand:primary" ? "monti-trentini/library/tswf07fmciwdpp13facm" : (sl.binds ? bindValue(r, sl.binds) : "");
       if (pid) img = await loadImg(cldUrl(pid, sl.w, { cutout: sl.asset === "$brand:primary" ? false : S.cutout }));
     }
     if (!img) { ctx.strokeStyle = TOKENS.charcoal; ctx.setLineDash([2, 2]); ctx.strokeRect(sl.x, sl.y, sl.w, sl.h); ctx.setLineDash([]); return; }
-    const box = (!svg && o.tight) ? tightBox(img) : null;
+    const box = (!svg && !mk && o.tight) ? tightBox(img) : null;
     if (box) {
       const nw = img.naturalWidth, nh = img.naturalHeight, bw = box.w * nw, bh = box.h * nh;
       const k = Math.min(sl.w / bw, sl.h / bh) * (o.scale || 1);
@@ -1503,7 +1582,7 @@ async function drawSlot(ctx, sl, r) {
       ctx.drawImage(img, sl.x + sl.w / 2 - (box.x * nw + bw / 2) * k, sl.y + sl.h / 2 - (box.y * nh + bh / 2) * k, nw * k, nh * k);
       ctx.restore();
     } else {
-      const k = Math.min(sl.w / img.naturalWidth, sl.h / img.naturalHeight) * (svg ? 1 : (o.scale || 1));
+      const k = Math.min(sl.w / img.naturalWidth, sl.h / img.naturalHeight) * ((svg || mk) ? 1 : (o.scale || 1));
       const w = img.naturalWidth * k, h = img.naturalHeight * k;
       ctx.drawImage(img, sl.x + (sl.w - w) / 2, sl.y + (sl.h - h) / 2, w, h);
     }

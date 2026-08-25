@@ -6,6 +6,67 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 > Format convention: `## YYYY-MM-DD — Title` · **Decision / Action / Status** ·
 > keep entries short and factual. This file is the project's memory.
 
+## 2026-08-25 — Real Asiago consortium + EU PDO artwork in; and the 4×5 signs run off the trim
+
+**Action.** Rick supplied `logo_c_consorzio_formaggio_asiago--sm.png` — the **Consorzio Tutela
+Formaggio Asiago mark and the EU PDO seal** in one transparent PNG — and asked to "separate the two
+for more flexible positioning." This is the artwork `CHEESE_SIGNS_SPEC.md` §9 item 3 has been
+waiting on since the case-sign round.
+
+**Split losslessly.** The file is already RGBA with a clean empty gutter between the two marks
+(occupied columns 19–419 and 489–630), so each was cropped and trimmed to its own bounds rather
+than redrawn or traced:
+
+| Asset | Pixels | Clean to, at 300 DPI |
+|---|---|---|
+| `assets/consorzio-asiago.png` | 401 × 308 | 1.34 × 1.03 in — **103 canvas units** |
+| `assets/dop-stamp.png` | 143 × 142 | 0.48 × 0.47 in — **47 canvas units** |
+
+**These are raster, and that ceiling is real.** §9 item 3 asked for *vector*. At badge size
+(34–40 units) both are comfortable, and the composer tooltips a warning if a mark is placed wider
+than its clean limit. Placed large — a hero consortium mark across a 4×5 — the PNG will show. The
+vector files are still worth requesting from consorzioasiago.it or through Marketing.
+
+**Three separate blocks now, not one badge row.** `dop` (the EU seal), `consorzio` (the consortium
+mark) and `mountain` (Product of the Mountain, still house-drawn — no official art supplied for it)
+each position independently, which is what Rick asked for. Resolved through a `$mark:` token so the
+export stays a token reference, never a file path (spec §6b hard rule). **The token has no backing
+in the app yet** — `src/lib/sign-icons.js` still holds the house-drawn `dop` SVG, and these two PNGs
+need to reach Cloudinary/the Media Hub before a shipped sign can render them.
+
+---
+
+**The finding: the 4×5 case signs place five slots outside the safe area, and one off the sign.**
+
+Verified against the geometry extracted from `sign-templates.js` itself:
+
+| Slot | Bottom edge | Canvas 500 tall, safe line 488 |
+|---|---|---|
+| `qr_caption` | **512** | **off the sign entirely** |
+| `dop_badge`, `mountain_badge`, `qr` | 498.7 | past the safe line |
+| `origin` | 489.3 | past the safe line |
+
+Both 4×5 templates, short and long. **The 3×4 pair is clean** — every slot inside the safe area.
+
+**Cause: 3×4 and 4×5 are not the same shape.** The builders scale every coordinate by
+`s = w / 300`, which is 1.333 at 4×5 — but the canvas is 400×500, and 500 is only **1.25×** the
+400-tall 3×4 proportion. Multiplying a *y* by 1.333 into a canvas that grew 1.25 pushes everything
+low on the sign downward. `foot()` sits at `340 * s` = **453** where a proportional layout would put
+it at **425**. The error compounds toward the bottom, which is why the QR caption — the lowest slot
+— is the one that falls off.
+
+Not touched. This is shipped code and 10 case signs have been proofed against it; the fix is either
+a separate y-scale or per-size positions, and that is its own change with its own re-proof. The
+composer now **reports it** instead: a "Trim risk on this template" panel listing every offending
+slot with its actual numbers, and, on a shipped 4×5, the arithmetic behind it.
+
+**Also fixed, mine not shipped.** The talker/I footer had the QR running past the bottom edge and
+sitting on the verify strip. And block hit-boxes are now drawn smallest-last: the shipped `rail()`
+interleaves Origin and How-to-verify across one band, so their bounding boxes nest even though no
+slot actually overlaps — the inner block had become unclickable. That nesting is concrete evidence
+for the spec's own claim that the composer's vocabulary and the code's vocabulary disagree
+(build-order step 0).
+
 ## 2026-08-25 — Sign Composer: Reset, and a palette click no longer deletes a block
 
 **Action.** Rick: "the name block got buried lets put in a reset button."
