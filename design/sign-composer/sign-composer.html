@@ -99,7 +99,24 @@ dialog{background:var(--ui-panel); color:var(--ui-text); border:1px solid var(--
 dialog::backdrop{background:rgba(0,0,0,.62);}
 dialog .dhead{display:flex; align-items:center; gap:10px; padding:11px 14px; border-bottom:1px solid var(--ui-line);}
 dialog .dhead b{font-family:var(--display); font-style:italic; font-size:15px; color:var(--primary);}
-dialog textarea{width:100%; height:52vh; background:#12210F; color:#DCEBD9; border:0; border-top:1px solid var(--ui-line);
+#editBody{padding:14px 16px 18px; max-height:64vh; overflow-y:auto;}
+  .ed{border-top:1px solid var(--ui-line); padding:14px 0 4px;}
+  .ed:first-child{border-top:0; padding-top:2px;}
+  .ed h4{margin:0 0 3px; font-family:var(--display); font-style:italic; font-size:14px; color:var(--primary);}
+  .ed .src{font-size:10px; color:var(--ui-dim); margin-bottom:7px;}
+  .ed textarea.copy{width:100%; height:62px; background:#fff; color:var(--ink); border:1px solid var(--ui-line);
+    border-radius:3px; padding:7px 8px; font:12px/1.45 var(--ui); resize:vertical;}
+  .ed .ctl{display:flex; align-items:center; gap:10px; margin-top:7px; flex-wrap:wrap;}
+  .ed .ctl label{font-size:10px; text-transform:uppercase; letter-spacing:.08em; color:var(--ui-dim);}
+  .ed input[type=range]{flex:1; min-width:150px; accent-color:var(--accent);}
+  .ed .pct{font-size:11px; color:var(--primary); min-width:42px; font-weight:600;}
+  .ed .imgprev{width:150px; height:110px; border:1px solid var(--ui-line); border-radius:3px; background:var(--cream);
+    position:relative; overflow:hidden; flex-shrink:0;}
+  .edited{display:inline-block; font-size:9px; letter-spacing:.08em; text-transform:uppercase; color:#fff;
+    background:var(--accent); border-radius:2px; padding:1px 5px; margin-left:6px; vertical-align:2px;}
+  button.danger{color:#8E1B24; border-color:rgba(206,43,55,.45);}
+  button.danger:hover{background:#FBEEEF; border-color:#CE2B37;}
+  dialog textarea{width:100%; height:52vh; background:#12210F; color:#DCEBD9; border:0; border-top:1px solid var(--ui-line);
   font:11.5px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace; padding:12px; resize:none;}
 </style>
 </head>
@@ -146,11 +163,23 @@ dialog textarea{width:100%; height:52vh; background:#12210F; color:#DCEBD9; bord
   <div class="col inspector" id="inspector"></div>
 </main>
 
+<dialog id="editDlg">
+  <div class="dhead">
+    <b id="editTitle">Edit</b>
+    <div class="spacer"></div>
+    <button id="editDel" class="danger">Delete from sign</button>
+    <button id="editDone" class="on">Done</button>
+  </div>
+  <div id="editBody"></div>
+</dialog>
+
 <dialog id="expDlg">
   <div class="dhead">
     <b id="expTitle">Export</b>
     <button id="expJs" class="on">JS snippet</button>
     <button id="expJson">JSON</button>
+    <button id="expPng">PNG · this sign</button>
+    <button id="expPng4">PNG · all four</button>
     <div class="spacer"></div>
     <button id="expCopy">Copy</button>
     <button id="expDl">Download</button>
@@ -622,6 +651,9 @@ const TEMPLATES = [
 const S = {
   tplId: "talker/G", recIdx: 0, zoom: 1.5, sel: null,
   snap: true, cutout: true, guides: { safe: true, bleed: true },
+  copy: {},        // per-cheese copy overrides: copy[recordId][slotId] = text
+  opts: {},        // per-slot render options: opts[tplId][slotId] = { size, tight, scale }
+
   layouts: {},            // tplId -> [{block,pres,x,y,w,h,binds,hidden,override}]
   undo: [], redo: [],
 };
@@ -680,7 +712,7 @@ function fontCss(f) {
 // fit:"shrink" — step the size down until the text fits its box. Floor at 60% so a
 // runaway string reports as overflow instead of shrinking into illegibility.
 function shrinkToFit(slot, record) {
-  const base = slot.font.size, css = fontCss(slot.font), t = textOf(slot, record);
+  const base = effFont(slot).size, css = fontCss(effFont(slot)), t = textOf(slot, record);
   for (let size = base; size >= base * 0.6; size -= base * 0.04) {
     Object.assign(measurer.style, css, { fontSize: size + "px", width: slot.w + "px", whiteSpace: "normal", height: "auto" });
     measurer.textContent = t;
@@ -688,7 +720,71 @@ function shrinkToFit(slot, record) {
   }
   return +(base * 0.6).toFixed(2);
 }
+// Three steps, not a free numeric field — a type scale, or the family stops
+// looking like a family. Font itself is never editable (spec §5b).
+const SIZE_STEP = { s: 0.85, m: 1, l: 1.2 };
+
+function slotOpts(slotId) {
+  const byTpl = (S.opts[S.tplId] = S.opts[S.tplId] || {});
+  return (byTpl[slotId] = byTpl[slotId] || { size: "m", tight: true, scale: 1 });
+}
+function copyOverride(record, slotId) {
+  return S.copy[record?.id]?.[slotId];
+}
+function setCopyOverride(record, slotId, text) {
+  const byRec = (S.copy[record.id] = S.copy[record.id] || {});
+  if (text == null) delete byRec[slotId]; else byRec[slotId] = text;
+}
+// Effective font, after the S/M/L step. The family and weight are untouched.
+function effFont(slot) {
+  const step = SIZE_STEP[slotOpts(slot.id).size] ?? 1;
+  return step === 1 ? slot.font : { ...slot.font, size: slot.font.size * step };
+}
+
+// Cloudinary trim is not enabled on this account (c_trim 400s alone, and is silently
+// dropped when combined), so the tight crop is computed here from the alpha channel.
+// CORS is open (access-control-allow-origin: *), so reading pixels is safe.
+const BBOX = new Map();
+function tightBox(img) {
+  if (BBOX.has(img.src)) return BBOX.get(img.src);
+  let box = null;
+  try {
+    const N = 160, c = document.createElement("canvas");
+    const r = img.naturalWidth / img.naturalHeight;
+    c.width = r >= 1 ? N : Math.round(N * r);
+    c.height = r >= 1 ? Math.round(N / r) : N;
+    const x = c.getContext("2d", { willReadFrequently: true });
+    x.drawImage(img, 0, 0, c.width, c.height);
+    const d = x.getImageData(0, 0, c.width, c.height).data;
+    let x0 = c.width, y0 = c.height, x1 = 0, y1 = 0, found = false;
+    for (let py = 0; py < c.height; py++) for (let px = 0; px < c.width; px++) {
+      const i = (py * c.width + px) * 4;
+      const opaque = d[i + 3] > 24;
+      const notWhite = !(d[i] > 244 && d[i + 1] > 244 && d[i + 2] > 244);
+      if (opaque && notWhite) { found = true; if (px < x0) x0 = px; if (px > x1) x1 = px; if (py < y0) y0 = py; if (py > y1) y1 = py; }
+    }
+    if (found) box = { x: x0 / c.width, y: y0 / c.height, w: (x1 - x0 + 1) / c.width, h: (y1 - y0 + 1) / c.height };
+  } catch (e) { box = null; }   // tainted or not decodable — fall back to contain
+  BBOX.set(img.src, box);
+  return box;
+}
+// Place an <img> so its content box fills the slot, scaled by the user's slider.
+function fitTight(img, slot, o) {
+  const box = o.tight ? tightBox(img) : null;
+  if (!box) { img.style.cssText += ";width:100%;height:100%;object-fit:contain;"; return; }
+  const nw = img.naturalWidth, nh = img.naturalHeight;
+  const bw = box.w * nw, bh = box.h * nh;
+  const k = Math.min(slot.w / bw, slot.h / bh) * (o.scale || 1);
+  Object.assign(img.style, {
+    position: "absolute", width: nw * k + "px", height: nh * k + "px", objectFit: "fill",
+    left: slot.w / 2 - (box.x * nw + bw / 2) * k + "px",
+    top: slot.h / 2 - (box.y * nh + bh / 2) * k + "px",
+  });
+}
+
 function textOf(slot, record) {
+  const ov = copyOverride(record, slot.id);
+  if (ov != null) return ov;
   if (slot.value != null) return slot.value;
   return String(bindValue(record, slot.binds) ?? "");
 }
@@ -697,14 +793,14 @@ function overflowOf(slot, record) {
   if (slot.kind !== "text") return null;
   const t = textOf(slot, record);
   if (slot.maxChars && t.length > slot.maxChars) return `over maxChars (${t.length}/${slot.maxChars})`;
-  const css = fontCss(slot.font);
+  const css = fontCss(effFont(slot));
   Object.assign(measurer.style, css, { width: slot.w + "px", whiteSpace: "normal", height: "auto" });
   measurer.textContent = t;
   const lines = Math.round(measurer.scrollHeight / (parseFloat(css.fontSize) * parseFloat(css.lineHeight)));
   if (slot.clamp && lines > slot.clamp) return `over clamp (${lines}/${slot.clamp} lines)`;
   if (slot.fit === "shrink") {
     const sz = shrinkToFit(slot, record);
-    return sz <= slot.font.size * 0.61 ? "will not fit even shrunk to 60%" : null;
+    return sz <= effFont(slot).size * 0.61 ? "will not fit even shrunk to 60%" : null;
   }
   if (lines > 1 && measurer.scrollHeight > slot.h + 0.6) return `wraps to ${lines} lines, past the box`;
   return null;
@@ -718,7 +814,7 @@ function slotEl(slot, record) {
     else if (slot.fill && slot.fill !== "none") d.style.background = tok(slot.fill);
     if (slot.stroke) { d.style.border = "0.8px solid " + tok(slot.stroke); d.style.borderRadius = "1.5px"; }
   } else if (slot.kind === "text") {
-    Object.assign(d.style, fontCss(slot.font));
+    Object.assign(d.style, fontCss(effFont(slot)));
     if (slot.rule) d.style.borderLeft = `${slot.rule.w}px solid ${tok(slot.rule.color)}`;
     if (slot.rule) d.style.paddingLeft = "3px";
     if (slot.vertical) { d.style.writingMode = "vertical-rl"; d.style.transform = "rotate(180deg)"; d.style.display = "flex"; d.style.alignItems = "center"; d.style.justifyContent = "center"; }
@@ -727,17 +823,11 @@ function slotEl(slot, record) {
   } else if (slot.kind === "image") {
     const svg = iconFor(slot.asset, record);
     if (svg) { d.innerHTML = paintIcon(svg); const s0 = d.firstElementChild; if (s0) { s0.style.width = "100%"; s0.style.height = "100%"; } }
-    else if (slot.asset === "$brand:primary") {
-      const img = new Image(); img.src = cldUrl("monti-trentini/library/tswf07fmciwdpp13facm", slot.w);
-      Object.assign(img.style, { width: "100%", height: "100%", objectFit: "contain" });
-      img.onerror = () => { d.innerHTML = ""; d.append(ph(slot, "MT logo")); }; d.append(img);
-    } else if (slot.binds) {
+    else if (slot.asset === "$brand:primary") d.append(cldImg(slot, "monti-trentini/library/tswf07fmciwdpp13facm", false, "MT logo"));
+    else if (slot.binds) {
       const pid = bindValue(record, slot.binds);
-      if (pid) { const img = new Image(); img.src = cldUrl(pid, slot.w, { cutout: S.cutout });
-        Object.assign(img.style, { width: "100%", height: "100%", objectFit: "contain",
-          background: S.cutout ? "transparent" : tok(slot.bg || "$paper") });
-        img.onerror = () => { d.innerHTML = ""; d.append(ph(slot, "packshot")); }; d.append(img);
-      } else d.append(ph(slot, "no image"));
+      if (pid) { d.style.position = "relative"; d.append(cldImg(slot, pid, S.cutout, "packshot")); }
+      else d.append(ph(slot, "no image"));
     } else d.append(ph(slot, slot.label || "image"));
   } else if (slot.kind === "qr") {
     d.style.background = "#fff"; d.style.border = "0.8px solid " + TOKENS.ink;
@@ -745,6 +835,16 @@ function slotEl(slot, record) {
     d.title = "QR placeholder — real code renders from " + slot.binds;
   }
   return d;
+}
+function cldImg(slot, publicId, cutout, failLabel) {
+  const o = slotOpts(slot.id), img = new Image();
+  img.crossOrigin = "anonymous";               // Cloudinary sends ACAO:* — keeps the canvas clean for PNG export
+  img.style.background = cutout ? "transparent" : tok(slot.bg || "$paper");
+  img.onload = () => fitTight(img, slot, o);
+  img.onerror = () => { const p = img.parentNode; if (p) { p.innerHTML = ""; p.append(ph(slot, failLabel)); } };
+  img.src = cldUrl(publicId, slot.w, { cutout });
+  if (img.complete && img.naturalWidth) fitTight(img, slot, o);
+  return img;
 }
 function ph(slot, label) {
   const p = document.createElement("div");
@@ -993,9 +1093,10 @@ function renderInspector() {
       <div class="prev ${empty ? "empty" : ""}">${empty ? "— nothing here yet on this cheese. It shows as a placeholder while you work and simply will not print." : String(val).slice(0, 150)}</div></div>`;
   });
 
-  html += `<div class="row"><label>On the sign</label>
-    <button id="hideBtn">${e.hidden ? "Put it back" : "Take it off"}</button>
-    <button id="delBtn" title="Take it off this sign for good">Remove</button></div>`;
+  html += `<div class="row"><label>Words and pictures</label>
+    <button id="editBtn" class="on">Edit this piece</button>
+    <button id="delBtn" class="danger" title="Take it off this sign for good">Delete from sign</button>
+    <div class="pathhint">Change the wording, the size it is set at, and how the photo is cropped.</div></div>`;
   html += `<div class="row"><label>Only on this cheese</label>
     <label style="text-transform:none;font-size:11px;color:var(--ui-text)">
       <input type="checkbox" id="ovr" ${e.override ? "checked" : ""}> Just for the ${r.name}</label>
@@ -1016,8 +1117,11 @@ function renderInspector() {
     };
     sel.title = "binding path on the sign record";
   });
-  hideBtn.onclick = () => { push(); e.hidden = !e.hidden; renderAll(); };
-  delBtn.onclick = () => { push(); layout().splice(S.sel, 1); S.sel = null; renderAll(); };
+  editBtn.onclick = () => openEditor(S.sel);
+  delBtn.onclick = () => {
+    if (!confirm(`Take ${BLOCKS[e.block].label} off this sign?\n\nIt comes off all four cheeses — the arrangement is shared.`)) return;
+    push(); layout().splice(S.sel, 1); S.sel = null; renderAll();
+  };
   ovr.onchange = ev => { push(); e.override = ev.target.checked; renderAll(); };
 }
 
@@ -1039,6 +1143,115 @@ function renderPalette() {
     host.append(b);
   });
 }
+
+/* ============================================================================
+   7b. THE EDITOR — words and pictures for one block
+   Copy edits are stored as a per-cheese OVERRIDE, not written back to signs.json
+   (spec §9: the composer never edits the record). The override is marked in the UI
+   and called out in the export, so a sign that has drifted from its record says so.
+   The font itself is never editable — size is a three-step scale (spec §5b).
+   ========================================================================== */
+const editDlg = document.getElementById("editDlg");
+const editBody = document.getElementById("editBody");
+let editIdx = null;
+
+function openEditor(i) {
+  editIdx = i;
+  const e = layout()[i], r = rec();
+  document.getElementById("editTitle").textContent = `${BLOCKS[e.block].label} — ${r.name}`;
+  const slots = slotsFor(e, r, tpl().canvas.w);
+  editBody.innerHTML = "";
+
+  slots.forEach(sl => {
+    if (sl.kind === "shape" || sl.kind === "qr") return;
+    const o = slotOpts(sl.id);
+    const box = document.createElement("div"); box.className = "ed";
+
+    if (sl.kind === "text") {
+      const isFixed = sl.value != null && !sl.binds;
+      const ov = copyOverride(r, sl.id);
+      box.innerHTML = `<h4>${sl.id.replace(/_/g, " ")}${ov != null ? '<span class="edited">edited</span>' : ""}</h4>
+        <div class="src">${isFixed ? "fixed label — same on every sign" : "from <b>" + sl.binds + "</b> on this cheese"}</div>
+        <textarea class="copy" data-slot="${sl.id}">${textOf(sl, r).replace(/</g, "&lt;")}</textarea>
+        <div class="ctl">
+          <label>Size</label>
+          <select data-size="${sl.id}">
+            <option value="s"${o.size === "s" ? " selected" : ""}>Small</option>
+            <option value="m"${o.size === "m" ? " selected" : ""}>Medium</option>
+            <option value="l"${o.size === "l" ? " selected" : ""}>Large</option>
+          </select>
+          <span class="pct">${Math.round(sl.font.size / PT * (SIZE_STEP[o.size] || 1) * 10) / 10} pt</span>
+          ${ov != null ? `<button data-reset="${sl.id}">Put the original back</button>` : ""}
+        </div>`;
+    } else {
+      const pid = sl.binds ? bindValue(r, sl.binds) : "logo";
+      box.innerHTML = `<h4>${sl.id.replace(/_/g, " ")}</h4>
+        <div class="src">${sl.binds ? "from <b>" + sl.binds + "</b>" : "brand mark"} · ${pid}</div>
+        <div class="ctl">
+          <div class="imgprev" data-prev="${sl.id}"></div>
+          <div style="flex:1; min-width:210px">
+            <div class="ctl" style="margin-top:0">
+              <label><input type="checkbox" data-tight="${sl.id}" ${o.tight ? "checked" : ""}> Crop in tight</label>
+            </div>
+            <div class="ctl">
+              <label>Size</label>
+              <input type="range" min="40" max="170" value="${Math.round((o.scale || 1) * 100)}" data-scale="${sl.id}">
+              <span class="pct" data-pct="${sl.id}">${Math.round((o.scale || 1) * 100)}%</span>
+            </div>
+          </div>
+        </div>`;
+    }
+    editBody.append(box);
+    if (sl.kind === "image") drawPrev(box.querySelector("[data-prev]"), sl, r);
+  });
+
+  if (!editBody.children.length)
+    editBody.innerHTML = `<p class="hint" style="padding:4px 0">Nothing to type or crop in this one — it is a rule, a badge or a QR. Drag it on the sign to move it, or delete it above.</p>`;
+
+  editDlg.showModal();
+}
+
+function drawPrev(host, sl, r) {
+  if (!host) return;
+  host.innerHTML = "";
+  const fake = { ...sl, w: host.clientWidth || 150, h: host.clientHeight || 110 };
+  const pid = sl.binds ? bindValue(r, sl.binds) : "monti-trentini/library/tswf07fmciwdpp13facm";
+  if (!pid) return;
+  host.append(cldImg(fake, pid, sl.binds ? S.cutout : false, "image"));
+}
+
+editBody.addEventListener("input", ev => {
+  const t = ev.target;
+  if (t.dataset.slot) { setCopyOverride(rec(), t.dataset.slot, t.value); renderCanvas(); renderFilm(); }
+  else if (t.dataset.scale) {
+    slotOpts(t.dataset.scale).scale = +t.value / 100;
+    editBody.querySelector(`[data-pct="${t.dataset.scale}"]`).textContent = t.value + "%";
+    const sl = slotsFor(layout()[editIdx], rec(), tpl().canvas.w).find(x => x.id === t.dataset.scale);
+    drawPrev(editBody.querySelector(`[data-prev="${t.dataset.scale}"]`), sl, rec());
+    renderCanvas(); renderFilm();
+  }
+});
+editBody.addEventListener("change", ev => {
+  const t = ev.target;
+  if (t.dataset.size) { push(); slotOpts(t.dataset.size).size = t.value; renderAll(); openEditor(editIdx); }
+  else if (t.dataset.tight) {
+    push(); slotOpts(t.dataset.tight).tight = t.checked;
+    const sl = slotsFor(layout()[editIdx], rec(), tpl().canvas.w).find(x => x.id === t.dataset.tight);
+    drawPrev(editBody.querySelector(`[data-prev="${t.dataset.tight}"]`), sl, rec());
+    renderCanvas(); renderFilm();
+  }
+});
+editBody.addEventListener("click", ev => {
+  const id = ev.target.dataset?.reset;
+  if (!id) return;
+  push(); setCopyOverride(rec(), id, null); renderAll(); openEditor(editIdx);
+});
+document.getElementById("editDone").onclick = () => { editDlg.close(); renderAll(); };
+document.getElementById("editDel").onclick = () => {
+  const e = layout()[editIdx];
+  if (!confirm(`Take ${BLOCKS[e.block].label} off this sign?\n\nIt comes off all four cheeses — the arrangement is shared.`)) return;
+  push(); layout().splice(editIdx, 1); S.sel = null; editDlg.close(); renderAll();
+};
 
 /* ============================================================================
    8. SAVE + EXPORT (spec §2, §7)
@@ -1084,6 +1297,8 @@ function jsExport() {
   L.forEach(e => {
     out += `\n  // —— ${BLOCKS[e.block].label} (${e.pres})${e.override ? " — PER-RECORD OVERRIDE" : ""}\n`;
     slotsFor(e, r, t.canvas.w).forEach(sl => {
+      const ov = copyOverride(r, sl.id);
+      if (ov != null) out += `  // COPY EDITED in the composer for ${r.name} — differs from ${sl.binds || "the fixed label"} in signs.json\n`;
       const parts = [`id: ${q(sl.id)}`, `role: ${q(sl.role)}`, `kind: ${q(sl.kind)}`];
       if (sl.fit) parts.push(`fit: ${q(sl.fit)}`);
       if (sl.binds) parts.push(`binds: ${q(sl.binds)}`);
@@ -1099,7 +1314,7 @@ function jsExport() {
       if (sl.maxChars) parts.push(`maxChars: ${sl.maxChars}`);
       if (sl.label) parts.push(`label: ${q(sl.label)}`);
       if (sl.font) {
-        const f = sl.font, fp = [`font: ${q(f.font)}`, `size: ${+(f.size / PT).toFixed(2)} * PT * s`];
+        const f = effFont(sl), fp = [`font: ${q(f.font)}`, `size: ${+(f.size / PT).toFixed(2)} * PT * s`];
         if (f.bold) fp.push("bold: true");
         if (f.italic) fp.push("italic: true");
         if (f.uppercase) fp.push("uppercase: true");
@@ -1125,6 +1340,122 @@ function jsonExport() {
     slots: layout().filter(visible).flatMap(e => slotsFor(e, r, t.canvas.w)),
   }, null, 2);
 }
+/* ---- PNG: rasterise the sign at 300 DPI. Canvas units are 100 to the inch, so
+   scale 3 gives 300 DPI. Drawn slot by slot rather than via foreignObject, which
+   is fragile about fonts and needs every image inlined; Cloudinary sends ACAO:*
+   and the <img>s carry crossOrigin, so the canvas is never tainted. ---- */
+const PNG_DPI = 300;
+
+function loadImg(src) {
+  return new Promise(res => {
+    const i = new Image(); i.crossOrigin = "anonymous";
+    i.onload = () => res(i); i.onerror = () => res(null); i.src = src;
+  });
+}
+function wrapLines(ctx, text, maxW) {
+  const out = [];
+  String(text).split(/\n/).forEach(para => {
+    let line = "";
+    para.split(/\s+/).filter(Boolean).forEach(word => {
+      const t = line ? line + " " + word : word;
+      if (ctx.measureText(t).width > maxW && line) { out.push(line); line = word; } else line = t;
+    });
+    out.push(line);
+  });
+  return out;
+}
+async function drawSlot(ctx, sl, r) {
+  if (sl.kind === "shape") {
+    if (sl.fill === "$tricolore") {
+      const w = sl.w / 3;
+      ["#008C45", "#F4F5F0", "#CD212A"].forEach((c, i) => { ctx.fillStyle = c; ctx.fillRect(sl.x + w * i, sl.y, w + .5, sl.h); });
+    } else if (sl.fill && sl.fill !== "none") { ctx.fillStyle = tok(sl.fill); ctx.fillRect(sl.x, sl.y, sl.w, sl.h); }
+    if (sl.stroke) { ctx.strokeStyle = tok(sl.stroke); ctx.lineWidth = 0.8; ctx.strokeRect(sl.x, sl.y, sl.w, sl.h); }
+    return;
+  }
+  if (sl.kind === "qr") {
+    ctx.fillStyle = "#fff"; ctx.fillRect(sl.x, sl.y, sl.w, sl.h);
+    ctx.fillStyle = TOKENS.ink;
+    const c = 2, n = Math.floor(sl.w / (c * 2));
+    for (let a = 0; a < n; a++) for (let b = 0; b < n; b++) if ((a * 7 + b * 5) % 3) ctx.fillRect(sl.x + a * c * 2, sl.y + b * c * 2, c, c);
+    ctx.strokeStyle = TOKENS.ink; ctx.lineWidth = 0.8; ctx.strokeRect(sl.x, sl.y, sl.w, sl.h);
+    return;
+  }
+  if (sl.kind === "image") {
+    const o = slotOpts(sl.id);
+    const svg = iconFor(sl.asset, r);
+    let img = null;
+    if (svg) img = await loadImg("data:image/svg+xml;charset=utf-8," + encodeURIComponent(paintIcon(svg)));
+    else {
+      const pid = sl.asset === "$brand:primary" ? "monti-trentini/library/tswf07fmciwdpp13facm" : (sl.binds ? bindValue(r, sl.binds) : "");
+      if (pid) img = await loadImg(cldUrl(pid, sl.w, { cutout: sl.asset === "$brand:primary" ? false : S.cutout }));
+    }
+    if (!img) { ctx.strokeStyle = TOKENS.charcoal; ctx.setLineDash([2, 2]); ctx.strokeRect(sl.x, sl.y, sl.w, sl.h); ctx.setLineDash([]); return; }
+    const box = (!svg && o.tight) ? tightBox(img) : null;
+    if (box) {
+      const nw = img.naturalWidth, nh = img.naturalHeight, bw = box.w * nw, bh = box.h * nh;
+      const k = Math.min(sl.w / bw, sl.h / bh) * (o.scale || 1);
+      ctx.save(); ctx.beginPath(); ctx.rect(sl.x, sl.y, sl.w, sl.h); ctx.clip();
+      ctx.drawImage(img, sl.x + sl.w / 2 - (box.x * nw + bw / 2) * k, sl.y + sl.h / 2 - (box.y * nh + bh / 2) * k, nw * k, nh * k);
+      ctx.restore();
+    } else {
+      const k = Math.min(sl.w / img.naturalWidth, sl.h / img.naturalHeight) * (svg ? 1 : (o.scale || 1));
+      const w = img.naturalWidth * k, h = img.naturalHeight * k;
+      ctx.drawImage(img, sl.x + (sl.w - w) / 2, sl.y + (sl.h - h) / 2, w, h);
+    }
+    return;
+  }
+  // text
+  const f = effFont(sl);
+  let size = f.size;
+  const setFont = () => { ctx.font = `${f.italic ? "italic " : ""}${f.bold ? "700 " : "400 "}${size}px ${tok(f.font)}`; };
+  setFont();
+  if (ctx.letterSpacing !== undefined) ctx.letterSpacing = (f.tracking || 0) * size + "px";
+  let txt = textOf(sl, r);
+  if (f.uppercase) txt = txt.toUpperCase();
+  const lh = () => size * (f.italic && size > 12 ? 1.06 : 1.28);
+  let lines = wrapLines(ctx, txt, sl.w);
+  if (sl.fit === "shrink") {
+    while (lines.length * lh() > sl.h + 0.6 && size > f.size * 0.6) { size -= f.size * 0.04; setFont(); lines = wrapLines(ctx, txt, sl.w); }
+  }
+  ctx.fillStyle = tok(f.color) || TOKENS.ink;
+  ctx.textBaseline = "top";
+  ctx.textAlign = f.align === "center" ? "center" : f.align === "right" ? "right" : "left";
+  const ox = f.align === "center" ? sl.x + sl.w / 2 : f.align === "right" ? sl.x + sl.w : sl.x + (sl.rule ? 3 : 0);
+  lines.forEach((ln, i) => ctx.fillText(ln, ox, sl.y + i * lh() + size * 0.16));
+  if (sl.rule) { ctx.fillStyle = tok(sl.rule.color); ctx.fillRect(sl.x, sl.y, sl.rule.w, sl.h); }
+  if (ctx.letterSpacing !== undefined) ctx.letterSpacing = "0px";
+}
+
+async function renderPNG(record) {
+  const t = tpl(), r = record || rec(), k = PNG_DPI / 100;
+  const cv = document.createElement("canvas");
+  cv.width = Math.round(t.canvas.w * k); cv.height = Math.round(t.canvas.h * k);
+  const ctx = cv.getContext("2d");
+  ctx.scale(k, k);
+  ctx.fillStyle = TOKENS.cream; ctx.fillRect(0, 0, t.canvas.w, t.canvas.h);
+  const all = layout().filter(visible).flatMap(e => slotsFor(e, r, t.canvas.w))
+    .filter(sl => !hiddenByShowIf(sl, r)).sort((a, b) => (a.z || 0) - (b.z || 0));
+  for (const sl of all) await drawSlot(ctx, sl, r);
+  return cv;
+}
+async function downloadPNG(all) {
+  const btn = document.getElementById("expPng"); const label = btn.textContent;
+  btn.textContent = "Rendering…"; btn.disabled = true;
+  try {
+    const recs = all ? RECORDS : [rec()];
+    for (const r of recs) {
+      const cv = await renderPNG(r);
+      const a = document.createElement("a");
+      a.href = cv.toDataURL("image/png");
+      a.download = `${tpl().id.replace(/\//g, "-")}--${r.id}--${PNG_DPI}dpi.png`;
+      a.click();
+      await new Promise(res => setTimeout(res, 250));
+    }
+  } catch (err) { alert("PNG render failed: " + err.message); }
+  btn.textContent = label; btn.disabled = false;
+}
+
 let expMode = "js";
 function showExport() {
   document.getElementById("expOut").value = expMode === "js" ? jsExport() : jsonExport();
@@ -1135,6 +1466,8 @@ function showExport() {
 document.getElementById("expBtn").onclick = () => { showExport(); document.getElementById("expDlg").showModal(); };
 document.getElementById("expJs").onclick = () => { expMode = "js"; showExport(); };
 document.getElementById("expJson").onclick = () => { expMode = "json"; showExport(); };
+document.getElementById("expPng").onclick = () => downloadPNG(false);
+document.getElementById("expPng4").onclick = () => downloadPNG(true);
 document.getElementById("expCopy").onclick = () => { const o = document.getElementById("expOut"); o.select(); document.execCommand("copy"); };
 document.getElementById("expDl").onclick = () => {
   const blob = new Blob([document.getElementById("expOut").value], { type: "text/plain" });

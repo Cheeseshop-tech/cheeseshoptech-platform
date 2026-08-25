@@ -6,6 +6,51 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 > Format convention: `## YYYY-MM-DD — Title` · **Decision / Action / Status** ·
 > keep entries short and factual. This file is the project's memory.
 
+## 2026-08-25 — Sign Composer: one Edit button, tight image crop, S/M/L type, PNG export
+
+**Action.** Rick, in one pass: replace the two buttons with an **Edit** button covering text and
+image; crop images tight by default with a **size slider**; let copy be edited but **not the font**,
+with size as a three-option dropdown; a **Delete from sign**; and **PNG** as an export.
+
+**Copy editing versus the Studio Director contract.** `CHEESE_SIGNS_SPEC.md` says nothing on a sign
+face is ever free-typed, and spec §9 says the composer never writes `signs.json`. Both still hold:
+a copy edit is stored as a **per-cheese override** keyed by record id, marked `edited` in the
+editor with a "Put the original back" button, and — the part that matters — **called out by name in
+the JS export**, one comment line per drifted slot naming the record and the binding it no longer
+matches. Rick gets to type; a sign that has wandered from its record cannot do so quietly. Editing
+Fresco leaves the other three untouched, verified.
+
+**Font is not editable, size is three steps.** Small / Medium / Large map to 0.85 / 1.0 / 1.2 of the
+slot's declared size, applied through `effFont()` so overflow checks, `fit:"shrink"` and the export
+all see the stepped value. No family, weight or colour control — a type scale, not a free numeric
+field, or the family stops looking like a family.
+
+**Tight crop had to be done client-side.** The obvious answer was Cloudinary `c_trim`, and it does
+not work on this account: `c_trim` alone returns **400**, and combined into a transformation list it
+is **silently dropped** — the returned image is byte-identical to the untrimmed one, which is the
+failure mode worth knowing about, because it looks like success. So the content box is computed
+from the alpha channel in a 160px offscreen canvas (`tightBox()`, cached per URL) and the image is
+positioned so that box fills the slot. CORS is `access-control-allow-origin: *`, so reading pixels
+is legal and the canvas is never tainted. The slider scales from that fitted size, 40–170%.
+
+**PNG export, 300 DPI.** Canvas units are 100 to the inch, so scale 3 gives 300 DPI — a
+2.5×3.5 talker lands at 750×1050. Drawn **slot by slot** onto a canvas rather than via
+`foreignObject`, which is fragile about fonts and needs every image inlined as a data URI. Shapes,
+wrapped and aligned text with `fit:"shrink"` honoured, the tricolore, icons rasterised from their
+SVG source, Cloudinary images with `crossOrigin`, and the QR placeholder. Two buttons: this sign,
+or all four in sequence.
+
+**Verification.** Editor opens correctly for both kinds — the Name block gives two copy fields and
+two size dropdowns, the Packshot block gives a live preview, a crop toggle and the slider. Size
+steps measured at 15.94 / 18.75 / 22.5 pt. An override applied to Fresco left Stagionato unchanged
+and reverted to the exact record value. PNG rendered 750×1050, `toDataURL` succeeded (canvas not
+tainted), and the image was rendered back and inspected — full sign, cut-out packshot, badge
+correctly hidden for a record without `mountainMark`.
+
+**Still open.** The recognition cue renders empty because `recognitionCue` is not yet a field on the
+records — handoff open item 3, unchanged. The QR remains a placeholder pattern in both preview and
+PNG; a real encoder is still unbuilt.
+
 ## 2026-08-25 — Sign Composer: packshots and logo render cut out, not boxed in white
 
 **Action.** Rick: "render pack shots with removed background and logo as well." The composer was
