@@ -6,6 +6,54 @@ Newest entries at the top. Each entry: **what changed, why, and what it unblocks
 > Format convention: `## YYYY-MM-DD — Title` · **Decision / Action / Status** ·
 > keep entries short and factual. This file is the project's memory.
 
+## 2026-08-25 — Sign Composer: Owner mode — full type and copy control while authoring
+
+**Action.** Rick: "lets make the acception for me the owner as I develop the templets and fine tune
+the details… with the text editing."
+
+**The contract I was enforcing was aimed at the wrong person.** `CHEESE_SIGNS_SPEC.md`'s Studio
+Director rule — dropdowns over the record, no free typing, no type controls — exists so an
+**operator** cannot put a typo or an off-brand face on a printed sign. It was never meant to bind
+Rick while he is authoring the template, which is exactly when those controls are the work. So the
+rule now has an explicit switch rather than being a blanket law.
+
+**Owner mode**, a toggle in the header, **off by default**, persisted in `localStorage` so it
+survives a reload. It widens what can be changed; it does **not** hide what changed, which is the
+part that makes experimenting cheap rather than risky.
+
+On, per text slot:
+
+| Control | Range |
+|---|---|
+| Point size | free numeric, 2–72 pt, shown against the template's own default |
+| Face | the **two Brand Kit faces only** — Cora/Fraunces, Futura PT |
+| Bold / Italic | free |
+| Ink | the **five Brand Kit inks only** — Forest Green, Italia Green, Mountain Ink, Stone Charcoal, Heritage Cream for reversed type |
+| Copy | free typing, including fixed labels like "Minimum age" |
+
+**The face and ink lists stay closed on purpose.** The switch is Rick's latitude on the template,
+not a door out of the brand — an arbitrary font picker would make the sign family stop being a
+family, which is the one thing the type system is holding together. Small/Medium/Large still
+multiplies whatever point size is set, so the operator-facing scale keeps working on top of an
+authored default.
+
+Owner mode also lifts three frictions that only matter while authoring: the confirm before moving
+brand furniture is skipped, `lock` blocks read green rather than red, and **shipped blocks become
+resizable** — their slots scale proportionally with the block (offsets, sizes and type all scale by
+the box ratio), rather than move-only.
+
+**Everything hand-set is still declared in the export.** The header notes the file was authored in
+owner mode, and each affected slot carries an inline comment — `COPY EDITED … differs from <binding>
+in signs.json` and `TYPE SET BY HAND in owner mode — size/face/ink below are not the template's
+defaults`. That is what lets the latitude be safe: whoever reads the export can see every place the
+sign stopped being data-driven.
+
+**Verification.** Switch off by default and persisting. With it off, zero owner panels render; on,
+one per text slot. Face list is exactly `$display`/`$ui`, ink list exactly the five brand tokens.
+Applied 22 pt / Futura / Italia Green / roman to the name slot and read it back through
+`effFont()`; Small/Medium/Large still multiplied it (22 → 26.4 pt at Large); "Back to the template"
+restored 13.5 pt Cora exactly. Both export markers present.
+
 ## 2026-08-25 — Sign Composer: one Edit button, tight image crop, S/M/L type, PNG export
 
 **Action.** Rick, in one pass: replace the two buttons with an **Edit** button covering text and

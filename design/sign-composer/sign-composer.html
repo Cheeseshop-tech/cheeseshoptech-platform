@@ -33,6 +33,11 @@ header h1 span{display:block; font-family:var(--ui); font-style:normal; font-siz
 .grp label{color:var(--mint); font-size:10px; text-transform:uppercase; letter-spacing:.1em;}
 .spacer{flex:1;}
 .snapshot{font-size:10px; color:var(--sage); letter-spacing:.05em;}
+  .ownersw{display:flex; align-items:center; gap:5px; font-size:10.5px; letter-spacing:.08em;
+    text-transform:uppercase; color:var(--mint); cursor:pointer; border:1px solid rgba(200,226,197,.35);
+    border-radius:20px; padding:3px 10px;}
+  .ownersw:has(:checked){background:var(--accent); border-color:var(--accent); color:#fff;}
+  body.owner .blk.locked .blkbox{border-color:rgba(0,150,64,.5);}
 
 /* ---------- layout ---------- */
 main{flex:1; display:grid; grid-template-columns:186px 1fr 290px; min-height:0;}
@@ -112,6 +117,11 @@ dialog .dhead b{font-family:var(--display); font-style:italic; font-size:15px; c
   .ed .pct{font-size:11px; color:var(--primary); min-width:42px; font-weight:600;}
   .ed .imgprev{width:150px; height:110px; border:1px solid var(--ui-line); border-radius:3px; background:var(--cream);
     position:relative; overflow:hidden; flex-shrink:0;}
+  .ownerbox{margin-top:10px; border:1px solid var(--sage); border-left:3px solid var(--accent);
+    background:rgba(200,226,197,.32); border-radius:3px; padding:9px 11px;}
+  .ownerhd{font-size:9.5px; letter-spacing:.11em; text-transform:uppercase; color:var(--primary); font-weight:700; margin-bottom:6px;}
+  .ownerbox input[type=number], .ownerbox select{background:#fff; border:1px solid var(--ui-line); border-radius:3px; padding:3px 5px;}
+  .ownerbox label{display:flex; align-items:center; gap:4px;}
   .edited{display:inline-block; font-size:9px; letter-spacing:.08em; text-transform:uppercase; color:#fff;
     background:var(--accent); border-radius:2px; padding:1px 5px; margin-left:6px; vertical-align:2px;}
   button.danger{color:#8E1B24; border-color:rgba(206,43,55,.45);}
@@ -133,6 +143,9 @@ dialog .dhead b{font-family:var(--display); font-style:italic; font-size:15px; c
     <button id="redoBtn" title="Shift-Cmd/Ctrl-Z">Redo</button>
   </div>
   <div class="spacer"></div>
+  <label class="ownersw" title="Widens the type and copy controls while you are authoring a template">
+    <input type="checkbox" id="ownerSw"> Owner mode
+  </label>
   <span class="snapshot" id="snapLine"></span>
   <button id="saveBtn" title="Check it against all four cheeses first">Save this composition</button>
   <button id="expBtn" class="on">Export</button>
@@ -651,6 +664,12 @@ const TEMPLATES = [
 const S = {
   tplId: "talker/G", recIdx: 0, zoom: 1.5, sel: null,
   snap: true, cutout: true, guides: { safe: true, bleed: true },
+  // Owner mode. The Studio Director contract in CHEESE_SIGNS_SPEC.md — dropdowns over
+  // the record, no free typing, no type controls — exists to stop an OPERATOR putting a
+  // typo or an off-brand face on a printed sign. It was never meant to bind Rick while he
+  // is authoring the template. On, it widens what can be changed; it does NOT hide what
+  // changed, because that is the safety that makes experimenting cheap.
+  owner: localStorage.getItem("signComposerOwner") === "1",
   copy: {},        // per-cheese copy overrides: copy[recordId][slotId] = text
   opts: {},        // per-slot render options: opts[tplId][slotId] = { size, tight, scale }
 
@@ -660,7 +679,8 @@ const S = {
 const tpl = () => TEMPLATES.find(t => t.id === S.tplId);
 const rec = () => RECORDS[S.recIdx];
 const layout = () => {
-  if (!S.layouts[S.tplId]) S.layouts[S.tplId] = JSON.parse(JSON.stringify(tpl().blocks)).map(b => ({ ...b, binds: b.binds ? { ...b.binds } : null }));
+  if (!S.layouts[S.tplId]) S.layouts[S.tplId] = JSON.parse(JSON.stringify(tpl().blocks))
+    .map(b => ({ ...b, binds: b.binds ? { ...b.binds } : null, w0: b.w, h0: b.h }));
   return S.layouts[S.tplId];
 };
 const snapshotState = () => JSON.stringify(S.layouts);
@@ -671,7 +691,13 @@ function syncUndo() { undoBtn.disabled = !S.undo.length; redoBtn.disabled = !S.r
 
 // Resolve a block entry to its concrete slots for a given record.
 function slotsFor(entry, record, cw) {
-  if (entry.literal) return entry.slots.map(sl => ({ ...sl, x: entry.x + sl.dx, y: entry.y + sl.dy }));
+  if (entry.literal) {
+    const kx = entry.w0 ? entry.w / entry.w0 : 1, ky = entry.h0 ? entry.h / entry.h0 : 1;
+    return entry.slots.map(sl => ({ ...sl,
+      x: entry.x + sl.dx * kx, y: entry.y + sl.dy * ky,
+      w: sl.w * kx, h: sl.h * ky,
+      font: sl.font ? { ...sl.font, size: sl.font.size * Math.min(kx, ky) } : sl.font }));
+  }
   const def = BLOCKS[entry.block];
   const binds = {};
   def.fields.forEach(f => { binds[f.k] = (entry.binds && entry.binds[f.k]) || f.def; });
@@ -736,9 +762,31 @@ function setCopyOverride(record, slotId, text) {
   if (text == null) delete byRec[slotId]; else byRec[slotId] = text;
 }
 // Effective font, after the S/M/L step. The family and weight are untouched.
+// Only the two Brand Kit faces are offered, ever. Owner mode widens the type controls;
+// it does not open the door to a face that is not Monti Trentini's.
+const BRAND_FACES = [["$display", "Cora / Fraunces — display, italic"], ["$ui", "Futura PT — UI"]];
+const BRAND_INKS = [["$primary", "Forest Green"], ["$accent", "Italia Green"], ["$ink", "Mountain Ink"],
+                    ["$muted", "Stone Charcoal"], ["$cream", "Heritage Cream (reversed)"]];
+
 function effFont(slot) {
-  const step = SIZE_STEP[slotOpts(slot.id).size] ?? 1;
-  return step === 1 ? slot.font : { ...slot.font, size: slot.font.size * step };
+  const o = slotOpts(slot.id);
+  const step = SIZE_STEP[o.size] ?? 1;
+  let f = slot.font;
+  if (!f) return f;
+  const owned = S.owner && (o.pt || o.family || o.color || o.bold != null || o.italic != null);
+  if (!owned) return step === 1 ? f : { ...f, size: f.size * step };
+  return {
+    ...f,
+    size: (o.pt ? o.pt * PT : f.size) * step,
+    font: o.family || f.font,
+    color: o.color || f.color,
+    bold: o.bold != null ? o.bold : f.bold,
+    italic: o.italic != null ? o.italic : f.italic,
+  };
+}
+function hasTypeOverride(id) {
+  const o = S.opts[S.tplId]?.[id];
+  return !!(o && (o.pt || o.family || o.color || o.bold != null || o.italic != null));
 }
 
 // Cloudinary trim is not enabled on this account (c_trim 400s alone, and is silently
@@ -893,7 +941,7 @@ function renderCanvas() {
     tag.style.transform = `scale(${1 / S.zoom})`; tag.style.transformOrigin = "bottom left";
     b.append(tag);
     if (blockOverflows(e, r, t.canvas.w)) b.classList.add("over");
-    if (S.sel === i && !e.literal) ["nw","n","ne","e","se","s","sw","w"].forEach(k => {
+    if (S.sel === i && (!e.literal || S.owner)) ["nw","n","ne","e","se","s","sw","w"].forEach(k => {
       const h = document.createElement("div"); h.className = "h " + k; h.dataset.dir = k;
       h.style.transform = `scale(${1 / S.zoom})`; b.append(h);
     });
@@ -916,7 +964,7 @@ function startDrag(ev, i) {
   ev.preventDefault(); ev.stopPropagation();
   const e = layout()[i];
   if (S.sel !== i) { S.sel = i; renderCanvas(); renderInspector(); }
-  if (isLocked(e) && !e._ack) {
+  if (isLocked(e) && !e._ack && !S.owner) {
     if (!confirm(`"${BLOCKS[e.block].label}" is brand-fixed furniture — the piece that makes every sign look like the same brand.\n\nMove it anyway?`)) return;
     e._ack = true;
   }
@@ -929,7 +977,7 @@ function onDrag(ev) {
   if (!drag) return;
   const e = layout()[drag.i], t = tpl();
   const dx = (ev.clientX - drag.x0) / S.zoom, dy = (ev.clientY - drag.y0) / S.zoom;
-  if (!drag.dir || e.literal) { e.x = drag.o.x + dx; e.y = drag.o.y + dy; }
+  if (!drag.dir || (e.literal && !S.owner)) { e.x = drag.o.x + dx; e.y = drag.o.y + dy; }
   else {
     if (drag.dir.includes("w")) { e.x = drag.o.x + dx; e.w = Math.max(12, drag.o.w - dx); }
     if (drag.dir.includes("e")) { e.w = Math.max(12, drag.o.w + dx); }
@@ -1170,7 +1218,9 @@ function openEditor(i) {
     if (sl.kind === "text") {
       const isFixed = sl.value != null && !sl.binds;
       const ov = copyOverride(r, sl.id);
-      box.innerHTML = `<h4>${sl.id.replace(/_/g, " ")}${ov != null ? '<span class="edited">edited</span>' : ""}</h4>
+      const ef = effFont(sl);
+      const basePt = Math.round(sl.font.size / PT * 10) / 10;
+      box.innerHTML = `<h4>${sl.id.replace(/_/g, " ")}${ov != null ? '<span class="edited">edited</span>' : ""}${hasTypeOverride(sl.id) ? '<span class="edited" style="background:var(--primary)">type set</span>' : ""}</h4>
         <div class="src">${isFixed ? "fixed label — same on every sign" : "from <b>" + sl.binds + "</b> on this cheese"}</div>
         <textarea class="copy" data-slot="${sl.id}">${textOf(sl, r).replace(/</g, "&lt;")}</textarea>
         <div class="ctl">
@@ -1180,9 +1230,34 @@ function openEditor(i) {
             <option value="m"${o.size === "m" ? " selected" : ""}>Medium</option>
             <option value="l"${o.size === "l" ? " selected" : ""}>Large</option>
           </select>
-          <span class="pct">${Math.round(sl.font.size / PT * (SIZE_STEP[o.size] || 1) * 10) / 10} pt</span>
+          <span class="pct">${Math.round(ef.size / PT * 10) / 10} pt</span>
           ${ov != null ? `<button data-reset="${sl.id}">Put the original back</button>` : ""}
-        </div>`;
+        </div>` +
+        (S.owner ? `<div class="ownerbox">
+          <div class="ownerhd">Owner — setting the template</div>
+          <div class="ctl">
+            <label>Point size</label>
+            <input type="number" step="0.1" min="2" max="72" data-pt="${sl.id}" value="${o.pt || basePt}" style="width:74px">
+            <span class="pathhint">template default ${basePt} pt · Small/Medium/Large still multiplies this</span>
+          </div>
+          <div class="ctl">
+            <label>Face</label>
+            <select data-family="${sl.id}">
+              ${BRAND_FACES.map(([v, lbl]) => `<option value="${v}"${(o.family || sl.font.font) === v ? " selected" : ""}>${lbl}</option>`).join("")}
+            </select>
+            <label><input type="checkbox" data-bold="${sl.id}" ${(o.bold != null ? o.bold : sl.font.bold) ? "checked" : ""}> Bold</label>
+            <label><input type="checkbox" data-italic="${sl.id}" ${(o.italic != null ? o.italic : sl.font.italic) ? "checked" : ""}> Italic</label>
+          </div>
+          <div class="ctl">
+            <label>Ink</label>
+            <select data-color="${sl.id}">
+              ${BRAND_INKS.map(([v, lbl]) => `<option value="${v}"${(o.color || sl.font.color) === v ? " selected" : ""}>${lbl}</option>`).join("")}
+            </select>
+            ${hasTypeOverride(sl.id) ? `<button data-typereset="${sl.id}">Back to the template</button>` : ""}
+          </div>
+          <div class="pathhint" style="margin-top:6px">Only the two Brand Kit faces and the Brand Kit inks are offered — the point of the
+          switch is your latitude on the template, not a door out of the brand.</div>
+        </div>` : "");
     } else {
       const pid = sl.binds ? bindValue(r, sl.binds) : "logo";
       box.innerHTML = `<h4>${sl.id.replace(/_/g, " ")}</h4>
@@ -1233,6 +1308,12 @@ editBody.addEventListener("input", ev => {
 });
 editBody.addEventListener("change", ev => {
   const t = ev.target;
+  const set = (id, k, v) => { push(); slotOpts(id)[k] = v; renderAll(); openEditor(editIdx); };
+  if (t.dataset.pt) return set(t.dataset.pt, "pt", +t.value || null);
+  if (t.dataset.family) return set(t.dataset.family, "family", t.value);
+  if (t.dataset.color) return set(t.dataset.color, "color", t.value);
+  if (t.dataset.bold) return set(t.dataset.bold, "bold", t.checked);
+  if (t.dataset.italic) return set(t.dataset.italic, "italic", t.checked);
   if (t.dataset.size) { push(); slotOpts(t.dataset.size).size = t.value; renderAll(); openEditor(editIdx); }
   else if (t.dataset.tight) {
     push(); slotOpts(t.dataset.tight).tight = t.checked;
@@ -1242,9 +1323,13 @@ editBody.addEventListener("change", ev => {
   }
 });
 editBody.addEventListener("click", ev => {
-  const id = ev.target.dataset?.reset;
-  if (!id) return;
-  push(); setCopyOverride(rec(), id, null); renderAll(); openEditor(editIdx);
+  const d = ev.target.dataset || {};
+  if (d.reset) { push(); setCopyOverride(rec(), d.reset, null); renderAll(); openEditor(editIdx); return; }
+  if (d.typereset) {
+    push(); const o = slotOpts(d.typereset);
+    delete o.pt; delete o.family; delete o.color; delete o.bold; delete o.italic;
+    renderAll(); openEditor(editIdx);
+  }
 });
 document.getElementById("editDone").onclick = () => { editDlg.close(); renderAll(); };
 document.getElementById("editDel").onclick = () => {
@@ -1283,6 +1368,8 @@ function jsExport() {
   let out = `// ${t.label}\n// Generated by design/sign-composer/sign-composer.html — ${new Date().toISOString().slice(0, 10)}\n`;
   out += `// Preset: ${t.id} · canvas ${t.canvas.w}x${t.canvas.h} · base ${t.base} · pad ${pad} · inner ${inner}\n`;
   out += `// Data snapshot: ${SNAPSHOT_DATE} (src/data/montitrentini/signs.json)\n`;
+  if (S.owner) out += `// Authored in OWNER MODE — type and copy were editable directly. Every hand-set\n` +
+    `// slot is marked inline below.\n`;
   if (S.cutout) out += `//\n// Previewed with backgrounds CUT OUT (Cloudinary e_make_transparent).\n` +
     `// The print path resolves its own URLs — src/lib/cloudinary.js already carries a\n` +
     `// a "transparent" option and a PRESETS_TRANSPARENT map; sign packshots must ask for it,\n` +
@@ -1299,6 +1386,7 @@ function jsExport() {
     slotsFor(e, r, t.canvas.w).forEach(sl => {
       const ov = copyOverride(r, sl.id);
       if (ov != null) out += `  // COPY EDITED in the composer for ${r.name} — differs from ${sl.binds || "the fixed label"} in signs.json\n`;
+      if (hasTypeOverride(sl.id)) out += `  // TYPE SET BY HAND in owner mode — size/face/ink below are not the template's defaults\n`;
       const parts = [`id: ${q(sl.id)}`, `role: ${q(sl.role)}`, `kind: ${q(sl.kind)}`];
       if (sl.fit) parts.push(`fit: ${q(sl.fit)}`);
       if (sl.binds) parts.push(`binds: ${q(sl.binds)}`);
@@ -1509,6 +1597,15 @@ gBleed.onchange = e => { S.guides.bleed = e.target.checked; renderCanvas(); };
 gSnap.onchange = e => { S.snap = e.target.checked; };
 gCut.onchange = e => { S.cutout = e.target.checked; renderAll(); };
 undoBtn.onclick = undo; redoBtn.onclick = redo;
+ownerSw.checked = S.owner;
+document.body.classList.toggle("owner", S.owner);
+ownerSw.onchange = e => {
+  S.owner = e.target.checked;
+  localStorage.setItem("signComposerOwner", S.owner ? "1" : "0");
+  document.body.classList.toggle("owner", S.owner);
+  renderAll();
+  if (editDlg.open && editIdx != null) openEditor(editIdx);
+};
 document.getElementById("snapLine").textContent = `Cheese as of ${SNAPSHOT_DATE} · ${RECORDS.length} Asiagos`;
 
 function renderAll() { renderCanvas(); renderPalette(); renderInspector(); renderFilm(); }
