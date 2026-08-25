@@ -9,6 +9,8 @@ Emits SVG path data at three tolerances: slide, card mini-map, and country inset
 See .claude/skills/accurate-maps/SKILL.md for the method and the rendering rules.
 """
 
+import json, math, sys
+
 SRC = sys.argv[1]
 d = json.load(open(SRC))
 
@@ -69,7 +71,10 @@ for n in NAMES:
         for x,y,*_ in r: xs.append(x); ys.append(y)
 print("bbox lon %.3f..%.3f lat %.3f..%.3f" % (min(xs),max(xs),min(ys),max(ys)), file=sys.stderr)
 
-P = Proj(min(xs), max(xs), min(ys), max(ys), 1000, 760, pad=12)
+# Zoomed on the DOP zone: the zone is the subject, surrounding provinces bleed off
+# the frame edge (SVG clips to the viewport). Rovigo falls out of frame by design.
+ZOOM = (10.55, 12.65, 45.15, 47.05)
+P = Proj(ZOOM[0], ZOOM[1], ZOOM[2], ZOOM[3], 1000, 760, pad=0)
 res = {"main": {n: path(feats[n], P, 0.0035) for n in NAMES}, "cities": {}, "mini": {}}
 
 CITY = {"BOLZANO":(11.354,46.499),"TRENTO":(11.121,46.069),"ASIAGO":(11.510,45.876),

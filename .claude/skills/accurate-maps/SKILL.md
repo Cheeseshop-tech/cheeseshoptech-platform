@@ -58,6 +58,15 @@ Boundaries are **data**. Get the data.
 - **Label contrast.** A label sitting on the filled zone must reverse out. Use
   `paint-order:stroke` with a stroke matching the fill's dark edge so it reads over both the zone
   and the ground.
+- **Halo any label near a boundary.** A label that straddles the zone edge loses its contrast
+  against the border stroke, whichever color you pick — dark type dies on the dark edge, light
+  type dies on the light ground. Give it a `paint-order:stroke` halo in the *page* background
+  color so it reads over zone, border and ground alike. Cheaper than hand-placing every label.
+- **Zoom until the zone dominates, and let context bleed off.** A map framed to the full extent of
+  the surrounding regions wastes most of the frame on grey. Frame on the zone and let neighbours
+  clip at the viewport — they read as continuing past the edge. Keep the ring of excluded places
+  that carries the argument; a distant one falling out of frame costs nothing. Make the bounding
+  box a named constant so reframing is one line, not a redraw.
 - **Check every label for collision** after rendering. Screenshot it; don't trust the markup.
 
 ## Verify before shipping
