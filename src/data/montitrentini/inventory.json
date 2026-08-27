@@ -1,14 +1,14 @@
 {
   "schemaVersion": "1.2",
   "clientId": "monti-trentini",
-  "lastUpdated": "2026-08-24",
+  "lastUpdated": "2026-08-26",
   "lastUpdatedSource": "drive-modifiedTime",
-  "sheetStatedUpdate": "2026-08-20",
-  "sheetModifiedAt": "2026-08-24T18:15:28.195Z",
+  "sheetStatedUpdate": "2026-08-26",
+  "sheetModifiedAt": "2026-08-26T20:17:00.864Z",
   "sheetFileId": "1meZQQ_0dA1S1IR5xjVWzFvuqCJE6DLgVd-fOfSMGvCk",
   "sheetOwner": "order@montitrentini-usa.com",
-  "source": "availability_2026-08-25.csv",
-  "generatedAt": "2026-08-25T15:33:29.795Z",
+  "source": "availability_2026-08-27.csv",
+  "generatedAt": "2026-08-27T13:19:21.255Z",
   "generatedBy": "scripts/sync-inventory.mjs",
   "skus": {
     "20141": {
@@ -41,7 +41,7 @@
     "20150": {
       "code": "20150",
       "name": "CACIOTTA BLACK TRUFFLES 6 LBS",
-      "casesAvail": 150,
+      "casesAvail": 90,
       "casesInTransit": 0,
       "comment": "average purchase TONY 55 per month",
       "commentEn": "",
@@ -52,11 +52,11 @@
           "receiptDate": "2026-05-15",
           "eta": null,
           "cases": 60,
-          "reserved": 0,
+          "reserved": 60,
           "netAvailLb": 376.71,
           "expDate": "2027-04-15",
           "expMonth": null,
-          "comment": ""
+          "comment": "Tony's 8465857"
         },
         {
           "lotNum": "1290750",
@@ -84,7 +84,7 @@
     "20162": {
       "code": "20162",
       "name": "CACIOTTA BLACK TRUFFLE 1.2 LBS",
-      "casesAvail": 63,
+      "casesAvail": 60,
       "casesInTransit": 0,
       "comment": "15x Greg monthly plan, we monitor",
       "commentEn": "",
@@ -95,11 +95,11 @@
           "receiptDate": "2026-04-10",
           "eta": null,
           "cases": 3,
-          "reserved": 0,
+          "reserved": 3,
           "netAvailLb": 24.609,
           "expDate": "2026-11-28",
           "expMonth": null,
-          "comment": ""
+          "comment": "Lettieri 0003245"
         },
         {
           "lotNum": "1296193",
@@ -118,11 +118,47 @@
     "20163": {
       "code": "20163",
       "name": "CACIOTTA RUSTEGA WITH TRUFFLE 6 LBS",
-      "casesAvail": -1080,
+      "casesAvail": -900,
       "casesInTransit": 0,
       "comment": "TJ preorder",
       "commentEn": "",
       "lots": [
+        {
+          "lotNum": "1316589",
+          "status": "on_hand",
+          "receiptDate": "2026-08-06",
+          "eta": null,
+          "cases": 60,
+          "reserved": 60,
+          "netAvailLb": 1680,
+          "expDate": "2027-07-03",
+          "expMonth": null,
+          "comment": "TJ"
+        },
+        {
+          "lotNum": "1316564",
+          "status": "on_hand",
+          "receiptDate": "2026-08-06",
+          "eta": null,
+          "cases": 60,
+          "reserved": 60,
+          "netAvailLb": 1680,
+          "expDate": "2027-07-09",
+          "expMonth": null,
+          "comment": "TJ"
+        },
+        {
+          "lotNum": "1316567",
+          "status": "on_hand",
+          "receiptDate": "2026-08-06",
+          "eta": null,
+          "cases": 60,
+          "reserved": 60,
+          "netAvailLb": 1680,
+          "expDate": "2027-07-09",
+          "expMonth": null,
+          "comment": "TJ"
+        },
         {
           "lotNum": "1316574",
           "status": "on_hand",
@@ -168,42 +204,6 @@
           "reserved": 60,
           "netAvailLb": 1680,
           "expDate": "2027-07-09",
-          "expMonth": null,
-          "comment": "TJ"
-        },
-        {
-          "lotNum": "1316586",
-          "status": "on_hand",
-          "receiptDate": "2026-08-06",
-          "eta": null,
-          "cases": 60,
-          "reserved": 60,
-          "netAvailLb": 1680,
-          "expDate": "2027-07-09",
-          "expMonth": null,
-          "comment": "TJ"
-        },
-        {
-          "lotNum": "1316587",
-          "status": "on_hand",
-          "receiptDate": "2026-08-06",
-          "eta": null,
-          "cases": 60,
-          "reserved": 60,
-          "netAvailLb": 1680,
-          "expDate": "2027-07-09",
-          "expMonth": null,
-          "comment": "TJ"
-        },
-        {
-          "lotNum": "1316551",
-          "status": "on_hand",
-          "receiptDate": "2026-08-06",
-          "eta": null,
-          "cases": 60,
-          "reserved": 60,
-          "netAvailLb": 1680,
-          "expDate": "2027-07-10",
           "expMonth": null,
           "comment": "TJ"
         },
@@ -405,11 +405,11 @@
           "receiptDate": null,
           "eta": "2026-09-01",
           "cases": 0,
-          "reserved": 60,
+          "reserved": 0,
           "netAvailLb": 1529.35,
           "expDate": null,
           "expMonth": "2027-07",
-          "comment": "TJ"
+          "comment": ""
         },
         {
           "lotNum": "269458802",
@@ -417,11 +417,11 @@
           "receiptDate": null,
           "eta": "2026-09-01",
           "cases": 0,
-          "reserved": 60,
+          "reserved": 0,
           "netAvailLb": 1494.64,
           "expDate": null,
           "expMonth": "2027-07",
-          "comment": "TJ"
+          "comment": ""
         },
         {
           "lotNum": "269458802",
@@ -429,11 +429,11 @@
           "receiptDate": null,
           "eta": "2026-09-01",
           "cases": 0,
-          "reserved": 60,
+          "reserved": 0,
           "netAvailLb": 1495.16,
           "expDate": null,
           "expMonth": "2027-07",
-          "comment": "TJ"
+          "comment": ""
         },
         {
           "lotNum": "269458802",
@@ -542,6 +542,72 @@
           "expDate": null,
           "expMonth": "2027-08",
           "comment": ""
+        }
+      ]
+    },
+    "20164": {
+      "code": "20164",
+      "name": "CACIOTTA RUSTEGA WITH TRUFFLE 6 LBS",
+      "casesAvail": 0,
+      "casesInTransit": 0,
+      "comment": "",
+      "commentEn": "",
+      "lots": [
+        {
+          "lotNum": "1316586",
+          "status": "on_hand",
+          "receiptDate": "2026-08-06",
+          "eta": null,
+          "cases": 60,
+          "reserved": 60,
+          "netAvailLb": 1680,
+          "expDate": "2027-07-09",
+          "expMonth": null,
+          "comment": "TJ"
+        }
+      ]
+    },
+    "20165": {
+      "code": "20165",
+      "name": "CACIOTTA RUSTEGA WITH TRUFFLE 6 LBS",
+      "casesAvail": 0,
+      "casesInTransit": 0,
+      "comment": "",
+      "commentEn": "",
+      "lots": [
+        {
+          "lotNum": "1316587",
+          "status": "on_hand",
+          "receiptDate": "2026-08-06",
+          "eta": null,
+          "cases": 60,
+          "reserved": 60,
+          "netAvailLb": 1680,
+          "expDate": "2027-07-09",
+          "expMonth": null,
+          "comment": "TJ"
+        }
+      ]
+    },
+    "20166": {
+      "code": "20166",
+      "name": "CACIOTTA RUSTEGA WITH TRUFFLE 6 LBS",
+      "casesAvail": 0,
+      "casesInTransit": 0,
+      "comment": "",
+      "commentEn": "",
+      "lots": [
+        {
+          "lotNum": "1316551",
+          "status": "on_hand",
+          "receiptDate": "2026-08-06",
+          "eta": null,
+          "cases": 60,
+          "reserved": 60,
+          "netAvailLb": 1680,
+          "expDate": "2027-07-10",
+          "expMonth": null,
+          "comment": "TJ"
         }
       ]
     },
@@ -960,7 +1026,7 @@
     "20511": {
       "code": "20511",
       "name": "FONTAL 1/4 WHEEL",
-      "casesAvail": -80,
+      "casesAvail": -320,
       "casesInTransit": 0,
       "comment": "Lettieri",
       "commentEn": "",
@@ -983,11 +1049,11 @@
           "receiptDate": null,
           "eta": "2026-09-01",
           "cases": 0,
-          "reserved": 0,
+          "reserved": 240,
           "netAvailLb": 1484.18,
           "expDate": null,
           "expMonth": "2027-04",
-          "comment": ""
+          "comment": "Lettieri 0003245"
         }
       ]
     },
@@ -1716,7 +1782,7 @@
     "01186": {
       "code": "01186",
       "name": "SMOKED PROVOLONE CYLINDER",
-      "casesAvail": 19,
+      "casesAvail": -53,
       "casesInTransit": 0,
       "comment": "we try to have 1 pallet available in stock. Veroni-Creminelli preorder",
       "commentEn": "",
@@ -1739,11 +1805,11 @@
           "receiptDate": null,
           "eta": "2026-09-01",
           "cases": 0,
-          "reserved": 0,
+          "reserved": 72,
           "netAvailLb": 1028.1,
           "expDate": null,
           "expMonth": "2027-04",
-          "comment": ""
+          "comment": "Veroni 23-26C"
         }
       ]
     },
@@ -1837,7 +1903,7 @@
     "02073": {
       "code": "02073",
       "name": "ASIAGO FRESCO PDO 1/4 WHEEL NT",
-      "casesAvail": 518,
+      "casesAvail": 503,
       "casesInTransit": 0,
       "comment": "Cowbell monthly plan 50x, average purchase TONY 10x, ACE Endico sometimes, Baldor 108x",
       "commentEn": "",
@@ -1848,11 +1914,11 @@
           "receiptDate": "2026-06-18",
           "eta": null,
           "cases": 38,
-          "reserved": 0,
+          "reserved": 15,
           "netAvailLb": 470.968,
           "expDate": "2027-01-09",
           "expMonth": null,
-          "comment": ""
+          "comment": "Tony's 8465857"
         },
         {
           "lotNum": "1312791",
@@ -2163,7 +2229,7 @@
     "04145": {
       "code": "04145",
       "name": "LAGORAI CHEESE 1/4 WHEEL",
-      "casesAvail": 23,
+      "casesAvail": 15,
       "casesInTransit": 0,
       "comment": "Lettieri doesn't order much",
       "commentEn": "",
@@ -2174,11 +2240,11 @@
           "receiptDate": "2026-05-15",
           "eta": null,
           "cases": 23,
-          "reserved": 0,
+          "reserved": 8,
           "netAvailLb": 156.045,
           "expDate": "2026-12-16",
           "expMonth": null,
-          "comment": ""
+          "comment": "Lettieri 0003245"
         }
       ]
     },
@@ -2352,7 +2418,7 @@
     "05007": {
       "code": "05007",
       "name": "GRANA PADANO PDO 1/8 WHEEL",
-      "casesAvail": 1435,
+      "casesAvail": 1302,
       "casesInTransit": 0,
       "comment": "",
       "commentEn": "",
@@ -2363,11 +2429,11 @@
           "receiptDate": "2026-07-03",
           "eta": null,
           "cases": 79,
-          "reserved": 0,
+          "reserved": 29,
           "netAvailLb": 1652.398,
           "expDate": "2027-01-30",
           "expMonth": null,
-          "comment": ""
+          "comment": "Lettieri 0003245"
         },
         {
           "lotNum": "1308163",
@@ -2375,11 +2441,11 @@
           "receiptDate": "2026-07-03",
           "eta": null,
           "cases": 104,
-          "reserved": 0,
+          "reserved": 104,
           "netAvailLb": 2226.75,
           "expDate": "2027-01-30",
           "expMonth": null,
-          "comment": ""
+          "comment": "Lettieri 0003245"
         },
         {
           "lotNum": "1308164",
