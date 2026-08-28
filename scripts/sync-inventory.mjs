@@ -99,7 +99,10 @@ function monthYear(s) {
   return mo ? `20${m[2]}-${mo}` : null;
 }
 const num = (s) => {
-  const t = clean(s).replace(/,/g, "");
+  // The sheet writes in-transit case counts as "#60" (the # marks a container count).
+  // Without stripping it, Number("#60") is NaN -> intOr0 -> 0, and every in-transit
+  // lot silently reads as zero cases. Started appearing in the 2026-08-15 drop.
+  const t = clean(s).replace(/,/g, "").replace(/^#/, "");
   if (t === "") return null;
   const n = Number(t);
   return Number.isFinite(n) ? n : null;
@@ -350,6 +353,16 @@ function validate(doc) {
       if (l.cases == null) errs.push(`lot ${code}/${l.lotNum} has no case count`);
     }
   }
+  // Silent-zero guard: in-transit lots that all parse to 0 cases means the case-count
+  // column picked up a prefix/format the parser drops (see the "#60" case above).
+  // Without this the run looks healthy while the app shows nothing on the water.
+  {
+    const itLots = Object.values(doc.skus).flatMap((s) => s.lots.filter((l) => l.status === "in_transit"));
+    const itCases = itLots.reduce((a, l) => a + (l.cases || 0), 0);
+    if (itLots.length > 0 && itCases === 0) {
+      errs.push(`${itLots.length} in-transit lots parsed but 0 total cases — case-count column format changed?`);
+    }
+  }
   // reference cross-check
   if (fs.existsSync(REF_PATH)) {
     let ref = null;
@@ -393,7 +406,19 @@ function diffVsCanon(doc) {
     const x = a[k], y = b[k];
     if (x !== y) lines.push(`${k} ${(doc.skus[k] || prev.skus[k]).name}: ${x ?? "-"} -> ${y ?? "-"}`);
   }
-  return { changed: lines.length > 0 || prev.lastUpdated !== doc.lastUpdated, lines };
+  // In-transit is a real business signal ("new container on the water"), so a change
+  // there must promote+publish even when sellable-now is identical. Without this a
+  // pure in-transit movement — or a parser fix that recovers it — reports "no change".
+  const itOf = (o) => Object.fromEntries(Object.entries(o.skus).map(([k, v]) => [k, v.casesInTransit || 0]));
+  const ta = itOf(prev), tb = itOf(doc);
+  let itChanged = false;
+  for (const k of new Set([...Object.keys(ta), ...Object.keys(tb)])) {
+    if ((ta[k] || 0) !== (tb[k] || 0)) {
+      itChanged = true;
+      lines.push(`${k} ${(doc.skus[k] || prev.skus[k]).name}: in-transit ${ta[k] || 0} -> ${tb[k] || 0}`);
+    }
+  }
+  return { changed: lines.length > 0 || itChanged || prev.lastUpdated !== doc.lastUpdated, lines };
 }
 
 if (args.includes("--promote") || args.includes("--check")) {
