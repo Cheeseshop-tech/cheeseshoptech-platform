@@ -10,7 +10,7 @@
       "weight": "6 lb",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "—",
+      "minAge": "30 days",
       "shortDescription": "From the Trentino mountains — made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": ""
@@ -22,7 +22,7 @@
       "weight": "6 lb",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "—",
+      "minAge": "30 days",
       "shortDescription": "From the Trentino mountains — made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": ""
@@ -34,7 +34,7 @@
       "weight": "1,2 lbs",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "—",
+      "minAge": "30 days",
       "shortDescription": "From the Trentino mountains — made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": ""
@@ -46,7 +46,7 @@
       "weight": "6 lb",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "—",
+      "minAge": "30 days",
       "shortDescription": "From the Trentino mountains — made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": ""
@@ -58,7 +58,7 @@
       "weight": "1,2 lbs",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "—",
+      "minAge": "30 days",
       "shortDescription": "From the Trentino mountains — made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": ""
@@ -70,7 +70,7 @@
       "weight": "1,2 lbs",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "—",
+      "minAge": "30 days",
       "shortDescription": "From the Trentino mountains — made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": ""
@@ -94,7 +94,7 @@
       "weight": "6 lb",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "—",
+      "minAge": "30 days",
       "shortDescription": "From the Trentino mountains — made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": ""
@@ -106,7 +106,7 @@
       "weight": "1,2 lbs",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "—",
+      "minAge": "30 days",
       "shortDescription": "From the Trentino mountains — made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": ""
@@ -130,7 +130,7 @@
       "weight": "4,4 lb",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "—",
+      "minAge": "5 months",
       "shortDescription": "From the Trentino mountains — made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": ""
@@ -142,7 +142,7 @@
       "weight": "7 oz",
       "upc": "857594000233",
       "milkType": "Cow milk",
-      "minAge": "—",
+      "minAge": "30 days",
       "shortDescription": "Caciotta al Tartufo — young caciotta veined with black summer truffle. 7 oz exact-weight wedge, vacuum packed.",
       "longDescription": "",
       "certification": ""
@@ -154,7 +154,7 @@
       "weight": "7 oz",
       "upc": "857594000240",
       "milkType": "Cow milk",
-      "minAge": "—",
+      "minAge": "30 days",
       "shortDescription": "Caciotta Piccante — soft mountain caciotta shot through with red chili pepper. 7 oz exact-weight wedge, vacuum packed.",
       "longDescription": "",
       "certification": ""
@@ -178,7 +178,7 @@
       "weight": "7 lbs",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "—",
+      "minAge": "15 days",
       "shortDescription": "From the Trentino mountains — made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": ""
@@ -226,7 +226,7 @@
       "weight": "15 lbs",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "—",
+      "minAge": "45 days",
       "shortDescription": "From the Trentino mountains — made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": "DOP"
@@ -238,7 +238,7 @@
       "weight": "15 lbs",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "—",
+      "minAge": "180 days",
       "shortDescription": "From the Trentino mountains — made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": "DOP"
@@ -250,7 +250,7 @@
       "weight": "15 lbs",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "—",
+      "minAge": "60 days",
       "shortDescription": "From the Trentino mountains — made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": "DOP"
@@ -262,7 +262,7 @@
       "weight": "15 lbs",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "—",
+      "minAge": "30 days",
       "shortDescription": "From the Trentino mountains — made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": "DOP"
@@ -274,7 +274,7 @@
       "weight": "18 lbs",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "—",
+      "minAge": "6 months",
       "shortDescription": "From the Trentino mountains — made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": ""
@@ -286,7 +286,7 @@
       "weight": "7 oz",
       "upc": "857594000806",
       "milkType": "Cow milk",
-      "minAge": "—",
+      "minAge": "30 days",
       "shortDescription": "Caciotta rolled in Trentino mountain herbs — grassy, aromatic, alpine. 7 oz exact-weight wedge, vacuum packed.",
       "longDescription": "",
       "certification": ""
@@ -298,7 +298,7 @@
       "weight": "7 oz",
       "upc": "857594000813",
       "milkType": "Cow milk",
-      "minAge": "—",
+      "minAge": "30 days",
       "shortDescription": "Pepato — caciotta studded with cracked black peppercorns. 7 oz exact-weight wedge, vacuum packed.",
       "longDescription": "",
       "certification": ""
@@ -310,7 +310,7 @@
       "weight": "4.4 lb",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "—",
+      "minAge": "60 days",
       "shortDescription": "From the Trentino mountains — made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": ""
@@ -322,7 +322,7 @@
       "weight": "4 lbs",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "—",
+      "minAge": "50 days",
       "shortDescription": "From the Trentino mountains — made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": "DOP"
@@ -334,7 +334,7 @@
       "weight": "4,4 lbs",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "—",
+      "minAge": "35 days",
       "shortDescription": "From the Trentino mountains — made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": "DOP"
@@ -346,7 +346,7 @@
       "weight": "4,4 lb",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "—",
+      "minAge": "8 months",
       "shortDescription": "From the Trentino mountains — made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": ""
@@ -370,7 +370,7 @@
       "weight": "20 lb",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "min. 6–7 months",
+      "minAge": "7 months",
       "shortDescription": "Italian hard cheese, aged 6–7 months. Quarter wheels, vacuum packed.",
       "longDescription": "",
       "certification": ""
@@ -382,7 +382,7 @@
       "weight": "18 lbs",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "—",
+      "minAge": "2 months",
       "shortDescription": "From the Trentino mountains — made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": "DOP"
@@ -454,7 +454,7 @@
       "weight": "12 lb",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "min. 12 months",
+      "minAge": "12 months",
       "shortDescription": "European hard cheese, aged a minimum of 12 months. Quarter wheels, vacuum packed.",
       "longDescription": "",
       "certification": ""
@@ -490,7 +490,7 @@
       "weight": "16-18 lbs",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "min. 10 months",
+      "minAge": "10 months",
       "shortDescription": "Aged min. 10 months. Cow's milk from the Trentino Alps, made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": ""
@@ -610,7 +610,7 @@
       "weight": "58 lbs",
       "upc": "",
       "milkType": "Sheep milk",
-      "minAge": "—",
+      "minAge": "5 months",
       "shortDescription": "From the Trentino mountains — made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": "DOP"
@@ -622,7 +622,7 @@
       "weight": "58 lb",
       "upc": "",
       "milkType": "Sheep milk",
-      "minAge": "—",
+      "minAge": "5 months",
       "shortDescription": "From the Trentino mountains — made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": "DOP"
@@ -634,7 +634,7 @@
       "weight": "",
       "upc": "",
       "milkType": "",
-      "minAge": "",
+      "minAge": "12 months",
       "shortDescription": "",
       "longDescription": "",
       "certification": ""
@@ -646,7 +646,7 @@
       "weight": "13 lbs",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "—",
+      "minAge": "4 months",
       "shortDescription": "From the Trentino mountains — made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": "DOP"
@@ -658,7 +658,7 @@
       "weight": "12 lbs",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "—",
+      "minAge": "6 months",
       "shortDescription": "From the Trentino mountains — made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": "DOP"
@@ -682,7 +682,7 @@
       "weight": "7 lbs",
       "upc": "",
       "milkType": "Sheep milk",
-      "minAge": "—",
+      "minAge": "30 days",
       "shortDescription": "From the Trentino mountains — made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": ""
@@ -694,7 +694,7 @@
       "weight": "11 lbs",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "—",
+      "minAge": "13 months",
       "shortDescription": "From the Trentino mountains — made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": "DOP"
@@ -706,7 +706,7 @@
       "weight": "7 oz",
       "upc": "",
       "milkType": "Sheep milk",
-      "minAge": "—",
+      "minAge": "5 months",
       "shortDescription": "Pecorino Romano PDO — sharp, salty, sheep's-milk backbone of Roman cooking. 7 oz exact-weight wedge, vacuum packed.",
       "longDescription": "",
       "certification": "PDO"
@@ -718,7 +718,7 @@
       "weight": "7 oz",
       "upc": "",
       "milkType": "Sheep milk",
-      "minAge": "—",
+      "minAge": "30 days",
       "shortDescription": "Ricotta Salata — pressed, salted, and dried until firm enough to grate. 7 oz exact-weight wedge, vacuum packed.",
       "longDescription": "",
       "certification": ""
@@ -754,7 +754,7 @@
       "weight": "6 lbs",
       "upc": "",
       "milkType": "Sheep milk",
-      "minAge": "—",
+      "minAge": "2 months",
       "shortDescription": "From the Trentino mountains — made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": "DOP"
@@ -766,7 +766,7 @@
       "weight": "6 lbs",
       "upc": "",
       "milkType": "Sheep milk",
-      "minAge": "—",
+      "minAge": "4 months",
       "shortDescription": "From the Trentino mountains — made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": "DOP"
@@ -790,7 +790,7 @@
       "weight": "28-30 lbs",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "60-70 days",
+      "minAge": "70 days",
       "shortDescription": "Aged 60-70 days. Cow's milk from the Trentino Alps, made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": ""
@@ -802,7 +802,7 @@
       "weight": "28-30 lbs",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "30-40 days",
+      "minAge": "40 days",
       "shortDescription": "Aged 30-40 days. Cow's milk from the Trentino Alps, made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": "DOP"
@@ -814,7 +814,7 @@
       "weight": "15 lb",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "30-40 days",
+      "minAge": "40 days",
       "shortDescription": "Aged 30-40 days. Cow's milk from the Trentino Alps, made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": "DOP"
@@ -826,7 +826,7 @@
       "weight": "7 oz",
       "upc": "857594000110",
       "milkType": "Cow milk",
-      "minAge": "30-40 days",
+      "minAge": "40 days",
       "shortDescription": "Young Asiago PDO, aged 30–40 days — mild, milky, and supple. Cut-and-wrap 7 oz exact-weight wedge in ATM.",
       "longDescription": "",
       "certification": "PDO"
@@ -838,7 +838,7 @@
       "weight": "28 lb",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "30-40 days",
+      "minAge": "20 days",
       "shortDescription": "Aged 30-40 days. Cow's milk from the Trentino Alps, made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": "DOP"
@@ -850,7 +850,7 @@
       "weight": "17-19 lbs",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "min 5 months",
+      "minAge": "5 months",
       "shortDescription": "Aged min 5 months. Cow's milk from the Trentino Alps, made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": ""
@@ -886,7 +886,7 @@
       "weight": "7 oz",
       "upc": "857594000141",
       "milkType": "Cow milk",
-      "minAge": "min. 5 months",
+      "minAge": "5 months",
       "shortDescription": "Asiago PDO aged five months — firmer, nuttier, with the first crystalline bite. 7 oz exact-weight wedge in ATM.",
       "longDescription": "",
       "certification": "PDO"
@@ -898,7 +898,7 @@
       "weight": "16-18 lbs",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "9 months",
+      "minAge": "10 months",
       "shortDescription": "Aged 9 months. Cow's milk from the Trentino Alps, made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": "DOP"
@@ -910,7 +910,7 @@
       "weight": "4.4 lb",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "9 months",
+      "minAge": "10 months",
       "shortDescription": "Aged 9 months. Cow's milk from the Trentino Alps, made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": "DOP"
@@ -922,7 +922,7 @@
       "weight": "7 oz",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "9 months",
+      "minAge": "10 months",
       "shortDescription": "Aged Asiago (Vecchio) PDO, aged 9 months. 7 oz exact-weight wedge, ATM pack.",
       "longDescription": "",
       "certification": "PDO"
@@ -934,7 +934,7 @@
       "weight": "28-30 lbs",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "—",
+      "minAge": "60 days",
       "shortDescription": "From the Trentino mountains — made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": ""
@@ -946,7 +946,7 @@
       "weight": "4.4 lb",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "—",
+      "minAge": "60 days",
       "shortDescription": "From the Trentino mountains — made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": ""
@@ -958,7 +958,7 @@
       "weight": "66-77 lbs",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "min. 12–16 months",
+      "minAge": "10 months",
       "shortDescription": "Aged min. 12–16 months. Cow's milk from the Trentino Alps, made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": ""
@@ -970,7 +970,7 @@
       "weight": "18 lb",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "min. 12–16 months",
+      "minAge": "10 months",
       "shortDescription": "Aged min. 12–16 months. Cow's milk from the Trentino Alps, made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": ""
@@ -982,7 +982,7 @@
       "weight": "36 lb",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "min. 12–16 months",
+      "minAge": "10 months",
       "shortDescription": "Aged min. 12–16 months. Cow's milk from the Trentino Alps, made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": ""
@@ -994,7 +994,7 @@
       "weight": "7 oz",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "min 12 months",
+      "minAge": "10 months",
       "shortDescription": "Grana Padano PDO, aged min 12 months. 7 oz exact-weight wedge, vacuum packed.",
       "longDescription": "",
       "certification": "PDO"
@@ -1006,7 +1006,7 @@
       "weight": "1.5 lbs",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "min. 12–16 months",
+      "minAge": "10 months",
       "shortDescription": "Aged min. 12–16 months. Cow's milk from the Trentino Alps, made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": ""
@@ -1018,7 +1018,7 @@
       "weight": "1.5 lbs",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "min. 12–16 months",
+      "minAge": "10 months",
       "shortDescription": "Aged min. 12–16 months. Cow's milk from the Trentino Alps, made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": ""
@@ -1030,7 +1030,7 @@
       "weight": "1 lb",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "min. 12–16 months",
+      "minAge": "10 months",
       "shortDescription": "Aged min. 12–16 months. Cow's milk from the Trentino Alps, made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": ""
@@ -1042,7 +1042,7 @@
       "weight": "5.5 lbs",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "min. 12–16 months",
+      "minAge": "10 months",
       "shortDescription": "Aged min. 12–16 months. Cow's milk from the Trentino Alps, made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": ""
@@ -1054,7 +1054,7 @@
       "weight": "18 lb",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "min. 16–20 months",
+      "minAge": "16 months",
       "shortDescription": "Aged min. 16–20 months. Cow's milk from the Trentino Alps, made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": ""
@@ -1066,7 +1066,7 @@
       "weight": "66-77 lbs",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "min. 16–20 months",
+      "minAge": "16 months",
       "shortDescription": "Aged min. 16–20 months. Cow's milk from the Trentino Alps, made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": ""
@@ -1078,7 +1078,7 @@
       "weight": "66-77 lbs",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "min. 16–20 months",
+      "minAge": "20 months",
       "shortDescription": "Aged min. 16–20 months. Cow's milk from the Trentino Alps, made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": ""
@@ -1090,7 +1090,7 @@
       "weight": "66-77 lbs",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "min. 16–20 months",
+      "minAge": "20 months",
       "shortDescription": "Aged min. 16–20 months. Cow's milk from the Trentino Alps, made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": ""
@@ -1102,7 +1102,7 @@
       "weight": "4,4 lb",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "—",
+      "minAge": "5 months",
       "shortDescription": "From the Trentino mountains — made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": ""
@@ -1114,7 +1114,7 @@
       "weight": "7 oz",
       "upc": "857594000745",
       "milkType": "Cow milk",
-      "minAge": "—",
+      "minAge": "5 months",
       "shortDescription": "Imbriago — cheese bathed in red wine and grape must until the rind runs purple. 7 oz exact-weight wedge, vacuum packed.",
       "longDescription": "",
       "certification": ""
@@ -1126,7 +1126,7 @@
       "weight": "7 lb",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "60-70 days",
+      "minAge": "70 days",
       "shortDescription": "Aged 60-70 days. Cow's milk from the Trentino Alps, made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": ""
@@ -1138,7 +1138,7 @@
       "weight": "28-30 lbs",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "60-70 days",
+      "minAge": "70 days",
       "shortDescription": "Aged 60-70 days. Cow's milk from the Trentino Alps, made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": ""
@@ -1150,7 +1150,7 @@
       "weight": "7 oz",
       "upc": "857594000653",
       "milkType": "Cow milk",
-      "minAge": "60-70 days",
+      "minAge": "70 days",
       "shortDescription": "Lagorai — a semi-firm mountain cheese named for the range it comes from. 7 oz exact-weight wedge in ATM.",
       "longDescription": "",
       "certification": ""
@@ -1162,7 +1162,7 @@
       "weight": "7 oz",
       "upc": "857594000097",
       "milkType": "Cow milk",
-      "minAge": "—",
+      "minAge": "15 days",
       "shortDescription": "Mild Provolone — dolce, buttery, sliceable. 7 oz exact-weight wedge in ATM.",
       "longDescription": "",
       "certification": ""
@@ -1174,7 +1174,7 @@
       "weight": "7,7 lb",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "—",
+      "minAge": "15 days",
       "shortDescription": "From the Trentino mountains — made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": ""
@@ -1186,7 +1186,7 @@
       "weight": "3 lbs",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "—",
+      "minAge": "20 days",
       "shortDescription": "From the Trentino mountains — made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": ""
@@ -1210,7 +1210,7 @@
       "weight": "7 lbs",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "—",
+      "minAge": "15 days",
       "shortDescription": "From the Trentino mountains — made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": ""
@@ -1222,7 +1222,7 @@
       "weight": "18 lb",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "—",
+      "minAge": "12 months",
       "shortDescription": "From the Trentino mountains — made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": "PDO"
@@ -1234,7 +1234,7 @@
       "weight": "66-77 lbs",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "—",
+      "minAge": "24 months",
       "shortDescription": "From the Trentino mountains — made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": "PDO"
@@ -1246,7 +1246,7 @@
       "weight": "66-77 lbs",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "—",
+      "minAge": "12 months",
       "shortDescription": "From the Trentino mountains — made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": "PDO"
@@ -1270,7 +1270,7 @@
       "weight": "18-20 lbs",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "—",
+      "minAge": "90 days",
       "shortDescription": "From the Trentino mountains — made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": ""
@@ -1306,7 +1306,7 @@
       "weight": "3 lbs",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "—",
+      "minAge": "20 days",
       "shortDescription": "From the Trentino mountains — made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": ""
@@ -1318,7 +1318,7 @@
       "weight": "10 lbs",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "—",
+      "minAge": "45 days",
       "shortDescription": "From the Trentino mountains — made and aged in our own plants in Grigno.",
       "longDescription": "",
       "certification": ""
@@ -1438,7 +1438,7 @@
       "weight": "7 oz",
       "upc": "857594000196",
       "milkType": "Cow milk",
-      "minAge": "min 10 months",
+      "minAge": "10 months",
       "shortDescription": "Alpeggio — cow's milk from the Trentino Alps, aged min. 10 months. 7 oz exact-weight wedge, vacuum packed.",
       "longDescription": "",
       "certification": ""

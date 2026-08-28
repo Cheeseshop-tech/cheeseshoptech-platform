@@ -5,7 +5,9 @@
   "note": "Cheese Signs content records — one per CHEESE (not per SKU). Fields map 1:1 to sign template slots (see docs/CHEESE_SIGNS_SPEC.md). Sources: src/data/montitrentini/items-seed.json (SKU truth), www.montitrentini.com/en (producer copy, scraped 2026-08-23), src/data/montitrentini/inventory.json (stock).",
   "openDataGaps": [
     "milk.treatment (raw / thermized / pasteurized) is unknown for every cheese — not in the item master, not stated on the producer site. Route to Stefano before printing signs that carry the line.",
-    "QR targets are FAMILY pages on montitrentini.com — the producer site has no per-cheese URLs. See spec §6."
+    "QR targets are FAMILY pages on montitrentini.com — the producer site has no per-cheese URLs. See spec §6.",
+    "AGING (2026-08-28, Stefano's ageing item list.xls): Asiago Vecchio sign keeps 9 months — the sheet's section header says 9 months (also the DOP minimum) while items 03003/03014 ship at 10 months. Sign is family-level; confirm with Stefano before reprinting.",
+    "AGING (2026-08-28): the Aged Black Truffle sign is mapped to code 20533, but 20533 is Fioretto Stagionato with Truffle in catalog.json and the sheet ages it at 8 months. The sign's 90-days-on-boards figure was left as-is. The correct item number for Aged Black Truffle is still open (cut-and-wrap-spec.json: no item number on the sheet, UPC duplicates 03047)."
   ],
   "signs": [
     {
@@ -35,10 +37,10 @@
       },
       "mountainMark": false,
       "origin": "Product of Italy",
-      "flavorProfile": "Mild, sweet, milky — soft texture, white to pale straw.",
+      "flavorProfile": "Sweet and milky, with yoghurt's faint acidity — soft as sponge cake, pale straw.",
       "unique": "Milk collected only inside the PDO area. Certified organic version available.",
-      "shortDescription": "Fresh and sweet, mild and pleasant on the palate, with a soft texture and a white to pale straw color. Full-fat milk from the farms of Trentino and Veneto.",
-      "longDescription": "Asiago DOP Fresco is the young face of Italy's most-produced PDO mountain cheese. Monti Trentini makes it with full-fat cow's milk collected daily from farms inside the protected milkshed of Trentino and Veneto — the same valleys the family has bought milk from for four generations. Aged 30 to 40 days, it comes out mild, sweet and clean, with a supple texture and a white to pale straw paste. It slices, melts and cubes well, which makes it the workhorse of the case: as good on a board with fruit as it is in a panino, a gratin or a lasagne. Rich in protein with a well-balanced fat content.",
+      "shortDescription": "Sweet and milky, with the gentle acidity of yoghurt and a texture soft as sponge cake — white to pale straw. Full-fat milk from the farms of Trentino and Veneto.",
+      "longDescription": "Asiago DOP Fresco is the young face of Italy's most-produced PDO mountain cheese. Monti Trentini makes it with full-fat cow's milk collected daily from farms inside the protected milkshed of Trentino and Veneto — the same valleys the family has bought milk from for four generations. Aged 30 to 40 days, it comes out mild and sweet, with the faint yoghurt-like acidity and buttery aroma the Asiago DOP consortium itself uses to describe it — soft as sponge cake in the hand, never sticky or greasy, white to pale straw. It slices, melts and cubes well, which makes it the workhorse of the case: as good on a board with fruit as it is in a panino, a gratin or a lasagne. Rich in protein with a well-balanced fat content.",
       "image": "monti-trentini/asiago/asiago-fresco-dop-1awu-z",
       "qrUrl": "https://www.montitrentini.com/en/cheeses/asiago-pdo",
       "stock": "in stock"
@@ -67,10 +69,10 @@
       },
       "mountainMark": true,
       "origin": "Product of Italy",
-      "flavorProfile": "Sweet and full-bodied — soft, delicate, high-pasture aromatics.",
+      "flavorProfile": "Sweet, full-bodied and delicate — soft as sponge cake, with high-pasture aromatics.",
       "unique": "\"Product of the Mountain\": milk collected AND processed above 2,000 feet. First prize, Caseus Veneti 2025.",
-      "shortDescription": "Particularly sweet and full-bodied, with a soft delicate texture and a pale straw color. Made at Caseificio Finco in Enego from Asiago-plateau milk.",
-      "longDescription": "To carry the \"Product of the Mountain\" mark, every step — the milk, the make, the aging — has to happen above 2,000 feet. This Asiago does. It is produced at Monti Trentini's own Caseificio Finco in Enego, on the Asiago plateau, from full-fat milk rigorously selected from high-pasture herds. The result is what a mountain cheese is supposed to taste like: sweeter and more full-bodied than a valley Asiago, with the flower-and-grass aromatics that come from what the cows actually eat, and a soft, delicate paste. Caseificio Finco took first prize for exactly this cheese at Caseus Veneti 2025.",
+      "shortDescription": "Particularly sweet and full-bodied, soft as sponge cake with a pale straw color. Made at Caseificio Finco in Enego from Asiago-plateau milk.",
+      "longDescription": "To carry the \"Product of the Mountain\" mark, every step — the milk, the make, the aging — has to happen above 2,000 feet. This Asiago does. It is produced at Monti Trentini's own Caseificio Finco in Enego, on the Asiago plateau, from full-fat milk rigorously selected from high-pasture herds. The result is what a mountain cheese is supposed to taste like: sweeter and more full-bodied than a valley Asiago, with the flower-and-grass aromatics that come from what the cows actually eat, soft as sponge cake in the hand and never greasy, with the same faint yoghurt-like acidity that marks a young Asiago DOP. Caseificio Finco took first prize for exactly this cheese at Caseus Veneti 2025.",
       "image": "monti-trentini/asiago/asiago-fresco-pdm-1ldlkv",
       "qrUrl": "https://www.montitrentini.com/en/cheeses/asiago-pdo",
       "stock": "in stock"
@@ -101,10 +103,10 @@
       },
       "mountainMark": false,
       "origin": "Product of Italy",
-      "flavorProfile": "Sweet and savory — soft-firm, small scattered eyes, straw-gold paste.",
-      "unique": "Semi-skimmed milk from small farms; five months of natural aging.",
-      "shortDescription": "Sweet and savory, with a soft-firm texture, small scattered eyes and a straw-gold paste. Semi-skimmed milk from the mountains and valleys of Trentino and Veneto.",
-      "longDescription": "Where the Fresco is a young cheese, the Stagionato is Asiago growing into itself. Monti Trentini makes it from semi-skimmed cow's milk selected in the mountain and valley farms of Trentino and Veneto, then holds it five months — well past the ninety-day PDO minimum. Aging concentrates it: the paste turns straw-gold and firmer, small scattered eyes open through it, and the flavor moves from milky-sweet toward savory and nutty without ever turning sharp. Excellent with nothing but bread, and the Asiago most chefs reach for when they want the cheese to be tasted rather than melted away. High in protein with a well-balanced fat content.",
+      "flavorProfile": "Sweet like a boiled chestnut, turning aromatic and salty — close-textured yet soft, straw-gold.",
+      "unique": "Five months of natural aging — inside the window the Asiago DOP consortium itself calls Mezzano.",
+      "shortDescription": "Sweet like a boiled chestnut turning aromatic and salty, close-textured yet soft — what the consortium calls Mezzano. Small scattered eyes, straw-gold paste.",
+      "longDescription": "Where the Fresco is a young cheese, the Stagionato is Asiago growing into itself. Monti Trentini makes it from semi-skimmed cow's milk selected in the mountain and valley farms of Trentino and Veneto, then holds it five months — inside the four-to-six-month window the Asiago DOP consortium itself calls Mezzano. Aging concentrates it: the paste turns straw-gold and close-textured yet still soft (the consortium's own tasting notes compare the texture to a good frankfurter), with small scattered eyes and a flavor that starts sweet like a boiled chestnut and turns aromatic and salty toward the rind. Excellent with nothing but bread, and the Asiago most chefs reach for when they want the cheese to be tasted rather than melted away. High in protein with a well-balanced fat content.",
       "image": "monti-trentini/asiago/asiago-stagionato-dop-1yjo6f",
       "qrUrl": "https://www.montitrentini.com/en/cheeses/asiago-pdo",
       "stock": "in stock"
@@ -135,10 +137,10 @@
       },
       "mountainMark": false,
       "origin": "Product of Italy",
-      "flavorProfile": "Strong, faintly piquant — semi-hard, granular, crystalline.",
-      "unique": "Nine months of natural aging; unmistakable personality with a slight spice on the finish.",
-      "shortDescription": "Aged cheese with an unmistakable strong personality and a slight spicy finish. Semi-hard and granular, with scattered eyes and a straw-gold color.",
-      "longDescription": "Nine months of patient natural aging turn Asiago into something else entirely. Made from semi-skimmed milk selected from small farms in Trentino and Veneto, the Vecchio comes out semi-hard and granular, straw-gold, with scattered eyes and the beginnings of crystal crunch. The flavor is direct — deep, savory, faintly piquant on the finish — the kind of cheese that holds its own next to a big red instead of disappearing under it. Serve it in shards with honey, mostarda or aged balsamic; grate it over pasta where you would otherwise reach for something one-dimensional. Rich in protein, well-balanced in fat.",
+      "flavorProfile": "Deep and piquant, the same boiled-chestnut sweetness gone savory — semi-hard, granular.",
+      "unique": "Nine months of natural aging, carrying the sweet-to-savory character the consortium describes in every aged Asiago, further and more piquant.",
+      "shortDescription": "Aged, unmistakable and piquant — the same boiled-chestnut sweetness the consortium describes, turned deep and savory. Semi-hard, granular, straw-gold.",
+      "longDescription": "Nine months of patient natural aging turn Asiago into something else entirely. Made from semi-skimmed milk selected from small farms in Trentino and Veneto, it comes out semi-hard and granular, straw-gold, with scattered eyes and the beginnings of crystal crunch. The flavor follows the same arc the Asiago DOP consortium describes for every aged Asiago — sweet like a boiled chestnut turning aromatic and salty, with spice building toward the rind — carried further here: deep, savory, faintly piquant on the finish. The kind of cheese that holds its own next to a big red instead of disappearing under it. Serve it in shards with honey, mostarda or aged balsamic; grate it over pasta where you would otherwise reach for something one-dimensional. Rich in protein, well-balanced in fat.",
       "image": "monti-trentini/asiago/asiago-vecchio-stravecchio-1p7rbd",
       "qrUrl": "https://www.montitrentini.com/en/cheeses/asiago-pdo",
       "stock": "in stock"
@@ -160,7 +162,7 @@
         "detail": "100% Italian, short chain",
         "treatment": ""
       },
-      "minAge": "5 days",
+      "minAge": "30 days",
       "dopMinimum": null,
       "region": {
         "label": "Valsugana, Trentino",
@@ -172,7 +174,7 @@
       "flavorProfile": "Sweet milk against intense, aromatic black truffle.",
       "unique": "Real pieces of Italian black summer truffle — not truffle flavoring.",
       "shortDescription": "Premium young caciotta made with real pieces of Italian black summer truffle. Sweet milk against the intense, aromatic taste of truffle.",
-      "longDescription": "A young, soft caciotta veined through with real pieces of Italian black summer truffle — the whole point of this cheese is that the truffle is truffle, not an aroma dosed in at the end. Made in Grigno, in the Valsugana valley, exclusively from 100% Italian cow's milk on a short supply chain, then aged only briefly so the paste stays sweet, supple and milky. That sweetness is what makes it work: it gives the truffle something to push against instead of overwhelming the palate. Cut it into cubes for an aperitivo board, melt it into gnocchi or a risotto, or fold it into a potato krapfen with apple and speck the way the producer's own kitchen does.",
+      "longDescription": "A young, soft caciotta veined through with real pieces of Italian black summer truffle — the whole point of this cheese is that the truffle is truffle, not an aroma dosed in at the end. Made in Grigno, in the Valsugana valley, exclusively from 100% Italian cow's milk on a short supply chain, then aged about a month so the paste stays sweet, supple and milky. That sweetness is what makes it work: it gives the truffle something to push against instead of overwhelming the palate. Cut it into cubes for an aperitivo board, melt it into gnocchi or a risotto, or fold it into a potato krapfen with apple and speck the way the producer's own kitchen does.",
       "image": "monti-trentini/caciotta/caciotta-al-tartufo-3kg-1vbm0r",
       "qrUrl": "https://www.montitrentini.com/en/cheeses/caciotta",
       "stock": "in stock"
@@ -194,7 +196,7 @@
         "detail": "100% Italian, short chain",
         "treatment": ""
       },
-      "minAge": "5 days",
+      "minAge": "30 days",
       "dopMinimum": null,
       "region": {
         "label": "Valsugana, Trentino",
@@ -228,7 +230,7 @@
         "detail": "100% Italian, short chain",
         "treatment": ""
       },
-      "minAge": "5 days",
+      "minAge": "30 days",
       "dopMinimum": null,
       "region": {
         "label": "Valsugana, Trentino",
@@ -262,7 +264,7 @@
         "detail": "100% Italian, short chain",
         "treatment": ""
       },
-      "minAge": "5 days",
+      "minAge": "30 days",
       "dopMinimum": null,
       "region": {
         "label": "Valsugana, Trentino",
@@ -274,7 +276,7 @@
       "flavorProfile": "Distinct chili heat balanced by the sweetness of the milk.",
       "unique": "Real red chili peppers, carefully selected — heat that stays in balance.",
       "shortDescription": "Young caciotta with a distinct spicy taste of red chili pepper, balanced against the natural sweetness of the milk.",
-      "longDescription": "Red chili peppers worked through a young Valsugana caciotta of 100% Italian cow's milk. The heat is real and immediate, but it is built to be balanced rather than punishing: because the cheese underneath is only days old, it is still sweet and soft, and that sweetness catches the chili and holds it. Aged briefly in Grigno like the rest of the caciotta family. Cube it for an aperitivo, melt it over a burger or grilled vegetables, or turn it into a sauce — the producer's own kitchen builds one for seared veal sweetbreads with a Merlot reduction.",
+      "longDescription": "Red chili peppers worked through a young Valsugana caciotta of 100% Italian cow's milk. The heat is real and immediate, but it is built to be balanced rather than punishing: because the cheese underneath is only about a month old, it is still sweet and soft, and that sweetness catches the chili and holds it. Aged about thirty days in Grigno like the rest of the caciotta family. Cube it for an aperitivo, melt it over a burger or grilled vegetables, or turn it into a sauce — the producer's own kitchen builds one for seared veal sweetbreads with a Merlot reduction.",
       "image": "monti-trentini/caciotta/caciotta-al-peperoncino-3kg-1higm_",
       "qrUrl": "https://www.montitrentini.com/en/cheeses/caciotta",
       "stock": "OUT OF STOCK 2026-08-15 — confirm before printing"
@@ -295,7 +297,7 @@
         "detail": "100% Italian, short chain",
         "treatment": ""
       },
-      "minAge": "30 days",
+      "minAge": "5 months",
       "dopMinimum": null,
       "region": {
         "label": "Valsugana · Dolomiti",
@@ -307,7 +309,7 @@
       "flavorProfile": "Aromatic and full-bodied — wine on the rind, soft sweet paste inside.",
       "unique": "Bathed in Merlot IGT of the Dolomites; the rind is stained wine-purple.",
       "shortDescription": "Aromatic and full-bodied, from a long, patient soaking in Merlot wine of the Dolomites. Soft texture, small sparse holes, wine-purple rind.",
-      "longDescription": "The story is the selling line: in hard years, farmers in the Veneto and Trentino hid their cheese in the biggest wine barrels they owned so it could not be seized — and discovered the wine had made it better. Imbriago is that accident, kept on purpose. A young cow's-milk wheel is bathed long and patiently in Merlot IGT delle Dolomiti until the rind takes on a deep wine-purple and the aromatics work their way into the paste. What is left is soft-textured with small sparse holes, full-bodied, faintly winey and unmistakably aromatic. Cut it so the purple rind shows — it sells itself on the board — and pour the same grape alongside.",
+      "longDescription": "The story is the selling line: in hard years, farmers in the Veneto and Trentino hid their cheese in the biggest wine barrels they owned so it could not be seized — and discovered the wine had made it better. Imbriago is that accident, kept on purpose. A cow's-milk wheel is bathed long and patiently in Merlot IGT delle Dolomiti until the rind takes on a deep wine-purple and the aromatics work their way into the paste. What is left is soft-textured with small sparse holes, full-bodied, faintly winey and unmistakably aromatic. Cut it so the purple rind shows — it sells itself on the board — and pour the same grape alongside.",
       "image": "monti-trentini/stagionati/imbriago-wine-soaked-1-m5cn",
       "qrUrl": "https://www.montitrentini.com/en/cheeses/regional-specialites",
       "stock": "in stock"

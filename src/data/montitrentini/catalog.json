@@ -9,7 +9,7 @@
       "name": "Alpeggio Cheese",
       "category": "Alpine & Specialty",
       "marketing": {
-        "blurb": "Aged min. 10 months. Cow's milk from the Trentino Alps, made and aged in our own plants in Grigno.",
+        "blurb": "Aged min. 10 months. 10 months. Cow's milk from the Trentino Alps, made and aged in our own plants in Grigno.",
         "badge": "Mountain",
         "tags": [],
         "age": "aged min. 10 months",
@@ -75,7 +75,7 @@
         "blurb": "From the Trentino mountains — made and aged in our own plants in Grigno.",
         "badge": "Mountain",
         "tags": [],
-        "age": "—",
+        "age": "aged min. 6 months",
         "milk": "Cow milk",
         "featured": false,
         "grad": "linear-gradient(145deg, #E3F0E1, #009640)"
@@ -110,10 +110,10 @@
       "name": "Asiago Fresco della Montagna",
       "category": "Asiago",
       "marketing": {
-        "blurb": "Aged 60-70 days. Cow's milk from the Trentino Alps, made and aged in our own plants in Grigno.",
+        "blurb": "Aged 60–70 days. Cow's milk from the Trentino Alps, made and aged in our own plants in Grigno.",
         "badge": "Mountain",
         "tags": [],
-        "age": "aged 60-70 days",
+        "age": "aged 60–70 days",
         "milk": "Cow milk",
         "featured": false,
         "grad": "linear-gradient(145deg, #FFFBDC, #70C883)"
@@ -148,10 +148,10 @@
       "name": "Asiago Fresco DOP",
       "category": "Asiago",
       "marketing": {
-        "blurb": "Aged 30-40 days. Cow's milk from the Trentino Alps, made and aged in our own plants in Grigno.",
+        "blurb": "Aged 30–40 days. Cow's milk from the Trentino Alps, made and aged in our own plants in Grigno.",
         "badge": "PDO",
         "tags": [],
-        "age": "aged 30-40 days",
+        "age": "aged 30–40 days",
         "milk": "Cow milk",
         "featured": true,
         "grad": "linear-gradient(145deg, #C8E2C5, #064E22)"
@@ -255,10 +255,10 @@
       "name": "Asiago Stagionato della Montagna",
       "category": "Asiago",
       "marketing": {
-        "blurb": "Aged min 5 months. Cow's milk from the Trentino Alps, made and aged in our own plants in Grigno.",
+        "blurb": "Aged min. 5 months. Cow's milk from the Trentino Alps, made and aged in our own plants in Grigno.",
         "badge": "Mountain",
         "tags": [],
-        "age": "aged min 5 months",
+        "age": "aged min. 5 months",
         "milk": "Cow milk",
         "featured": false,
         "grad": "linear-gradient(145deg, #C8E2C5, #009640)"
@@ -543,7 +543,7 @@
         "blurb": "From the Trentino mountains — made and aged in our own plants in Grigno.",
         "badge": "PDO",
         "tags": [],
-        "age": "—",
+        "age": "aged 45–180 days",
         "milk": "Cow milk",
         "featured": false,
         "grad": "linear-gradient(145deg, #FFFBDC, #064E22)"
@@ -707,7 +707,7 @@
         "blurb": "From the Trentino mountains — made and aged in our own plants in Grigno.",
         "badge": "Mountain",
         "tags": [],
-        "age": "—",
+        "age": "aged min. 30 days",
         "milk": "Cow milk",
         "featured": false,
         "grad": "linear-gradient(145deg, #E3F0E1, #009640)"
@@ -936,7 +936,7 @@
         "blurb": "From the Trentino mountains — made and aged in our own plants in Grigno.",
         "badge": "Mountain",
         "tags": [],
-        "age": "—",
+        "age": "aged min. 30 days",
         "milk": "Cow milk",
         "featured": false,
         "grad": "linear-gradient(145deg, #FFFBDC, #70C883)"
@@ -1078,7 +1078,7 @@
         "blurb": "From the Trentino mountains — made and aged in our own plants in Grigno.",
         "badge": "Mountain",
         "tags": [],
-        "age": "—",
+        "age": "aged min. 5 months",
         "milk": "Cow milk",
         "featured": false,
         "grad": "linear-gradient(145deg, #70C883, #141413)"
@@ -1116,7 +1116,7 @@
         "blurb": "From the Trentino mountains — made and aged in our own plants in Grigno.",
         "badge": "Mountain",
         "tags": [],
-        "age": "—",
+        "age": "aged min. 8 months",
         "milk": "Cow milk",
         "featured": false,
         "grad": "linear-gradient(145deg, #064E22, #141413)"
@@ -1154,7 +1154,7 @@
         "blurb": "From the Trentino mountains — made and aged in our own plants in Grigno.",
         "badge": "Mountain",
         "tags": [],
-        "age": "—",
+        "age": "aged min. 60 days",
         "milk": "Cow milk",
         "featured": false,
         "grad": "linear-gradient(145deg, #70C883, #064E22)"
@@ -1236,7 +1236,7 @@
         "blurb": "From the Trentino mountains — made and aged in our own plants in Grigno.",
         "badge": "PDO",
         "tags": [],
-        "age": "—",
+        "age": "aged min. 50 days",
         "milk": "Cow milk",
         "featured": false,
         "grad": "linear-gradient(145deg, #70C883, #141413)"
@@ -1271,10 +1271,10 @@
       "name": "Grana Padano",
       "category": "Grana Padano",
       "marketing": {
-        "blurb": "Aged min. 12–16 months. Cow's milk from the Trentino Alps, made and aged in our own plants in Grigno.",
+        "blurb": "Aged min. 10 months. 12–16 months. Cow's milk from the Trentino Alps, made and aged in our own plants in Grigno.",
         "badge": "Mountain",
         "tags": [],
-        "age": "aged min. 12–16 months",
+        "age": "aged min. 10 months",
         "milk": "Cow milk",
         "featured": true,
         "grad": "linear-gradient(145deg, #FFFBDC, #064E22)"
@@ -1467,10 +1467,10 @@
       "name": "Grana Padano Riserva",
       "category": "Grana Padano",
       "marketing": {
-        "blurb": "Aged min. 16–20 months. Cow's milk from the Trentino Alps, made and aged in our own plants in Grigno.",
+        "blurb": "Aged 16–20 months. 16–20 months. Cow's milk from the Trentino Alps, made and aged in our own plants in Grigno.",
         "badge": "Mountain",
         "tags": [],
-        "age": "aged min. 16–20 months",
+        "age": "aged 16–20 months",
         "milk": "Cow milk",
         "featured": false,
         "grad": "linear-gradient(145deg, #C8E2C5, #064E22)"
@@ -1574,7 +1574,7 @@
         "blurb": "From the Trentino mountains — made and aged in our own plants in Grigno.",
         "badge": "Mountain",
         "tags": [],
-        "age": "—",
+        "age": "aged min. 5 months",
         "milk": "Cow milk",
         "featured": false,
         "grad": "linear-gradient(145deg, #C8E2C5, #009640)"
@@ -1634,10 +1634,10 @@
       "name": "Lagorai Cheese",
       "category": "Alpine & Specialty",
       "marketing": {
-        "blurb": "Aged 60-70 days. Cow's milk from the Trentino Alps, made and aged in our own plants in Grigno.",
+        "blurb": "Aged 60–70 days. Cow's milk from the Trentino Alps, made and aged in our own plants in Grigno.",
         "badge": "Mountain",
         "tags": [],
-        "age": "aged 60-70 days",
+        "age": "aged 60–70 days",
         "milk": "Cow milk",
         "featured": false,
         "grad": "linear-gradient(145deg, #C8E2C5, #064E22)"
@@ -1722,7 +1722,7 @@
         "blurb": "From the Trentino mountains — made and aged in our own plants in Grigno.",
         "badge": "Mountain",
         "tags": [],
-        "age": "—",
+        "age": "aged min. 15 days",
         "milk": "Cow milk",
         "featured": false,
         "grad": "linear-gradient(145deg, #C8E2C5, #064E22)"
@@ -1870,7 +1870,7 @@
         "blurb": "From the Trentino mountains — made and aged in our own plants in Grigno.",
         "badge": "Mountain",
         "tags": [],
-        "age": "—",
+        "age": "aged 15–20 days",
         "milk": "Cow milk",
         "featured": false,
         "grad": "linear-gradient(145deg, #70C883, #064E22)"
@@ -1977,7 +1977,7 @@
         "blurb": "From the Trentino mountains — made and aged in our own plants in Grigno.",
         "badge": "PDO",
         "tags": [],
-        "age": "—",
+        "age": "aged 12–24 months",
         "milk": "Cow milk",
         "featured": true,
         "grad": "linear-gradient(145deg, #70C883, #064E22)"
@@ -2085,7 +2085,7 @@
         "blurb": "From the Trentino mountains — made and aged in our own plants in Grigno.",
         "badge": "PDO",
         "tags": [],
-        "age": "—",
+        "age": "aged min. 5 months",
         "milk": "Sheep milk",
         "featured": false,
         "grad": "linear-gradient(145deg, #E3F0E1, #009640)"
@@ -2319,7 +2319,7 @@
         "blurb": "From the Trentino mountains — made and aged in our own plants in Grigno.",
         "badge": "PDO",
         "tags": [],
-        "age": "—",
+        "age": "aged 2–4 months",
         "milk": "Sheep milk",
         "featured": false,
         "grad": "linear-gradient(145deg, #FFFBDC, #70C883)"
@@ -2379,7 +2379,7 @@
         "blurb": "From the Trentino mountains — made and aged in our own plants in Grigno.",
         "badge": "PDO",
         "tags": [],
-        "age": "—",
+        "age": "aged 4–13 months",
         "milk": "Cow milk",
         "featured": false,
         "grad": "linear-gradient(145deg, #C8E2C5, #009640)"
@@ -2461,7 +2461,7 @@
         "blurb": "From the Trentino mountains — made and aged in our own plants in Grigno.",
         "badge": "PDO",
         "tags": [],
-        "age": "—",
+        "age": "aged min. 30 days",
         "milk": "Cow milk",
         "featured": false,
         "grad": "linear-gradient(145deg, #C8E2C5, #064E22)"
@@ -2499,7 +2499,7 @@
         "blurb": "From the Trentino mountains — made and aged in our own plants in Grigno.",
         "badge": "Mountain",
         "tags": [],
-        "age": "—",
+        "age": "aged min. 30 days",
         "milk": "Sheep milk",
         "featured": false,
         "grad": "linear-gradient(145deg, #C8E2C5, #009640)"
@@ -2713,7 +2713,7 @@
         "blurb": "From the Trentino mountains — made and aged in our own plants in Grigno.",
         "badge": "PDO",
         "tags": [],
-        "age": "—",
+        "age": "aged min. 2 months",
         "milk": "Cow milk",
         "featured": false,
         "grad": "linear-gradient(145deg, #FFFBDC, #70C883)"
@@ -2751,7 +2751,7 @@
         "blurb": "From the Trentino mountains — made and aged in our own plants in Grigno.",
         "badge": "PDO",
         "tags": [],
-        "age": "—",
+        "age": "aged min. 35 days",
         "milk": "Cow milk",
         "featured": false,
         "grad": "linear-gradient(145deg, #064E22, #141413)"
@@ -2789,7 +2789,7 @@
         "blurb": "From the Trentino mountains — made and aged in our own plants in Grigno.",
         "badge": "PDO",
         "tags": [],
-        "age": "—",
+        "age": "aged min. 60 days",
         "milk": "Cow milk",
         "featured": false,
         "grad": "linear-gradient(145deg, #064E22, #141413)"

@@ -15,7 +15,13 @@
     "NATURALLY SMOKED PROVOLONE Disc — shares item 01174 and UPC 857594000103 with the Wedge. Not seeded.",
     "VEZZENA aged min 5 months — no item number on the sheet (item-reference has 04182). UPC 857594000189 unassigned. Not seeded.",
     "03047 vs 03073 — the sheet numbers Asiago Vecchio 9 months as 03047; item-reference.json says 03073. Seeded as 03047 WITHOUT a UPC until Stefano confirms which number is live.",
-    "40176 vs 04176 — the sheet says 40176; item-reference.json and the Cloudinary packshot both say 04176. Treated as a sheet typo and merged onto 04176."
+    "40176 vs 04176 — the sheet says 40176; item-reference.json and the Cloudinary packshot both say 04176. Treated as a sheet typo and merged onto 04176.",
+    "AGING 2026-08-28 — minAge filled from ageing item list.xls (Stefano). Each wedge inherits the aging of the wheel it is cut from; values normalized to the bare form used by items-seed.json.",
+    "01101 Provolone Sharp 7 Oz EW — minAge left blank: the sheet's SHARP PROVOLONE block disagrees with itself (01269=45 days, 01032=90 days, and 01154, a MILD fiaschetto, is filed under it at 20 days). Stefano to confirm.",
+    "01174 Naturally Smoked Provolone 7 Oz EW — minAge left blank: parent SKUs split 15 days (01021, 01186) vs 20 days (01155). Confirm which format the wedge is cut from.",
+    "05099 Parmigiano Reggiano 7 Oz EW — kept at min. 18 months; the sheet carries only 12 months (05034/05025) and 24 months (05033), no 18-month line. Stefano to confirm.",
+    "03047 Asiago Vecchio 7 Oz EW — set to 10 months per items 03003/03014; the sheet's section header for that family reads 9 months. Stefano to confirm.",
+    "05050 Grana Padano 7 Oz EW — moved 12 -> 10 months with the rest of the base Grana line; the sheet carries two Grana blocks (12 months and min. 10 months) and the later, fuller block was taken as current."
   ],
   "items": {
     "02091": {
@@ -24,11 +30,13 @@
       "weight": "7 oz",
       "upc": "857594000110",
       "milkType": "Cow milk",
-      "minAge": "30-40 days",
+      "minAge": "40 days",
       "certification": "PDO",
       "shortDescription": "Young Asiago PDO, aged 30–40 days — mild, milky, and supple. Cut-and-wrap 7 oz exact-weight wedge in ATM.",
       "packagingType": "C/W 7 oz Exact Weight Wedges ATM",
-      "logistics": { "palletTiHi": "20 x 5" }
+      "logistics": {
+        "palletTiHi": "20 x 5"
+      }
     },
     "03044": {
       "name": "Asiago Aged PDO 7 Oz EW",
@@ -36,11 +44,13 @@
       "weight": "7 oz",
       "upc": "857594000141",
       "milkType": "Cow milk",
-      "minAge": "min. 5 months",
+      "minAge": "5 months",
       "certification": "PDO",
       "shortDescription": "Asiago PDO aged five months — firmer, nuttier, with the first crystalline bite. 7 oz exact-weight wedge in ATM.",
       "packagingType": "C/W 7 oz Exact Weight Wedges ATM",
-      "logistics": { "palletTiHi": "20 x 5" }
+      "logistics": {
+        "palletTiHi": "20 x 5"
+      }
     },
     "03047": {
       "name": "Asiago Vecchio PDO 7 Oz EW",
@@ -48,11 +58,13 @@
       "weight": "7 oz",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "min. 9 months",
+      "minAge": "10 months",
       "certification": "PDO",
       "shortDescription": "Asiago Vecchio PDO, nine months in the cave — dense, savory, deeply crystalline. 7 oz exact-weight wedge in ATM.",
       "packagingType": "C/W 7 oz Exact Weight Wedges ATM",
-      "logistics": { "palletTiHi": "20 x 5" },
+      "logistics": {
+        "palletTiHi": "20 x 5"
+      },
       "flag": "Item number and UPC both contested — see `blocked`."
     },
     "20424": {
@@ -61,11 +73,13 @@
       "weight": "7 oz",
       "upc": "857594000240",
       "milkType": "Cow milk",
-      "minAge": "",
+      "minAge": "30 days",
       "certification": "",
       "shortDescription": "Caciotta Piccante — soft mountain caciotta shot through with red chili pepper. 7 oz exact-weight wedge, vacuum packed.",
       "packagingType": "C/W 7 oz Exact Weight Wedges Vacuum Pack",
-      "logistics": { "palletTiHi": "20 x 5" }
+      "logistics": {
+        "palletTiHi": "20 x 5"
+      }
     },
     "20481": {
       "name": "Caciotta Pepato 7 Oz EW",
@@ -73,11 +87,13 @@
       "weight": "7 oz",
       "upc": "857594000813",
       "milkType": "Cow milk",
-      "minAge": "",
+      "minAge": "30 days",
       "certification": "",
       "shortDescription": "Pepato — caciotta studded with cracked black peppercorns. 7 oz exact-weight wedge, vacuum packed.",
       "packagingType": "C/W 7 oz Exact Weight Wedges Vacuum Pack",
-      "logistics": { "palletTiHi": "20 x 5" }
+      "logistics": {
+        "palletTiHi": "20 x 5"
+      }
     },
     "20480": {
       "name": "Caciotta Mnt Herbs 7 Oz EW",
@@ -85,11 +101,13 @@
       "weight": "7 oz",
       "upc": "857594000806",
       "milkType": "Cow milk",
-      "minAge": "",
+      "minAge": "30 days",
       "certification": "",
       "shortDescription": "Caciotta rolled in Trentino mountain herbs — grassy, aromatic, alpine. 7 oz exact-weight wedge, vacuum packed.",
       "packagingType": "C/W 7 oz Exact Weight Wedges Vacuum Pack",
-      "logistics": { "palletTiHi": "20 x 5" }
+      "logistics": {
+        "palletTiHi": "20 x 5"
+      }
     },
     "20423": {
       "name": "Caciotta Black Truffles 7 Oz EW",
@@ -97,11 +115,13 @@
       "weight": "7 oz",
       "upc": "857594000233",
       "milkType": "Cow milk",
-      "minAge": "",
+      "minAge": "30 days",
       "certification": "",
       "shortDescription": "Caciotta al Tartufo — young caciotta veined with black summer truffle. 7 oz exact-weight wedge, vacuum packed.",
       "packagingType": "C/W 7 oz Exact Weight Wedges Vacuum Pack",
-      "logistics": { "palletTiHi": "20 x 5" }
+      "logistics": {
+        "palletTiHi": "20 x 5"
+      }
     },
     "01101": {
       "name": "Provolone Sharp Cheese 7 Oz EW",
@@ -113,7 +133,9 @@
       "certification": "",
       "shortDescription": "Sharp Provolone — piccante, lactic-tangy, built for the deli case. 7 oz exact-weight wedge in ATM.",
       "packagingType": "C/W 7 oz Exact Weight Wedges ATM",
-      "logistics": { "palletTiHi": "25 x 10" }
+      "logistics": {
+        "palletTiHi": "25 x 10"
+      }
     },
     "01190": {
       "name": "Provolone Mild Cheese 7 Oz EW",
@@ -121,11 +143,13 @@
       "weight": "7 oz",
       "upc": "857594000097",
       "milkType": "Cow milk",
-      "minAge": "",
+      "minAge": "15 days",
       "certification": "",
       "shortDescription": "Mild Provolone — dolce, buttery, sliceable. 7 oz exact-weight wedge in ATM.",
       "packagingType": "C/W 7 oz Exact Weight Wedges ATM",
-      "logistics": { "palletTiHi": "25 x 10" }
+      "logistics": {
+        "palletTiHi": "25 x 10"
+      }
     },
     "01174": {
       "name": "Naturally Smoked Provolone 7 Oz EW",
@@ -137,7 +161,9 @@
       "certification": "",
       "shortDescription": "Provolone smoked over natural wood — sweet smoke, no additives. 7 oz exact-weight wedge, vacuum packed.",
       "packagingType": "C/W 7 oz Exact Weight Wedges Vacuum Pack",
-      "logistics": { "palletTiHi": "20 x 5" },
+      "logistics": {
+        "palletTiHi": "20 x 5"
+      },
       "flag": "Sheet lists a Wedge and a Disc under this one number. Disc not seeded."
     },
     "04165": {
@@ -146,11 +172,13 @@
       "weight": "7 oz",
       "upc": "857594000653",
       "milkType": "Cow milk",
-      "minAge": "",
+      "minAge": "70 days",
       "certification": "",
       "shortDescription": "Lagorai — a semi-firm mountain cheese named for the range it comes from. 7 oz exact-weight wedge in ATM.",
       "packagingType": "C/W 7 oz Exact Weight Wedges ATM",
-      "logistics": { "palletTiHi": "20 x 5" }
+      "logistics": {
+        "palletTiHi": "20 x 5"
+      }
     },
     "04176": {
       "name": "Drunken Cheese 7 Oz EW (Imbriago)",
@@ -158,11 +186,13 @@
       "weight": "7 oz",
       "upc": "857594000745",
       "milkType": "Cow milk",
-      "minAge": "",
+      "minAge": "5 months",
       "certification": "",
       "shortDescription": "Imbriago — cheese bathed in red wine and grape must until the rind runs purple. 7 oz exact-weight wedge, vacuum packed.",
       "packagingType": "C/W 7 oz Exact Weight Wedges Vacuum Pack",
-      "logistics": { "palletTiHi": "20 x 5" },
+      "logistics": {
+        "palletTiHi": "20 x 5"
+      },
       "flag": "Sheet numbers this 40176; item-reference and Cloudinary both say 04176."
     },
     "05050": {
@@ -171,11 +201,13 @@
       "weight": "7 oz",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "min. 12 months",
+      "minAge": "10 months",
       "certification": "PDO",
       "shortDescription": "Grana Padano PDO aged a minimum of twelve months — granular, sweet, endlessly useful. 7 oz exact-weight wedge, vacuum packed.",
       "packagingType": "C/W 7 oz Exact Weight Wedges Vacuum Pack",
-      "logistics": { "palletTiHi": "20 x 5" }
+      "logistics": {
+        "palletTiHi": "20 x 5"
+      }
     },
     "05099": {
       "name": "Parmigiano Reggiano DOP 7 Oz EW",
@@ -187,7 +219,9 @@
       "certification": "DOP",
       "shortDescription": "Parmigiano Reggiano DOP at eighteen months — crystalline, brothy, unmistakable. 7 oz exact-weight wedge, vacuum packed.",
       "packagingType": "C/W 7 oz Exact Weight Wedges Vacuum Pack",
-      "logistics": { "palletTiHi": "20 x 5" }
+      "logistics": {
+        "palletTiHi": "20 x 5"
+      }
     },
     "40162": {
       "name": "Pecorino Romano PDO 7 Oz EW",
@@ -195,11 +229,13 @@
       "weight": "7 oz",
       "upc": "",
       "milkType": "Sheep milk",
-      "minAge": "",
+      "minAge": "5 months",
       "certification": "PDO",
       "shortDescription": "Pecorino Romano PDO — sharp, salty, sheep's-milk backbone of Roman cooking. 7 oz exact-weight wedge, vacuum packed.",
       "packagingType": "C/W 7 oz Exact Weight Wedges Vacuum Pack",
-      "logistics": { "palletTiHi": "20 x 5" }
+      "logistics": {
+        "palletTiHi": "20 x 5"
+      }
     },
     "40163": {
       "name": "Ricotta Salata 7 Oz EW",
@@ -207,11 +243,13 @@
       "weight": "7 oz",
       "upc": "",
       "milkType": "Sheep milk",
-      "minAge": "",
+      "minAge": "30 days",
       "certification": "",
       "shortDescription": "Ricotta Salata — pressed, salted, and dried until firm enough to grate. 7 oz exact-weight wedge, vacuum packed.",
       "packagingType": "C/W 7 oz Exact Weight Wedges Vacuum Pack",
-      "logistics": { "palletTiHi": "20 x 5" }
+      "logistics": {
+        "palletTiHi": "20 x 5"
+      }
     },
     "40086": {
       "name": "Montasio PDO 7 Oz EW",
@@ -219,11 +257,13 @@
       "weight": "7 oz",
       "upc": "",
       "milkType": "Cow milk",
-      "minAge": "",
+      "minAge": "6 months",
       "certification": "PDO",
       "shortDescription": "Montasio PDO — the Friuli mountain cheese behind a proper frico. 7 oz exact-weight wedge, vacuum packed.",
       "packagingType": "C/W 7 oz Exact Weight Wedges Vacuum Pack",
-      "logistics": { "palletTiHi": "20 x 5" }
+      "logistics": {
+        "palletTiHi": "20 x 5"
+      }
     }
   }
 }
