@@ -84,6 +84,26 @@ clearing the 06-13 blocker. Path A is now built and tested end-to-end:
   Backup at `archive/backup_2026-06-18_before_inventory_sync/`. To go live: review NEW, then
   `mv inventory.NEW.json inventory.json`, commit, deploy.
 
+### Dating the file — Drive edit log, never the banner (Rick, 2026-08-28)
+
+The sheet's first row carries a hand-typed `Updated on:` banner. **It does not date the file.**
+Google Drive's `modifiedTime` does — that is the sheet's real edit log, and it is what
+`sync-inventory.mjs --require-drive-meta` writes to `lastUpdated` (with
+`lastUpdatedSource: "drive-modifiedTime"`).
+
+Why: the producer issues an official refresh roughly weekly and types the banner then, but
+**corrections land between those official updates** without the banner being retyped. So the
+banner routinely lags the true edit by a day or more. Dating from the banner means the live
+catalog claims stock is fresher (or, per the 2026-07-25 incident, *newer than today*) than it is.
+
+Operational consequences:
+- A `SHEET BANNER DISAGREES WITH GOOGLE DRIVE` warning is **expected and routine** — a mid-week
+  correction. Note both dates and carry on; it is not an anomaly to escalate.
+- Each export writes a sidecar `availability_<date>.meta.json` recording the literal
+  `driveModifiedTime`. That sidecar is the audit trail and is committed alongside the CSV.
+- If the sidecar is missing/unreadable (exit 4), **stop — do not publish**. Publishing a
+  banner-sourced date is the failure this whole guard exists to prevent.
+
 ### Mapping (sheet → inventory.json)
 | Sheet column | inventory field | Notes |
 |---|---|---|
