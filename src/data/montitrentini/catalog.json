@@ -1715,6 +1715,45 @@
       ]
     },
     {
+      "id": "masibon",
+      "name": "Masibon",
+      "category": "Alpine & Specialty",
+      "marketing": {
+        "blurb": "New item — product details to follow from Monti Trentini.",
+        "badge": "New",
+        "tags": [],
+        "age": null,
+        "milk": null,
+        "featured": false,
+        "grad": "linear-gradient(145deg, #E3F0E1, #009640)"
+      },
+      "skus": [
+        {
+          "code": "20277",
+          "packing": "TBA — pack spec not yet supplied",
+          "image": "20277",
+          "unit": "lb",
+          "cost": {
+            "fob": null
+          },
+          "list": {
+            "retail": null,
+            "wholesale": null
+          },
+          "pack": {
+            "piecesPerCase": null,
+            "netLb": null,
+            "grossLb": null,
+            "palletTiHi": null,
+            "casesPerPallet": null,
+            "shelfDays": null
+          },
+          "availability": "in_stock",
+          "_priceNote": "TBA (2026-08-28, Rick): item first appeared on the availability sheet 2026-08-21 (lot 1320525, 3 cases, exp 11/08/2026) and is NOT on any 2026-03 price list. cost.fob is null deliberately so the engine returns null and every surface shows Price on Request — no price has been invented. Category, pack spec and marketing copy are placeholders pending Stefano. Replace fob + pack when the price arrives."
+        }
+      ]
+    },
+    {
       "id": "mild-provolone",
       "name": "Mild Provolone",
       "category": "Provolone",
