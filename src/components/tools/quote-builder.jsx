@@ -169,6 +169,9 @@ export function QuoteBuilder({ data, brand, resolved, itemsDoc }) {
   // this document is a price list arranged for a conversation, not an order.
   const allSkus = useMemo(() => flattenSkus(catalog, itemsDoc), [catalog, itemsDoc]);
   const [search, setSearch] = useState("");
+  // Precuts = exact-weight, case-priced wedges (unit "case"). A quick toggle so Rick can
+  // pull together a Precuts-only price list without hand-searching for 24 SKUs by name.
+  const [precutsOnly, setPrecutsOnly] = useState(false);
   // [{ code, prevPrice: "" (price-change manual/auto-filled), promoPrice: "" (per-line override) }]
   const [lines, setLines] = useState([]);
   const selected = useMemo(
@@ -273,10 +276,10 @@ export function QuoteBuilder({ data, brand, resolved, itemsDoc }) {
      not summon it (Rick, 2026-08-13). A rep builds a rate card by browsing what's for sale, the
      same way Pro Forma's grid works; an empty box that only reveals SKUs once you already know
      what to type is the wrong instrument for "arrange the price list for this conversation." */
-  const visible = search.trim()
-    ? allSkus.filter((x) => (x.sku.code + " " + x.name + " " + (x.product.category || "") + " " + (x.sku.packing || ""))
-        .toLowerCase().includes(search.trim().toLowerCase()))
-    : allSkus;
+  const visible = (precutsOnly ? allSkus.filter((x) => x.sku.unit === "case") : allSkus).filter((x) =>
+    !search.trim() || (x.sku.code + " " + x.name + " " + (x.product.category || "") + " " + (x.sku.packing || ""))
+      .toLowerCase().includes(search.trim().toLowerCase())
+  );
 
   function addSku(code) {
     if (lines.some((l) => l.code === code)) return;
@@ -288,6 +291,16 @@ export function QuoteBuilder({ data, brand, resolved, itemsDoc }) {
     setLines((ls) => [...ls, { code, prevPrice: prior ? String(prior.unitPrice) : "", promoPrice: "", customOn: false, customPrice: "" }]);
     // Search is NOT cleared on add: the rep is usually adding several SKUs off one search
     // ("asiago"), and wiping it would send them back to the top of the full list every time.
+  }
+  // One click to build the whole sheet from whatever's currently narrowed into view — pairs with
+  // "Precuts only" so all 24 case-priced wedges land on the sheet without 24 individual clicks.
+  function addAllVisible() {
+    const codes = visible.map((x) => x.sku.code).filter((c) => !lines.some((l) => l.code === c));
+    if (!codes.length) return;
+    setLines((ls) => [...ls, ...codes.map((code) => {
+      const prior = purposeId === "price_change" ? lastQuotedPrice(quoteLog, customer, code, dates.effectiveDate) : null;
+      return { code, prevPrice: prior ? String(prior.unitPrice) : "", promoPrice: "", customOn: false, customPrice: "" };
+    })]);
   }
   const removeSku = (code) => setLines((ls) => ls.filter((l) => l.code !== code));
   const setLineField = (code, key, value) =>
@@ -317,6 +330,16 @@ export function QuoteBuilder({ data, brand, resolved, itemsDoc }) {
   const units = new Set(selected.map((l) => l.entry.sku.unit === "case" ? "case" : "lb"));
   const priceHeader = units.size === 1 ? (units.has("case") ? "$ / CASE" : "$ / LB") : "PRICE";
   const unitSuffix = (entry) => (units.size > 1 ? (entry.sku.unit === "case" ? "/cs" : "/lb") : "");
+  // Precut wedges sell by the case AND get counted out by the each (7 oz piece) at the counter —
+  // Rick wants both numbers on a Precuts sheet, not just the case price. Derived by dividing the
+  // CASE price (already margin-applied) by piecesPerCase, so it's never a second, independently
+  // computed price that could drift from the case number — same discipline as $/lb vs $/cs above,
+  // one column deeper.
+  const showEachCol = units.has("case");
+  const eachPriceOf = (sku, casePrice) => {
+    const pieces = sku?.unit === "case" ? sku?.pack?.piecesPerCase : null;
+    return pieces && casePrice != null ? PC.round2(casePrice / pieces) : null;
+  };
 
   const canPrint = selected.length > 0 && !missingDates.length && !unpriced.length && manualValid
     && (purposeId !== "promo" || !!headline.trim());
@@ -453,14 +476,19 @@ export function QuoteBuilder({ data, brand, resolved, itemsDoc }) {
     /* ---- pricing table, per purpose ---- */
     let head = "", body = "", note = "";
     if (purposeId === "new_customer") {
-      note = `All prices per ${units.has("case") && units.size === 1 ? "case" : "pound"}, ${esc(basisLabel)}`;
-      head = `<tr><th>Item</th><th>Type</th><th>Format &amp; Aging</th><th>SKU</th><th class="r">${esc(priceHeader)}</th><th class="r">Net Wt / Case</th></tr>`;
+      note = `All prices per ${units.has("case") && units.size === 1 ? "case" : "pound"}, ${esc(basisLabel)}`
+        + (showEachCol ? " · precut wedges also priced per each (7 oz piece)" : "");
+      head = `<tr><th>Item</th><th>Type</th><th>Format &amp; Aging</th><th>SKU</th><th class="r">${esc(priceHeader)}</th>${showEachCol ? '<th class="r">$ / Each</th>' : ""}<th class="r">Net Wt / Case</th></tr>`;
       body = selected.map((l) => {
         const e = l.entry, m = e.product.marketing || {};
         const badge = m.badge ? `<span class="badge${/pdo|dop/i.test(m.badge) ? " pdo" : ""}">${esc(m.badge.toUpperCase())}</span>` : "";
+        const lp = linePrice(l);
+        const eachCell = showEachCol
+          ? `<td class="r wt">${e.sku.unit === "case" && lp != null ? esc(money(eachPriceOf(e.sku, lp))) : "—"}</td>` : "";
         return `<tr><td class="item">${esc(e.name)}</td><td>${badge}</td><td class="spec">${esc(formatAging(e))}</td>`
           + `<td class="sku">#${esc(e.sku.code)}</td>`
-          + `<td class="r price">${money(linePrice(l))}<span class="u">${esc(unitSuffix(e))}</span></td>`
+          + `<td class="r price">${money(lp)}<span class="u">${esc(unitSuffix(e))}</span></td>`
+          + eachCell
           + `<td class="r wt">${esc(e.sku.pack?.netLb ?? "—")} lb net/case</td></tr>`;
       }).join("");
     } else if (purposeId === "price_change") {
@@ -817,6 +845,24 @@ export function QuoteBuilder({ data, brand, resolved, itemsDoc }) {
         />
       </div>
 
+      {/* Precuts filter — narrows the picker to the 7oz exact-weight wedges (unit "case",
+          priced per case) so a Precuts price list doesn't mean hand-searching 24 codes.
+          "Add all shown" bulk-adds whatever the filter + search currently narrow into view. */}
+      <div className="flex flex-wrap items-center gap-2">
+        <button type="button" onClick={() => setPrecutsOnly((v) => !v)}
+          className={"rounded-base border px-3 py-1.5 text-xs font-semibold uppercase tracking-wide transition-colors "
+            + (precutsOnly ? "border-brand-primary bg-brand-primary text-brand-on-primary" : "border-border text-fg-muted hover:bg-bg")}>
+          Precuts only
+        </button>
+        {precutsOnly && (
+          <span className="text-xs text-fg-muted">Exact-weight, priced per case — {visible.length} SKU{visible.length === 1 ? "" : "s"}</span>
+        )}
+        <Button variant="outline" size="sm" onClick={addAllVisible}
+          disabled={!visible.some((x) => !lines.some((l) => l.code === x.sku.code))}>
+          Add all shown ({visible.length})
+        </Button>
+      </div>
+
       <Card>
         <CardContent className="p-0">
           {/* The price list itself — open on arrival, scrollable, priced at the selected tier so the
@@ -850,10 +896,15 @@ export function QuoteBuilder({ data, brand, resolved, itemsDoc }) {
                     <span className="block truncate text-xs text-fg-muted">{tidy(x.sku.packing)}</span>
                   </span>
                   <span className="hidden w-32 flex-none truncate text-xs text-fg-muted sm:block">{x.product.category}</span>
-                  <span className="w-24 flex-none text-right font-mono text-sm">
+                  <span className="w-28 flex-none text-right font-mono text-sm">
                     {unit == null
                       ? <span className="rounded-base border border-warning/50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-warning" title="No cost on file — price on request">POR</span>
-                      : <>{money(unit)}<span className="text-xs text-fg-muted">/{x.sku.unit === "case" ? "cs" : "lb"}</span></>}
+                      : <>
+                          {money(unit)}<span className="text-xs text-fg-muted">/{x.sku.unit === "case" ? "cs" : "lb"}</span>
+                          {x.sku.unit === "case" && (
+                            <span className="block text-[10px] text-fg-muted">{money(eachPriceOf(x.sku, unit))}/ea</span>
+                          )}
+                        </>}
                   </span>
                   <span className="w-16 flex-none text-right font-mono text-xs text-fg-muted">#{x.sku.code}</span>
                 </button>
@@ -881,7 +932,7 @@ export function QuoteBuilder({ data, brand, resolved, itemsDoc }) {
               <TableRow>
                 <TableHead>Item</TableHead>
                 <TableHead>SKU</TableHead>
-                {purposeId === "new_customer" && <><TableHead>Format &amp; aging</TableHead><TableHead className="text-right">{priceHeader}</TableHead><TableHead className="text-right">Net wt / case</TableHead></>}
+                {purposeId === "new_customer" && <><TableHead>Format &amp; aging</TableHead><TableHead className="text-right">{priceHeader}</TableHead>{showEachCol && <TableHead className="text-right">$ / Each</TableHead>}<TableHead className="text-right">Net wt / case</TableHead></>}
                 {purposeId === "price_change" && <><TableHead className="text-right">Previous</TableHead><TableHead className="text-right">New</TableHead><TableHead className="text-right">Change</TableHead></>}
                 {purposeId === "promo" && <><TableHead className="text-right">Regular</TableHead><TableHead className="text-right">Promo</TableHead><TableHead className="text-right">You save</TableHead></>}
                 <TableHead />
@@ -920,6 +971,11 @@ export function QuoteBuilder({ data, brand, resolved, itemsDoc }) {
                             ? <span className="text-[10px] font-semibold uppercase text-warning">POR</span>
                             : <>{money(reg)}<span className="text-xs text-fg-muted">{suffix}</span></>}
                         </TableCell>
+                        {showEachCol && (
+                          <TableCell className="text-right font-mono text-fg-muted">
+                            {e.sku.unit === "case" && reg != null ? money(eachPriceOf(e.sku, reg)) : "—"}
+                          </TableCell>
+                        )}
                         <TableCell className="text-right font-mono text-fg-muted">{e.sku.pack?.netLb ?? "—"} lb</TableCell>
                       </>
                     )}
