@@ -1,5 +1,6 @@
 #!/bin/bash
-# COMMIT PRECUTS PRICE LIST FILTER — Quote Builder: Precuts-only filter + $/case & $/each
+# COMMIT PRECUTS PRICE LIST FILTER — Quote Builder: Precuts filter, $/case+$/each,
+# and hand-typed "Price list prepared by" / Contact fields
 # Double-click to commit and push.
 
 cd "$(dirname "$0")" || exit 1
@@ -7,7 +8,8 @@ export GIT_OPTIONAL_LOCKS=0
 
 echo "=============================================="
 echo " COMMIT: Precuts price list filter (Quote Builder)"
-echo " (Precuts-only toggle · add-all · \$/case + \$/each)"
+echo " (Precuts-only toggle · add-all · \$/case + \$/each ·"
+echo "  prepared-by + contact fields)"
 echo "=============================================="
 echo
 
@@ -35,7 +37,7 @@ echo "Staged."
 echo
 
 echo "Committing..."
-git commit -m "Quote Builder: Precuts price list filter + per-case/per-each pricing
+git commit -m "Quote Builder: Precuts price list filter, per-case/per-each pricing, prepared-by field
 
 - New 'Precuts only' toggle narrows the SKU picker to unit:\"case\" wedges
   (the 24 exact-weight 7oz precuts) so a Precuts price list doesn't mean
@@ -49,6 +51,11 @@ git commit -m "Quote Builder: Precuts price list filter + per-case/per-each pric
   price, so it can never drift from the case number.
 - Picker rows show the per-each price under the case price for precuts
   while browsing, before a line is even added.
+- New hand-typed 'Price list prepared by' (statement) and 'Contact info'
+  fields on the header-copy card, for every purpose (not just Precuts
+  sheets). Per-quote, not persisted, separate from the standing brand
+  contact block already in the footer — prints as the first line of that
+  same footer contact block when filled in, otherwise prints nothing.
 - No pricing math changed: pricing-core.js, catalog.json and the Price
   List cost editor are untouched — display/workflow only, in Quote
   Builder. See docs/PRECUTS_PRICE_LIST_FILTER_2026-08-31.md."

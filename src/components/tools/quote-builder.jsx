@@ -140,6 +140,11 @@ export function QuoteBuilder({ data, brand, resolved, itemsDoc }) {
   const [headline, setHeadline] = useState(kitHeadline);
   const [intro, setIntro] = useState(kitIntro);
   const [reason, setReason] = useState(""); // price-change only: "reflecting increased milk and freight costs"
+  // Hand-typed on every sheet regardless of purpose — who put this price list together and
+  // how to reach them. Separate from config.brand.contact (the standing company contact
+  // block already printed in the footer): this is the individual rep on THIS quote.
+  const [preparedBy, setPreparedBy] = useState("");
+  const [preparedContact, setPreparedContact] = useState("");
 
   // Story panels — brand-kit blocks filtered to the audience the tier implies. On by default
   // for a new-customer sheet, off for the other two (an existing customer doesn't need the
@@ -538,6 +543,8 @@ export function QuoteBuilder({ data, brand, resolved, itemsDoc }) {
         : `Merchandise pricing only (${esc(basisLabel)}); freight &amp; handling quoted as separate line items at order time. Prices reflect the live ${esc(b.name || "")} price list as of the date above and hold through ${esc(fmtDate(dates.validUntil))}.`;
 
     const contactLine = [
+      preparedBy.trim() ? `<b>Price list prepared by:</b> ${esc(preparedBy.trim())}` : "",
+      preparedContact.trim() ? `<b>Contact:</b> ${esc(preparedContact.trim())}` : "",
       contact.ordersEmail ? `<b>Orders:</b> ${esc(contact.ordersEmail)}` : "",
       contact.name ? `<b>Contact:</b> ${esc(contact.name)}` : "",
       contact.phone ? esc(contact.phone) : "",
@@ -783,6 +790,16 @@ export function QuoteBuilder({ data, brand, resolved, itemsDoc }) {
                 placeholder="reflecting increased milk and freight costs" />
             </div>
           )}
+          <div className="flex flex-col gap-1">
+            <span className={fieldLabel}>Price list prepared by</span>
+            <input className={selCls} value={preparedBy} onChange={(e) => setPreparedBy(e.target.value)}
+              placeholder="Richard Posada, Sales Manager" />
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className={fieldLabel}>Contact info</span>
+            <input className={selCls} value={preparedContact} onChange={(e) => setPreparedContact(e.target.value)}
+              placeholder="rick@montitrentini-usa.com · (555) 555-0100" />
+          </div>
         </CardContent>
       </Card>
 

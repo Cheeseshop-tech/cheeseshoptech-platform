@@ -44,3 +44,19 @@ Builder only.
 
 `npx vite build` succeeds clean (pre-existing chunk-size warnings only, unrelated to this change).
 Not yet live-tested in the deployed app.
+
+## Update — same day: "Price list prepared by" + Contact fields
+
+Added two hand-typed fields to the header-copy card, shown for every purpose (not just
+Precuts sheets — any Quote Builder rate card):
+
+- **Price list prepared by** — free-text statement (e.g. "Richard Posada, Sales Manager").
+- **Contact info** — free-text contact details for whoever prepared this specific sheet
+  (e.g. email/phone).
+
+Both are per-quote, typed fresh each time (not persisted, not pulled from `client.config.json`) —
+deliberately separate from the existing standing brand contact block (`config.brand.contact`,
+already printed in the footer as Orders/Contact/phone/company/city). When filled in, they print as
+the first line of that same footer contact block: `Price list prepared by: <name> · Contact:
+<info> · Orders: ... · ...`. Either field left blank simply doesn't print — no blank line, no
+placeholder text.
