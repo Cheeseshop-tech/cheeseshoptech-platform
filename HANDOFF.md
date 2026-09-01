@@ -20,6 +20,117 @@ the sweep files and kept "nothing uncommitted" honest.
 Stefano — copy-paste block in `docs/CLIENT_DATA_REQUESTS_2026-07-15_sales-monthly.md`. The
 forecast engine goes live on receipt with zero code changes.
 
+## 🔎 MARKET NEWS AUTO-UPDATE — ran from Cowork, committed but NOT pushed, and NOT live (2026-09-01)
+
+Scheduled task `daily-news-watch` ran today from a **Cowork session, not Claude Code** — flagging
+that explicitly since guardrail #6 in `CLAUDE_CODE_BRIEF.md` says git happens in Claude Code, not
+the Cowork sandbox. Handing this off for Claude Code to pick up, verify, and carry forward.
+
+**What ran clean:** searched marketing / cheese-business / AI-strategy / supermarket news, delivered
+Rick's chat digest. Wrote 5 new dated `trade` items into `src/data/montitrentini/market-news.json`
+(merged + deduped by URL, newest-first, 11 items total, well under the 40-item cap) — Canada dairy
+tariff on US goods, UK milk diverted from liquid to cheese/yogurt, USDA cheese/yogurt contract
+awards (zero butter bids), the Senate AI "surveillance pricing" hearing, and Schnucks' new AI
+shopping tool. All sourced from Cheese Reporter / DairyReporter / Grocery Dive with dated URLs, per
+the source-quality guardrails already written into `docs/MARKET_NEWS_AUTO_UPDATE.md`.
+
+**Committed locally: `a2c7d5a` "data(monti): daily market news 2026-09-01"** — via the sandbox
+git-lock dance (moved stray `.git/*.lock` files aside first, per the known FUSE quirk documented
+below). **NOT pushed** — HEAD is 1 commit ahead of `origin/phase-2-6-build`. Per guardrail #6,
+Claude Code should be the one to push it, after checking everything below — not blindly, since a
+push here would trigger a Netlify rebuild the whole point of this feature is to avoid.
+
+**Could not publish live — no credentials in the Cowork sandbox.**
+`node scripts/publish-market-news.mjs --tenant montitrentini` failed: no
+`scripts/.market-news-publish.json` and no `MARKETNEWS_PUBLISH_URL` / `MARKETNEWS_PUBLISH_SECRET`
+env vars available. **This needs Rick's Netlify values — Claude never enters credentials, his
+action per guardrail #4.**
+
+**⚠️ Bigger finding — the entire Market News auto-update feature is uncommitted on disk.**
+`git status` shows these as untracked, in no commit on any branch:
+- `netlify/functions/market-news-publish.js`
+- `netlify/functions/market-news.js`
+- `scripts/publish-market-news.mjs`
+- `scripts/publish_market_news.py`
+- `docs/MARKET_NEWS_AUTO_UPDATE.md`
+- `"COMMIT MARKET NEWS AUTO UPDATE.command"` (staged commit script, never run)
+
+If none of this has ever reached `origin`, the live Netlify site has **no `market-news-publish`
+function deployed** to receive today's POST even with a correct secret. **First step for Claude
+Code: confirm whether these functions are actually live** (hit the deployed function URL, or check
+Netlify's function list) before assuming credentials are the only blocker — could be both.
+
+**Also sitting uncommitted, unrelated to Market News — flagged, not touched:**
+- Modified: `.env.example`, `.gitignore`, `docs/AGING_UPDATE_2026-08-28.md`, `docs/BUILD_LOG.md`,
+  `docs/CHEESE_SIGNS_SPEC.md`, `docs/PROJECT_ROADMAP.md`, `src/components/home/agency-console.jsx`,
+  `src/components/home/market-news.jsx`, `src/data/montitrentini/inventory.json`,
+  `src/data/montitrentini/signs.json`, `src/data/montitrentini/source/aging-2026-08-28.json`,
+  `src/lib/market-news.js`
+- Untracked (beyond the Market News files above): Asiago booklet digitization
+  (`design/asiago-booklet/`, `docs/ASIAGO_DOP_CONSORTIUM_BOOKLET.md`), the shelf-talker studio
+  (`design/asiago-shelf-talkers/`), `docs/HANDOFF_2026-08-25_asiago-shelf-talkers.md`,
+  `docs/LEARNING_LOG.md`, and five more staged-but-unrun commit scripts: `COMMIT ASIAGO BOOKLET
+  DIGITIZATION`, `COMMIT INVENTORY IN-TRANSIT FIX`, `COMMIT LEARNING LOG SECURITY AUTH EXPLAINER`,
+  `COMMIT OFFICIAL AGING UPDATE`, `PUSH ASIAGO PROVENANCE CARDS AND ORIGIN MAP`, `PUSH INVENTORY
+  SYNC AND SHEET REQUEST CLOSEOUT`.
+
+30 files total changed/untracked (`git status --porcelain | wc -l`). None of it was touched by
+today's Cowork session — reads like several prior sessions' work that staged a commit script and
+never ran it. **Needs triage: ship what's good one commit at a time (guardrail #5: one change = one
+commit), investigate/discard the rest** — do not fold all 30 files into one mega-commit.
+
+**First message to use in Claude Code for this:**
+> Read `CLAUDE_CODE_BRIEF.md`, then this HANDOFF.md entry dated 2026-09-01 (Market News). First:
+> confirm whether the Market News Netlify functions (`market-news.js`, `market-news-publish.js`)
+> are actually deployed on origin/live, or whether they're stuck local-only like the rest of this
+> pile. Then tell me exactly what credential value(s) I need to create
+> `scripts/.market-news-publish.json` (or set as Netlify env vars) and where to get them. Once
+> that's confirmed, triage the other ~24 uncommitted files above file-by-file — what each is,
+> whether it's safe to commit, and a commit-by-commit plan (not one mega-commit) — for my approval
+> before running or pushing anything, including the pending local commit `a2c7d5a`.
+
+### ✅ RESOLVED SAME DAY — Claude Code, 2026-09-01
+
+The premise above ("NOT pushed, NOT live") was correct and is now closed out. What actually happened:
+
+- **The functions were never on origin at all** — confirmed against `origin/phase-2-6-build` AND
+  `origin/main`. The live probe that appeared to pass was a **false positive**: the SPA catch-all in
+  `netlify.toml` (`/*` -> `/index.html`, 200) means a MISSING function returns 200 with the HTML
+  shell. A nonsense function name returned the same 200. **Never judge a CST function by status
+  code — read the body.** Deployed = real JSON; missing = `<!doctype html>`.
+- **Shipped in `8fa1cb8`** (both functions, both publish scripts, the runtime `isSample` rework,
+  the card chip, the agency-console probe, `.env.example`, `.gitignore`, BUILD_LOG 08-21 entry).
+  Pushed; deploy verified by finding the literal string `Updated yesterday` from the new
+  `freshnessLabel()` in the live bundle — not by trusting the bundle filename hash.
+- **`1e13d26`** carried the Asiago booklet + shelf-talker docs (documentation and comps only).
+- **The other pile was smaller than it looked.** Two of the `.command` launchers were spent (their
+  commits already existed); two were generic PUSH helpers; `docs/LEARNING_LOG.md` self-documents as
+  a mistake to delete; two `design/asiago-shelf-talkers/` files were already tracked.
+  `design/asiago-booklet/source-photos/` (49MB of originals) was moved to the gitignored
+  `_to_delete/` rather than committed — Rick holds the originals.
+- **Two `.command` files fired mid-session and pushed `fbe0c04` + `322392f`.** Content is correct
+  (the Aged Black Truffle resolution and the inventory timestamp), but both reuse commit subjects
+  that already exist further down the log, so the history now has two duplicate-looking subjects.
+  On origin; rewording needs a force-push. **Open — housecleaning.**
+
+**Credentials, answered:** `MARKETNEWS_PUBLISH_SECRET` is not fetched from anywhere — it is a value
+you generate (`openssl rand -hex 32`) and set identically in Netlify AND in the gitignored
+`scripts/.market-news-publish.json` (`{url, secret}`, same shape as `.inventory-publish.json`).
+`VITE_MARKETNEWS_BACKEND=function` is the second, separate, non-secret var.
+
+**Still open at time of writing:** `VITE_MARKETNEWS_BACKEND=function` is set and live.
+`MARKETNEWS_PUBLISH_SECRET` exists in Netlify with the right key and the right scopes
+(builds/functions/runtime) but **its value is empty** — created while the form was on "Different
+value for each deploy context", so it reads `0 values in 0 deploy contexts` and the function
+returns `503 not configured` from a variable that looks present in the UI. Fix is one paste, then a
+redeploy, then `python3 scripts/publish_market_news.py`. `MARKET NEWS GO LIVE.command` does all of
+it in one double-click.
+
+**Also surfaced, not acted on:** four Netlify vars holding real credentials are stored with
+`is_secret: false` and are therefore readable in plaintext — `INVENTORY_PUBLISH_SECRET`,
+`CLOUDINARY_API_SECRET`, `HUBSPOT_TOKEN`, and `ANTHROPIC_API_KEY` (plaintext in the `dev` context).
+The secret flag cannot be changed after creation, so fixing them means delete-and-recreate.
+
 ## ⚠️ GIT LOCK INCIDENT — stray `HEAD.lock` blocked commits for a full day, recovered clean (2026-07-15)
 A `.git/HEAD.lock` dated **2026-07-14 08:21** (a full day old, predates this session) silently
 blocked every `git commit`/`update-ref` on this repo since then — `COMMIT SALES HISTORY.command`
