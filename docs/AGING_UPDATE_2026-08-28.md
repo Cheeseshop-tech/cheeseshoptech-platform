@@ -29,6 +29,9 @@ one exists, else a single value (`aged min. 30 days`) or an honest range (`aged 
   wedge/grated/flake SKUs 05091, 05123, 05124, 05205, 05211). Also drops the C/W wedge 05050 from
   12 → 10 months. **This is the single change most likely to appear on printed collateral.**
 - **Asiago Vecchio wheels/quarters: 9 → 10 months** (03003, 03014, 03073, 03047).
+- **Aged Black Truffle sign: 90 days → 6–8 months** (Rick, 2026-08-28). The sheet ages 20533 at 8
+  months; the sign states the wider producer range on purpose. `catalog.json` and `items-seed.json`
+  keep the official 8 months — the difference is deliberate, not drift.
 - **Caciotta family on the retail signs: 5 days → 30 days** (all eight codes). Sign prose that said
   "aged only briefly", "only days old" and "Aged briefly in Grigno" was rewritten to match.
 - **Imbriago on the retail sign: 30 days → 5 months** (04028). "A young cow's-milk wheel" → "A
@@ -57,10 +60,14 @@ one exists, else a single value (`aged min. 30 days`) or an honest range (`aged 
 6. **Parmigiano Reggiano wedge (05099)** stays at *min. 18 months*; the sheet carries only 12 and 24.
 7. **Piave 40158** — the sheet says 13 months, the pack description says *aged more than 12 months*.
    Pack text was left alone.
-8. **Aged Black Truffle** — the sign is mapped to code 20533, but 20533 is Fioretto Stagionato with
-   Truffle in the catalog and the sheet ages it at 8 months. The sign's *90 days on wooden boards*
-   was left as-is. Its real item number is still open (cut-and-wrap-spec: no item number on the
-   sheet, UPC duplicates 03047). **Blocks the Aged Black Truffle sign.**
+8. **Aged Black Truffle — RESOLVED 2026-08-28 (Rick).** Aged Black Truffle = Fioretto Stagionato
+   al Tartufo = Fioretto Stagionato with Truffle = item **20533** = the discontinued Urbani co-brand
+   label. One cheese, four names — already corroborated by Rick's own 2026-07-15 note in
+   `erp_monthly_resolved_2021-2024.json`. Aliases are now recorded on the sign record and in
+   `aging-2026-08-28.json`. **No longer blocks the sign.** Two smaller things surfaced with it and
+   are logged in `signs.json openDataGaps`: the sign says `4/case` where the catalog says
+   `piecesPerCase: 1` (the 2 kg / 4.4 lb weight agrees), and the sign is filed under family
+   `caciotta` with a caciotta QR target while the catalog files 20533 under category `Fioretto`.
 9. **Vezzena 04182** kept at *min 5 months* rather than inheriting the 9-month wheel — the C/W spec
    documents a 5-month Vezzena wedge. Are these two different cheeses?
 

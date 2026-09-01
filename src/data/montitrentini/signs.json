@@ -7,7 +7,10 @@
     "milk.treatment (raw / thermized / pasteurized) is unknown for every cheese — not in the item master, not stated on the producer site. Route to Stefano before printing signs that carry the line.",
     "QR targets are FAMILY pages on montitrentini.com — the producer site has no per-cheese URLs. See spec §6.",
     "AGING (2026-08-28, Stefano's ageing item list.xls): Asiago Vecchio sign keeps 9 months — the sheet's section header says 9 months (also the DOP minimum) while items 03003/03014 ship at 10 months. Sign is family-level; confirm with Stefano before reprinting.",
-    "AGING (2026-08-28): the Aged Black Truffle sign is mapped to code 20533, but 20533 is Fioretto Stagionato with Truffle in catalog.json and the sheet ages it at 8 months. The sign's 90-days-on-boards figure was left as-is. The correct item number for Aged Black Truffle is still open (cut-and-wrap-spec.json: no item number on the sheet, UPC duplicates 03047)."
+    "RESOLVED 2026-08-28 (Rick): Aged Black Truffle = Fioretto Stagionato al Tartufo = Fioretto Stagionato with Truffle = item 20533 = the discontinued Urbani co-brand label. One cheese, four names — do not re-raise as a mapping error. Aliases are on the sign record.",
+    "AGING (2026-08-28, Rick): the Aged Black Truffle sign reads 6–8 months. Stefano's sheet ages 20533 at 8 months, and catalog.json / items-seed.json hold that official 8-month figure. The sign deliberately states the wider producer range — this is not a drift to 'fix'.",
+    "Aged Black Truffle sign says formats '2 kg wheel (vac-packed, 4/case)' but catalog.json 20533 has piecesPerCase 1. Weight agrees (4.4 lb = 2 kg); the case count does not. Confirm with Stefano.",
+    "Aged Black Truffle sign has family 'caciotta' and a QR pointing at the caciotta family page, but catalog.json files 20533 under category 'Fioretto'. Check the QR target before printing."
   ],
   "signs": [
     {
@@ -329,7 +332,7 @@
         "detail": "Full-fat, 100% Italian",
         "treatment": ""
       },
-      "minAge": "90 days",
+      "minAge": "6–8 months",
       "dopMinimum": null,
       "region": {
         "label": "Valsugana, Trentino",
@@ -339,12 +342,18 @@
       "mountainMark": false,
       "origin": "Product of Italy",
       "flavorProfile": "Concentrated truffle over a firm, faintly granular paste that still melts.",
-      "unique": "Ninety days on wooden boards — the aged answer to the young truffle caciotta.",
-      "shortDescription": "Full-fat cheese with real pieces of black truffle, aged 90 days on wooden boards. Firm and slightly granular — and it still melts on the palate.",
-      "longDescription": "This is what happens when the truffle caciotta is given time. Made with full-fat 100% Italian cow's milk and real pieces of black summer truffle, then aged at least ninety days on wooden boards, it turns pale gold, firm and compact, with a texture that reads slightly granular right up until it melts on the palate. The aging concentrates everything: the truffle is more intense but stays balanced by the sweetness of the milk, and the cheese gains the savory depth the young version does not have. Shave it rather than cube it. On request the wheel can be finished with an external black coating — a genuinely striking cut on a full-service counter.",
+      "unique": "Six to eight months on wooden boards — the aged answer to the young truffle caciotta.",
+      "shortDescription": "Full-fat cheese with real pieces of black truffle, aged six to eight months on wooden boards. Firm and slightly granular — and it still melts on the palate.",
+      "longDescription": "This is what happens when the truffle caciotta is given time. Made with full-fat 100% Italian cow's milk and real pieces of black summer truffle, then aged a minimum of six to eight months on wooden boards, it turns pale gold, firm and compact, with a texture that reads slightly granular right up until it melts on the palate. The aging concentrates everything: the truffle is more intense but stays balanced by the sweetness of the milk, and the cheese gains the savory depth the young version does not have. Shave it rather than cube it. On request the wheel can be finished with an external black coating — a genuinely striking cut on a full-service counter.",
       "image": "monti-trentini/caciotta/caciotta-tartufo-stagionata-3kg-1ma6j8",
       "qrUrl": "https://www.montitrentini.com/en/cheeses/caciotta",
-      "stock": "in stock"
+      "stock": "in stock",
+      "aliases": [
+        "Fioretto Stagionato with Truffle",
+        "Fioretto al Tartufo",
+        "Fioretto Stagionato al Tartufo",
+        "Urbani Aged Truffle (discontinued co-brand label)"
+      ]
     }
   ]
 }
