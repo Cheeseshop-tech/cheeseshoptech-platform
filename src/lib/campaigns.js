@@ -246,6 +246,42 @@ const SEEDS = {
       seedStatus: "draft",
       seedDone: [],
     },
+    {
+      // HANDOFF_2026-09-01_ace-fall-show-booth-integration.md. Rick already created a live
+      // "ACE Endico Fall Show" campaign via the New Campaign tab (campaign-defs.js, Netlify
+      // Blobs) — this seed is NOT a replacement for that one. It exists so the account list is
+      // correct and versioned with the code the moment this ships, independent of whatever the
+      // live entry's own scope is set to; reconcile/retire one of the two once both are visible
+      // in Campaign Management. `filter.states` (not a companyIds snapshot) so the list tracks
+      // the live HubSpot book instead of going stale — 2026-09-01 counts: NY 133, NJ 38, RI 13,
+      // MA+CT 45 (~229 total; CT and MA are already fully worked, see the 2026-09-01 task push).
+      id: "ace-fall-show-2026",
+      type: "enrichment",
+      name: "ACE Endico Fall Show — territory outreach",
+      goal: "Work the 5-state ACE Endico footprint (NY/NJ/RI/MA/CT) ahead of the Sept 15 show — call or invite every target account, and give Booth's territory Scope picker and Rep check-in flow the same live account list.",
+      channels: ["retail"],
+      start: "2026-09-01",
+      end: "2026-09-15",
+      owner: "Rick Posada",
+      strategy: {
+        summary:
+          "251-ish target accounts across NY/NJ/RI/MA/CT — ACE Endico's own footprint, not the whole book. " +
+          "227 HubSpot Tasks (call or invite, by account) already created 2026-09-01 covering CT (21/21) and " +
+          "MA (29/29) fully, plus all of NJ (38) and RI (13); NY (133) still needs its calls actually made. " +
+          "Scoped by live region/state filter rather than a fixed list, so it never drifts from the real book.",
+        path: "docs/HANDOFF_2026-09-01_ace-fall-show-booth-integration.md",
+      },
+      content: [],
+      audience: {
+        label: "ACE Endico footprint — NY/NJ/RI/MA/CT",
+        size: 229,
+        exact: false,
+        companyIds: [],
+        filter: { states: ["NY", "NJ", "RI", "MA", "CT"] },
+      },
+      seedStatus: "building",
+      seedDone: ["source"],
+    },
   ],
 };
 
