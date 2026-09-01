@@ -34,7 +34,7 @@ import { CONTENT_CATEGORIES, categoryLabel, entryStatus, entryCategory } from "@
 // (getCrmData → crm-hubspot.js); it deliberately does not open a second HubSpot line, and
 // per-account call status stays in the outreach console rather than forking a second overlay.
 
-const SECTION_ICON = { checklist: ListChecks, strategy: BookOpen, content: FileText, prospects: Users, results: BarChart3 };
+const SECTION_ICON = { checklist: ListChecks, strategy: BookOpen, content: FileText, prospects: Users, salesreps: PhoneCall, results: BarChart3 };
 
 export function CampaignDetail({
   campaign: c, resolved, onBack, onPatch, entry, canWrite,
@@ -119,6 +119,16 @@ export function CampaignDetail({
         />
       </Section>
 
+      {c.audience?.salesReps?.length > 0 && (
+        <Section
+          id="salesreps"
+          title="Sales Rep Contacts"
+          description="The distributor's own team, kept separate from the target-prospect accounts above — who to ask for by name when a rep visits the booth."
+        >
+          <SalesRepPanel reps={c.audience.salesReps} />
+        </Section>
+      )}
+
       <Section id="results" title="Results" description={c.status === "launched" || c.status === "complete" ? "Performance since launch." : "Fills in once the campaign launches."}>
         <ResultsPanel c={c} onChange={setResults} canWrite={canWrite} />
       </Section>
@@ -138,6 +148,60 @@ function Section({ id, title, description, children }) {
       </CardHeader>
       <CardContent>{children}</CardContent>
     </Card>
+  );
+}
+
+// ---- Sales rep contacts (2026-09-01) --------------------------------------------------------
+// The distributor's OWN people, not the account-scoped Target Prospects/Call console above —
+// a separate tab because they answer a different question ("who do I ask for at the booth"),
+// not "which accounts does this campaign reach". Read-only display for now: no per-rep state to
+// save, so no onEnrich-style write path is wired here.
+function SalesRepPanel({ reps = [] }) {
+  const [q, setQ] = useState("");
+  const filtered = useMemo(() => {
+    const needle = q.trim().toLowerCase();
+    if (!needle) return reps;
+    return reps.filter((r) => [r.name, r.jobtitle, r.email, r.phone].some((v) => v && String(v).toLowerCase().includes(needle)));
+  }, [reps, q]);
+
+  return (
+    <div className="space-y-3">
+      <Input
+        placeholder="Search by name, title, phone, or email…"
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+        className="max-w-sm"
+      />
+      <p className="text-xs text-fg-muted">
+        {filtered.length} of {reps.length} shown — every HubSpot contact under Ace Endico, admin/back-office
+        titles included. Not all of these are field reps; prune to the real roster as you confirm it.
+      </p>
+      <div className="overflow-x-auto rounded-lg border border-border">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-border bg-bg text-left text-xs uppercase tracking-wide text-fg-muted">
+              <th className="px-3 py-2 font-medium">Name</th>
+              <th className="px-3 py-2 font-medium">Title</th>
+              <th className="px-3 py-2 font-medium">Phone</th>
+              <th className="px-3 py-2 font-medium">Email</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((r, i) => (
+              <tr key={r.email || `${r.name}-${i}`} className="border-b border-border last:border-0">
+                <td className="px-3 py-2 font-medium text-fg">{r.name}</td>
+                <td className="px-3 py-2 text-fg-muted">{r.jobtitle || "—"}</td>
+                <td className="px-3 py-2 text-fg-muted">{r.phone || "—"}</td>
+                <td className="px-3 py-2 text-fg-muted">{r.email || "—"}</td>
+              </tr>
+            ))}
+            {filtered.length === 0 && (
+              <tr><td colSpan={4} className="px-3 py-6 text-center text-fg-muted">No match.</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
 }
 
