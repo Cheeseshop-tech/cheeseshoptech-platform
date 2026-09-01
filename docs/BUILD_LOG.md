@@ -463,6 +463,74 @@ mostly wiring; Accents need drawing first) and a real QR encoder (placeholder pa
 Blocks unchanged: the Vecchio DOP-floor contradiction still gates that block, and the sidebar warns
 on it when a Vecchio record is selected.
 
+## 2026-08-25 — Sign Composer spec'd: block-based drag-and-drop layout editor
+
+**Decision — stop picking one layout, build the tool that keeps all three.** Rick, on being
+asked to choose G / H / I off the shelf-talker comp: *"I want to keep all layouts and create an
+HTML editable drag and drop field that allows for repositioning of image and copy fields to
+optimize composition, then a save composition to copy across the series."* Spec written to
+`docs/SIGN_COMPOSER_SPEC_2026-08-25.md`. **Nothing built — the build transfers to Claude Code.**
+
+**Shape:** standalone HTML in `design/` (no build step, iterate freely) · exports a paste-ready
+manifest in `sign-templates.js` idiom (templates stay code-versioned) · G/H/I kept as presets.
+
+**The model, in Rick's terms and refined over three passes.** You drag **semantic blocks**, not
+text boxes — Name · Origin · How to verify (age, DOP floor, milk type) · DOP · Company ID · QR ·
+Flavor · Recognition cue · Description · Packshot. A sidebar carries dropdowns per block/field
+to bind content. Then Rick's clarification that reshaped it: *"the blocks I'm referring to will
+change with the layout or template suggestion"* — so it is **three layers, not two**:
+
+- **Block** = semantic content unit, stable across layouts
+- **Presentation** = how it renders here (G puts Name in a green band; H sets it vertically)
+- **Layout/template** = which blocks are present, each one's presentation, and positions
+
+Consequence worth keeping: a **hybrid becomes a first-class result** — G's cap with H's rail
+treatment is two dropdown choices, not a fourth preset. And switching layout **preserves
+content configuration**; only presentation and position change.
+
+**Finding — the composer's nouns and the code's nouns disagree.** `sign-templates.js` groups
+slots for rendering convenience: `rail()` = milk + region + age, `foot()` = DOP + tricolore +
+origin + QR. Rick's model splits those editorially. **Recommended: refactor to semantic blocks**
+(`originBlock`, `verifyBlock`, `dopBlock`, `companyIdBlock`, `qrBlock`) so there is one
+vocabulary. Blast radius is the 4 shipped templates and the 10 proofed case signs — a
+regrouping, not a redesign, so it needs a before/after render diff proving pixel parity. This is
+**decision zero** in the build order; everything downstream assumes an answer.
+
+**Reversal — packshot is back on the talker.** `HANDOFF_2026-08-25_asiago-shelf-talkers.md` had
+dropped it. Rick: *"we should include a pack shot. it seems there is enough room."* Budget at
+250×350 confirms it: 330.4 of 350 units, **0.20 in spare**, and all four Asiago records already
+carry a Cloudinary `image`. Noted in the spec that the original reason for cutting it was
+redundancy rather than space — the argument that earns it back is the **cut face**, which shows
+interior paste a wrapped wedge hides. Thin slack makes the series filmstrip load-bearing.
+
+**Also new:** a **sign asset library** — Icons (reuse `sign-icons.js`, two deliberate frames at
+2.6 stroke weight, 0.4 in legibility floor) · Maps (from ISTAT boundaries via
+`build-dop-zone-map.py`, three tolerances, **never generated or traced**) · Accent mini-graphics
+(new, nothing exists; capped at six, structural not ornamental). A **Company ID block** is where
+the MT logo finally lands — better than the foot row or header cap, since it groups every
+identity mark in one draggable unit.
+
+**Logo: PNG, no vector exists.** Verified against repo and brand kit — `identity.logo.primary`
+is a PNG; `wordmark` / `favicon` / `seal` are empty in Cloudinary (confirmed 2026-08-13 and
+again today); the two SVGs under `monti_asiago_campaign/brand_svgs_raw/` are Casa Finco heritage
+marks, **not** the MT logo. At 2363×2363 the PNG is ~5× over what a 2.5×3.5 in card needs even
+at 600 DPI, so it ships. Request the real vector from Marketing; not blocking.
+
+**Delivery is Cloudinary, through `images.js` → `cldImage()`.** Corrected an earlier draft that
+said to base64 the logo into the HTML — wrong, and it would fork assets from the Media Hub.
+CORS gates JSON `fetch` at `file://`, not `<img>` display. Rule: **inline the JSON, fetch the
+images.** Preset discipline matters: small derivatives for the editor and filmstrip, but
+explicit format/quality for print — `f_auto`/`q_auto` are right on screen and wrong on a card.
+
+**What it unblocks.** Open items 4 (layout choice) and 5 (logo placement) stop being decisions
+Rick has to make in the abstract — the composer exists to settle them by direct manipulation.
+Blocked still on Stefano for items 1 (raw vs pasteurized) and 2 (Vecchio 9 months vs the
+consortium's 10-month floor) — and item 2 gets sharper, because the How-to-verify block is
+designed to print the DOP floor *beside* the shipped age, making the contradiction visible to a
+shopper. Do not ship that block for Vecchio until it is resolved.
+
+---
+
 ## 2026-08-25 — Asiago provenance cards + DOP origin map, drawn from real boundary data
 
 **Action.** Rick: "4 cards to support the asiago set focusing on authenticity and provenance and

@@ -84,6 +84,12 @@ sign prints the item-master number and keeps the minimum in `dopMinimum` for ref
 **Open item — confirm the shipped ages with Stefano before a commercial print run.** A printed sign is
 a claim; a spreadsheet is not.
 
+**Sharper as of 2026-08-25:** the Consorzio Tutela Formaggio Asiago's own consumer booklet (the
+regulator, not a retailer) states **Vecchio requires a maturing period of over 10 months.** The
+Asiago Vecchio sign ships at 9 months — a month short of the name it carries. Full digitized
+source, the three ways this can resolve, and what else the booklet says about all four Asiago
+signs: `docs/ASIAGO_DOP_CONSORTIUM_BOOKLET.md`.
+
 ## 5. The icon set (`src/lib/sign-icons.js`)
 
 All icons are inline SVG on a shared 120 × 82 frame with one stroke weight, so the spec rail reads as
@@ -172,8 +178,8 @@ Same architecture as every other output; nothing new is invented.
 | # | Item | Owner |
 |---|---|---|
 | 1 | **Pasteurized vs raw milk is unknown for every cheese.** Not in the item master, not on the producer site. The field exists (`milk.treatment`) and prints when filled. | Stefano |
-| 2 | Confirm shipped minimum ages (§4) before a commercial run | Stefano |
-| 3 | Official EU PDO + Asiago consortium mark artwork to replace the house badges | Marketing (per `CLIENT_DATA_ROLES.md`) |
+| 2 | Confirm shipped minimum ages (§4) before a commercial run — specifically, Asiago Vecchio ships at 9 months but the Consorzio's own literature defines "Vecchio" as over 10 months (`docs/ASIAGO_DOP_CONSORTIUM_BOOKLET.md`) | Stefano |
+| 3 | Official EU PDO + Asiago consortium mark artwork to replace the house badges — reference photos of both marks now exist (`docs/ASIAGO_DOP_CONSORTIUM_BOOKLET.md`) but are phone photos of a printed booklet, not production art; still need the real vector files | Marketing (per `CLIENT_DATA_ROLES.md`) |
 | 4 | Decide the QR destination: family page vs. `/p/<code>` pages we control (§6) | Rick |
 | 5 | **Red Chili Pepper Caciotta shows 0 cases available (availability sheet 2026-08-15).** Its sign is built; confirm before printing. | Rick |
 | 6 | Price / price-per-lb zone — deliberately **not** on the v1 face. If retailers ask, it is a blank white box at the footer, not a printed number. | Rick |

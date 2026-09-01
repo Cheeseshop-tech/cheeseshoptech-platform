@@ -282,12 +282,19 @@ don't own.
 - **Pasteurized vs raw milk is unknown for every cheese.** Not in the item master, not stated on
   the producer's site. The field exists and prints when filled.
 - **Shipped minimum ages need confirming.** The item master and the producer state different
-  numbers (item master = what ships, producer = the PDO/category minimum).
+  numbers (item master = what ships, producer = the PDO/category minimum). **Sharper as of
+  2026-08-25:** Rick photographed all 16 pages of the Consorzio Tutela Formaggio Asiago's own
+  consumer booklet — the regulator, not a retailer — and it states **Vecchio requires a maturing
+  period of over 10 months.** The Asiago Vecchio sign ships at 9 months, a month short of the name
+  it carries. Full digitized transcription + the three ways this resolves:
+  `docs/ASIAGO_DOP_CONSORTIUM_BOOKLET.md`.
 
 **Also open:** the DOP and "Product of the Mountain" badges on the face are **house-drawn
 stand-ins** — the official EU PDO and consortium artwork has to replace them before any commercial
-run. And Red Chili Pepper Caciotta showed 0 cases available on the 8/15 availability sheet; its
-sign is built, but confirm before printing it.
+run. Reference photos of both marks now exist (same booklet, `design/asiago-booklet/`), but
+they're phone photos of a printed page, not print-ready art — still need the real vector files
+from the consortium. And Red Chili Pepper Caciotta showed 0 cases available on the 8/15
+availability sheet; its sign is built, but confirm before printing it.
 
 **Next concrete action:** pick a composition. `design/cheese-signs/cheese-signs-composition-studio.html`
 shows six layouts of the same cheese (A Band · B Green cap · C Photo hero · D Oval medallion ·
@@ -296,6 +303,17 @@ adjustable parameter. Recommendation: **B** for the case (the name reversed out 
 reads from six feet, which is the actual job) and **F** for a full-service counter. Then send the
 two milk/age questions to Stefano — they gate printing, and everything else is cosmetic by
 comparison.
+
+**New sub-thread, 2026-08-25 — condensed Asiago shelf-talkers.** A second, smaller POS format:
+a single-size shelf talker (2.5″×3.5″) for the 4 Asiago signs only, distinct from the 3×4″/4×5″
+case signs above — clips to a shelf edge or leans against the wedge, no packshot. Three fresh
+layout comps (not variants of A–F): `design/asiago-shelf-talkers/shelf-talker-composition-studio.html`
+(G Green cap, recommended · H Left rail · I Badge-forward). Engineering handoff for porting the
+chosen layout into the Content Engine: `docs/HANDOFF_2026-08-25_asiago-shelf-talkers.md`. Draft
+email to Stefano covering both open blockers (milk treatment + the Vecchio aging question) is
+ready at `design/asiago-shelf-talkers/email-to-stefano-asiago-questions.html`, not yet sent —
+Rick to review first. Same two blockers gate this format as gate the case signs; no new open
+items, just a second surface waiting on the same answers.
 
 ---
 
