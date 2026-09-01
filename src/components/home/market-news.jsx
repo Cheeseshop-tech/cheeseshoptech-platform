@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button.jsx";
 import { useToast } from "@/components/ui/toast.jsx";
 import { useAuth } from "@/lib/auth-context.jsx";
 import { rolesOf } from "@/lib/auth.js";
-import { getMarketNews, NEWS_CATEGORIES, marketNewsAreSample } from "@/lib/market-news.js";
+import { getMarketNews, NEWS_CATEGORIES } from "@/lib/market-news.js";
 import { addLocalSignal, loadLocalSignals } from "@/lib/signals.js";
 
 // Market News — Tier 1 of the market nerve ending, the ambient MORNING READ
@@ -38,18 +38,34 @@ function distill(item) {
   };
 }
 
+/** "Updated today" / "Updated Aug 20" — the card's proof the overnight routine actually ran. */
+function freshnessLabel(iso) {
+  const then = new Date(iso);
+  if (Number.isNaN(then.getTime())) return "Updated";
+  const days = Math.floor((Date.now() - then.getTime()) / 86400000);
+  if (days <= 0) return "Updated today";
+  if (days === 1) return "Updated yesterday";
+  if (days < 7) return `Updated ${days} days ago`;
+  return `Updated ${then.toLocaleDateString(undefined, { month: "short", day: "numeric" })}`;
+}
+
 export function MarketNewsCard({ resolved, onPromoted }) {
   const { user } = useAuth();
   const isHouse = rolesOf(user).includes("admin");
   const { toast } = useToast();
   const [items, setItems] = useState(undefined);
+  const [meta, setMeta] = useState({ isSample: true, updatedAt: null });
   const [tab, setTab] = useState("trade");
   const [promotedIds, setPromotedIds] = useState(() => new Set());
 
   useEffect(() => {
     let alive = true;
     setItems(undefined);
-    getMarketNews(resolved).then((news) => { if (alive) setItems(news); });
+    getMarketNews(resolved).then((feed) => {
+      if (!alive) return;
+      setItems(feed.items);
+      setMeta({ isSample: feed.isSample, updatedAt: feed.updatedAt });
+    });
     setPromotedIds(new Set(loadLocalSignals(resolved?.id).map((s) => s.id)));
     return () => { alive = false; };
   }, [resolved]);
@@ -72,10 +88,16 @@ export function MarketNewsCard({ resolved, onPromoted }) {
         <CardTitle className="flex items-center gap-2">
           <Newspaper className="h-4 w-4 text-brand-primary" />
           Market news
-          {marketNewsAreSample && (
-            <Badge variant="muted" className="ml-2 align-middle text-[10px] uppercase tracking-wide" title="Sample data — the overnight brief isn't wired yet">
-              Sample
-            </Badge>
+          {items !== undefined && (
+            meta.isSample ? (
+              <Badge variant="muted" className="ml-2 align-middle text-[10px] uppercase tracking-wide" title="Sample data — the overnight brief hasn't published yet">
+                Sample
+              </Badge>
+            ) : meta.updatedAt ? (
+              <Badge variant="muted" className="ml-2 align-middle text-[10px] font-normal normal-case tracking-normal" title={`Overnight brief published ${new Date(meta.updatedAt).toLocaleString()}`}>
+                {freshnessLabel(meta.updatedAt)}
+              </Badge>
+            ) : null
           )}
         </CardTitle>
       </CardHeader>

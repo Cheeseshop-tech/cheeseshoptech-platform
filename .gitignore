@@ -3,6 +3,7 @@
 .env.*
 !.env.example
 scripts/.inventory-publish.json
+scripts/.market-news-publish.json
 
 # Dependencies
 node_modules/

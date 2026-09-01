@@ -520,6 +520,79 @@ existing four:
 optional fields on the four Asiago records — `originLine` and `authenticityNote` — same pattern as
 the proposed `recognitionCue`.
 
+## 2026-08-21 — Market News wired for auto-updates: live publish/read pair (Slice 3 off mock)
+
+**Action.** Rick: "wire market news for auto updates... wire it to the app dashboard." Market News
+shipped on 2026-07-01 as a card reading bundled sample JSON behind a `VITE_MARKETNEWS_BACKEND`
+seam that had **nothing on the other side of it** — setting the flag to `function` would have
+fetched a 404. Built the missing half, mirroring the proven inventory live-sync path exactly:
+
+- `netlify/functions/market-news.js` — read side. Netlify Blobs → `{news, updatedAt, source}`,
+  `requireReadAuth` guard, degrades to `news:null` so the client keeps the bundled sample.
+- `netlify/functions/market-news-publish.js` — write side, `x-publish-secret` /
+  `MARKETNEWS_PUBLISH_SECRET`. Validates every item (id, headline, `trade|consumer`, ISO date,
+  no duplicate ids) and **refuses an empty array**, so a failed overnight run can never blank a
+  good live brief. Normalizes to the 8 rendered fields and drops any non-http(s) URL — these rows
+  are written by an automated researcher and rendered as `target="_blank"` links, so the URL is
+  the one field that can't be taken on trust.
+- `scripts/publish-market-news.mjs` + `scripts/publish_market_news.py` — the routine's publish
+  step. Python twin because the scheduled Cowork runner usually has no Node (same reason the
+  inventory routine prefers python3).
+- `src/lib/market-news.js` — `getMarketNews()` now returns `{items, isSample, updatedAt}` instead
+  of a bare array. **Sample-ness became a runtime fact, not a build flag:** with the backend on
+  `function` the brief is still sample until the routine has actually published one, so deciding
+  it per fetch is what stops the card showing a false "live" over sample rows (guardrails #7/#8).
+- `src/components/home/market-news.jsx` — chip shows `Sample` or `Updated today / Aug 20`.
+- `src/components/home/agency-console.jsx` — Market news gained a **real** Integration Health
+  probe (it previously had no backend to call). "reachable, empty" is the meaningful state here:
+  it means the nightly routine silently stopped running.
+
+**Verification.** `npm run build` clean (2054 modules). Publish→read round trip exercised against
+stubbed Blobs: 15/15 — wrong secret 401, missing tenant 400, empty array 422, bad category 422,
+bad date 422, duplicate ids 422, valid 200, `javascript:` URL stripped, unknown keys dropped,
+read-back 3 items with `updatedAt`, unknown tenant → `source:none` fallback.
+
+**The routine.** It already existed, as Rick said — `daily-news-watch`, a **Cowork** scheduled task
+at `~/Documents/Claude/Scheduled/daily-news-watch/SKILL.md`. Worth recording because it cost a
+search: **Cowork keeps its scheduled tasks in `~/Documents/Claude/Scheduled/`, not in
+`~/.claude/scheduled-tasks/`** — the two lists are separate, and the second one holds only the
+older, superseded `monti-availability-sheet-check`. It ran daily as a four-topic chat digest
+(Marketing · Cheese Business · AI Strategy · Supermarket) that produced *prose, not data*, so
+nothing could consume it. Added a Part 2 that publishes the buyer-facing slice, leaving Part 1
+byte-identical so Rick's morning read is untouched (original saved as `SKILL.md.bak-2026-08-21`).
+Mapping: Cheese Business + Supermarket → `trade`, Marketing → `consumer` (consumer-demand items
+only), **AI Strategy deliberately NOT published** — it's Rick's own track and would be noise on a
+client-facing card. It merges rather than replaces (dedupe by URL, 30 days / 40 items) and skips
+publishing on an empty day rather than writing `[]`.
+
+**Dry run (2026-08-21).** Ran Part 2 by hand before letting it fire unattended: live research →
+merge → publish → read-back. The 30-day window correctly retired all six stale sample items (dated
+2026-06-27..07-01) and the card now carries 6 real items, 3 trade / 3 consumer, newest 08-21.
+`src/data/montitrentini/market-news.json` refreshed accordingly (old copy at `/tmp/market-news.json.bak`).
+
+**What the dry run exposed — the card's real failure mode.** Searches for cheese-industry news
+return mostly **evergreen SEO market-report pages** ("Specialty Cheese Market Size … 2030"), which
+are undated lead-gen and say the same thing daily. Two of six candidate items had no verifiable
+date. Added a "Source quality" section to the routine: require a verifiable publication date and
+**omit rather than date-as-today** (dating evergreen content today is precisely the false-freshness
+the `Updated today` chip exists to prevent), a good-source allowlist (Cheese Reporter, Cheese Market
+News, DairyReporter, Specialty Food Association, Supermarket News, Grocery Dive, FoodNavigator,
+BakeryAndSnacks, Restaurant Business), an explicit do-not-publish list of the report-mill domains,
+and "a short card beats a padded one — three real items is a good day."
+
+**Status.** Wiring COMPLETE end to end. **Two steps left, both Rick's** (they need secrets and the
+Netlify dashboard): (1) `MARKETNEWS_PUBLISH_SECRET` in Netlify env + the matching gitignored
+`scripts/.market-news-publish.json`, (2) `VITE_MARKETNEWS_BACKEND=function` (build-time — needs a
+redeploy). Until both, the card correctly shows `Sample` and the routine reports that it wrote
+locally but couldn't publish.
+
+**Also noticed (unrelated, not fixed): two inventory routines exist and may both fire.** The newer
+`monti-inventory-watch` (Cowork, `~/Documents/Claude/Scheduled/`, Aug 17) is the good one — Drive
+`modifiedTime` provenance, `--require-drive-meta`, Node. The older
+`monti-availability-sheet-check` (`~/.claude/scheduled-tasks/`, Jun 22, cron `0 9,11 * * *`, still
+`enabled: true`) instructs `python3 scripts/sync_inventory.py` / `publish_inventory.py` — **neither
+python file exists**, only the `.mjs` twins. It looks superseded and should probably be disabled.
+
 ## 2026-08-17 — Project status panel added to the House Command Center (Agency Console)
 
 **Action.** Rick asked to surface the daily-accountability status directly inside the app,

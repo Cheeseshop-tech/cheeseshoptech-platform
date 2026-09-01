@@ -409,9 +409,12 @@ const SEAMS = [
 // seam pointed at a dead token or a missing secret still showed a green "live" badge, the exact
 // false-positive class guardrails #7/#8 already exist for elsewhere in this app (the passcode
 // gate's permanent false alarm was the same failure mode in reverse: false RED instead of false
-// GREEN). Only seams with an actual backend function get a real probe here — Market
-// signals/Market news have no backend built yet at all, so there is nothing to call; their badge
-// stays the static build-flag one, which is already accurate (there's genuinely no live path).
+// GREEN). Only seams with an actual backend function get a real probe here — Market signals has
+// no backend built yet at all, so there is nothing to call; its badge stays the static build-flag
+// one, which is already accurate (there's genuinely no live path). Market news GAINED a real
+// probe on 2026-08-21 when its overnight publish/read pair landed, and it matters more than most:
+// the whole seam is a nightly routine writing into Blobs, so "reachable, empty" is the exact
+// state that means the routine silently stopped running.
 // Every probe returns a normalized { ok, reason?, detail? } shape so one badge renderer
 // (SeamStatusBadge) can handle all of them instead of copy-pasting per-seam JSX four more times.
 const SEAM_PINGS = {
@@ -435,6 +438,18 @@ const SEAM_PINGS = {
     if (data.source === "error") return { ok: false, reason: "error", detail: data.error };
     if (data.source === "none" || !data.inventory) return { ok: false, reason: "empty", detail: `reachable, no data yet (${tenant})` };
     return { ok: true, detail: `updated ${data.updatedAt ? new Date(data.updatedAt).toLocaleDateString() : "—"} (${tenant})` };
+  },
+  // Same Blobs-or-empty contract as pricing: "reachable, empty" = the overnight news routine
+  // hasn't published (or has stopped), which is precisely what this panel exists to surface.
+  "market-news": async (tenant) => {
+    if (!tenant) return { ok: false, reason: "no-tenant" };
+    const res = await fetch(`/.netlify/functions/market-news?tenant=${encodeURIComponent(tenant)}`, { headers: await authHeaders() });
+    if (res.status === 401 || res.status === 403) return { ok: false, reason: "unauthorized" };
+    const data = await res.json().catch(() => null);
+    if (!res.ok || !data) return { ok: false, reason: "error" };
+    if (data.source === "error") return { ok: false, reason: "error", detail: data.error };
+    if (data.source === "none" || !data.news?.length) return { ok: false, reason: "empty", detail: `reachable, no brief published yet (${tenant})` };
+    return { ok: true, detail: `${data.news.length} items, updated ${data.updatedAt ? new Date(data.updatedAt).toLocaleDateString() : "—"} (${tenant})` };
   },
   // Store (Shopify) is one storefront, not per-tenant today — see netlify/functions/store.js.
   store: async () => {
