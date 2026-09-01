@@ -8,7 +8,7 @@
   "sheetFileId": "1meZQQ_0dA1S1IR5xjVWzFvuqCJE6DLgVd-fOfSMGvCk",
   "sheetOwner": "order@montitrentini-usa.com",
   "source": "availability_2026-08-28_v2.csv",
-  "generatedAt": "2026-08-28T23:33:41.480Z",
+  "generatedAt": "2026-08-28T23:42:14.195Z",
   "generatedBy": "scripts/sync-inventory.mjs",
   "skus": {
     "20141": {
