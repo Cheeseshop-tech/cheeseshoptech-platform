@@ -257,18 +257,29 @@ const SEEDS = {
       // MA+CT 45 (~229 total; CT and MA are already fully worked, see the 2026-09-01 task push).
       id: "ace-fall-show-2026",
       type: "enrichment",
-      name: "ACE Endico Fall Show — territory outreach",
-      goal: "Work the 5-state ACE Endico footprint (NY/NJ/RI/MA/CT) ahead of the Sept 15 show — call or invite every target account, and give Booth's territory Scope picker and Rep check-in flow the same live account list.",
+      // Combined 2026-09-01 (Rick: "combine the territory out reach and the rep qualification
+      // and add the call console to the reps and prospects") — one campaign, two call lists
+      // worked from the same page: the target-prospect accounts (Target prospects/Call console,
+      // scoped by audience.filter) AND Ace Endico's own sales reps (Sales Rep Contacts, scoped by
+      // audience.salesReps) — each with its own outcome tracking, since "did we invite this
+      // account" and "did we confirm this rep's territory" are different facts about different
+      // objects, not two views of the same list.
+      name: "ACE Endico Fall Show — territory outreach + rep qualification",
+      goal: "Work both call lists ahead of the Sept 15 show: invite every target account across the 5-state ACE footprint (NY/NJ/RI/MA/CT), and separately call Ace Endico's own reps to confirm who covers what territory — feeding Booth's territory Scope picker and Rep check-in flow either way.",
       channels: ["retail"],
       start: "2026-09-01",
       end: "2026-09-15",
       owner: "Rick Posada",
       strategy: {
         summary:
-          "251-ish target accounts across NY/NJ/RI/MA/CT — ACE Endico's own footprint, not the whole book. " +
-          "227 HubSpot Tasks (call or invite, by account) already created 2026-09-01 covering CT (21/21) and " +
-          "MA (29/29) fully, plus all of NJ (38) and RI (13); NY (133) still needs its calls actually made. " +
-          "Scoped by live region/state filter rather than a fixed list, so it never drifts from the real book.",
+          "Two lists, one campaign. (1) 251-ish target-PROSPECT accounts across NY/NJ/RI/MA/CT — " +
+          "227 HubSpot Tasks (call or invite, by account) already created 2026-09-01 covering CT " +
+          "(21/21) and MA (29/29) fully, plus all of NJ (38) and RI (13); NY (133) still needs its " +
+          "calls actually made. Scoped by live region/state filter, not a fixed list, so it never " +
+          "drifts from the real book. (2) 60 of Ace Endico's OWN contacts (audience.salesReps) — " +
+          "not target prospects, the distributor's own field reps (plus admin/back-office staff " +
+          "not yet pruned out). The ask on this second list is different: confirm which states/" +
+          "accounts each rep actually covers, not whether they'll come to the show.",
         path: "docs/HANDOFF_2026-09-01_ace-fall-show-booth-integration.md",
       },
       content: [],
@@ -673,6 +684,56 @@ export async function saveEnrichment(resolved, entries) {
   } catch {
     return { ok: false, status: 0 };
   }
+}
+
+// ---- Rep call capture (Netlify Blobs) -------------------------------------------------------
+// The rep-qualification half of a combined territory-outreach + rep-qualification campaign
+// (Rick, 2026-09-01) — a phone pass through the distributor's OWN sales reps rather than
+// target-prospect accounts. Distinct store from campaign-enrichment.js: reps are seeded in code
+// (audience.salesReps), not live HubSpot company records, so they have no numeric id to key on —
+// this keys by the rep's email instead (see campaign-rep-calls.js).
+
+/** { entries: {[repEmail]: {outcome, territory, note, calledAt}}, updatedAt }. */
+export async function getRepCalls(resolved) {
+  try {
+    const res = await fetch(`/.netlify/functions/campaign-rep-calls?tenant=${encodeURIComponent(resolved.id)}`, {
+      headers: { ...(await authHeaders()) },
+    });
+    if (!res.ok) return { entries: {}, updatedAt: null };
+    return await res.json();
+  } catch {
+    return { entries: {}, updatedAt: null };
+  }
+}
+
+export async function saveRepCalls(resolved, entries) {
+  try {
+    const res = await fetch("/.netlify/functions/campaign-rep-calls", {
+      method: "POST",
+      headers: { "content-type": "application/json", ...(await authHeaders()) },
+      body: JSON.stringify({ tenant: resolved.id, entries }),
+    });
+    return { ok: res.ok, status: res.status };
+  } catch {
+    return { ok: false, status: 0 };
+  }
+}
+
+/** Progress for a rep-qualification pass — same shape as callSummary() reads for accounts. */
+export function repCallSummary(reps = [], calls = {}) {
+  const touched = reps.filter((r) => {
+    const rec = calls[String(r.email || "").toLowerCase()];
+    return rec && (rec.outcome || rec.territory || rec.note);
+  });
+  const cleared = touched.filter((r) => calls[String(r.email || "").toLowerCase()]?.outcome === "cleared");
+  const notAField = touched.filter((r) => calls[String(r.email || "").toLowerCase()]?.outcome === "not-a-prospect");
+  return {
+    total: reps.length,
+    called: touched.length,
+    cleared: cleared.length,
+    notAField: notAField.length,
+    remaining: reps.length - touched.length,
+  };
 }
 
 /**

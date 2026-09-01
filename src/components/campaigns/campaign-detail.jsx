@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft, ListChecks, BookOpen, FileText, Users, BarChart3, Plus, X, AlertTriangle,
   CheckCircle2, Copy, Check, ExternalLink, Link2, PhoneCall, ChevronDown, ChevronRight,
@@ -20,6 +20,7 @@ import {
   CALL_OUTCOMES, OUTCOME_TONE, OUTCOME_LABEL, isCleared, isResolved, hasGap, enrichmentCsv, downloadCsv,
   callSummary, pushToHubspot,
   scopeOf, segmentEnrichment, geoBreakdown, cityKeyOf,
+  getRepCalls, saveRepCalls, repCallSummary,
 } from "@/lib/campaigns.js";
 import { getCrmData, CHANNEL_TO_AUDIENCE, regionOf, stateOf } from "@/lib/crm.js";
 // The Library owns content and its approval vocabulary (submitted -> posted / returned).
@@ -125,7 +126,7 @@ export function CampaignDetail({
           title="Sales Rep Contacts"
           description="The distributor's own team, kept separate from the target-prospect accounts above — who to ask for by name when a rep visits the booth."
         >
-          <SalesRepPanel reps={c.audience.salesReps} />
+          <SalesRepPanel reps={c.audience.salesReps} resolved={resolved} canWrite={canWrite} />
         </Section>
       )}
 
@@ -151,13 +152,43 @@ function Section({ id, title, description, children }) {
   );
 }
 
-// ---- Sales rep contacts (2026-09-01) --------------------------------------------------------
+// ---- Sales rep contacts / rep-qualification call console (2026-09-01) -----------------------
 // The distributor's OWN people, not the account-scoped Target Prospects/Call console above —
-// a separate tab because they answer a different question ("who do I ask for at the booth"),
-// not "which accounts does this campaign reach". Read-only display for now: no per-rep state to
-// save, so no onEnrich-style write path is wired here.
-function SalesRepPanel({ reps = [] }) {
+// a separate tab because the ask on a call here is different ("what's your territory"), not
+// "will you come to the show". Its own debounced save (getRepCalls/saveRepCalls, keyed by
+// email — reps are seeded in code, not live HubSpot records, so there's no numeric id to key on
+// the way CompanyRow's onEnrich does) rather than threading a new prop through campaigns-page.jsx.
+function SalesRepPanel({ reps = [], resolved, canWrite }) {
   const [q, setQ] = useState("");
+  const [calls, setCalls] = useState({});
+  const [saveState, setSaveState] = useState("idle");
+  const timer = useRef(null);
+  const callsRef = useRef(calls);
+  callsRef.current = calls;
+
+  useEffect(() => {
+    let alive = true;
+    getRepCalls(resolved).then((d) => { if (alive) setCalls(d.entries || {}); }).catch(() => {});
+    return () => { alive = false; };
+  }, [resolved.id]);
+
+  function scheduleSave(next) {
+    setCalls(next);
+    setSaveState("dirty");
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(async () => {
+      setSaveState("saving");
+      const res = await saveRepCalls(resolved, callsRef.current);
+      setSaveState(res.ok ? "saved" : res.status === 401 ? "denied" : "failed");
+    }, 900);
+  }
+  const patchRep = (email, part) => {
+    const key = String(email || "").trim().toLowerCase();
+    if (!key) return; // no email on file — nothing to key the call record on
+    scheduleSave({ ...callsRef.current, [key]: { ...callsRef.current[key], ...part, calledAt: new Date().toISOString() } });
+  };
+
+  const summary = useMemo(() => repCallSummary(reps, calls), [reps, calls]);
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
     if (!needle) return reps;
@@ -166,42 +197,100 @@ function SalesRepPanel({ reps = [] }) {
 
   return (
     <div className="space-y-3">
-      <Input
-        placeholder="Search by name, title, phone, or email…"
-        value={q}
-        onChange={(e) => setQ(e.target.value)}
-        className="max-w-sm"
-      />
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Input
+          placeholder="Search by name, title, phone, or email…"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          className="max-w-sm"
+        />
+        <RowSaveStatus state={saveState} />
+      </div>
       <p className="text-xs text-fg-muted">
         {filtered.length} of {reps.length} shown — every HubSpot contact under Ace Endico, admin/back-office
-        titles included. Not all of these are field reps; prune to the real roster as you confirm it.
+        titles included. Call each one to confirm their territory; mark "Not a prospect" for anyone who
+        turns out to be admin/back-office, not a field rep. {summary.called}/{summary.total} called so far
+        {summary.notAField ? ` (${summary.notAField} confirmed not field reps)` : ""}.
       </p>
-      <div className="overflow-x-auto rounded-lg border border-border">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-border bg-bg text-left text-xs uppercase tracking-wide text-fg-muted">
-              <th className="px-3 py-2 font-medium">Name</th>
-              <th className="px-3 py-2 font-medium">Title</th>
-              <th className="px-3 py-2 font-medium">Phone</th>
-              <th className="px-3 py-2 font-medium">Email</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((r, i) => (
-              <tr key={r.email || `${r.name}-${i}`} className="border-b border-border last:border-0">
-                <td className="px-3 py-2 font-medium text-fg">{r.name}</td>
-                <td className="px-3 py-2 text-fg-muted">{r.jobtitle || "—"}</td>
-                <td className="px-3 py-2 text-fg-muted">{r.phone || "—"}</td>
-                <td className="px-3 py-2 text-fg-muted">{r.email || "—"}</td>
-              </tr>
-            ))}
-            {filtered.length === 0 && (
-              <tr><td colSpan={4} className="px-3 py-6 text-center text-fg-muted">No match.</td></tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      <ul className="space-y-2">
+        {filtered.map((r, i) => (
+          <RepCallRow
+            key={r.email || `${r.name}-${i}`}
+            rep={r}
+            rec={calls[String(r.email || "").trim().toLowerCase()] || {}}
+            canWrite={canWrite}
+            onPatch={(part) => patchRep(r.email, part)}
+          />
+        ))}
+        {filtered.length === 0 && (
+          <li className="py-6 text-center text-sm text-fg-muted">No match.</li>
+        )}
+      </ul>
     </div>
+  );
+}
+
+function RepCallRow({ rep, rec, canWrite, onPatch }) {
+  const [open, setOpen] = useState(false);
+  const outcome = rec.outcome || "not-called";
+  const touched = outcome !== "not-called" || rec.territory || rec.note;
+  const hasEmail = !!String(rep.email || "").trim();
+
+  return (
+    <li className="rounded-base border border-border">
+      <div className="flex flex-wrap items-center justify-between gap-2 p-2.5">
+        <button type="button" onClick={() => setOpen((v) => !v)} className="flex min-w-0 items-center gap-2 text-left">
+          {open ? <ChevronDown className="h-4 w-4 shrink-0 text-fg-muted" /> : <ChevronRight className="h-4 w-4 shrink-0 text-fg-muted" />}
+          <span className="min-w-0">
+            <span className="block truncate text-sm text-fg">{rep.name}</span>
+            <span className="block text-xs text-fg-muted">{rep.jobtitle || "—"}</span>
+          </span>
+        </button>
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          {touched && <Badge variant={OUTCOME_TONE[outcome] || "muted"}>{OUTCOME_LABEL[outcome]}</Badge>}
+          {rec.territory && <Badge variant="outline">{rec.territory}</Badge>}
+          <PhoneInline phone={rep.phone} />
+        </div>
+      </div>
+
+      {open && (
+        <div className="space-y-3 border-t border-border p-3">
+          <p className="text-xs text-fg-muted">{rep.email || "no email on file — call outcome can't be saved for this row"}</p>
+          <div className="grid gap-3 sm:grid-cols-[14rem_1fr]">
+            <div className="grid gap-1.5">
+              <Label htmlFor={`ro-${rep.email || rep.name}`}>Call outcome</Label>
+              <select
+                id={`ro-${rep.email || rep.name}`} value={outcome} disabled={!canWrite || !hasEmail}
+                onChange={(e) => onPatch({ outcome: e.target.value })}
+                className="h-10 rounded-base border border-border bg-surface px-3 text-sm text-fg disabled:opacity-40"
+              >
+                {CALL_OUTCOMES.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
+              </select>
+            </div>
+            <Field
+              label="Territory / accounts they cover" value={rec.territory}
+              placeholder="e.g. NY Metro, or specific named accounts" disabled={!canWrite || !hasEmail}
+              onChange={(v) => onPatch({ territory: v })}
+            />
+          </div>
+          <div className="grid gap-1.5">
+            <Label htmlFor={`rn-${rep.email || rep.name}`}>Call notes</Label>
+            <Textarea
+              id={`rn-${rep.email || rep.name}`} className="min-h-[2.5rem] text-sm"
+              placeholder="What they said, best time to reach them again…"
+              defaultValue={rec.note || ""} disabled={!canWrite || !hasEmail}
+              onChange={(e) => onPatch({ note: e.target.value })}
+            />
+          </div>
+          {outcome === "not-a-prospect" && (
+            <p className="text-xs text-fg-muted">
+              Confirmed not a field rep — stays visible here, just no longer counted as outstanding.
+            </p>
+          )}
+          {rec.calledAt && <p className="text-xs text-fg-muted">Last updated {rec.calledAt.slice(0, 16).replace("T", " ")}</p>}
+        </div>
+      )}
+    </li>
   );
 }
 
