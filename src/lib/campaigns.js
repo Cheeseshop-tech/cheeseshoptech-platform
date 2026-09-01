@@ -257,15 +257,18 @@ const SEEDS = {
       // MA+CT 45 (~229 total; CT and MA are already fully worked, see the 2026-09-01 task push).
       id: "ace-fall-show-2026",
       type: "enrichment",
-      // Combined 2026-09-01 (Rick: "combine the territory out reach and the rep qualification
-      // and add the call console to the reps and prospects") — one campaign, two call lists
-      // worked from the same page: the target-prospect accounts (Target prospects/Call console,
-      // scoped by audience.filter) AND Ace Endico's own sales reps (Sales Rep Contacts, scoped by
-      // audience.salesReps) — each with its own outcome tracking, since "did we invite this
-      // account" and "did we confirm this rep's territory" are different facts about different
-      // objects, not two views of the same list.
-      name: "ACE Endico Fall Show — territory outreach + rep qualification",
-      goal: "Work both call lists ahead of the Sept 15 show: invite every target account across the 5-state ACE footprint (NY/NJ/RI/MA/CT), and separately call Ace Endico's own reps to confirm who covers what territory — feeding Booth's territory Scope picker and Rep check-in flow either way.",
+      // Renamed 2026-09-01 (Rick: "combine all the instances of email campaign prospecting and
+      // sales rep work that we will be covering into one tab. Call it ACE FALL SHOW sales rep
+      // and prospect alignment") — this IS that one tab: every ACE Fall Show call list Rick is
+      // working lives on this single campaign, in two sections on its detail page, not spread
+      // across separate cards. (1) Target Prospects/Call console — the target-prospect accounts
+      // across the 5-state footprint, i.e. the prospecting work that otherwise would have sat on
+      // a standalone email campaign. (2) Sales Rep Contacts — Ace Endico's own reps, scoped by
+      // audience.salesReps. Each has its own outcome tracking, since "did we invite this account"
+      // and "did we confirm this rep's territory" are different facts about different objects —
+      // but both live under this one name so there is nothing else to open or reconcile.
+      name: "ACE Fall Show — Sales Rep & Prospect Alignment",
+      goal: "One tab for every ACE Fall Show call list ahead of the Sept 15 show: invite every target-prospect account across the 5-state ACE footprint (NY/NJ/RI/MA/CT), and align with Ace Endico's own reps on who covers what territory — feeding Booth's territory Scope picker and Rep check-in flow either way.",
       channels: ["retail"],
       start: "2026-09-01",
       end: "2026-09-15",
