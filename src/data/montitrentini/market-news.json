@@ -1,62 +1,153 @@
 [
   {
-    "id": "news-2026-07-01-01",
+    "id": "news-2026-09-01-01",
     "category": "trade",
-    "headline": "Specialty grocers expand imported alpine cheese sets for fall resets",
-    "summary": "Category buyers report provenance-led SKUs earning more shelf space in Q4 planograms; alpine and DOP labels called out.",
-    "url": "https://www.cheesemarketnews.com/",
-    "source": "Cheese Market News",
-    "date": "2026-07-01",
-    "tags": ["provenance", "fall-reset", "specialty-grocer"]
+    "headline": "Canada adds cheese to retaliatory tariffs on US goods",
+    "summary": "Cross-border dairy trade fight escalates — a reason to flag exposure for any US-origin SKUs moving into Canadian accounts.",
+    "url": "https://cheesereporter.com/column/2026/08/28/cheese-prominent-in-canadian-trade-dispute/",
+    "source": "Cheese Reporter",
+    "date": "2026-08-28",
+    "tags": [
+      "tariffs",
+      "canada",
+      "trade-dispute"
+    ]
   },
   {
-    "id": "news-2026-07-01-02",
+    "id": "news-2026-08-21-05",
+    "category": "consumer",
+    "headline": "Shareable snack-board engagement up 33% year over year",
+    "summary": "One in five small-group dining menus now offers a customizable platter. Board culture is still compounding — the single most direct demand signal for a wedge-and-portion range.",
+    "url": "https://tastewise.io/blog/snack-trends",
+    "source": "Tastewise",
+    "date": "2026-08-21",
+    "tags": [
+      "boards",
+      "grazing",
+      "foodservice"
+    ]
+  },
+  {
+    "id": "news-2026-08-21-06",
+    "category": "consumer",
+    "headline": "Texture becomes the purchase driver: crystalline bite, melt, the cheese pull",
+    "summary": "Buyers are choosing on how a cheese performs, not just flavor. Aged, crystalline paste is a texture story — and it photographs, which is why the cut-wedge packshot matters.",
+    "url": "https://www.fb101.com/tillamooks-jill-allen-shares-2026-cheese-trends-bold-flavors-premium-textures-and-wellness-snacking/",
+    "source": "Food & Beverage Magazine",
+    "date": "2026-08-21",
+    "tags": [
+      "texture",
+      "aged",
+      "premiumization"
+    ]
+  },
+  {
+    "id": "news-2026-08-21-02",
     "category": "trade",
-    "headline": "Container rates from Mediterranean ports ease for third straight month",
-    "summary": "Import freight costs trending down into Q3 — a margin tailwind for FOB import programs.",
-    "url": "https://www.freightwaves.com/",
-    "source": "FreightWaves",
-    "date": "2026-07-01",
-    "tags": ["freight", "import-margin"]
+    "headline": "Retail cheese sales grow on convenience and flavor exploration",
+    "summary": "Shoppers are trading into new varieties rather than trading down. Flavor discovery is doing the work price promotions used to — an opening for named-origin SKUs with a story.",
+    "url": "https://cheesereporter.com/news/consumer-retail/2026/08/19/retail-cheese-sales-grow-as-consumers-embrace-convenience-flavor-exploration/",
+    "source": "Cheese Reporter",
+    "date": "2026-08-19",
+    "tags": [
+      "retail",
+      "flavor-exploration"
+    ]
   },
   {
-    "id": "news-2026-06-30-01",
-    "category": "consumer",
-    "headline": "Cheese boards keep climbing on social — 'girl dinner' grazing formats persist",
-    "summary": "Short-form video keeps board culture growing; provenance stories and unusual formats outperform generic content.",
-    "url": "https://www.tastingtable.com/",
-    "source": "Tasting Table",
-    "date": "2026-06-30",
-    "tags": ["boards", "social", "grazing"]
-  },
-  {
-    "id": "news-2026-06-29-01",
+    "id": "news-2026-08-21-03",
     "category": "trade",
-    "headline": "Distributors consolidate specialty lines — fewer, deeper import partners",
-    "summary": "Regional distributors trimming duplicate specialty SKUs; producers with a full range and story win the consolidated slot.",
-    "url": "https://www.specialtyfood.com/",
-    "source": "Specialty Food Association",
-    "date": "2026-06-29",
-    "tags": ["distributor", "assortment", "consolidation"]
+    "headline": "Global specialty cheese market projected to reach $40bn by 2031",
+    "summary": "Roughly 5% annual growth, with premium imported varieties leading. Useful framing for a distributor conversation about where the category is heading.",
+    "url": "https://www.dairyreporter.com/Article/2026/08/19/global-specialty-cheese-market-set-to-reach-40bn-by-2031/",
+    "source": "DairyReporter",
+    "date": "2026-08-19",
+    "tags": [
+      "specialty",
+      "category-growth"
+    ]
   },
   {
-    "id": "news-2026-06-28-01",
-    "category": "consumer",
-    "headline": "Shoppers trade up on 'affordable luxury' groceries even as baskets shrink",
-    "summary": "Premium cheese remains a resilient small-indulgence category; sub-$12 provenance items sweet spot.",
-    "url": "https://www.foodnavigator-usa.com/",
-    "source": "FoodNavigator USA",
-    "date": "2026-06-28",
-    "tags": ["premiumization", "price-point"]
+    "id": "news-2026-09-01-02",
+    "category": "trade",
+    "headline": "UK milk supply shifting toward cheese and yogurt as liquid milk demand falls",
+    "summary": "More raw milk is being redirected into cheesemaking as fluid milk consumption keeps declining — a supply-side signal worth watching for import sourcing.",
+    "url": "https://www.dairyreporter.com/Article/2026/08/19/more-uk-milk-diverted-to-cheese-and-yogurt-as-liquid-consumption-continues-to-fall/",
+    "source": "DairyReporter",
+    "date": "2026-08-19",
+    "tags": [
+      "supply",
+      "uk",
+      "milk-diversion"
+    ]
   },
   {
-    "id": "news-2026-06-27-01",
+    "id": "news-2026-09-01-03",
+    "category": "trade",
+    "headline": "USDA awards cheese, yogurt and milk contracts — gets zero qualifying butter bids",
+    "summary": "A live demand signal from government purchasing: cheese and yogurt suppliers stepped up, butter suppliers didn't bid at current terms.",
+    "url": "https://cheesereporter.com/news/production-supply-chain/2026/08/14/usda-awards-contracts-for-cheese-yogurt-milk-products-gets-no-butter-offers/",
+    "source": "Cheese Reporter",
+    "date": "2026-08-14",
+    "tags": [
+      "usda",
+      "government-purchasing",
+      "demand-signal"
+    ]
+  },
+  {
+    "id": "news-2026-09-01-05",
+    "category": "trade",
+    "headline": "Schnucks rolls out AI shopping assistant and digital coupon clipping",
+    "summary": "Another regional grocer investing in AI-driven personalization and meal planning — a category-management conversation starter for account calls.",
+    "url": "https://www.grocerydive.com/news/schnucks-new-digital-tools-shoppers-artificial-intelligence/827758/",
+    "source": "Grocery Dive",
+    "date": "2026-08-13",
+    "tags": [
+      "retail-tech",
+      "ai",
+      "schnucks"
+    ]
+  },
+  {
+    "id": "news-2026-09-01-04",
+    "category": "trade",
+    "headline": "Senate hearing puts grocers on notice over AI \"surveillance pricing\"",
+    "summary": "Regulatory scrutiny is building on AI-driven dynamic pricing at retail — relevant if working with chains using personalized pricing tech.",
+    "url": "https://www.grocerydive.com/news/the-friday-checkout-senate-hearing-artificial-intelligence-surveillance-pr/827315/",
+    "source": "Grocery Dive",
+    "date": "2026-08-07",
+    "tags": [
+      "regulation",
+      "pricing",
+      "ai"
+    ]
+  },
+  {
+    "id": "news-2026-08-21-01",
+    "category": "trade",
+    "headline": "US cheese imports up 17% in June — Italy still the #1 source",
+    "summary": "Dairy imports rose 20% overall; Italy led H1 cheese imports at 45.0M lbs, ahead of France (30.3M) and the Netherlands (16.0M). Import-program volume is growing, not contracting.",
+    "url": "https://cheesereporter.com/news/production-supply-chain/2026/08/06/us-dairy-imports-rose-20-in-june-cheese-imports-increased-17/",
+    "source": "Cheese Reporter",
+    "date": "2026-08-06",
+    "tags": [
+      "imports",
+      "italy",
+      "volume"
+    ]
+  },
+  {
+    "id": "news-2026-08-21-04",
     "category": "consumer",
-    "headline": "Menus lean Italian: aperitivo culture drives cheese-forward starters",
-    "summary": "Restaurant menu data shows aperitivo boards and Italian starters growing YoY — chef demand for named-origin cheeses.",
-    "url": "https://www.restaurantbusinessonline.com/",
-    "source": "Restaurant Business",
-    "date": "2026-06-27",
-    "tags": ["foodservice", "aperitivo", "menu-trend"]
+    "headline": "Cheese snack launches accelerate — Cheez-It, McVitie's, Cabot and more",
+    "summary": "The majors are pushing hard into cheese snacking formats. Relevant as competitive context: the volume play is crowded, the provenance play is not.",
+    "url": "https://www.bakeryandsnacks.com/Article/2026/08/04/cheese-snack-launches-2026-cheez-it-mcvities-cabot-and-more/",
+    "source": "BakeryAndSnacks",
+    "date": "2026-08-04",
+    "tags": [
+      "snacking",
+      "competitive"
+    ]
   }
 ]
