@@ -6,8 +6,11 @@
 //
 // GET  ?tenant=<id>                 → { entries, updatedAt }   (any valid passcode tier)
 // POST { tenant, entries }          → { ok, updatedAt }        (house/client-admin passcode)
-//   entries = { [companyId]: { status, note, updatedAt } } — the FULL document each save
+//   entries = { [companyId]: { status, note, rep, updatedAt } } — the FULL document each save
 //   (last-writer-wins; fine at this team size, same trade-off as items-save.js).
+//   `rep` (2026-09-01): free-text "who covers this account", platform-native — not a HubSpot
+//   property, no rep entity elsewhere in the app. Booth's territory drill-down is the primary
+//   writer (see booth-tool.jsx); the CRM console can edit it too, same field either way.
 //
 // HubSpot stays the CRM of record for accounts/contacts; this store is the thin outreach
 // overlay the platform owns. No per-client code — tenant is data.
@@ -69,14 +72,22 @@ const rawHandler = async (event, context) => {
   if (!entries || typeof entries !== "object" || Array.isArray(entries)) {
     return json(400, { error: "Missing/invalid entries" });
   }
-  // Sanitize: keep only known fields, valid stages, bounded note length.
+  // Sanitize: keep only known fields, valid stages, bounded note/rep length.
+  // `rep` (HANDOFF_2026-09-01_ace-fall-show-booth-integration.md, prompt b) is a free-text,
+  // platform-native "who covers this account" field — deliberately NOT a HubSpot property (no
+  // tool access to create one there). Same trust model as `note`: bounded length, no format
+  // enforced, last-writer-wins.
   const clean = {};
   for (const [id, e] of Object.entries(entries)) {
     if (!/^[0-9]+$/.test(id) || !e || typeof e !== "object") continue;
     const status = STAGES.includes(e.status) ? e.status : null;
     const note = typeof e.note === "string" ? e.note.slice(0, 500) : "";
-    if (!status && !note) continue; // nothing worth storing
-    clean[id] = { ...(status ? { status } : {}), ...(note ? { note } : {}), updatedAt: e.updatedAt || new Date().toISOString() };
+    const rep = typeof e.rep === "string" ? e.rep.slice(0, 80) : "";
+    if (!status && !note && !rep) continue; // nothing worth storing
+    clean[id] = {
+      ...(status ? { status } : {}), ...(note ? { note } : {}), ...(rep ? { rep } : {}),
+      updatedAt: e.updatedAt || new Date().toISOString(),
+    };
   }
 
   const updatedAt = new Date().toISOString();

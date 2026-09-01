@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { getCrmData, regionOf, stateOf, crmIsSample } from "@/lib/crm.js";
+import { getCrmData, getOutreach, saveOutreach, regionOf, stateOf, crmIsSample } from "@/lib/crm.js";
 import {
   FOLLOW_UP_TYPES, FOLLOW_UP_WINDOWS, TEMPERATURES, loadBooth, addCapture, updateCapture,
   removeCapture, newCapture, cacheAccounts, readCachedAccounts, boothStats, downloadIcs,
-  recapComposeUrl, buildRecap, buildInternalNote, buildShowDigest, prettyWhen, suggestTemperature,
+  recapComposeUrl, rideAlongComposeUrl, buildRecap, buildInternalNote, buildShowDigest, prettyWhen, suggestTemperature,
   suggestedFollowUp, splitPushable, pushToHubspot, googleCalendarUrl, boothCatalog,
   searchCatalog, productSpec, activeDeals, nextStepText, indexContacts, contactsForCompany, cityOf,
   phoneText,
@@ -12,6 +12,12 @@ import { openCamera, closeCamera, grabFrame, listCameras } from "@/lib/card-scan
 import {
   CONTACT_ROLES, businessTypesByChannel, contactRole, isMultiplierRole, guessBusinessType,
 } from "@/lib/lead-taxonomy.js";
+// Territory scoping (HANDOFF_2026-09-01_ace-fall-show-booth-integration.md, prompt a) — Booth's
+// region/state/city drill-down browses the WHOLE account book with no filter. A campaign already
+// expresses "which accounts this effort targets" (companyIds or a region/state filter, see
+// scopeOf/segmentOf) — reuse that vocabulary instead of inventing a second one, so a scope here
+// can never disagree with the same campaign's Target Prospects view in Campaign Management.
+import { getCampaigns, scopeOf, segmentOf } from "@/lib/campaigns.js";
 import {
   canPickFolder, pickFolder, getSavedFolder, forgetFolder, saveCardToFolder, exportCardsZip,
   folderName,
@@ -50,6 +56,9 @@ const CSS = `
 .bth .mode{flex:1;min-width:140px;min-height:56px;border-radius:10px;border:1px solid var(--cs-color-border);background:var(--cs-color-surface);color:var(--cs-color-fg);font-size:15px;font-weight:600;cursor:pointer;padding:10px 14px;font-family:inherit;}
 .bth .mode.on{border-color:var(--cs-color-brand-primary);background:var(--cs-color-brand-primary);color:var(--cs-color-on-primary);}
 .bth .mode.cta{border-color:var(--cs-color-brand-accent);background:var(--cs-color-brand-accent);color:var(--cs-color-on-accent);}
+.bth .scope-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;}
+.bth .scope-row label{font-size:13px;font-weight:600;color:var(--cs-color-fg-muted);}
+.bth .scope-row select{min-height:44px;font-size:15px;padding:7px 10px;border-radius:8px;border:1px solid var(--cs-color-border);background:var(--cs-color-bg);color:var(--cs-color-fg);font-family:inherit;}
 .bth .crumbs{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:14px;color:var(--cs-color-fg-muted);margin-bottom:12px;}
 .bth .crumbs button{background:none;border:none;color:var(--cs-color-brand-primary);font-weight:600;cursor:pointer;font-size:14px;padding:4px 2px;font-family:inherit;}
 .bth .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;}
@@ -65,6 +74,19 @@ const CSS = `
 .bth .btn.ghost{background:var(--cs-color-surface);color:var(--cs-color-brand-primary);border:1px solid var(--cs-color-brand-primary);}
 .bth .btn.sm{min-height:40px;padding:7px 13px;font-size:14px;}
 .bth .btn:disabled{opacity:.45;cursor:default;}
+.bth .rep-input{width:110px;min-height:44px;font-size:15px;font-family:inherit;padding:7px 10px;border-radius:8px;border:1px solid var(--cs-color-border);background:var(--cs-color-bg);color:var(--cs-color-fg);}
+.bth .checkin{border:1px solid var(--cs-color-border);border-radius:12px;padding:16px;background:var(--cs-color-surface);}
+.bth .checkin label{display:block;font-size:13px;font-weight:600;margin:12px 0 5px;}
+.bth .checkin input,.bth .checkin textarea{width:100%;font-family:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--cs-color-border);border-radius:8px;background:var(--cs-color-bg);color:var(--cs-color-fg);}
+.bth .checkin textarea{min-height:64px;resize:vertical;}
+.bth .checkin .two{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.bth .checkin .chipbar{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;}
+.bth .checkin .chipbar button{min-height:44px;border-radius:20px;border:1px solid var(--cs-color-border);background:var(--cs-color-bg);color:var(--cs-color-fg);font-size:14px;font-weight:600;padding:8px 14px;cursor:pointer;font-family:inherit;}
+.bth .checkin .chipbar button.on{border-color:var(--cs-color-brand-primary);background:var(--cs-color-brand-primary);color:var(--cs-color-on-primary);}
+.bth .checkin .chipbar button:disabled{opacity:.45;cursor:default;}
+.bth .checkin .summary{background:var(--cs-color-bg);border:1px solid var(--cs-color-border);border-radius:10px;padding:12px 14px;margin-top:16px;font-size:14px;line-height:1.7;}
+.bth .checkin .summary strong{color:var(--cs-color-brand-primary);}
+@media(max-width:760px){.bth .checkin .two{grid-template-columns:1fr;}}
 .bth .pill{display:inline-block;font-size:12px;padding:3px 10px;border-radius:20px;border:1px solid var(--cs-color-border);white-space:nowrap;}
 .bth .pill.hot{background:#fdecea;border-color:#f0c2b6;color:var(--cs-color-error);font-weight:700;}
 .bth .pill.warm{background:#fff6e0;border-color:#f0d68a;}
@@ -147,6 +169,8 @@ export function BoothTool({ resolved }) {
   const [flash, setFlash] = useState("");
   const [scanning, setScanning] = useState(false);
   const [shutter, setShutter] = useState(false);
+  const [shutterTarget, setShutterTarget] = useState("booth"); // "booth" | "checkin" — which ingest function a webcam shot feeds
+  function openShutter(target) { setShutterTarget(target); setShutter(true); }
   const cameraRef = useRef(null);
   // Card ids with an OCR request in flight right now. A fresh capture is written as "pending"
   // BEFORE its read starts (so a crash mid-read can't lose it), which means the offline-retry
@@ -171,6 +195,252 @@ export function BoothTool({ resolved }) {
   const deals = useMemo(() => activeDeals(resolved), [resolved]);
 
   useEffect(() => { setCaptures(loadBooth(tenantId).captures); }, [tenantId]);
+
+  // ---- Territory scope (campaign-aware) -----------------------------------------------------
+  // `scopeId` is a campaign id, "" for the explicit "All regions" choice, or null while nothing
+  // has been decided yet. Distinguishing "" from null matters: an empty string is a real,
+  // remembered choice (don't re-guess every reload); null means go find a default.
+  const [campaigns, setCampaigns] = useState([]);
+  const [scopeId, setScopeId] = useState(() => {
+    try { return localStorage.getItem(`cst-booth-scope:${tenantId}`); } catch { return null; }
+  });
+  useEffect(() => {
+    let alive = true;
+    // Read-only, and gracefully empty if this passcode tier can't see campaigns (getCampaigns
+    // already swallows fetch failures) — a booth rep with no campaign access just sees no scope
+    // picker, same as a tenant with no scoped campaigns at all.
+    getCampaigns(resolved).then((list) => { if (alive) setCampaigns(list); }).catch(() => {});
+    return () => { alive = false; };
+  }, [tenantId]);
+
+  // Only campaigns that actually NARROW the account book (companyIds or a region/state/channel
+  // filter) are worth offering — a campaign with no audience scope would just reproduce "All
+  // regions" under a different label. Enrichment campaigns resolve to what they SERVE (scopeOf),
+  // same as Campaign Management's own Target Prospects panel, so the two views can't disagree.
+  const scopeOptions = useMemo(() => {
+    const seen = new Set();
+    const opts = [];
+    for (const c of campaigns) {
+      const scoped = scopeOf(c, campaigns);
+      const a = scoped?.audience;
+      if (!a || (!a.companyIds?.length && !a.filter) || seen.has(scoped.id)) continue;
+      seen.add(scoped.id);
+      opts.push({ id: scoped.id, name: scoped.name || scoped.id, count: segmentOf(scoped, accounts).length });
+    }
+    return opts.sort((a, b) => a.name.localeCompare(b.name));
+  }, [campaigns, accounts]);
+
+  // First time in (no stored choice on this device): default to whichever scoped campaign looks
+  // like the live show, so a rep opening this cold at the ACE table doesn't have to know to pick
+  // it. Falls back to "All regions" once options are known and none match — never gets stuck
+  // showing nothing while campaigns are still loading.
+  useEffect(() => {
+    if (scopeId !== null || !campaigns.length) return;
+    const guess = scopeOptions.find((o) => /\bace\b/i.test(o.name) || /fall\s*show/i.test(o.name));
+    setScopeId(guess ? guess.id : "");
+  }, [campaigns.length, scopeOptions, scopeId]);
+
+  function chooseScope(id) {
+    setScopeId(id);
+    try { localStorage.setItem(`cst-booth-scope:${tenantId}`, id); } catch {}
+  }
+
+  const activeScope = useMemo(() => scopeOptions.find((o) => o.id === scopeId) || null, [scopeOptions, scopeId]);
+  // The filter, applied — never mutates `accounts`, so switching back to "All regions" always
+  // recovers the full book instantly (filter, not delete, per the handoff).
+  const scopedAccounts = useMemo(() => {
+    if (!activeScope) return accounts;
+    const camp = campaigns.find((c) => c.id === activeScope.id);
+    return camp ? segmentOf(camp, accounts) : accounts;
+  }, [accounts, campaigns, activeScope]);
+
+  // Switching scope can drop the region/state/city currently drilled into (e.g. "California"
+  // stops existing once scoped to the 5-state ACE list) — reset to the top rather than leave the
+  // rep staring at a page that no longer matches its own breadcrumb.
+  useEffect(() => { setNav({ region: null, state: null, city: null }); }, [scopeId]);
+
+  // ---- Rep field (HANDOFF_2026-09-01, prompt b) ----------------------------------------------
+  // "Which rep covers this account" — platform-native, not a HubSpot property. Rides the same
+  // per-tenant outreach overlay (crm-outreach.js) the CRM console already uses for its `note`
+  // column, so there is one place this fact lives no matter which screen edited it.
+  const [outreach, setOutreach] = useState({});
+  const [repSaveState, setRepSaveState] = useState("idle"); // idle | dirty | saving | saved | denied | failed
+  const repTimer = useRef(null);
+  const outreachRef = useRef(outreach);
+  outreachRef.current = outreach;
+
+  useEffect(() => {
+    let alive = true;
+    getOutreach(resolved).then((d) => { if (alive) setOutreach(d.entries || {}); }).catch(() => {});
+    return () => { alive = false; };
+  }, [tenantId]);
+
+  const repOf = (companyId) => outreach[companyId]?.rep || "";
+
+  /** Debounced, optimistic save — same 900ms coalesce as the CRM console's note field, so a rep
+   *  typing a name doesn't fire a request per keystroke. */
+  function scheduleRep(companyId, rep) {
+    const next = { ...outreachRef.current, [companyId]: { ...outreachRef.current[companyId], rep, updatedAt: new Date().toISOString() } };
+    setOutreach(next);
+    setRepSaveState("dirty");
+    if (repTimer.current) clearTimeout(repTimer.current);
+    repTimer.current = setTimeout(async () => {
+      setRepSaveState("saving");
+      const res = await saveOutreach(resolved, outreachRef.current);
+      setRepSaveState(res.ok ? "saved" : res.status === 401 ? "denied" : "failed");
+    }, 900);
+  }
+
+  // ---- Rep check-in (HANDOFF_2026-09-01, prompt c) ---------------------------------------------
+  // Card scan -> territory -> tap-to-link -> notes -> draft, one screen, no navigation. `checkin`
+  // is the in-progress capture (same shape as any other, source:"rep-checkin"); it's persisted via
+  // addCapture/updateCapture exactly like Booth/Territory, so it rides Captured, the offline-retry
+  // sweep, and Sync for free — no second sync path to build or trust.
+  const [checkin, setCheckin] = useState(null);
+  const [checkinScanning, setCheckinScanning] = useState(false);
+  const [checkinFlash, setCheckinFlash] = useState("");
+  const checkinCameraRef = useRef(null);
+  const checkinFileRef = useRef(null);
+
+  // Every state with at least one account, whatever the current territory scope — a visiting rep
+  // can name a state outside today's ACE list, and this flow shouldn't have a blind spot for it.
+  const checkinStateOptions = useMemo(() => {
+    const m = new Map();
+    for (const a of accounts) { const s = stateOf(a); if (s) m.set(s, (m.get(s) || 0) + 1); }
+    return [...m.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+  }, [accounts]);
+
+  const checkinAccounts = useMemo(() => {
+    const states = new Set(checkin?.checkinStates || []);
+    if (!states.size) return [];
+    return accounts.filter((a) => states.has(stateOf(a))).sort((a, b) => String(a.name).localeCompare(String(b.name)));
+  }, [accounts, checkin?.checkinStates]);
+
+  function startCheckin() {
+    const capture = newCapture({ source: "rep-checkin" });
+    persist(addCapture(tenantId, capture));
+    setCheckin(capture);
+    setCheckinFlash("");
+  }
+
+  function endCheckin() {
+    setCheckin(null);
+    setCheckinFlash("");
+  }
+
+  function patchCheckin(part) {
+    if (!checkin) return;
+    const next = { ...checkin, ...part };
+    setCheckin(next);
+    persist(updateCapture(tenantId, checkin.id, part));
+  }
+
+  function toggleCheckinState(st) {
+    if (!checkin) return;
+    const cur = checkin.checkinStates || [];
+    patchCheckin({ checkinStates: cur.includes(st) ? cur.filter((x) => x !== st) : [...cur, st] });
+  }
+
+  // The tap IS the fact: linking writes this contact's name straight into the account's Rep
+  // field (the same field and save path Territory Mode's own Rep column uses), so "who covers
+  // this account" is answered the moment the rep taps, not after some later sync step.
+  function toggleLinkedAccount(account) {
+    if (!checkin || !checkin.name?.trim()) return;
+    const cur = checkin.linkedAccountIds || [];
+    const linking = !cur.includes(account.id);
+    patchCheckin({ linkedAccountIds: linking ? [...cur, account.id] : cur.filter((x) => x !== account.id) });
+    scheduleRep(account.id, linking ? checkin.name.trim() : "");
+  }
+
+  function onCheckinCardPicked(e) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (file) ingestCheckinCard(file);
+  }
+
+  /** The same compress -> persist -> read order as ingestCardFile, kept as its own function
+   *  rather than threaded through that one: this flow skips CRM/company matching entirely (the
+   *  contact is a visiting rep, not a buyer at one of our accounts, so there's nothing to match
+   *  against) and writes into `checkin`, not `sheet` — reusing ingestCardFile would mean forking
+   *  its internals by source, which risks the exact "sheet never hears about it" class of bug
+   *  its own comments already warn about. */
+  async function ingestCheckinCard(file) {
+    setCheckinScanning(true);
+    setCheckinFlash("");
+    const isNew = !checkin;
+    let capture = checkin || newCapture({ source: "rep-checkin", scanState: "pending" });
+    try {
+      const { dataUrl } = await compressCardImage(file);
+      await putCardImage(capture.id, dataUrl);
+      capture = { ...capture, scanState: "pending" };
+      persist(isNew ? addCapture(tenantId, capture) : updateCapture(tenantId, capture.id, { scanState: "pending" }));
+      setCheckin(capture);
+
+      if (!navigator.onLine) {
+        setCheckinFlash("Card saved. No signal — it'll be read once you're back online. Type the details for now.");
+        return;
+      }
+      const res = await readCard(dataUrl, { tenant: tenantId });
+      if (!res.ok) {
+        setCheckinFlash("Couldn't read that photo — type what you need, the photo is saved.");
+        return;
+      }
+      const card = res.card || {};
+      if (!card.legible) {
+        persist(updateCapture(tenantId, capture.id, { scanState: "illegible" }));
+        setCheckin((c) => (c && c.id === capture.id ? { ...c, scanState: "illegible" } : c));
+        setCheckinFlash("That photo was too blurry to read. Retake it, or type the details — nothing is lost.");
+        return;
+      }
+      const patch = {
+        name: card.name || "", title: card.title || "", company: card.company || "",
+        email: card.email || "", phone: card.phone || "",
+        scanState: "read", scannedAt: new Date().toISOString(),
+      };
+      persist(updateCapture(tenantId, capture.id, patch));
+      setCheckin((c) => (c && c.id === capture.id ? { ...c, ...patch } : { ...capture, ...patch }));
+    } catch (err) {
+      setCheckinFlash(`Couldn't read that photo (${String(err?.message || err)}). Type it instead — the photo is saved.`);
+    } finally {
+      setCheckinScanning(false);
+    }
+  }
+
+  function openRideAlongMail(capture, accountNames) {
+    const url = rideAlongComposeUrl(capture, { brandName: resolved.brand.name, calendar, accountNames });
+    if (url.startsWith("mailto:")) {
+      const a = document.createElement("a");
+      a.href = url; a.rel = "noopener"; a.click();
+    } else {
+      window.open(url, "_blank", "noopener,noreferrer");
+    }
+  }
+
+  /** Save is already done — every field along the way persisted as it was typed/tapped. This is
+   *  the CLOSING action: open the ride-along draft, and run the same dry-run preview the Captured
+   *  tab's own Sync button offers, so the rep sees before walking away whether this contact will
+   *  land cleanly in HubSpot (the real, committed push still only ever happens from Captured,
+   *  admin-passcode gated — this never sends anything on its own). */
+  async function checkinSaveAndDraft() {
+    if (!checkin || !checkin.name?.trim()) { setCheckinFlash("Add their name before saving."); return; }
+    const savedId = checkin.id;
+    const accountNames = checkinAccounts
+      .filter((a) => (checkin.linkedAccountIds || []).includes(a.id))
+      .map((a) => a.name);
+    openRideAlongMail(checkin, accountNames);
+    setCheckinFlash(`Saved — draft opened for ${checkin.name}. Send it from your mail app when ready.`);
+    const res = await pushToHubspot(resolved, [checkin], { commit: false });
+    // Guard against a slow response landing after "New rep" started a different draft.
+    setCheckin((c) => {
+      if (!c || c.id !== savedId) return c;
+      setCheckinFlash(
+        !res.ok ? `Saved — draft opened. HubSpot preview unavailable right now (${res.status === 0 ? "no connection" : res.status}); Sync later from Captured.`
+        : !res.planned?.length ? "Saved — draft opened. This contact needs an email before it can sync to HubSpot; add one when you get a chance."
+        : `Saved — draft opened. Dry run OK, ready to Sync from Captured whenever you commit.`
+      );
+      return c;
+    });
+  }
 
   useEffect(() => {
     const on = () => setOnline(true), off = () => setOnline(false);
@@ -214,14 +484,14 @@ export function BoothTool({ resolved }) {
   // before drilling ("we've got eleven accounts in Jersey") — the §5b conversation opener.
   const byRegion = useMemo(() => {
     const m = new Map();
-    for (const a of accounts) {
+    for (const a of scopedAccounts) {
       const r = regionOf(a);
       if (r === "—") continue;
       if (!m.has(r)) m.set(r, []);
       m.get(r).push(a);
     }
     return [...m.entries()].sort((a, b) => a[0].localeCompare(b[0]));
-  }, [accounts]);
+  }, [scopedAccounts]);
 
   const statesIn = useMemo(() => {
     if (!nav.region) return [];
@@ -467,6 +737,9 @@ export function BoothTool({ resolved }) {
     // Keep the open sheet in sync with whatever this sweep just persisted, if it's showing this
     // same capture. Functional update so the effect doesn't need `sheet` in its deps.
     const syncSheet = (id, patch) => setSheet((prev) => (prev && prev.id === id ? { ...prev, ...patch } : prev));
+    // Same mirroring for the rep check-in screen — a card shot with no signal mid-conversation
+    // can resolve in the background while that same check-in is still open.
+    const syncCheckin = (id, patch) => setCheckin((prev) => (prev && prev.id === id ? { ...prev, ...patch } : prev));
     (async () => {
       const { getCardImage } = await import("@/lib/card-scan.js");
       for (const c of pending) {
@@ -477,6 +750,7 @@ export function BoothTool({ resolved }) {
           if (!dataUrl) {
             persist(updateCapture(tenantId, c.id, { scanState: "failed" }));
             syncSheet(c.id, { scanState: "failed" });
+            syncCheckin(c.id, { scanState: "failed" });
             continue;
           }
           const res = await readCard(dataUrl, { tenant: tenantId });
@@ -485,6 +759,7 @@ export function BoothTool({ resolved }) {
           if (!card.legible) {
             persist(updateCapture(tenantId, c.id, { scanState: "illegible" }));
             syncSheet(c.id, { scanState: "illegible" });
+            syncCheckin(c.id, { scanState: "illegible" });
             continue;
           }
           const m = matchCard(card, { people, companies: accounts });
@@ -501,6 +776,13 @@ export function BoothTool({ resolved }) {
           };
           persist(updateCapture(tenantId, c.id, patch));
           syncSheet(c.id, patch);
+          // Rep check-in never does CRM/company matching (see ingestCheckinCard) — a visiting
+          // rep isn't one of our accounts, so carrying over `companyId`/`scanMatch` here would
+          // silently associate this contact with whatever account the name happened to match.
+          syncCheckin(c.id, {
+            name: patch.name, title: patch.title, company: patch.company,
+            email: patch.email, phone: patch.phone, scanState: patch.scanState, scannedAt: patch.scannedAt,
+          });
         } finally {
           inFlight.current.delete(c.id);
         }
@@ -747,11 +1029,14 @@ export function BoothTool({ resolved }) {
         <button className={`mode ${mode === "digest" ? "on" : ""}`} onClick={() => setMode("digest")}>
           Show report
         </button>
+        <button className={`mode ${mode === "repcheckin" ? "on" : ""}`} onClick={() => setMode("repcheckin")}>
+          Rep check-in
+        </button>
         {/* THE fast path — first among the actions because it's the one the rep should reach for
             by default. `capture="environment"` opens the rear camera straight into the card. */}
         <button
           className="mode cta"
-          onClick={() => (canWebcam ? setShutter(true) : cameraRef.current?.click())}
+          onClick={() => (canWebcam ? openShutter("booth") : cameraRef.current?.click())}
           disabled={scanning}
         >
           {scanning ? "Reading card…" : "📷 Scan a card"}
@@ -798,6 +1083,18 @@ export function BoothTool({ resolved }) {
 
       {mode === "territory" ? (
         <>
+          {scopeOptions.length > 0 && (
+            <div className="scope-row">
+              <label htmlFor="bth-scope">Scope</label>
+              <select id="bth-scope" value={scopeId || ""} onChange={(e) => chooseScope(e.target.value)}>
+                <option value="">Whole account book ({accounts.length})</option>
+                {scopeOptions.map((o) => (
+                  <option key={o.id} value={o.id}>{o.name} ({o.count})</option>
+                ))}
+              </select>
+              {activeScope && <span className="muted">Showing {activeScope.name} only — switch to “Whole account book” to see everything.</span>}
+            </div>
+          )}
           <div className="crumbs">
             <button onClick={() => setNav({ region: null, state: null, city: null })}>All regions</button>
             {nav.region && <><span>›</span><button onClick={() => setNav({ region: nav.region, state: null, city: null })}>{nav.region}</button></>}
@@ -849,6 +1146,11 @@ export function BoothTool({ resolved }) {
             <>
               <p className="muted" style={{ margin: "0 0 10px" }}>
                 “Do you service this account?” — tap anyone to capture the conversation and agree a next step.
+                {" "}Tag the Rep field so coverage sticks to the account.
+                {repSaveState === "dirty" || repSaveState === "saving" ? " Saving rep…"
+                  : repSaveState === "denied" ? " Rep not saved — admin passcode required."
+                  : repSaveState === "failed" ? " Rep save failed — retry the edit."
+                  : ""}
               </p>
               {accountsIn.map((a) => {
                 const contacts = contactsForCompany(a, contactIndex);
@@ -863,8 +1165,15 @@ export function BoothTool({ resolved }) {
                           {` · ${plural(contacts.length, "contact")}`}
                         </div>
                       </div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
                         {capturedCompanyIds.has(a.id) && <span className="pill bkd">Worked today</span>}
+                        <input
+                          className="rep-input"
+                          placeholder="Rep"
+                          value={repOf(a.id)}
+                          onChange={(e) => scheduleRep(a.id, e.target.value)}
+                          title="Which rep covers this account"
+                        />
                         <button className="btn" onClick={() => openForAccount(a)}>Open account</button>
                       </div>
                     </div>
@@ -913,6 +1222,107 @@ export function BoothTool({ resolved }) {
               </div>
               <pre className="digest">{digest}</pre>
             </>
+          )}
+        </>
+      ) : mode === "repcheckin" ? (
+        <>
+          <p className="muted" style={{ margin: "0 0 10px" }}>
+            Card scan → their territory → tap the accounts they cover → draft a ride-along ask. One screen, no page changes.
+          </p>
+          {!checkin ? (
+            <div className="modes" style={{ marginBottom: 14 }}>
+              <button
+                className="mode cta"
+                onClick={() => (canWebcam ? openShutter("checkin") : checkinCameraRef.current?.click())}
+                disabled={checkinScanning}
+              >
+                {checkinScanning ? "Reading card…" : "📷 Scan their card"}
+              </button>
+              {canWebcam && (
+                <button className="mode" onClick={() => checkinFileRef.current?.click()} disabled={checkinScanning}>
+                  Choose a photo
+                </button>
+              )}
+              <button className="mode" onClick={startCheckin}>Type it instead</button>
+              <input ref={checkinCameraRef} type="file" accept="image/*" capture="environment" onChange={onCheckinCardPicked} style={{ display: "none" }} aria-hidden="true" tabIndex={-1} />
+              <input ref={checkinFileRef} type="file" accept="image/*" onChange={onCheckinCardPicked} style={{ display: "none" }} aria-hidden="true" tabIndex={-1} />
+            </div>
+          ) : (
+            <div className="checkin">
+              {checkinFlash && <p className="muted" style={{ margin: "0 0 12px" }}>{checkinFlash}</p>}
+
+              <div className="two">
+                <div>
+                  <label>Name</label>
+                  <input value={checkin.name} onChange={(e) => patchCheckin({ name: e.target.value })} placeholder="Who's this?" />
+                </div>
+                <div>
+                  <label>Company</label>
+                  <input value={checkin.company} onChange={(e) => patchCheckin({ company: e.target.value })} placeholder="Distributor / brokerage" />
+                </div>
+              </div>
+              <div className="two">
+                <div>
+                  <label>Email</label>
+                  <input value={checkin.email} onChange={(e) => patchCheckin({ email: e.target.value })} placeholder="for the follow-up" />
+                </div>
+                <div>
+                  <label>Phone</label>
+                  <input value={checkin.phone} onChange={(e) => patchCheckin({ phone: e.target.value })} />
+                </div>
+              </div>
+
+              <label>Which states do they cover?</label>
+              <div className="chipbar">
+                {checkinStateOptions.length === 0 && <span className="muted">No account book cached yet — states will list once one loads.</span>}
+                {checkinStateOptions.map(([st, n]) => (
+                  <button
+                    key={st}
+                    className={(checkin.checkinStates || []).includes(st) ? "on" : ""}
+                    onClick={() => toggleCheckinState(st)}
+                  >
+                    {st} <span className="muted">({n})</span>
+                  </button>
+                ))}
+              </div>
+
+              {checkinAccounts.length > 0 && (
+                <>
+                  <label>Tap the accounts they cover</label>
+                  {!checkin.name?.trim() && <p className="muted" style={{ margin: "4px 0" }}>Add their name above first — that's what gets written into the Rep field.</p>}
+                  <div className="chipbar">
+                    {checkinAccounts.map((a) => (
+                      <button
+                        key={a.id}
+                        className={(checkin.linkedAccountIds || []).includes(a.id) ? "on" : ""}
+                        disabled={!checkin.name?.trim()}
+                        onClick={() => toggleLinkedAccount(a)}
+                        title={[a.city, a.state].filter(Boolean).join(", ")}
+                      >
+                        {a.name}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+
+              <label>Notes</label>
+              <textarea value={checkin.notes} onChange={(e) => patchCheckin({ notes: e.target.value })} placeholder="Anything worth remembering about this conversation" />
+
+              <div className="summary">
+                <strong>{checkin.name || "Unnamed contact"}</strong>{checkin.company ? ` · ${checkin.company}` : ""}<br />
+                {checkin.email || "no email"}{checkin.phone ? ` · ${checkin.phone}` : ""}<br />
+                Territory: {(checkin.checkinStates || []).length ? checkin.checkinStates.join(", ") : "none picked yet"}<br />
+                Covers ({(checkin.linkedAccountIds || []).length}): {
+                  checkinAccounts.filter((a) => (checkin.linkedAccountIds || []).includes(a.id)).map((a) => a.name).join(", ") || "—"
+                }
+              </div>
+
+              <div className="acts" style={{ display: "flex", gap: 10, marginTop: 16, flexWrap: "wrap" }}>
+                <button className="btn" onClick={checkinSaveAndDraft} disabled={!checkin.name?.trim()}>Save &amp; draft follow-up</button>
+                <button className="btn ghost" onClick={endCheckin}>New rep</button>
+              </div>
+            </div>
           )}
         </>
       ) : (
@@ -1004,7 +1414,7 @@ export function BoothTool({ resolved }) {
       {shutter && (
         <WebcamShutter
           onClose={() => setShutter(false)}
-          onCapture={(file) => { setShutter(false); ingestCardFile(file); }}
+          onCapture={(file) => { setShutter(false); (shutterTarget === "checkin" ? ingestCheckinCard : ingestCardFile)(file); }}
         />
       )}
 

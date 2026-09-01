@@ -216,6 +216,12 @@ export function newCapture(seed = {}) {
     // COMPANY, contactRole describes the PERSON. A DSR is a person at a distributor — both.
     businessType: seed.businessType || "",
     contactRole: seed.contactRole || "",
+    // Rep check-in (HANDOFF_2026-09-01_ace-fall-show-booth-integration.md, prompt c). Which
+    // states this contact told us they cover, and which accounts got tapped as "theirs" during
+    // the conversation (writes live to the account's Rep field — see crm-outreach.js). Only the
+    // rep-checkin flow ever sets these; every other capture leaves them empty.
+    checkinStates: seed.checkinStates || [],
+    linkedAccountIds: seed.linkedAccountIds || [],
     products: [],                       // [{sku,name,packSize,certification,...}] — real catalog rows
     useCase: seed.useCase || "",
     priceQuestion: false,
@@ -748,6 +754,56 @@ export function recapComposeUrl(capture, opts = {}) {
     // browser, Gmail falls back to its own account chooser instead of composing as it.
     authuser: calendar.address,
   });
+  return `${GMAIL_COMPOSE}&${params.toString()}`;
+}
+
+// ---- Rep check-in: ride-along ask (2026-09-01) -------------------------------------------
+//
+// A different ask than buildRecap(): the contact here is a DSR/broker, not a buyer, and what's
+// being requested is a joint account visit, not a sample or a sales call. Kept as its own
+// builder rather than branching buildRecap — the two will only drift further apart as each grows
+// (buildRecap already threads products/deals/next-step-mode; a ride-along has none of that), and
+// a shared function with source-based branches inside is harder to read than two short ones.
+
+/** The ride-along ask, addressed to the rep by name and grounded in what they just said —
+ *  their territory and the specific accounts they claimed, not a generic "let's connect". */
+export function buildRideAlong(capture, { brandName = "", repName = "", accountNames = [] } = {}) {
+  const first = (capture.name || "").trim().split(/\s+/)[0];
+  const states = capture.checkinStates || [];
+  const lines = [first ? `${first},` : "Hi,", ""];
+
+  lines.push(
+    states.length
+      ? `Great catching up at the show — sounds like you've got ${listPhrase(states)} covered.`
+      : "Great catching up at the show."
+  );
+  if (accountNames.length) {
+    lines.push(`Wanted to follow up on ${listPhrase(accountNames)} specifically.`);
+  }
+  lines.push(
+    "",
+    `I'd like to set up a ride-along so we can visit a few of those accounts together — what does your calendar look like over the next few weeks?`,
+  );
+  if (capture.notes) lines.push("", capture.notes);
+  lines.push("", repName || "", brandName || "");
+  return lines.join("\n").replace(/\n{3,}/g, "\n\n").trim();
+}
+
+function rideAlongSubject(capture, opts = {}) {
+  return `Ride-along? — ${capture.company || opts.brandName || "following up from the show"}`;
+}
+
+/** Same identity-aware compose choice as recapComposeUrl() — Gmail forced onto the tenant's
+ *  shared sales identity when configured, plain mailto: otherwise. Unsent: the rep still taps
+ *  send themselves, same posture as every other draft this tool opens. */
+export function rideAlongComposeUrl(capture, opts = {}) {
+  const { calendar } = opts;
+  const body = buildRideAlong(capture, opts);
+  const subject = rideAlongSubject(capture, opts);
+  if (calendar?.provider !== "google" || !calendar?.address) {
+    return `mailto:${encodeURIComponent(capture.email || "")}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  }
+  const params = new URLSearchParams({ to: capture.email || "", su: subject, body, authuser: calendar.address });
   return `${GMAIL_COMPOSE}&${params.toString()}`;
 }
 
