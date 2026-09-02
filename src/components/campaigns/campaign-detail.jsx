@@ -911,10 +911,18 @@ function ProspectPanel({ c, resolved, scripts = [], enrichment = {}, onEnrich, c
           <span>
             Segment is a <strong>filter</strong>, not the qualified list — {[
               scope.audience.filter.regions?.length && `${scope.audience.filter.regions.join(" / ")}`,
+              scope.audience.filter.states?.length && `${scope.audience.filter.states.join(" / ")}`,
               scope.audience.filter.channels?.length && `${scope.audience.filter.channels.length} channels`,
-            ].filter(Boolean).join(" · ")}. It tracks the CRM as it changes. Import the HubSpot IDs from{" "}
-            <code className="rounded bg-bg px-1 py-0.5 font-mono">{scope.audience.source}</code> into{" "}
-            <code className="rounded bg-bg px-1 py-0.5 font-mono">companyIds</code> to make the scope exact.
+            ].filter(Boolean).join(" · ")}. It tracks the CRM as it changes.{" "}
+            {scope.audience.source ? (
+              <>
+                Import the HubSpot IDs from{" "}
+                <code className="rounded bg-bg px-1 py-0.5 font-mono">{scope.audience.source}</code> into{" "}
+                <code className="rounded bg-bg px-1 py-0.5 font-mono">companyIds</code> to make the scope exact.
+              </>
+            ) : (
+              <>This campaign has no fixed source list — it's meant to stay a live filter, not become exact.</>
+            )}
           </span>
         </p>
       )}
