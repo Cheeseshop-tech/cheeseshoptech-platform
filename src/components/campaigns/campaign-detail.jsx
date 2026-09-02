@@ -19,7 +19,7 @@ import {
   LIFECYCLE, STATUS_TONE, STATUS_LABEL, CHANNELS, readinessOf, canAdvanceTo, groupChecklist, pct, typeLabel,
   CALL_OUTCOMES, OUTCOME_TONE, OUTCOME_LABEL, isCleared, isResolved, hasGap, enrichmentCsv, downloadCsv,
   callSummary, pushToHubspot,
-  scopeOf, segmentEnrichment, geoBreakdown, cityKeyOf,
+  scopeOf, segmentEnrichment, geoBreakdown, cityKeyOf, isLongIsland,
   getRepCalls, saveRepCalls, repCallSummary,
   deleteCampaign,
 } from "@/lib/campaigns.js";
@@ -809,8 +809,10 @@ function ProspectPanel({ c, resolved, scripts = [], enrichment = {}, onEnrich, c
   // Breakdown is computed over the whole segment (so the numbers describe the segment, not the
   // current filter), while `pick` narrows only the call list below it.
   const tree = useMemo(() => geoBreakdown(seg.segment, enrichment), [seg, enrichment]);
+  const longIslandCount = useMemo(() => seg.segment.filter(isLongIsland).length, [seg]);
   const matchesPick = (co) => {
     if (!pick) return true;
+    if (pick.level === "longisland") return isLongIsland(co);
     if (pick.level === "region") return regionOf(co) === pick.key;
     if (pick.level === "state") return (stateOf(co) || "—") === pick.key;
     // Must use the SAME normalization the breakdown buckets with, or clicking "Boston" would
@@ -956,6 +958,16 @@ function ProspectPanel({ c, resolved, scripts = [], enrichment = {}, onEnrich, c
 
         {crm !== undefined && seg.total > 0 && (
           <div className="mt-3">
+            {scope.audience?.filter?.states?.includes("NY") && (
+              <div className="mb-2 flex flex-wrap items-center gap-1.5">
+                <QuickFilterTab active={!pick} onClick={() => setPick(null)}>
+                  All ({seg.total})
+                </QuickFilterTab>
+                <QuickFilterTab active={pick?.level === "longisland"} onClick={() => setPick({ level: "longisland", key: "long-island" })}>
+                  Long Island ({longIslandCount})
+                </QuickFilterTab>
+              </div>
+            )}
             <GeoBreakdown tree={tree} pick={pick} onPick={setPick} />
           </div>
         )}
@@ -1241,6 +1253,27 @@ function Field({ label, value, placeholder, type = "text", disabled, onChange })
 // Region → state → city coverage. Region is what the campaign scopes to; state and city are how
 // the calling gets divided up. Clicking any row narrows the call list to it, so a rep can take a
 // state (or a single city) and work it without scrolling past everyone else's.
+// One-click shortcuts above the region·state·city tree — for a territory that matters enough to
+// name (Long Island, Rick 2026-09-02: "a significant territory") but doesn't map to a single
+// HubSpot state/region bucket, drilling into the tree every time is friction a tab removes.
+function QuickFilterTab({ active, onClick, children }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={[
+        "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand",
+        active
+          ? "border-brand-primary bg-brand-primary text-brand-on-primary"
+          : "border-border text-fg-muted hover:text-fg hover:border-brand-primary",
+      ].join(" ")}
+    >
+      {children}
+    </button>
+  );
+}
+
 function GeoBreakdown({ tree, pick, onPick }) {
   const [open, setOpen] = useState(() => new Set(tree.slice(0, 1).map((r) => r.key)));
   const toggle = (key) => setOpen((s) => {

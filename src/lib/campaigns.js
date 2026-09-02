@@ -672,6 +672,35 @@ export function geoBreakdown(companies, enrichment = {}) {
   return [...regions.values()].map(flatten).sort(rank);
 }
 
+// ---- Long Island quick filter (2026-09-02) -------------------------------------------------
+// Long Island (Nassau + Suffolk counties) isn't a HubSpot state value of its own — it's a set of
+// NY cities — so it can't be scoped the way NJ/RI/MA/CT are on the ACE Fall Show campaign. Rick,
+// 2026-09-02, on seeing the 90 new LI accounts: "can we have a Long Island tab please its a
+// significant territory" (it's Tony's — an Ace Endico rep's — own territory). Curated by city
+// name rather than a zip range: Long Island's 11xxx zips overlap Queens/Brooklyn's, so a zip
+// check would misclassify NYC boroughs as LI. Covers every LI town in the CRM as of the 2026-09-02
+// research pass (11 pre-existing + 51 added that day, Nassau through Montauk).
+const LONG_ISLAND_CITIES = new Set([
+  "oceanside", "new hyde park", "wantagh", "massapequa", "mattituck", "sagaponack",
+  "dix hills", "centereach", "patchogue", "east moriches", "commack",
+  "mineola", "roslyn", "rockville centre", "franklin square", "valley stream", "malverne",
+  "baldwin", "east meadow", "port washington", "farmingdale", "hicksville", "syosset",
+  "plainview", "woodbury", "glen cove", "locust valley", "garden city park",
+  "east islip", "bay shore", "babylon", "north babylon", "west islip", "deer park",
+  "west sayville", "sayville", "blue point", "bellport", "shirley",
+  "huntington", "northport", "cold spring harbor", "kings park", "smithtown", "st. james",
+  "setauket", "port jefferson", "selden", "ronkonkoma",
+  "riverhead", "aquebogue", "cutchogue", "southold", "greenport", "orient",
+  "southampton", "east hampton", "sag harbor", "amagansett", "water mill", "bridgehampton",
+  "westhampton beach", "quogue", "hampton bays", "montauk",
+]);
+
+/** Whether a company sits on Long Island (Nassau/Suffolk) — layers on top of the NY state
+ *  filter rather than replacing it, since LI is a curated city list, not a HubSpot state value. */
+export function isLongIsland(co) {
+  return stateOf(co) === "NY" && LONG_ISLAND_CITIES.has(cityKeyOf(co));
+}
+
 /**
  * Enrichment picture for a campaign's own segment — the numbers the launch gate cares about.
  * `remaining` is what's still to call; `cleared` counts gaps closed on this pass.
