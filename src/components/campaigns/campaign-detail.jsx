@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft, ListChecks, BookOpen, FileText, Users, BarChart3, Plus, X, AlertTriangle,
   CheckCircle2, Copy, Check, ExternalLink, Link2, PhoneCall, ChevronDown, ChevronRight,
-  ScrollText, Download, ClipboardList, UploadCloud,
+  ScrollText, Download, ClipboardList, UploadCloud, Trash2,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card.jsx";
 import { Button } from "@/components/ui/button.jsx";
@@ -14,13 +14,14 @@ import { EmptyState } from "@/components/ui/empty-state.jsx";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose,
 } from "@/components/ui/dialog.jsx";
-import { ProgressBar } from "./campaigns-page.jsx";
+import { ProgressBar, SaveChip, SaveNowButton } from "./campaigns-page.jsx";
 import {
   LIFECYCLE, STATUS_TONE, STATUS_LABEL, CHANNELS, readinessOf, canAdvanceTo, groupChecklist, pct, typeLabel,
   CALL_OUTCOMES, OUTCOME_TONE, OUTCOME_LABEL, isCleared, isResolved, hasGap, enrichmentCsv, downloadCsv,
   callSummary, pushToHubspot,
   scopeOf, segmentEnrichment, geoBreakdown, cityKeyOf,
   getRepCalls, saveRepCalls, repCallSummary,
+  deleteCampaign,
 } from "@/lib/campaigns.js";
 import { getCrmData, CHANNEL_TO_AUDIENCE, regionOf, stateOf } from "@/lib/crm.js";
 // The Library owns content and its approval vocabulary (submitted -> posted / returned).
@@ -38,7 +39,7 @@ import { CONTENT_CATEGORIES, categoryLabel, entryStatus, entryCategory } from "@
 const SECTION_ICON = { checklist: ListChecks, strategy: BookOpen, content: FileText, prospects: Users, salesreps: PhoneCall, results: BarChart3 };
 
 export function CampaignDetail({
-  campaign: c, resolved, onBack, onPatch, entry, canWrite,
+  campaign: c, resolved, onBack, onPatch, onDelete, onSaveNow, entry, canWrite,
   contentItems = [], onAddContent, onPatchContent, onRemoveContent, enrichment = {}, onEnrich, allCampaigns = [], saveState = "idle",
 }) {
   const r = readinessOf(c);
@@ -90,10 +91,11 @@ export function CampaignDetail({
               {c.owner && <span>· owner {c.owner}</span>}
             </div>
           </div>
+          {c.custom && <DeleteCampaignButton c={c} resolved={resolved} canWrite={canWrite} onDeleted={onDelete} />}
         </div>
       </div>
 
-      <LaunchGate c={c} r={r} onSetStatus={setStatus} canWrite={canWrite} />
+      <LaunchGate c={c} r={r} onSetStatus={setStatus} canWrite={canWrite} saveState={saveState} onSaveNow={onSaveNow} />
 
       <Section id="checklist" title="Launch readiness" description="Every required task must be done before this campaign can be marked ready to launch.">
         <ChecklistPanel
@@ -124,7 +126,7 @@ export function CampaignDetail({
         <Section
           id="salesreps"
           title="Sales Rep Contacts"
-          description="The distributor's own team, kept separate from the target-prospect accounts above — who to ask for by name when a rep visits the booth."
+          description="The distributor's own team, kept separate from the target-prospect accounts above — confirm territory, find out whose accounts fit Monti Trentini, and book booth time with that rep for the show."
         >
           <SalesRepPanel reps={c.audience.salesReps} resolved={resolved} canWrite={canWrite} />
         </Section>
@@ -149,6 +151,46 @@ function Section({ id, title, description, children }) {
       </CardHeader>
       <CardContent>{children}</CardContent>
     </Card>
+  );
+}
+
+// Retire a duplicate campaign created from the New Campaign form (2026-09-01, Rick: "there are
+// these 3 instances for the same campaign I want to consolidate"). Only campaigns created that
+// way carry `custom: true` (netlify/functions/campaign-defs.js) — a seeded campaign has no row
+// in that store to delete, so the button never renders for one (gated by `c.custom` at the call
+// site). Two-step confirm since this is a genuine delete, not a hide/archive.
+function DeleteCampaignButton({ c, resolved, canWrite, onDeleted }) {
+  const [confirming, setConfirming] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  if (confirming) {
+    return (
+      <div className="flex items-center gap-2 rounded-base border border-error/40 bg-error/5 px-3 py-2 text-sm">
+        <span className="text-fg">Delete “{c.name}” for good?</span>
+        <Button
+          variant="destructive"
+          size="sm"
+          disabled={busy}
+          onClick={async () => {
+            setBusy(true);
+            const res = await deleteCampaign(resolved, c.id);
+            setBusy(false);
+            if (res.ok) onDeleted?.(c.id);
+            else setError(res.status === 401 || res.status === 403 ? "Admin passcode required" : res.error || "Delete failed");
+          }}
+        >
+          {busy ? "Deleting…" : "Confirm delete"}
+        </Button>
+        <Button variant="ghost" size="sm" onClick={() => { setConfirming(false); setError(""); }}>Cancel</Button>
+        {error && <span className="text-xs text-error">{error}</span>}
+      </div>
+    );
+  }
+  return (
+    <Button variant="outline" size="sm" disabled={!canWrite} onClick={() => setConfirming(true)} title={canWrite ? "Delete this campaign" : "Admin passcode required"}>
+      <Trash2 className="h-3.5 w-3.5" /> Delete campaign
+    </Button>
   );
 }
 
@@ -297,12 +339,16 @@ function RepCallRow({ rep, rec, canWrite, onPatch }) {
 // ---- The gate ------------------------------------------------------------------------------
 // The status control is where the checklist stops being decoration: anything at or past "ready"
 // is disabled while a required task is outstanding, and the reason is named.
-function LaunchGate({ c, r, onSetStatus, canWrite }) {
+function LaunchGate({ c, r, onSetStatus, canWrite, saveState = "idle", onSaveNow }) {
   return (
     <Card className={r.ready ? "border-success" : undefined}>
       <CardContent className="p-5">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="min-w-[16rem] flex-1">
+            <div className="mb-3 flex flex-wrap items-center gap-2">
+              <SaveChip state={saveState} />
+              {onSaveNow && <SaveNowButton state={saveState} onSave={onSaveNow} />}
+            </div>
             <div className="flex items-center gap-2">
               {r.ready
                 ? <CheckCircle2 className="h-5 w-5 text-success" />

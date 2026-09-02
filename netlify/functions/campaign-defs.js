@@ -15,12 +15,20 @@
 // UPSERT keyed by campaign id instead. Simpler for the caller (no need to hold/resend the whole
 // document) and safer if two creates ever raced (each only touches its own key).
 //
-// GET  ?tenant=<id>          → { entries, updatedAt }             (any valid read auth)
-// POST { tenant, campaign }  → { ok, campaign, updatedAt }        (house/client-admin write auth)
+// GET    ?tenant=<id>                      → { entries, updatedAt }        (any valid read auth)
+// POST   { tenant, campaign }               → { ok, campaign, updatedAt }  (house/client-admin write auth)
 //   campaign = { id, type, name, goal, channels, start, end, owner, strategy, audience, serves? }
 //   — id must be unique in this store; src/lib/campaigns.js generates it from the name client-side
 //   and passes the current id list in, so a 409 here should be rare (a genuine race, not the
 //   common case).
+// DELETE ?tenant=<id>&campaignId=<id>       → { ok, updatedAt }             (house/client-admin write auth)
+//   Retires a custom campaign definition (2026-09-01, Rick: consolidating duplicate ACE Fall Show
+//   campaigns created from this same New Campaign form — "there are these 3 instances for the
+//   same campaign I want to consolidate"). Only removes THIS store's entries — seeded campaigns
+//   (src/lib/campaigns.js SEEDS) aren't kept here and can't be deleted through this endpoint.
+//   Leaves any campaign-state.js/-enrichment.js/-rep-calls.js rows for the id as harmless orphans
+//   rather than cascading — those stores are keyed by campaign id and simply stop being read once
+//   nothing references that id.
 //
 // No per-client code — tenant is data.
 
@@ -39,7 +47,7 @@ const CHANNEL_KEYS = ["retail", "dtc", "social", "foodservice"];
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, x-portal-passcode",
 };
 const json = (status, body) => ({
@@ -73,6 +81,34 @@ const rawHandler = async (event, context) => {
       // Blobs unprovisioned/transient: degrade to empty — the tab still renders seeded/webhook
       // definitions rather than erroring out. Same choice as campaign-state.js.
       return json(200, { entries: {}, updatedAt: null, note: String(err?.message || err) });
+    }
+  }
+
+  if (event.httpMethod === "DELETE") {
+    const tenant = (event.queryStringParameters?.tenant || "").replace(/[^a-z0-9-]/gi, "");
+    const campaignId = (event.queryStringParameters?.campaignId || "").toString();
+    if (!tenant || !campaignId) return json(400, { error: "Missing tenant/campaignId" });
+
+    const writeAuth = requireWriteAuth(event, tenant, context);
+    if (!writeAuth.ok) {
+      await logWrite(event, { fn: "campaign-defs", ok: false, status: writeAuth.status, action: "delete" });
+      return jsonUnauthorized(writeAuth);
+    }
+
+    try {
+      connectLambda(event);
+      const store = getStore("campaign-defs");
+      const raw = await store.get(tenant);
+      const entries = raw ? JSON.parse(raw).entries || {} : {};
+      if (!entries[campaignId]) return json(404, { error: "No such custom campaign" });
+
+      delete entries[campaignId];
+      const updatedAt = new Date().toISOString();
+      await store.set(tenant, JSON.stringify({ entries, updatedAt }));
+      await logWrite(event, { fn: "campaign-defs", ok: true, tenant, role: writeAuth.role, action: "delete", campaignId });
+      return json(200, { ok: true, updatedAt });
+    } catch (err) {
+      return json(502, { error: String(err?.message || err) });
     }
   }
 

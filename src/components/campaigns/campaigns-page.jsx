@@ -147,6 +147,12 @@ export function CampaignsPage({ resolved }) {
     setType(campaign.type);
     setOpenId(campaign.id);
   };
+  // A campaign deleted from its detail view (custom/UI-created only — see DeleteCampaignButton)
+  // is already gone server-side by the time this fires; just drop it locally and back out.
+  const handleDeleted = (campaignId) => {
+    setDefs((cur) => (cur || []).filter((d) => d.id !== campaignId));
+    setOpenId(null);
+  };
 
   const campaigns = useMemo(
     () => (defs || []).map((d) => mergeCampaign(d, entries[d.id] || {})),
@@ -195,6 +201,8 @@ export function CampaignsPage({ resolved }) {
           resolved={resolved}
           onBack={() => setOpenId(null)}
           onPatch={(part) => patch(open.id, part)}
+          onDelete={handleDeleted}
+          onSaveNow={flush}
           entry={entries[open.id] || {}}
           contentItems={entriesForCampaign(library, open.id)}
           onAddContent={(piece) => addContent(open.id, piece)}
@@ -363,7 +371,7 @@ export function ProgressBar({ done, total, tone = "brand" }) {
 //   · Failure states KEEP the border and colour — those genuinely need attention, and a
 //     read-only/failed save is the one thing you must not miss.
 // role="status" + aria-live so the transition is announced rather than purely visual.
-function SaveChip({ state }) {
+export function SaveChip({ state }) {
   const map = {
     idle:   ["Auto-saves", "text-fg-muted", false],
     dirty:  ["Auto-saves · Saving…", "text-fg-muted", false],
@@ -390,7 +398,7 @@ function SaveChip({ state }) {
  * write and get a definite answer before closing the laptop. Enabled only when something is
  * actually unsaved, so it can never imply work exists that doesn't.
  */
-function SaveNowButton({ state, onSave }) {
+export function SaveNowButton({ state, onSave }) {
   const [busy, setBusy] = useState(false);
   const unsaved = state === "dirty" || state === "failed" || state === "denied";
   if (!unsaved && state !== "saved") return null;

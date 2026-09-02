@@ -257,18 +257,27 @@ const SEEDS = {
       // MA+CT 45 (~229 total; CT and MA are already fully worked, see the 2026-09-01 task push).
       id: "ace-fall-show-2026",
       type: "enrichment",
-      // Renamed 2026-09-01 (Rick: "combine all the instances of email campaign prospecting and
-      // sales rep work that we will be covering into one tab. Call it ACE FALL SHOW sales rep
-      // and prospect alignment") — this IS that one tab: every ACE Fall Show call list Rick is
-      // working lives on this single campaign, in two sections on its detail page, not spread
-      // across separate cards. (1) Target Prospects/Call console — the target-prospect accounts
-      // across the 5-state footprint, i.e. the prospecting work that otherwise would have sat on
-      // a standalone email campaign. (2) Sales Rep Contacts — Ace Endico's own reps, scoped by
-      // audience.salesReps. Each has its own outcome tracking, since "did we invite this account"
-      // and "did we confirm this rep's territory" are different facts about different objects —
-      // but both live under this one name so there is nothing else to open or reconcile.
+      // Renamed + consolidated 2026-09-01 (Rick: "combine all the instances of email campaign
+      // prospecting and sales rep work that we will be covering into one tab. Call it ACE FALL
+      // SHOW sales rep and prospect alignment" — then, on seeing 3 live cards: "there are these 3
+      // instances for the same campaign I want to consolidate to streamline operations"). This IS
+      // that one tab: every ACE Fall Show call list lives on this single campaign, in two sections
+      // on its detail page, not spread across separate cards. The other two live cards Rick made
+      // from the New Campaign form — "ACE Endico Fall Show — Rep Fit Discovery" (email) and its
+      // "rep qualification (phone pass)" enrichment pass — asked the SAME rep-facing question this
+      // campaign already covers (find the reps whose accounts fit Monti Trentini, book booth time
+      // with them) plus territory confirmation; that ask is folded into the goal/strategy below
+      // and into Sales Rep Contacts' outcome tracking (territory + note fields cover "fit" and
+      // "booth time booked" without a new field). Rick can delete the two duplicate cards himself
+      // now that this one carries everything — see the Delete campaign button on each.
+      // (1) Target Prospects/Call console — the target-prospect accounts across the 5-state
+      // footprint, i.e. the prospecting work that otherwise would have sat on a standalone email
+      // campaign. (2) Sales Rep Contacts — Ace Endico's own reps, scoped by audience.salesReps.
+      // Each has its own outcome tracking, since "did we invite this account" and "did we confirm
+      // this rep's territory and book their booth time" are different facts about different
+      // objects — but both live under this one name so there is nothing else to open or reconcile.
       name: "ACE Fall Show — Sales Rep & Prospect Alignment",
-      goal: "One tab for every ACE Fall Show call list ahead of the Sept 15 show: invite every target-prospect account across the 5-state ACE footprint (NY/NJ/RI/MA/CT), and align with Ace Endico's own reps on who covers what territory — feeding Booth's territory Scope picker and Rep check-in flow either way.",
+      goal: "One tab for every ACE Fall Show call list ahead of the Sept 15 show: invite every target-prospect account across the 5-state ACE footprint (NY/NJ/RI/MA/CT), and work Ace Endico's own reps two ways — confirm who covers what territory, and find out which of their accounts actually fit Monti Trentini specialty cheese so that rep gets booked booth time at the show — feeding Booth's territory Scope picker and Rep check-in flow either way.",
       channels: ["retail"],
       start: "2026-09-01",
       end: "2026-09-15",
@@ -281,8 +290,11 @@ const SEEDS = {
           "calls actually made. Scoped by live region/state filter, not a fixed list, so it never " +
           "drifts from the real book. (2) 60 of Ace Endico's OWN contacts (audience.salesReps) — " +
           "not target prospects, the distributor's own field reps (plus admin/back-office staff " +
-          "not yet pruned out). The ask on this second list is different: confirm which states/" +
-          "accounts each rep actually covers, not whether they'll come to the show.",
+          "not yet pruned out). The ask on this second list is two-fold: confirm which states/" +
+          "accounts each rep actually covers, AND find out whether any of those accounts fit Monti " +
+          "Trentini specialty cheese — a fit is what earns that rep dedicated booth time at the " +
+          "show, not just a name check-in. (Log fit + booth-time notes in the rep's Territory/" +
+          "notes fields on the Sales Rep Contacts call console below.)",
         path: "docs/HANDOFF_2026-09-01_ace-fall-show-booth-integration.md",
       },
       content: [],
@@ -412,6 +424,25 @@ export async function getCampaignDefs(resolved) {
 export async function getCampaigns(resolved) {
   const [sourced, custom] = await Promise.all([getSourcedCampaigns(resolved), getCampaignDefs(resolved)]);
   return [...sourced, ...Object.values(custom.entries || {})];
+}
+
+/**
+ * Retire a custom (UI-created) campaign definition — e.g. a duplicate of a seeded campaign that
+ * grew out of the same New Campaign form (Rick, 2026-09-01: "there are these 3 instances for the
+ * same campaign I want to consolidate"). Only campaigns carrying `custom: true` live in this
+ * store; a seeded campaign has no id here and the server 404s rather than silently no-opping.
+ */
+export async function deleteCampaign(resolved, campaignId) {
+  try {
+    const res = await fetch(
+      `/.netlify/functions/campaign-defs?tenant=${encodeURIComponent(resolved.id)}&campaignId=${encodeURIComponent(campaignId)}`,
+      { method: "DELETE", headers: { ...(await authHeaders()) } },
+    );
+    const data = await res.json().catch(() => ({}));
+    return { ok: res.ok, status: res.status, ...data };
+  } catch (e) {
+    return { ok: false, status: 0, error: String(e?.message || e) };
+  }
 }
 
 /** Turn a campaign name into a valid campaign id (mirrors the server's ID_RE), max 64 chars. */
