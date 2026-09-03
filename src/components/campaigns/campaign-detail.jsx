@@ -208,13 +208,25 @@ function SalesRepPanel({ reps = [], resolved, canWrite }) {
   const callsRef = useRef(calls);
   callsRef.current = calls;
 
+  // CRM-05 follow-up (2026-09-03): getRepCalls() now resolves null on a failed read instead of
+  // a fake {entries:{}} — saveRepCalls() is a full-document last-writer-wins write, so starting
+  // from {} on a failed load and saving one edit would wipe real saved call outcomes. loadOkRef
+  // gates scheduleSave() below.
+  const loadOkRef = useRef(false);
+
   useEffect(() => {
     let alive = true;
-    getRepCalls(resolved).then((d) => { if (alive) setCalls(d.entries || {}); }).catch(() => {});
+    loadOkRef.current = false;
+    getRepCalls(resolved).then((d) => {
+      if (!alive) return;
+      if (d) { loadOkRef.current = true; setCalls(d.entries || {}); }
+      else { setSaveState("load-failed"); }
+    }).catch(() => { if (alive) setSaveState("load-failed"); });
     return () => { alive = false; };
   }, [resolved.id]);
 
   function scheduleSave(next) {
+    if (!loadOkRef.current) { setSaveState("load-failed"); return; } // refuse to save over an unloaded overlay
     setCalls(next);
     setSaveState("dirty");
     if (timer.current) clearTimeout(timer.current);
@@ -1453,6 +1465,7 @@ function RowSaveStatus({ state }) {
     saved:  ["Saved ✓", "text-success"],
     denied: ["Not saved — admin passcode required", "text-warning font-medium"],
     failed: ["Not saved — retry an edit", "text-warning font-medium"],
+    "load-failed": ["Couldn't load saved progress — refresh before editing", "text-warning font-medium"],
   };
   const hit = map[state];
   if (!hit) return <span className="text-xs text-fg-muted">Auto-saves</span>;

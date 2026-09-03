@@ -178,7 +178,12 @@ export async function listAssetsPage({ tenantFolder, legacyFolders, user, cursor
     { headers: { ...(await authHeaders()) } }
   );
   if (res.status === 401) throw new Error(RELOGIN_MSG);
-  if (!res.ok) return { assets: [], nextCursor: null };
+  // CRM-05 follow-up (2026-09-03): any OTHER failure used to silently return an empty page,
+  // indistinguishable from "this folder genuinely has no assets" — the Media Hub grid would just
+  // look empty with no explanation. The 401 case above already throws and media-hub.jsx already
+  // catches that into a "Media didn't load" toast; extending the same throw to every failure
+  // means every failure gets that same visible toast instead of a silent empty grid.
+  if (!res.ok) throw new Error(`Media list failed (${res.status})`);
   const data = await res.json();
   return {
     assets: (data.assets || []).filter((a) => allowed.has(a.approvalState)),

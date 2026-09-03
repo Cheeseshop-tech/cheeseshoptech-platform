@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { getPricingData, fetchInventory, PRICING_BACKEND } from "@/lib/pricing.js";
-import { fetchPublishedPrices, applyPublishedPrices } from "@/lib/prices.js";
+import { fetchPriceState, applyPublishedPrices } from "@/lib/prices.js";
 
 /**
  * Tenant pricing bundle with LIVE inventory and the LIVE PUBLISHED PRICE LIST hydrated over the
@@ -18,7 +18,13 @@ import { fetchPublishedPrices, applyPublishedPrices } from "@/lib/prices.js";
  * Both fetches are awaited together and applied in ONE setData: two independent `setData(base)`
  * calls would race, and whichever landed second would silently drop the other's result.
  *
- * @returns {{ data: object|null, stockSource: "bundled"|"live"|"loading", priceList: object|null }}
+ * CRM-05 follow-up (2026-09-03): priceListSource distinguishes "quoting bundled because nothing
+ * has been published" from "quoting bundled because the live price-list read FAILED" — before
+ * this, both looked identical (priceList: null) and a fetch failure would silently quote stale
+ * bundled costs with no signal anything was wrong, on the tool Rick explicitly designated as
+ * price truth.
+ *
+ * @returns {{ data: object|null, stockSource: "bundled"|"live"|"loading", priceList: object|null, priceListSource: "bundled"|"live"|"unavailable"|"loading" }}
  */
 export function usePricingData(resolved) {
   const [data, setData] = useState(() => getPricingData(resolved));
@@ -26,20 +32,25 @@ export function usePricingData(resolved) {
   // The published price-list doc itself (version, effectiveDate, validUntil, publishedBy) so a
   // surface can SAY which price list it is quoting. null = quoting the bundled catalog.
   const [priceList, setPriceList] = useState(null);
+  const [priceListSource, setPriceListSource] = useState(PRICING_BACKEND === "mock" ? "bundled" : "loading");
 
   useEffect(() => {
     const base = getPricingData(resolved);
     setData(base);
     setPriceList(null);
-    if (!base || PRICING_BACKEND === "mock") { setStockSource("bundled"); return; }
-    setStockSource("loading");
+    if (!base || PRICING_BACKEND === "mock") { setStockSource("bundled"); setPriceListSource("bundled"); return; }
+    setStockSource("loading"); setPriceListSource("loading");
     let alive = true;
-    Promise.all([fetchInventory(resolved.id), fetchPublishedPrices(resolved.id)]).then(([inv, pub]) => {
+    Promise.all([fetchInventory(resolved.id), fetchPriceState(resolved.id)]).then(([inv, priceState]) => {
       if (!alive) return;
       let next = base;
+      const pub = priceState?.published;
       if (pub && pub.prices) {
         next = { ...next, catalog: applyPublishedPrices(next.catalog, pub) };
         setPriceList(pub);
+        setPriceListSource("live");
+      } else {
+        setPriceListSource(priceState?.unavailable ? "unavailable" : "bundled");
       }
       if (inv && inv.skus) { next = { ...next, inventory: inv }; setStockSource("live"); }
       else setStockSource("bundled");
@@ -48,5 +59,5 @@ export function usePricingData(resolved) {
     return () => { alive = false; };
   }, [resolved.id]);
 
-  return { data, stockSource, priceList };
+  return { data, stockSource, priceList, priceListSource };
 }

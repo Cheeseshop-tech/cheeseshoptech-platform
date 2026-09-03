@@ -30,6 +30,12 @@ export function CrmDashboard({ resolved }) {
     return <Gate icon={Plug} title="No CRM connected" desc={`Connect ${resolved.brand.name}'s CRM (HubSpot, etc.) via Make to see live data here.`} />;
   }
   if (data === undefined) return <DashboardSkeleton />;
+  // CRM-05 (2026-09-03): getCrmData() now resolves null (not a fake empty dataset) on a failed
+  // fetch (401/403/5xx) — distinct from "genuinely connected with zero data." Surface that
+  // instead of crashing on data.pipeline / summarize(null) below.
+  if (data === null) {
+    return <Gate icon={AlertCircle} title="CRM unavailable" desc="Couldn't reach HubSpot just now — try refreshing, or sign in again if your session expired." />;
+  }
 
   const s = summarize(data);
   const maxStage = Math.max(...data.pipeline.map((p) => p.value), 1);
@@ -127,6 +133,9 @@ export function OrdersPage({ resolved }) {
   if (!canViewCrm(user)) return <Gate icon={Lock} title="Orders are brand-team only" desc="Your role doesn't include order access." />;
   if (!hasCrm(resolved)) return <Gate icon={Plug} title="No CRM connected" desc="Connect a CRM via Make to see orders." />;
   if (data === undefined) return <DashboardSkeleton />;
+  if (data === null) {
+    return <Gate icon={AlertCircle} title="CRM unavailable" desc="Couldn't reach HubSpot just now — try refreshing, or sign in again if your session expired." />;
+  }
 
   return (
     <div>

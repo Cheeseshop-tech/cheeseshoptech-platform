@@ -51,15 +51,29 @@ export function CampaignsPage({ resolved }) {
   // One ref per store so a debounced flush always writes the latest of each, never a stale copy.
   const refs = useRef({ entries, enrich });
   refs.current = { entries, enrich };
+  // CRM-05 follow-up (2026-09-03): getCampaignState()/getEnrichment() now resolve null on a
+  // failed read instead of a fake {entries:{}}. This is the launch-readiness checklist gate
+  // (canAdvanceTo blocks a send until required tasks are done) AND both stores autosave as a
+  // full-document last-writer-wins write — starting from {} on a failed load and then ticking
+  // one box would silently overwrite real saved checklist/enrichment progress. loadOkRef gates
+  // scheduleSave() below so that can't happen.
+  const loadOkRef = useRef(false);
 
   useEffect(() => {
     let alive = true;
+    loadOkRef.current = false;
     setDefs(undefined); setOpenId(null);
     Promise.all([
       getCampaigns(resolved), getCampaignState(resolved), fetchCatalog(resolved.id), getEnrichment(resolved),
     ]).then(([list, state, cat, e]) => {
       if (!alive) return;
-      setDefs(list); setEntries(state.entries || {}); setLibrary(cat || []); setEnrich(e.entries || {});
+      setDefs(list); setLibrary(cat || []);
+      if (state && e) {
+        loadOkRef.current = true;
+        setEntries(state.entries || {}); setEnrich(e.entries || {});
+      } else {
+        setSaveState("load-failed");
+      }
     });
     return () => { alive = false; };
   }, [resolved.id]);
@@ -102,6 +116,7 @@ export function CampaignsPage({ resolved }) {
   }
 
   function scheduleSave(store, next) {
+    if (!loadOkRef.current) { setSaveState("load-failed"); return; } // refuse to save over an unloaded overlay
     if (store === "entries") setEntries(next);
     else setEnrich(next);
     refs.current = { ...refs.current, [store]: next };
@@ -379,6 +394,7 @@ export function SaveChip({ state }) {
     saved:  ["Auto-saves · Saved ✓", "text-success", false],
     denied: ["Read-only — admin passcode required to save", "text-warning border border-warning", true],
     failed: ["Save failed — retry an edit", "text-warning border border-warning", true],
+    "load-failed": ["Couldn't load saved progress — refresh before editing", "text-warning border border-warning", true],
   };
   const [text, cls, boxed] = map[state] || map.saving;
   return (

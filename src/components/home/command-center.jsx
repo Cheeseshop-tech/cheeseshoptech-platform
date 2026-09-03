@@ -46,7 +46,9 @@ export function CommandCenter({ resolved, onNavigate }) {
         const brandKit = getBrandKit(resolved);
         const catalog = getPricingData(resolved)?.catalog;
         const opportunities = rankOpportunities({ crm, signals, brandKit, catalog });
-        const campaigns = (defs || []).map((d) => mergeCampaign(d, state.entries?.[d.id] || {}));
+        // CRM-05 follow-up: getCampaignState() now resolves null on a failed read — guard the
+        // whole chain, not just .entries, or a failed read throws here instead of degrading.
+        const campaigns = (defs || []).map((d) => mergeCampaign(d, state?.entries?.[d.id] || {}));
         setData({ crm, campaigns, opportunities });
       });
     return () => { alive = false; };

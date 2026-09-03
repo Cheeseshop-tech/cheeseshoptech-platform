@@ -407,23 +407,28 @@ async function getSourcedCampaigns(resolved) {
 // of the app (pill nav, checklist, campaign-state.js overlay) never has to know which source a
 // campaign came from — same id space either way.
 
-/** Custom campaign definitions created in the UI: { entries: {id: def}, updatedAt }. */
+/**
+ * Custom campaign definitions created in the UI: { entries: {id: def}, updatedAt }, or null on a
+ * failed read (CRM-05 follow-up, 2026-09-03 — see getOutreach() in crm.js for the full rationale:
+ * a failed read must not look like "genuinely no custom campaigns", since getCampaigns() below
+ * merges this into the list every other store treats as canonical).
+ */
 export async function getCampaignDefs(resolved) {
   try {
     const res = await fetch(`/.netlify/functions/campaign-defs?tenant=${encodeURIComponent(resolved.id)}`, {
       headers: { ...(await authHeaders()) },
     });
-    if (!res.ok) return { entries: {}, updatedAt: null };
+    if (!res.ok) return null;
     return await res.json();
   } catch {
-    return { entries: {}, updatedAt: null };
+    return null;
   }
 }
 
 /** Campaign definitions for a tenant — seeded/webhook campaigns PLUS any created in the UI. */
 export async function getCampaigns(resolved) {
   const [sourced, custom] = await Promise.all([getSourcedCampaigns(resolved), getCampaignDefs(resolved)]);
-  return [...sourced, ...Object.values(custom.entries || {})];
+  return [...sourced, ...Object.values(custom?.entries || {})];
 }
 
 /**
@@ -480,16 +485,22 @@ export async function createCampaign(resolved, campaign, existingIds = []) {
 // Read: any signed-in tier. Write: house/client-admin passcode (server-enforced by
 // campaign-state.js via requireWriteAuth — the UI only surfaces the 401).
 
-/** { entries: {campaignId: {status, items, custom, hidden, results}}, updatedAt }. */
+/**
+ * { entries: {campaignId: {status, items, custom, hidden, results}}, updatedAt }, or null on a
+ * failed read. CRM-05 follow-up (2026-09-03): this is the launch-readiness checklist gate — a
+ * silent {entries:{}} on a failed read would show every campaign as un-started, and a later
+ * autosave (saveCampaignState is a full-document last-writer-wins write) could overwrite real
+ * checklist progress. Callers must not treat null the same as "nothing checked yet".
+ */
 export async function getCampaignState(resolved) {
   try {
     const res = await fetch(`/.netlify/functions/campaign-state?tenant=${encodeURIComponent(resolved.id)}`, {
       headers: { ...(await authHeaders()) },
     });
-    if (!res.ok) return { entries: {}, updatedAt: null };
+    if (!res.ok) return null;
     return await res.json();
   } catch {
-    return { entries: {}, updatedAt: null };
+    return null;
   }
 }
 
@@ -761,15 +772,17 @@ export function segmentEnrichment(campaign, companies, enrichment = {}, all = []
   };
 }
 
+// CRM-05 follow-up (2026-09-03): null on a failed read (was a fake {entries:{}}) — same
+// last-writer-wins data-loss risk as getCampaignState() above.
 export async function getEnrichment(resolved) {
   try {
     const res = await fetch(`/.netlify/functions/campaign-enrichment?tenant=${encodeURIComponent(resolved.id)}`, {
       headers: { ...(await authHeaders()) },
     });
-    if (!res.ok) return { entries: {}, updatedAt: null };
+    if (!res.ok) return null;
     return await res.json();
   } catch {
-    return { entries: {}, updatedAt: null };
+    return null;
   }
 }
 
@@ -793,16 +806,17 @@ export async function saveEnrichment(resolved, entries) {
 // (audience.salesReps), not live HubSpot company records, so they have no numeric id to key on —
 // this keys by the rep's email instead (see campaign-rep-calls.js).
 
-/** { entries: {[repEmail]: {outcome, territory, note, calledAt}}, updatedAt }. */
+// CRM-05 follow-up (2026-09-03): null on a failed read (was a fake {entries:{}}) — same
+// last-writer-wins data-loss risk (saveRepCalls) as the other overlay stores in this file.
 export async function getRepCalls(resolved) {
   try {
     const res = await fetch(`/.netlify/functions/campaign-rep-calls?tenant=${encodeURIComponent(resolved.id)}`, {
       headers: { ...(await authHeaders()) },
     });
-    if (!res.ok) return { entries: {}, updatedAt: null };
+    if (!res.ok) return null;
     return await res.json();
   } catch {
-    return { entries: {}, updatedAt: null };
+    return null;
   }
 }
 

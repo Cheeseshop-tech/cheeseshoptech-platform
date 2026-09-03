@@ -58,6 +58,14 @@ export function PriceList({ data, resolved, itemsDoc, priceList }) {
 
   const [published, setPublished] = useState(priceList || null);
   const [draft, setDraft] = useState(null);
+  // CRM-05 follow-up (2026-09-03): fetchPriceState() now flags a genuine read failure via
+  // `unavailable` instead of returning the same {published:null} shape as "nothing published
+  // yet". buildPriceMap() below sends a COMPLETE price map on every save, falling back to
+  // draftOf()/publishedOf() for every SKU not actively being typed — so saving on top of a
+  // failed load would silently WIPE every other SKU's real published/draft price override, and
+  // publishing would push that wiped draft live. unavailable blocks Save Draft until a real read
+  // succeeds, and the status line says so instead of falsely claiming no list has been published.
+  const [unavailable, setUnavailable] = useState(false);
   const [log, setLog] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState("");
@@ -78,6 +86,7 @@ export function PriceList({ data, resolved, itemsDoc, priceList }) {
     setPublished(st.published);
     setDraft(st.draft);
     setLog(st.log);
+    setUnavailable(!!st.unavailable);
     setSourceDoc(st.draft?.sourceDoc || st.published?.sourceDoc || null);
     setLoading(false);
     return st;
@@ -85,6 +94,7 @@ export function PriceList({ data, resolved, itemsDoc, priceList }) {
   useEffect(() => { let alive = true; fetchPriceState(resolved?.id).then((st) => {
     if (!alive) return;
     setPublished(st.published); setDraft(st.draft); setLog(st.log);
+    setUnavailable(!!st.unavailable);
     setSourceDoc(st.draft?.sourceDoc || st.published?.sourceDoc || null);
     setLoading(false);
   }); return () => { alive = false; }; }, [resolved?.id]);
@@ -161,6 +171,10 @@ export function PriceList({ data, resolved, itemsDoc, priceList }) {
   }
 
   async function onSaveDraft() {
+    if (unavailable) {
+      toast({ title: "Can't save right now", description: "The current price list couldn't be loaded, so saving would risk wiping every other SKU's price. Refresh and try again.", tone: "warning" });
+      return;
+    }
     const docChanged = (sourceDoc?.publicId || "") !== (draft?.sourceDoc?.publicId || "");
     if (!dirtyCodes.length && !docChanged) { toast({ title: "Nothing changed", description: "Edit a price or attach a document first.", tone: "warning" }); return; }
     if (invalidCodes.length) { toast({ title: "Fix the invalid price(s)", description: invalidCodes.join(", "), tone: "warning" }); return; }
@@ -214,8 +228,11 @@ export function PriceList({ data, resolved, itemsDoc, priceList }) {
         <Stat label="Priced SKUs" value={overrideCount || "—"} />
       </div>
 
-      <p className="rounded-base border border-border bg-surface px-3 py-2 text-xs text-fg-muted">
-        {loading ? "Loading the price list of record…" : published ? (
+      <p className={`rounded-base border px-3 py-2 text-xs ${unavailable ? "border-warning/50 bg-warning/5 text-warning" : "border-border bg-surface text-fg-muted"}`}>
+        {loading ? "Loading the price list of record…" : unavailable ? (
+          <>Couldn't load the price list of record just now — this does NOT mean nothing is published.
+            {" "}Refresh before editing; saving on top of this would risk wiping every other SKU's price.</>
+        ) : published ? (
           <>
             Quoting <b className="text-fg">price list v{published.version}</b>, effective{" "}
             <b className="text-fg">{fmtDate(published.effectiveDate)}</b>

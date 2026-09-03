@@ -190,16 +190,25 @@ export async function getCrmData(resolved, { force = false } = {}) {
   if (!force && hit && Date.now() - hit.at < CRM_TTL_MS) return hit.promise;
 
   // Reads now require the passcode header server-side (2026-07-16) — replay the unlock passcode.
-  // Any failure (incl. 401 from a pre-update unlock with no stashed passcode) degrades to the
-  // empty dataset — dashboard cards hide rather than crash; sign out/in restores the header.
-  // Never cache a failure — a 401/5xx must not pin every surface to an empty account book for
-  // the next five minutes. Note a failed read RESOLVES (with emptyDataset) rather than rejecting,
-  // so the cache entry has to be dropped inside the success path too, not just on .catch().
+  // CRM-05 (2026-09-03): a failed read used to degrade to emptyDataset() here, which is
+  // INDISTINGUISHABLE from a genuinely-empty account book to every caller — crm-page.jsx's
+  // "HubSpot live ✓ 0 accounts" badge can't tell "the fetch 401'd" from "there are truly zero
+  // accounts." Confirmed live: crm-hubspot.js itself does no tenant/portal filtering, so a 200
+  // always means real best-effort HubSpot data; only a non-200 means the call never got real
+  // data. So a failed read now resolves null instead — the same "no data" sentinel getCrmData()
+  // already returns for !hasCrm(resolved), which every current caller already treats as the
+  // no-data case (summarize() returns null, command-center/booth-tool/campaign-detail all guard
+  // with `crm &&` / `crm?.` / `d || null`). crm-page.jsx's existing `if (!crm) { setState("error");
+  // return; }` picks this up for free and shows "CRM unavailable" instead of a false-positive
+  // live badge — no UI change needed.
+  // Never cache a failure — a 401/5xx must not pin every surface to a failed read for the next
+  // five minutes. Note a failed read RESOLVES (with null) rather than rejecting, so the cache
+  // entry has to be dropped inside the success path too, not just on .catch().
   const promise = (async () => {
     const res = await fetch(`/.netlify/functions/crm-hubspot?tenant=${encodeURIComponent(key)}`, {
       headers: { ...(await authHeaders()) },
     });
-    if (!res.ok) { crmCache.delete(key); return emptyDataset(); }
+    if (!res.ok) { crmCache.delete(key); return null; }
     return await res.json();
   })();
 
@@ -216,16 +225,23 @@ function emptyDataset() {
 // Read: any signed-in tier. Write: house/client-admin passcode (server-enforced by
 // crm-outreach.js via requireWriteAuth — the UI only surfaces the 401).
 
-/** { entries: {companyId: {status, note, updatedAt}}, updatedAt } — {} when unset/unavailable. */
+/**
+ * { entries: {companyId: {status, note, updatedAt}}, updatedAt }, or null on a failed read.
+ * CRM-05 follow-up (2026-09-03): this used to degrade to {entries:{}, updatedAt:null} on any
+ * failure — indistinguishable from "genuinely no saved status yet". Because saveOutreach() does
+ * a full-document last-writer-wins write, a caller that silently started from {} on a failed
+ * load and then saved would OVERWRITE real saved status/notes with just its own new edits — a
+ * data-loss risk, not just a display bug. Callers must treat null as "don't start editing yet".
+ */
 export async function getOutreach(resolved) {
   try {
     const res = await fetch(`/.netlify/functions/crm-outreach?tenant=${encodeURIComponent(resolved.id)}`, {
       headers: { ...(await authHeaders()) },
     });
-    if (!res.ok) return { entries: {}, updatedAt: null };
+    if (!res.ok) return null;
     return await res.json();
   } catch {
-    return { entries: {}, updatedAt: null };
+    return null;
   }
 }
 

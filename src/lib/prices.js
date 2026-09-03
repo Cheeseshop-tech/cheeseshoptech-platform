@@ -58,27 +58,29 @@ export function applyPublishedPrices(catalog, published) {
   };
 }
 
-/** Published list + working draft + audit log. Returns nulls/[] rather than throwing, so a
- *  failure here always degrades to "quote the bundled catalog" instead of breaking the tool. */
+/**
+ * Published list + working draft + audit log. Returns nulls/[] rather than throwing, so a
+ * failure here always degrades to "quote the bundled catalog" instead of breaking the tool —
+ * that degrade is deliberate and correct. What was NOT distinguishable (CRM-05 follow-up,
+ * 2026-09-03): "genuinely nothing has ever been published" vs. "the read failed, we don't
+ * actually know" — both looked identical (published: null), and price-list.jsx's admin page
+ * would state outright "No published price list yet" even when a real list exists but the
+ * fetch just failed. `unavailable: true` marks the second case so a caller can say "couldn't
+ * check" instead of asserting an unpublished state that may not be true. Never true in mock
+ * mode or on a genuine (if empty) 200 response — only on a real fetch/network failure.
+ */
 export async function fetchPriceState(tenantId) {
   if (PRICING_BACKEND === "mock") return { published: null, draft: null, log: [] };
   try {
     const res = await fetch(`${ENDPOINT}?tenant=${encodeURIComponent(tenantId)}`, {
       headers: { Accept: "application/json", ...(await authHeaders()) },
     });
-    if (!res.ok) return { published: null, draft: null, log: [] };
+    if (!res.ok) return { published: null, draft: null, log: [], unavailable: true };
     const d = await res.json();
     return { published: d.published || null, draft: d.draft || null, log: Array.isArray(d.log) ? d.log : [] };
   } catch {
-    return { published: null, draft: null, log: [] };
+    return { published: null, draft: null, log: [], unavailable: true };
   }
-}
-
-/** Just the published list — what every quoting surface needs. null = quote the bundle. */
-export async function fetchPublishedPrices(tenantId) {
-  if (PRICING_BACKEND === "mock") return null;
-  const { published } = await fetchPriceState(tenantId);
-  return published;
 }
 
 async function post(payload) {

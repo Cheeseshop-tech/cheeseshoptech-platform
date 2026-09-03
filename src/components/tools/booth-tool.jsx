@@ -269,9 +269,21 @@ export function BoothTool({ resolved }) {
   const outreachRef = useRef(outreach);
   outreachRef.current = outreach;
 
+  // CRM-05 follow-up (2026-09-03): getOutreach() now resolves null on a failed read instead of
+  // a fake {entries:{}}. Starting this panel from a blank overlay is dangerous here specifically
+  // because saveOutreach() is a full-document last-writer-wins write shared with the CRM
+  // console's own editor (crm-page.jsx) — tagging one rep on top of a failed load would silently
+  // wipe every status/note either editor had already saved. loadOkRef gates scheduleRep() below.
+  const loadOkRef = useRef(false);
+
   useEffect(() => {
     let alive = true;
-    getOutreach(resolved).then((d) => { if (alive) setOutreach(d.entries || {}); }).catch(() => {});
+    loadOkRef.current = false;
+    getOutreach(resolved).then((d) => {
+      if (!alive) return;
+      if (d) { loadOkRef.current = true; setOutreach(d.entries || {}); }
+      else { setRepSaveState("load-failed"); }
+    }).catch(() => { if (alive) setRepSaveState("load-failed"); });
     return () => { alive = false; };
   }, [tenantId]);
 
@@ -280,6 +292,7 @@ export function BoothTool({ resolved }) {
   /** Debounced, optimistic save — same 900ms coalesce as the CRM console's note field, so a rep
    *  typing a name doesn't fire a request per keystroke. */
   function scheduleRep(companyId, rep) {
+    if (!loadOkRef.current) { setRepSaveState("load-failed"); return; } // refuse to save over an unloaded overlay
     const next = { ...outreachRef.current, [companyId]: { ...outreachRef.current[companyId], rep, updatedAt: new Date().toISOString() } };
     setOutreach(next);
     setRepSaveState("dirty");
@@ -1150,6 +1163,7 @@ export function BoothTool({ resolved }) {
                 {repSaveState === "dirty" || repSaveState === "saving" ? " Saving rep…"
                   : repSaveState === "denied" ? " Rep not saved — admin passcode required."
                   : repSaveState === "failed" ? " Rep save failed — retry the edit."
+                  : repSaveState === "load-failed" ? " Couldn't load saved rep coverage — refresh before tagging a rep."
                   : ""}
               </p>
               {accountsIn.map((a) => {

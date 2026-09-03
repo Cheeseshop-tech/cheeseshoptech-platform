@@ -96,7 +96,11 @@ export function CrmPage({ resolved, onNavigate }) {
     Promise.all([getCrmData(resolved), getOutreach(resolved)])
       .then(([crm, outreach]) => {
         if (!alive) return;
-        if (!crm) { setState("error"); return; }
+        // CRM-05 follow-up: getOutreach() now resolves null on a failed read (was a fake
+        // {entries:{}}) — treat that the same as a failed crm-hubspot read. Starting the editable
+        // table from a blank overlay would let a subsequent autosave (last-writer-wins) silently
+        // overwrite real saved status/notes with nothing but the new edit.
+        if (!crm || !outreach) { setState("error"); return; }
         setData(crm); setEntries(outreach.entries || {}); setState("ok");
       })
       .catch(() => alive && setState("error"));
