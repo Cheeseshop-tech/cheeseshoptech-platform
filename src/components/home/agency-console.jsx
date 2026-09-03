@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Users, PlugZap, Database, ExternalLink, RefreshCw, CheckCircle2, AlertTriangle, CircleDashed, ShieldCheck, Maximize2, ListChecks } from "lucide-react";
+import { Users, PlugZap, Database, ExternalLink, RefreshCw, CheckCircle2, AlertTriangle, CircleDashed, ShieldCheck, Maximize2, ListChecks, UserPlus } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
 import { Button } from "@/components/ui/button.jsx";
@@ -31,6 +31,7 @@ export function AgencyConsole({ onNavigate }) {
         <TenantPanel clients={clients} onNavigate={onNavigate} />
         <IntegrationPanel clients={clients} />
         <PipelinePanel clients={clients} />
+        <BoothActivityPanel clients={clients} />
         <LoginLogPanel />
       </div>
     </div>
@@ -420,14 +421,21 @@ const SEAMS = [
 const SEAM_PINGS = {
   media: async (tenant, folder) => {
     if (!tenant || !folder) return { ok: false, reason: "no-tenant" };
+    // Full mode, not paged=1 (2026-09-03) — a bare "reachable" told you the seam answered but
+    // nothing about whether the Media Hub is actually usable. Rick's priority-1 dashboard wants
+    // "tagged and described" completeness visible here too, not just in PipelinePanel's
+    // per-tenant table, so the connectivity Test button on this row also reports it.
     const res = await fetch(
-      `/.netlify/functions/media-list?tenant=${encodeURIComponent(tenant)}&folder=${encodeURIComponent(folder)}&paged=1&max_results=1`,
+      `/.netlify/functions/media-list?tenant=${encodeURIComponent(tenant)}&folder=${encodeURIComponent(folder)}`,
       { headers: await authHeaders() }
     );
     if (res.status === 401 || res.status === 403) return { ok: false, reason: "unauthorized" };
     const data = await res.json().catch(() => null);
     if (!res.ok) return { ok: false, reason: /not configured/i.test(data?.error || "") ? "not-configured" : "error", detail: data?.error };
-    return { ok: true, detail: `reachable (${tenant})` };
+    if (!Array.isArray(data)) return { ok: true, detail: `reachable (${tenant})` };
+    if (data.length === 0) return { ok: false, reason: "empty", detail: `reachable, no assets yet (${tenant})` };
+    const complete = data.filter((a) => Array.isArray(a.usage) && a.usage.length && a.description && a.description.trim()).length;
+    return { ok: true, detail: `${data.length} assets · ${complete} tagged & described (${tenant})` };
   },
   pricing: async (tenant) => {
     if (!tenant) return { ok: false, reason: "no-tenant" };
@@ -645,6 +653,35 @@ function IntegrationPanel({ clients }) {
 
 const STALE_DAYS = 14;
 
+// Media Hub tagging completeness (2026-09-03, Rick's priority-1 dashboard: "media hub with all
+// images tagged and described"). Hits media-list.js directly, same as the SEAM_PINGS probes
+// above — full mode (no `paged`), same folder/legacy contract as listAssets(). A fetch failure
+// (mock tenant, missing Cloudinary env, no folder configured) resolves to null so the table just
+// shows "no data" for that tenant instead of throwing — this panel is a snapshot, not a gate.
+async function fetchMediaCompleteness(c) {
+  const folder = c.cloudinaryFolder;
+  if (!folder) return null;
+  const legacy = (c.cloudinaryLegacyFolders || []).length
+    ? `&legacy=${encodeURIComponent(c.cloudinaryLegacyFolders.join(","))}`
+    : "";
+  try {
+    const res = await fetch(
+      `/.netlify/functions/media-list?folder=${encodeURIComponent(folder)}${legacy}&tenant=${encodeURIComponent(c.id)}`,
+      { headers: { ...(await authHeaders()) } }
+    );
+    if (!res.ok) return null;
+    const assets = await res.json().catch(() => null);
+    if (!Array.isArray(assets)) return null;
+    const total = assets.length;
+    const tagged = assets.filter((a) => Array.isArray(a.usage) && a.usage.length).length;
+    const described = assets.filter((a) => a.description && a.description.trim()).length;
+    const complete = assets.filter((a) => Array.isArray(a.usage) && a.usage.length && a.description && a.description.trim()).length;
+    return { total, tagged, described, complete };
+  } catch {
+    return null;
+  }
+}
+
 function PipelinePanel({ clients }) {
   // Live freshness: pull each tenant's inventory from the live store (one mind / one body).
   // fetchInventory returns null for tenants without a live feed → we keep the bundled snapshot.
@@ -653,6 +690,16 @@ function PipelinePanel({ clients }) {
     let alive = true;
     Promise.all(clients.map((c) => fetchInventory(c.id).then((inv) => [c.id, inv]).catch(() => [c.id, null])))
       .then((pairs) => { if (!alive) return; const m = {}; for (const [id, inv] of pairs) if (inv) m[id] = inv; setLiveInv(m); });
+    return () => { alive = false; };
+  }, [clients]);
+
+  // Live Media Hub tagging completeness per tenant — separate effect/state from inventory so a
+  // slow Cloudinary listing never blocks the (usually fast) pricing snapshot from rendering.
+  const [mediaStats, setMediaStats] = useState({});
+  useEffect(() => {
+    let alive = true;
+    Promise.all(clients.map((c) => fetchMediaCompleteness(c).then((s) => [c.id, s])))
+      .then((pairs) => { if (!alive) return; const m = {}; for (const [id, s] of pairs) if (s) m[id] = s; setMediaStats(m); });
     return () => { alive = false; };
   }, [clients]);
 
@@ -675,8 +722,9 @@ function PipelinePanel({ clients }) {
       ageDays,
       stale: ageDays != null && ageDays > STALE_DAYS,
       live: !!liveInv[c.id],
+      media: mediaStats[c.id] || null,
     };
-  }), [clients, liveInv]);
+  }), [clients, liveInv, mediaStats]);
 
   return (
     <Card>
@@ -698,6 +746,7 @@ function PipelinePanel({ clients }) {
               <TableHead>Inventory SKUs</TableHead>
               <TableHead>Commitments</TableHead>
               <TableHead>Catalog images</TableHead>
+              <TableHead>Media tagged</TableHead>
               <TableHead>Decks</TableHead>
               <TableHead>Inventory updated</TableHead>
             </TableRow>
@@ -710,6 +759,22 @@ function PipelinePanel({ clients }) {
                 <TableCell>{r.skus}</TableCell>
                 <TableCell>{r.commitments}</TableCell>
                 <TableCell>{r.images}</TableCell>
+                <TableCell>
+                  {r.media ? (
+                    <span className="inline-flex items-center gap-2">
+                      {r.media.complete}/{r.media.total}
+                      {r.media.total === 0 ? (
+                        <Badge variant="muted">no assets</Badge>
+                      ) : r.media.complete === r.media.total ? (
+                        <Badge variant="success">fully tagged</Badge>
+                      ) : (
+                        <Badge variant="warning"><AlertTriangle className="mr-1 h-3 w-3" />{r.media.total - r.media.complete} need tags/desc</Badge>
+                      )}
+                    </span>
+                  ) : (
+                    <Badge variant="muted">no data</Badge>
+                  )}
+                </TableCell>
                 <TableCell>{r.decks}</TableCell>
                 <TableCell>
                   {r.lastUpdated ? (
@@ -730,6 +795,98 @@ function PipelinePanel({ clients }) {
         <p className="mt-3 text-xs text-fg-muted">
           To refresh: update the source file in the Custom Price List Creator pipeline, regenerate the per-tenant JSON, redeploy. Never edit pricing by hand.
         </p>
+      </CardContent>
+    </Card>
+  );
+}
+
+/* ---------------- Booth capture → HubSpot activity ---------------- */
+
+// Live feed for Rick's priority item 6 ("booth to meeting communicating with hub spot to upload
+// newly captured contact cards"). Booth captures themselves live in localStorage on the rep's own
+// device (booth.js loadBooth/saveBooth) — there is no server-side store of what's sitting
+// unsynced on a phone at a show, so this panel can only show what already reached HubSpot, via
+// the write-action audit log crm-push.js already writes to (write-log.js, house-admin only,
+// docs/TRUST_BY_DESIGN_REVIEW_2026-07-07.md). That's a real visibility gap, not a bug in this
+// panel — flagged in cst-priority-roadmap-2026-09.md so it doesn't get mistaken for "done."
+const BOOTH_WINDOW_DAYS = 7;
+
+function BoothActivityPanel({ clients }) {
+  const [state, setState] = useState("loading"); // "loading" | "error" | "forbidden" | { entries }
+  useEffect(() => {
+    let alive = true;
+    authHeaders()
+      .then((headers) => fetch("/.netlify/functions/write-log", { headers }))
+      .then((r) => {
+        if (r.status === 403) return Promise.reject("forbidden");
+        if (!r.ok) return Promise.reject("error");
+        return r.json();
+      })
+      .then((d) => { if (alive) setState(d && Array.isArray(d.entries) ? d : "error"); })
+      .catch((e) => { if (alive) setState(e === "forbidden" ? "forbidden" : "error"); });
+    return () => { alive = false; };
+  }, []);
+
+  const ok = state && typeof state === "object";
+  const rows = useMemo(() => {
+    if (!ok) return [];
+    const cutoff = Date.now() - BOOTH_WINDOW_DAYS * 86400000;
+    const byTenant = {};
+    for (const c of clients) byTenant[c.id] = { id: c.id, name: c.brand?.name || c.id, pushes: 0, contacts: 0, lastTs: null };
+    for (const e of state.entries) {
+      if (e.fn !== "crm-push" || !e.ok || !e.tenant) continue;
+      if (new Date(e.ts).getTime() < cutoff) continue;
+      const row = byTenant[e.tenant] || (byTenant[e.tenant] = { id: e.tenant, name: e.tenant, pushes: 0, contacts: 0, lastTs: null });
+      row.pushes += 1;
+      row.contacts += e.count || 0;
+      if (!row.lastTs || new Date(e.ts) > new Date(row.lastTs)) row.lastTs = e.ts;
+    }
+    return Object.values(byTenant);
+  }, [ok, state, clients]);
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center gap-3">
+        <PanelIcon icon={UserPlus} />
+        <div>
+          <CardTitle>Booth → HubSpot activity</CardTitle>
+          <CardDescription>
+            Contact cards synced from the booth capture tool in the last {BOOTH_WINDOW_DAYS} days. Captures not yet
+            synced live on the rep's own device until they tap Sync — this only sees what's already landed in HubSpot.
+          </CardDescription>
+        </div>
+        {ok && <Badge variant="success" className="ml-auto"><CheckCircle2 className="mr-1 h-3 w-3" />live</Badge>}
+        {state === "loading" && <Badge variant="muted" className="ml-auto">loading…</Badge>}
+        {state === "forbidden" && <Badge variant="warning" className="ml-auto">house admin only</Badge>}
+        {state === "error" && <Badge variant="muted" className="ml-auto">unavailable</Badge>}
+      </CardHeader>
+      <CardContent>
+        {state === "forbidden" ? (
+          <p className="text-sm text-fg-muted">Sign in with a house admin account to see sync activity.</p>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Tenant</TableHead>
+                <TableHead>Syncs ({BOOTH_WINDOW_DAYS}d)</TableHead>
+                <TableHead>Contacts pushed ({BOOTH_WINDOW_DAYS}d)</TableHead>
+                <TableHead>Last sync</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {(state === "loading" ? [] : rows).map((r) => (
+                <TableRow key={r.id}>
+                  <TableCell className="font-medium">{r.name}</TableCell>
+                  <TableCell>{r.pushes}</TableCell>
+                  <TableCell>{r.contacts}</TableCell>
+                  <TableCell>
+                    {r.lastTs ? new Date(r.lastTs).toLocaleString() : <Badge variant="muted">none in {BOOTH_WINDOW_DAYS}d</Badge>}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
       </CardContent>
     </Card>
   );
