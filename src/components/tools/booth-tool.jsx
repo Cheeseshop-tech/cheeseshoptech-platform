@@ -255,7 +255,7 @@ export function BoothTool({ resolved }) {
   }, [accounts, campaigns, activeScope]);
 
   // Switching scope can drop the region/state/city currently drilled into (e.g. "California"
-  // stops existing once scoped to the 5-state ACE list) — reset to the top rather than leave the
+  // stops existing once scoped to the ACE list) — reset to the top rather than leave the
   // rep staring at a page that no longer matches its own breadcrumb.
   useEffect(() => { setNav({ region: null, state: null, city: null }); }, [scopeId]);
 

@@ -102,6 +102,23 @@ export const CHECKLIST_TEMPLATES = {
 };
 export const templateFor = (type) => CHECKLIST_TEMPLATES[type] || [];
 
+// Pennsylvania, scoped to its 5 largest cities (2026-09-03) — Rick: "add pennsylvania the 5
+// largest towns including Philly" for the ACE Fall Show campaign below. Unlike NY/NJ/RI/MA/CT
+// (each included in FULL on that campaign), PA is wide and mostly rural outside a few metros, so
+// it's scoped down to just its 5 largest cities by population rather than the whole state — via
+// segmentOf()'s `cityAllowlist`, not a display-only grouping like Long Island/NYC boroughs below.
+// Defined here (before SEEDS, not next to isLongIsland/isNYCBorough further down) because SEEDS
+// is a top-level const evaluated at module load, and referencing a later `const` from inside it
+// would hit the temporal dead zone. Population source: apartmentlist.com / areavibes.com,
+// 2026-09-03 — Philadelphia (~1.6M), Pittsburgh (~305K), Allentown (~125K), Reading/Erie both
+// ~90-100K depending on source/year, order between those two doesn't matter for an allow-list.
+// HEADS UP left for Rick, not silently worked around: this excludes real, large HubSpot accounts
+// whose city isn't one of these 5 even though they're clearly big-chain targets — Weis Markets
+// (Sunbury), The Giant Company (Carlisle), Acme Markets (Malvern) all sit in the live PA book
+// today outside these cities. If those should be in scope too, this allowlist needs a rethink
+// (e.g. by company size/chain instead of city) — flag it back rather than assuming.
+const PA_TOP_CITIES = new Set(["philadelphia", "pittsburgh", "allentown", "reading", "erie"]);
+
 // ---- Seeded campaign definitions ----------------------------------------------------------
 // Real campaigns, real state. Fall Tasting's readiness below mirrors the runbook's verified
 // table (2026-07-23): offer + audience are locked, everything else is genuinely outstanding —
@@ -255,6 +272,11 @@ const SEEDS = {
       // in Campaign Management. `filter.states` (not a companyIds snapshot) so the list tracks
       // the live HubSpot book instead of going stale — 2026-09-01 counts: NY 133, NJ 38, RI 13,
       // MA+CT 45 (~229 total; CT and MA are already fully worked, see the 2026-09-01 task push).
+      // UPDATE 2026-09-03 (Rick: "add pennsylvania the 5 largest towns including Philly"): PA
+      // added as a 6th state, but city-scoped rather than full-state like the other five — see
+      // PA_TOP_CITIES near the top of this file for why and the trade-off it makes. 2026-09-03
+      // count: 23 PA accounts in Philadelphia/Pittsburgh/Reading (of 33 total in the state; 10
+      // excluded for being outside the 5 target cities) — total audience now ~252.
       id: "ace-fall-show-2026",
       type: "enrichment",
       // Renamed + consolidated 2026-09-01 (Rick: "combine all the instances of email campaign
@@ -270,25 +292,28 @@ const SEEDS = {
       // and into Sales Rep Contacts' outcome tracking (territory + note fields cover "fit" and
       // "booth time booked" without a new field). Rick can delete the two duplicate cards himself
       // now that this one carries everything — see the Delete campaign button on each.
-      // (1) Target Prospects/Call console — the target-prospect accounts across the 5-state
+      // (1) Target Prospects/Call console — the target-prospect accounts across the ACE
       // footprint, i.e. the prospecting work that otherwise would have sat on a standalone email
       // campaign. (2) Sales Rep Contacts — Ace Endico's own reps, scoped by audience.salesReps.
       // Each has its own outcome tracking, since "did we invite this account" and "did we confirm
       // this rep's territory and book their booth time" are different facts about different
       // objects — but both live under this one name so there is nothing else to open or reconcile.
       name: "ACE Fall Show — Sales Rep & Prospect Alignment",
-      goal: "One tab for every ACE Fall Show call list ahead of the Sept 15 show: invite every target-prospect account across the 5-state ACE footprint (NY/NJ/RI/MA/CT), and work Ace Endico's own reps two ways — confirm who covers what territory, and find out which of their accounts actually fit Monti Trentini specialty cheese so that rep gets booked booth time at the show — feeding Booth's territory Scope picker and Rep check-in flow either way.",
+      goal: "One tab for every ACE Fall Show call list ahead of the Sept 15 show: invite every target-prospect account across the ACE footprint (NY/NJ/RI/MA/CT in full, plus PA's 5 largest cities), and work Ace Endico's own reps two ways — confirm who covers what territory, and find out which of their accounts actually fit Monti Trentini specialty cheese so that rep gets booked booth time at the show — feeding Booth's territory Scope picker and Rep check-in flow either way.",
       channels: ["retail"],
       start: "2026-09-01",
       end: "2026-09-15",
       owner: "Rick Posada",
       strategy: {
         summary:
-          "Two lists, one campaign. (1) 251-ish target-PROSPECT accounts across NY/NJ/RI/MA/CT — " +
-          "227 HubSpot Tasks (call or invite, by account) already created 2026-09-01 covering CT " +
-          "(21/21) and MA (29/29) fully, plus all of NJ (38) and RI (13); NY (133) still needs its " +
-          "calls actually made. Scoped by live region/state filter, not a fixed list, so it never " +
-          "drifts from the real book. (2) 60 of Ace Endico's OWN contacts (audience.salesReps) — " +
+          "Two lists, one campaign. (1) ~252 target-PROSPECT accounts: NY/NJ/RI/MA/CT in full, " +
+          "plus PA narrowed to its 5 largest cities (Philadelphia/Pittsburgh/Allentown/Reading/" +
+          "Erie) added 2026-09-03 — 227 HubSpot Tasks (call or invite, by account) already " +
+          "created 2026-09-01 covering CT (21/21) and MA (29/29) fully, plus all of NJ (38) and " +
+          "RI (13); NY (133) still needs its calls actually made, and PA's 23 accounts are new, " +
+          "no tasks created for them yet. Scoped by live region/state/city filter, not a fixed " +
+          "list, so it never drifts from the real book. (2) 60 of Ace Endico's OWN contacts " +
+          "(audience.salesReps) — " +
           "not target prospects, the distributor's own field reps (plus admin/back-office staff " +
           "not yet pruned out). The ask on this second list is two-fold: confirm which states/" +
           "accounts each rep actually covers, AND find out whether any of those accounts fit Monti " +
@@ -299,11 +324,11 @@ const SEEDS = {
       },
       content: [],
       audience: {
-        label: "ACE Endico footprint — NY/NJ/RI/MA/CT",
-        size: 229,
+        label: "ACE Endico footprint — NY/NJ/RI/MA/CT (full) + PA (Philadelphia/Pittsburgh/Allentown/Reading/Erie)",
+        size: 252,
         exact: false,
         companyIds: [],
-        filter: { states: ["NY", "NJ", "RI", "MA", "CT"] },
+        filter: { states: ["NY", "NJ", "RI", "MA", "CT", "PA"], cityAllowlist: { PA: PA_TOP_CITIES } },
         // Ace Endico's OWN people, not target-prospect accounts — pulled 2026-09-01 from every
         // HubSpot contact associated with the Ace Endico company record (63 total, minus 3
         // department inboxes: Sample Requests, Ace Ap, Receiving Department — not people).
@@ -560,6 +585,14 @@ export function segmentOf(campaign, companies) {
     if (f.regions?.length && !f.regions.includes(regionOf(c))) return false;
     if (f.states?.length && !f.states.includes(stateOf(c))) return false;
     if (f.channels?.length && !f.channels.includes(c.channel)) return false;
+    // Per-state city narrowing (2026-09-03, ACE Fall Show + PA) — most states in `f.states` are
+    // included in FULL (matches every NY/NJ/RI/MA/CT account, same as before this existed); a
+    // state gets narrowed to specific cities ONLY when it has its own entry here, e.g.
+    // `{ PA: PA_TOP_CITIES }`. Layered on top of the state filter, same relationship
+    // isLongIsland()/isNYCBorough() have to the NY state match — those are display-grouping only,
+    // this one actually gates the audience.
+    const cities = f.cityAllowlist?.[stateOf(c)];
+    if (cities && !cities.has(cityKeyOf(c))) return false;
     return true;
   });
 }
@@ -694,6 +727,14 @@ const LONG_ISLAND_CITIES = new Set([
  *  filter rather than replacing it, since LI is a curated city list, not a HubSpot state value. */
 export function isLongIsland(co) {
   return stateOf(co) === "NY" && LONG_ISLAND_CITIES.has(cityKeyOf(co));
+}
+
+/** Whether a company sits in one of Pennsylvania's 5 largest cities — layers on top of the PA
+ *  state filter the same way isLongIsland() layers on NY, but this one is also consumed by
+ *  segmentOf() (via cityAllowlist, see PA_TOP_CITIES near the top of this file) to actually
+ *  narrow the audience, not just for display. */
+export function isPaTopCity(co) {
+  return stateOf(co) === "PA" && PA_TOP_CITIES.has(cityKeyOf(co));
 }
 
 // The five NYC boroughs, as the raw `city` field actually spells them in this CRM (Manhattan
