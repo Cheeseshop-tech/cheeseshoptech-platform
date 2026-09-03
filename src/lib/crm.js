@@ -4,7 +4,7 @@
 // HUBSPOT_TOKEN). Direct-HubSpot, not Make (the Make proxy was deleted 2026-07-16).
 
 import { rolesOf } from "./auth.js";
-import { authHeaders } from "./auth-context.jsx";
+import { readAuthedJson, writeAuthedJson } from "./authed-fetch.js";
 
 export function hasCrm(resolved) {
   return resolved?.crm && resolved.crm !== "none";
@@ -205,11 +205,9 @@ export async function getCrmData(resolved, { force = false } = {}) {
   // five minutes. Note a failed read RESOLVES (with null) rather than rejecting, so the cache
   // entry has to be dropped inside the success path too, not just on .catch().
   const promise = (async () => {
-    const res = await fetch(`/.netlify/functions/crm-hubspot?tenant=${encodeURIComponent(key)}`, {
-      headers: { ...(await authHeaders()) },
-    });
-    if (!res.ok) { crmCache.delete(key); return null; }
-    return await res.json();
+    const data = await readAuthedJson(`/.netlify/functions/crm-hubspot?tenant=${encodeURIComponent(key)}`);
+    if (data === null) crmCache.delete(key);
+    return data;
   })();
 
   crmCache.set(key, { at: Date.now(), promise });
@@ -234,29 +232,15 @@ function emptyDataset() {
  * data-loss risk, not just a display bug. Callers must treat null as "don't start editing yet".
  */
 export async function getOutreach(resolved) {
-  try {
-    const res = await fetch(`/.netlify/functions/crm-outreach?tenant=${encodeURIComponent(resolved.id)}`, {
-      headers: { ...(await authHeaders()) },
-    });
-    if (!res.ok) return null;
-    return await res.json();
-  } catch {
-    return null;
-  }
+  return readAuthedJson(`/.netlify/functions/crm-outreach?tenant=${encodeURIComponent(resolved.id)}`);
 }
 
 /** Save the FULL entries document (last-writer-wins). Resolves {ok, status}. */
 export async function saveOutreach(resolved, entries) {
-  try {
-    const res = await fetch("/.netlify/functions/crm-outreach", {
-      method: "POST",
-      headers: { "content-type": "application/json", ...(await authHeaders()) },
-      body: JSON.stringify({ tenant: resolved.id, entries }),
-    });
-    return { ok: res.ok, status: res.status };
-  } catch {
-    return { ok: false, status: 0 };
-  }
+  const { ok, status } = await writeAuthedJson("/.netlify/functions/crm-outreach", {
+    body: { tenant: resolved.id, entries },
+  });
+  return { ok, status };
 }
 
 // Derived aggregates for the dashboard cards.

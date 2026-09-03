@@ -15,7 +15,7 @@
 // per-client code — tenant is data.
 
 import { rolesOf } from "./auth.js";
-import { authHeaders } from "./auth-context.jsx";
+import { readAuthedJson, writeAuthedJson } from "./authed-fetch.js";
 // Segment filters are expressed in the CRM's own region/state vocabulary — reuse its
 // normalizers rather than a second copy that could disagree about "NJ" vs "New Jersey".
 import { regionOf, stateOf } from "./crm.js";
@@ -391,14 +391,7 @@ export const campaignsAreSample = USE_MOCK;
  *  merged list the UI actually renders. */
 async function getSourcedCampaigns(resolved) {
   if (USE_MOCK) return SEEDS[resolved.id] || [];
-  try {
-    const res = await fetch(`/.netlify/functions/campaigns?tenant=${encodeURIComponent(resolved.id)}`, {
-      headers: { ...(await authHeaders()) },
-    });
-    return res.ok ? await res.json() : [];
-  } catch {
-    return [];
-  }
+  return readAuthedJson(`/.netlify/functions/campaigns?tenant=${encodeURIComponent(resolved.id)}`, { onFail: [] });
 }
 
 // ---- Custom campaign definitions (Netlify Blobs, netlify/functions/campaign-defs.js) -------
@@ -414,15 +407,7 @@ async function getSourcedCampaigns(resolved) {
  * merges this into the list every other store treats as canonical).
  */
 export async function getCampaignDefs(resolved) {
-  try {
-    const res = await fetch(`/.netlify/functions/campaign-defs?tenant=${encodeURIComponent(resolved.id)}`, {
-      headers: { ...(await authHeaders()) },
-    });
-    if (!res.ok) return null;
-    return await res.json();
-  } catch {
-    return null;
-  }
+  return readAuthedJson(`/.netlify/functions/campaign-defs?tenant=${encodeURIComponent(resolved.id)}`);
 }
 
 /** Campaign definitions for a tenant — seeded/webhook campaigns PLUS any created in the UI. */
@@ -438,16 +423,10 @@ export async function getCampaigns(resolved) {
  * store; a seeded campaign has no id here and the server 404s rather than silently no-opping.
  */
 export async function deleteCampaign(resolved, campaignId) {
-  try {
-    const res = await fetch(
-      `/.netlify/functions/campaign-defs?tenant=${encodeURIComponent(resolved.id)}&campaignId=${encodeURIComponent(campaignId)}`,
-      { method: "DELETE", headers: { ...(await authHeaders()) } },
-    );
-    const data = await res.json().catch(() => ({}));
-    return { ok: res.ok, status: res.status, ...data };
-  } catch (e) {
-    return { ok: false, status: 0, error: String(e?.message || e) };
-  }
+  return writeAuthedJson(
+    `/.netlify/functions/campaign-defs?tenant=${encodeURIComponent(resolved.id)}&campaignId=${encodeURIComponent(campaignId)}`,
+    { method: "DELETE" },
+  );
 }
 
 /** Turn a campaign name into a valid campaign id (mirrors the server's ID_RE), max 64 chars. */
@@ -468,17 +447,9 @@ export async function createCampaign(resolved, campaign, existingIds = []) {
   let id = slugify(campaign.name);
   let n = 2;
   while (taken.has(id) && n <= 50) { id = `${slugify(campaign.name)}-${n++}`; }
-  try {
-    const res = await fetch("/.netlify/functions/campaign-defs", {
-      method: "POST",
-      headers: { "content-type": "application/json", ...(await authHeaders()) },
-      body: JSON.stringify({ tenant: resolved.id, campaign: { ...campaign, id } }),
-    });
-    const data = await res.json().catch(() => ({}));
-    return { ok: res.ok, status: res.status, ...data };
-  } catch (e) {
-    return { ok: false, status: 0, error: String(e?.message || e) };
-  }
+  return writeAuthedJson("/.netlify/functions/campaign-defs", {
+    body: { tenant: resolved.id, campaign: { ...campaign, id } },
+  });
 }
 
 // ---- State overlay (status + checklist ticks + results, Netlify Blobs) ---------------------
@@ -493,29 +464,15 @@ export async function createCampaign(resolved, campaign, existingIds = []) {
  * checklist progress. Callers must not treat null the same as "nothing checked yet".
  */
 export async function getCampaignState(resolved) {
-  try {
-    const res = await fetch(`/.netlify/functions/campaign-state?tenant=${encodeURIComponent(resolved.id)}`, {
-      headers: { ...(await authHeaders()) },
-    });
-    if (!res.ok) return null;
-    return await res.json();
-  } catch {
-    return null;
-  }
+  return readAuthedJson(`/.netlify/functions/campaign-state?tenant=${encodeURIComponent(resolved.id)}`);
 }
 
 /** Save the FULL entries document (last-writer-wins). Resolves {ok, status}. */
 export async function saveCampaignState(resolved, entries) {
-  try {
-    const res = await fetch("/.netlify/functions/campaign-state", {
-      method: "POST",
-      headers: { "content-type": "application/json", ...(await authHeaders()) },
-      body: JSON.stringify({ tenant: resolved.id, entries }),
-    });
-    return { ok: res.ok, status: res.status };
-  } catch {
-    return { ok: false, status: 0 };
-  }
+  const { ok, status } = await writeAuthedJson("/.netlify/functions/campaign-state", {
+    body: { tenant: resolved.id, entries },
+  });
+  return { ok, status };
 }
 
 // ---- Authored content + approvals ----------------------------------------------------------
@@ -775,28 +732,14 @@ export function segmentEnrichment(campaign, companies, enrichment = {}, all = []
 // CRM-05 follow-up (2026-09-03): null on a failed read (was a fake {entries:{}}) — same
 // last-writer-wins data-loss risk as getCampaignState() above.
 export async function getEnrichment(resolved) {
-  try {
-    const res = await fetch(`/.netlify/functions/campaign-enrichment?tenant=${encodeURIComponent(resolved.id)}`, {
-      headers: { ...(await authHeaders()) },
-    });
-    if (!res.ok) return null;
-    return await res.json();
-  } catch {
-    return null;
-  }
+  return readAuthedJson(`/.netlify/functions/campaign-enrichment?tenant=${encodeURIComponent(resolved.id)}`);
 }
 
 export async function saveEnrichment(resolved, entries) {
-  try {
-    const res = await fetch("/.netlify/functions/campaign-enrichment", {
-      method: "POST",
-      headers: { "content-type": "application/json", ...(await authHeaders()) },
-      body: JSON.stringify({ tenant: resolved.id, entries }),
-    });
-    return { ok: res.ok, status: res.status };
-  } catch {
-    return { ok: false, status: 0 };
-  }
+  const { ok, status } = await writeAuthedJson("/.netlify/functions/campaign-enrichment", {
+    body: { tenant: resolved.id, entries },
+  });
+  return { ok, status };
 }
 
 // ---- Rep call capture (Netlify Blobs) -------------------------------------------------------
@@ -809,28 +752,14 @@ export async function saveEnrichment(resolved, entries) {
 // CRM-05 follow-up (2026-09-03): null on a failed read (was a fake {entries:{}}) — same
 // last-writer-wins data-loss risk (saveRepCalls) as the other overlay stores in this file.
 export async function getRepCalls(resolved) {
-  try {
-    const res = await fetch(`/.netlify/functions/campaign-rep-calls?tenant=${encodeURIComponent(resolved.id)}`, {
-      headers: { ...(await authHeaders()) },
-    });
-    if (!res.ok) return null;
-    return await res.json();
-  } catch {
-    return null;
-  }
+  return readAuthedJson(`/.netlify/functions/campaign-rep-calls?tenant=${encodeURIComponent(resolved.id)}`);
 }
 
 export async function saveRepCalls(resolved, entries) {
-  try {
-    const res = await fetch("/.netlify/functions/campaign-rep-calls", {
-      method: "POST",
-      headers: { "content-type": "application/json", ...(await authHeaders()) },
-      body: JSON.stringify({ tenant: resolved.id, entries }),
-    });
-    return { ok: res.ok, status: res.status };
-  } catch {
-    return { ok: false, status: 0 };
-  }
+  const { ok, status } = await writeAuthedJson("/.netlify/functions/campaign-rep-calls", {
+    body: { tenant: resolved.id, entries },
+  });
+  return { ok, status };
 }
 
 /** Progress for a rep-qualification pass — same shape as callSummary() reads for accounts. */
@@ -887,17 +816,9 @@ export function enrichmentCsv(rows) {
  * before anything touches the CRM of record.
  */
 export async function pushToHubspot(resolved, rows, { commit = false } = {}) {
-  try {
-    const res = await fetch("/.netlify/functions/crm-push", {
-      method: "POST",
-      headers: { "content-type": "application/json", ...(await authHeaders()) },
-      body: JSON.stringify({ tenant: resolved.id, rows, commit }),
-    });
-    const data = await res.json().catch(() => ({}));
-    return { ok: res.ok, status: res.status, ...data };
-  } catch (e) {
-    return { ok: false, status: 0, error: String(e?.message || e) };
-  }
+  return writeAuthedJson("/.netlify/functions/crm-push", {
+    body: { tenant: resolved.id, rows, commit },
+  });
 }
 
 /**

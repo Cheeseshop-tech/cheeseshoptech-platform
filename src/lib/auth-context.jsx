@@ -59,6 +59,41 @@ export function AuthProvider({ children }) {
     if (!DEV_BYPASS && !PASSCODE_MODE) setUser(currentUser());
   }, []);
 
+  // Proactive session-health check (cst-hardening-plan.md Part A item 4, 2026-09-03).
+  // GoTrue's local session can look signed-in (a cached user object, a JWT that hasn't hit its
+  // own expiry yet) even after the session has actually died server-side — token revoked, user
+  // deleted, refresh token expired. Until now the app only discovered that the same way CRM-05
+  // did: a real read/write 401s mid-render and the failure surfaces as a broken tab, not as
+  // "you're signed out." This verifies the session is still real on mount and whenever the tab
+  // regains focus (the moment someone's most likely to come back to a stale session) — before
+  // any data fetch depends on it — and drops back to signed-out (the existing LoginScreen gate
+  // in require-auth.jsx) the instant it isn't. Dev bypass and passcode mode have no real Identity
+  // session to verify, so this is a no-op there.
+  useEffect(() => {
+    if (DEV_BYPASS || PASSCODE_MODE) return;
+    let cancelled = false;
+
+    const verifySession = async () => {
+      const u = auth.currentUser();
+      if (!u) {
+        if (!cancelled) setUser(null);
+        return;
+      }
+      try {
+        await u.jwt(); // no-op if the token's far from expiry; refreshes (or throws) otherwise
+      } catch {
+        if (!cancelled) setUser(null);
+      }
+    };
+
+    verifySession();
+    window.addEventListener("focus", verifySession);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("focus", verifySession);
+    };
+  }, []);
+
   // Grant the synthetic session after a correct passcode (PasscodeGate calls this).
   // role comes from the gate function's response; defaults to the base client tier.
   // `code` (the raw passcode the person typed) is stashed too — see PASSCODE_VALUE_KEY.
