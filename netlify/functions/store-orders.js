@@ -2,12 +2,25 @@
 // Uses the Admin token (distinct from the Storefront token used for products in store.js).
 // Activates when SHOPIFY_STORE_DOMAIN + SHOPIFY_ADMIN_TOKEN are set; the front end uses it via
 // fetchStoreOrders() when VITE_STORE_BACKEND=shopify. Maps to the portal order shape (src/lib/store.js).
+//
+// AUTH FIX (2026-09-03, cst-hardening-plan.md app-wide guard audit): this had NO auth guard at
+// all, unlike its sibling store.js (products) which got the same gap closed 2026-08-21. Worse
+// than store.js's case -- this returns real customer names + order totals, not just product
+// data -- and was harmless only because Shopify isn't configured for any live tenant yet. Same
+// guard/pattern as store.js: single storefront, not per-tenant today, so the tenant arg is
+// optional (blank = any signed-in role may read).
+
+import { requireReadAuth, jsonUnauthorized } from "./_write-guard.js";
 
 const API_VERSION = "2024-10";
 
 import { withMonitoring } from "./_sentry.js";
 
-const rawHandler = async () => {
+const rawHandler = async (event, context) => {
+  const tenant = (event?.queryStringParameters?.tenant || "").replace(/[^a-z0-9-]/gi, "");
+  const readAuth = requireReadAuth(event, tenant, context);
+  if (!readAuth.ok) return jsonUnauthorized(readAuth);
+
   const domain = process.env.SHOPIFY_STORE_DOMAIN;
   const token = process.env.SHOPIFY_ADMIN_TOKEN;
   if (!domain || !token) {

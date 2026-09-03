@@ -138,7 +138,12 @@ export async function listAssets({ folder, tenantFolder, legacyFolders, user, te
       { headers: { ...(await authHeaders()) } }
     );
     if (res.status === 401) throw new Error(RELOGIN_MSG); // pre-update unlock — no stashed passcode
-    assets = res.ok ? await res.json() : [];
+    // 2026-09-03 hardening audit: any OTHER failure used to silently fall back to [] (empty
+    // grid, indistinguishable from "this folder truly has no images") -- same fix as
+    // listAssetsPage() below (2026-09-03 rollout): throw so callers get a visible failure
+    // instead of a silent empty picker.
+    if (!res.ok) throw new Error(`Media list failed (${res.status})`);
+    assets = await res.json();
   }
   const allowed = visibleStatesFor(user);
   return assets

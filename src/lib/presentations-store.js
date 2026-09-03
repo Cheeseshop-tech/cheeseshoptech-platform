@@ -106,7 +106,17 @@ export async function fetchCatalog(tenantId) {
     const res = await fetch(`/.netlify/functions/content-library?tenant=${encodeURIComponent(tenantId)}`, {
       headers: { ...(await authHeaders()) },
     });
-    const data = res.ok ? await res.json() : { entries: [] };
+    if (!res.ok) {
+      // 2026-09-03 hardening audit: this used to fall back to { entries: [] } here, which is
+      // INDISTINGUISHABLE from a genuinely-empty catalog to the migration check just below --
+      // entries.length === 0 with legacy localStorage entries present would fire scheduleSave()
+      // and overwrite the real remote catalog with just this browser's stale local cache. Treat
+      // an HTTP failure the same safe, read-only way the catch{} block below already does.
+      const legacy = localRead(tenantId);
+      cache.set(tenantId, legacy);
+      return legacy;
+    }
+    const data = await res.json();
     let entries = Array.isArray(data.entries) ? data.entries : [];
 
     const legacy = localRead(tenantId);

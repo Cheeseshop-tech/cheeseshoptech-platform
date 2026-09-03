@@ -2,6 +2,8 @@
 // the real backend (publish to the live store / e-comm API) drops in behind getStore()/saveStore().
 // See the Storefront Admin (src/components/tools/storefront-admin.jsx).
 
+import { readAuthedJson } from "./authed-fetch.js";
+
 const MOCK = {
   montitrentini: {
     theme: {
@@ -64,14 +66,13 @@ export function getStore(resolved) {
 export async function fetchStoreProducts(resolved) {
   const seed = getStore(resolved)?.products || [];
   if (!USE_SHOPIFY) return seed;
-  try {
-    const res = await fetch(`/.netlify/functions/store?tenant=${encodeURIComponent(resolved.id)}`);
-    if (!res.ok) return seed;
-    const data = await res.json();
-    return Array.isArray(data.products) && data.products.length ? data.products : seed;
-  } catch {
-    return seed;
-  }
+  // 2026-09-03 hardening audit: this fetch was missing authHeaders() -- store.js has required
+  // requireReadAuth since 2026-08-21, so every live call was silently 401ing and falling back to
+  // seed forever, with no visible error (masked by this function's OWN intentional fallback
+  // design). Never triggered in practice because Shopify isn't configured for any tenant yet, but
+  // would have made "live mode" permanently indistinguishable from mock once it was.
+  const data = await readAuthedJson(`/.netlify/functions/store?tenant=${encodeURIComponent(resolved.id)}`);
+  return Array.isArray(data?.products) && data.products.length ? data.products : seed;
 }
 
 /** Live web orders for a tenant, via the Shopify Admin API (read_orders) when in shopify mode,
@@ -79,14 +80,10 @@ export async function fetchStoreProducts(resolved) {
 export async function fetchStoreOrders(resolved) {
   const seed = getStore(resolved)?.orders || [];
   if (!USE_SHOPIFY) return seed;
-  try {
-    const res = await fetch(`/.netlify/functions/store-orders?tenant=${encodeURIComponent(resolved.id)}`);
-    if (!res.ok) return seed;
-    const data = await res.json();
-    return Array.isArray(data.orders) && data.orders.length ? data.orders : seed;
-  } catch {
-    return seed;
-  }
+  // Same fix as fetchStoreProducts() above, plus store-orders.js itself gained its FIRST auth
+  // guard in this same pass (2026-09-03) -- it had none at all before.
+  const data = await readAuthedJson(`/.netlify/functions/store-orders?tenant=${encodeURIComponent(resolved.id)}`);
+  return Array.isArray(data?.orders) && data.orders.length ? data.orders : seed;
 }
 
 /** Persist store changes. Mock = no-op (UI shows a saved toast). Real = publish to the store. */
