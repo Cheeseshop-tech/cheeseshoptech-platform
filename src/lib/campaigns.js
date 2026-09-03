@@ -623,6 +623,15 @@ const titleCase = (s) => s.replace(/\b[a-z]/g, (m) => m.toUpperCase());
  * divided: which state is worst, which city is worth an afternoon, how to split a list between
  * two reps. Every level carries the same three numbers so they're comparable at any depth.
  *
+ * NY gets one extra layer between state and city (Rick, 2026-09-02: "start with NY state then
+ * break down into cities in NY state keeping NYC broken down into the boroughs, with Long Island
+ * as a separate sub region in New York state") — Long Island and the five NYC boroughs are each
+ * their own named sub-region, since together they're most of NY's account list and flattening
+ * them into ~80 undifferentiated city rows buried the two territories that actually matter for
+ * dividing the work. Every other NY city (Yonkers, Scarsdale, upstate...) still nests directly
+ * under the state, same as any other state's cities — the sub-region layer only exists where
+ * named.
+ *
  * Counts are computed once per account and rolled UP, so region totals always equal the sum of
  * their states and cities — no level can drift from another.
  */
@@ -649,12 +658,30 @@ export function geoBreakdown(companies, enrichment = {}) {
     const S = R.children.get(sKey);
     bump(S, co, gapped);
 
-    if (!S.children.has(cKey)) {
+    // NY's named sub-regions — see the function comment. `pickLevel` tells the UI which filter
+    // predicate a click on this node should apply (isLongIsland/isNYCBorough), since these nodes
+    // don't correspond to a single state/city value the way every other node here does.
+    let parent = S;
+    if (sKey === "NY") {
+      const subKey = isLongIsland(co) ? "long-island" : isNYCBorough(co) ? "nyc-boroughs" : null;
+      if (subKey) {
+        if (!S.children.has(subKey)) {
+          const node = blank(subKey, subKey === "long-island" ? "Long Island" : "New York City (boroughs)");
+          node.sub = true;
+          node.pickLevel = subKey === "long-island" ? "longisland" : "nycboroughs";
+          S.children.set(subKey, node);
+        }
+        parent = S.children.get(subKey);
+        bump(parent, co, gapped);
+      }
+    }
+
+    if (!parent.children.has(cKey)) {
       const node = blank(cKey, cKey === "—" ? "—" : titleCase(cKey));
       node.variants = new Set();
-      S.children.set(cKey, node);
+      parent.children.set(cKey, node);
     }
-    const C = S.children.get(cKey);
+    const C = parent.children.get(cKey);
     bump(C, co, gapped);
     // Record the qualifier ("North End") when the raw value carried one, so grouping the row
     // doesn't hide which neighbourhoods it covers.
@@ -699,6 +726,16 @@ const LONG_ISLAND_CITIES = new Set([
  *  filter rather than replacing it, since LI is a curated city list, not a HubSpot state value. */
 export function isLongIsland(co) {
   return stateOf(co) === "NY" && LONG_ISLAND_CITIES.has(cityKeyOf(co));
+}
+
+// The five NYC boroughs, as the raw `city` field actually spells them in this CRM (Manhattan
+// itself is stored as "New York", sometimes with a neighbourhood qualifier cityKeyOf() already
+// strips — "New York (Upper East Side)" → "new york").
+const NYC_BOROUGH_CITIES = new Set(["new york", "manhattan", "brooklyn", "queens", "bronx", "staten island"]);
+
+/** Whether a company sits in one of the five NYC boroughs. */
+export function isNYCBorough(co) {
+  return stateOf(co) === "NY" && NYC_BOROUGH_CITIES.has(cityKeyOf(co));
 }
 
 /**

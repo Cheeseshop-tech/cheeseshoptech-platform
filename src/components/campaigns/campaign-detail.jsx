@@ -19,7 +19,7 @@ import {
   LIFECYCLE, STATUS_TONE, STATUS_LABEL, CHANNELS, readinessOf, canAdvanceTo, groupChecklist, pct, typeLabel,
   CALL_OUTCOMES, OUTCOME_TONE, OUTCOME_LABEL, isCleared, isResolved, hasGap, enrichmentCsv, downloadCsv,
   callSummary, pushToHubspot,
-  scopeOf, segmentEnrichment, geoBreakdown, cityKeyOf, isLongIsland,
+  scopeOf, segmentEnrichment, geoBreakdown, cityKeyOf, isLongIsland, isNYCBorough,
   getRepCalls, saveRepCalls, repCallSummary,
   deleteCampaign,
 } from "@/lib/campaigns.js";
@@ -809,10 +809,10 @@ function ProspectPanel({ c, resolved, scripts = [], enrichment = {}, onEnrich, c
   // Breakdown is computed over the whole segment (so the numbers describe the segment, not the
   // current filter), while `pick` narrows only the call list below it.
   const tree = useMemo(() => geoBreakdown(seg.segment, enrichment), [seg, enrichment]);
-  const longIslandCount = useMemo(() => seg.segment.filter(isLongIsland).length, [seg]);
   const matchesPick = (co) => {
     if (!pick) return true;
     if (pick.level === "longisland") return isLongIsland(co);
+    if (pick.level === "nycboroughs") return isNYCBorough(co);
     if (pick.level === "region") return regionOf(co) === pick.key;
     if (pick.level === "state") return (stateOf(co) || "—") === pick.key;
     // Must use the SAME normalization the breakdown buckets with, or clicking "Boston" would
@@ -958,16 +958,6 @@ function ProspectPanel({ c, resolved, scripts = [], enrichment = {}, onEnrich, c
 
         {crm !== undefined && seg.total > 0 && (
           <div className="mt-3">
-            {scope.audience?.filter?.states?.includes("NY") && (
-              <div className="mb-2 flex flex-wrap items-center gap-1.5">
-                <QuickFilterTab active={!pick} onClick={() => setPick(null)}>
-                  All ({seg.total})
-                </QuickFilterTab>
-                <QuickFilterTab active={pick?.level === "longisland"} onClick={() => setPick({ level: "longisland", key: "long-island" })}>
-                  Long Island ({longIslandCount})
-                </QuickFilterTab>
-              </div>
-            )}
             <GeoBreakdown tree={tree} pick={pick} onPick={setPick} />
           </div>
         )}
@@ -1010,7 +1000,7 @@ function ProspectPanel({ c, resolved, scripts = [], enrichment = {}, onEnrich, c
                 ))}
               </div>
               <p className="mt-2 text-xs text-fg-muted">
-                {gaps.length.toLocaleString()} shown{query ? <> matching “{query}”</> : null}{pick ? <> in <strong>{pick.key}</strong></> : null}, ordered by channel tier.
+                {gaps.length.toLocaleString()} shown{query ? <> matching “{query}”</> : null}{pick ? <> in <strong>{pick.level === "longisland" ? "Long Island" : pick.level === "nycboroughs" ? "New York City" : pick.key}</strong></> : null}, ordered by channel tier.
                 {listFilter === "remaining"
                   ? " A row moves to Worked once the outcome is Reached and both the buyer and email are filled in."
                   : " Open any row to correct what was captured before it goes to HubSpot."}
@@ -1253,27 +1243,6 @@ function Field({ label, value, placeholder, type = "text", disabled, onChange })
 // Region → state → city coverage. Region is what the campaign scopes to; state and city are how
 // the calling gets divided up. Clicking any row narrows the call list to it, so a rep can take a
 // state (or a single city) and work it without scrolling past everyone else's.
-// One-click shortcuts above the region·state·city tree — for a territory that matters enough to
-// name (Long Island, Rick 2026-09-02: "a significant territory") but doesn't map to a single
-// HubSpot state/region bucket, drilling into the tree every time is friction a tab removes.
-function QuickFilterTab({ active, onClick, children }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={[
-        "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand",
-        active
-          ? "border-brand-primary bg-brand-primary text-brand-on-primary"
-          : "border-border text-fg-muted hover:text-fg hover:border-brand-primary",
-      ].join(" ")}
-    >
-      {children}
-    </button>
-  );
-}
-
 function GeoBreakdown({ tree, pick, onPick }) {
   const [open, setOpen] = useState(() => new Set(tree.slice(0, 1).map((r) => r.key)));
   const toggle = (key) => setOpen((s) => {
@@ -1325,11 +1294,36 @@ function GeoBreakdown({ tree, pick, onPick }) {
                   </div>
                   {open.has(`${region.key}/${state.key}`) && (
                     <div className="ml-6 border-t border-border/40">
-                      {state.children.map((city) => (
-                        <div key={city.key} className="flex items-center gap-1 pl-2">
-                          <GeoRow node={city} level="city" parentState={state.key} pick={pick} onPick={onPick} />
-                        </div>
-                      ))}
+                      {state.children.map((child) =>
+                        child.sub ? (
+                          // A named sub-region (Long Island / NYC boroughs, see geoBreakdown()) —
+                          // one more expandable level between the state and its cities.
+                          <div key={child.key} className="border-t border-border/40 first:border-t-0">
+                            <div className="flex items-center gap-1 pl-2">
+                              <button
+                                type="button" onClick={() => toggle(`${region.key}/${state.key}/${child.key}`)}
+                                className="p-2 text-fg-muted hover:text-fg" aria-label="Expand"
+                              >
+                                {open.has(`${region.key}/${state.key}/${child.key}`) ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+                              </button>
+                              <GeoRow node={child} level={child.pickLevel} pick={pick} onPick={onPick} />
+                            </div>
+                            {open.has(`${region.key}/${state.key}/${child.key}`) && (
+                              <div className="ml-6 border-t border-border/40">
+                                {child.children.map((city) => (
+                                  <div key={city.key} className="flex items-center gap-1 pl-2">
+                                    <GeoRow node={city} level="city" parentState={state.key} pick={pick} onPick={onPick} />
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div key={child.key} className="flex items-center gap-1 pl-2">
+                            <GeoRow node={child} level="city" parentState={state.key} pick={pick} onPick={onPick} />
+                          </div>
+                        )
+                      )}
                     </div>
                   )}
                 </div>
@@ -1353,7 +1347,7 @@ function GeoRow({ node, level, parentState, pick, onPick }) {
         selected ? "bg-brand-primary/10 ring-1 ring-brand-primary" : "hover:bg-bg",
       ].join(" ")}
     >
-      <span className={level === "region" ? "text-sm font-medium text-fg" : level === "state" ? "text-sm text-fg" : "text-xs text-fg-muted"}>
+      <span className={level === "region" ? "text-sm font-medium text-fg" : level === "state" || level === "longisland" || level === "nycboroughs" ? "text-sm text-fg" : "text-xs text-fg-muted"}>
         {node.label}
         {node.variants?.length > 0 && (
           <span className="ml-1.5 text-[11px] text-fg-muted" title={`Includes ${node.variants.join(", ")}`}>
