@@ -15,7 +15,7 @@ const LOGO_TR = { id: "brand_logo", role: "lock", kind: "image", fit: "contain",
 const LOGO_TL = { id: "brand_logo", role: "lock", kind: "image", fit: "contain", x: 48, y: 34, w: 180, h: 72, z: 9, asset: "$logo", toggle: true, tag: "logo", label: "Logo" };
 
 export const SLIDE_TEMPLATES = [
-  { id: "product-feature/v1", label: "Product Feature", tag: "flagship", family: "product-feature",
+  { id: "product-feature/v1", label: "Product Feature", tag: "flagship", family: "product-feature", mood: "classic",
     canvas: { w: 960, h: 540 },
     slots: [
       ACCENT_BAR,
@@ -88,7 +88,7 @@ export const SLIDE_TEMPLATES = [
       story_block: { headline: "PRODUCED EXCLUSIVELY WITH ITALIAN COW'S MILK FROM A SHORT SUPPLY CHAIN.",
         narrative: "A compact, elastic texture, perfect for slicing — equally at home on panini, sandwiches or a burger." } } },
 
-  { id: "cover/v1", label: "Cover", tag: "opener", family: "cover",
+  { id: "cover/v1", label: "Cover", tag: "opener", family: "cover", mood: "classic",
     canvas: { w: 960, h: 540 },
     slots: [
       { id: "hero_image", role: "var", kind: "image", fit: "cover", x: 0, y: 0, w: 960, h: 540, z: 1, required: true, tag: "hero", label: "Background photo" },
@@ -136,7 +136,7 @@ export const SLIDE_TEMPLATES = [
     ],
     sample: { slide_title: "Crafted for the Modern Table", topic_label: "Squared-format table cheese" } },
 
-  { id: "statement/v1", label: "Statement", tag: "big idea", family: "statement",
+  { id: "statement/v1", label: "Statement", tag: "big idea", family: "statement", mood: "classic",
     canvas: { w: 960, h: 540 },
     slots: [
       { id: "bg", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 540, z: 1, fill: "$primary" },
@@ -148,7 +148,7 @@ export const SLIDE_TEMPLATES = [
     ],
     sample: { slide_title: "Made at altitude in the Trentino mountains.", topic_label: "Casa Finco — casari dal 1925." } },
 
-  { id: "story/v1", label: "Story", tag: "image + copy", family: "story",
+  { id: "story/v1", label: "Story", tag: "image + copy", family: "story", mood: "classic",
     canvas: { w: 960, h: 540 },
     slots: [
       { id: "bg_panel", role: "lock", kind: "shape", x: 0, y: 0, w: 480, h: 540, z: 1, fill: "$cream" },
@@ -209,7 +209,7 @@ export const SLIDE_TEMPLATES = [
       story_block: { headline: "FOUR GENERATIONS · ONE HUNDRED YEARS",
         narrative: "Milk from our neighborhood — within 90 km of our dairy in Grigno — processed, aged and packaged entirely in our own plants." } } },
 
-  { id: "three-up/v1", label: "Three-up (pillars)", tag: "3 columns", family: "three-up",
+  { id: "three-up/v1", label: "Three-up (pillars)", tag: "3 columns", family: "three-up", mood: "classic",
     canvas: { w: 960, h: 540 },
     slots: [
       { id: "bg", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 540, z: 1, fill: "$cream" },
@@ -225,7 +225,7 @@ export const SLIDE_TEMPLATES = [
     ],
     sample: { slide_title: "Why Monti Trentini", cap1: "Alpine milk, within 90 km", cap2: "Family dairy since 1925", cap3: "Certified mountain origin" } },
 
-  { id: "big-stat/v1", label: "Big stat", tag: "one number", family: "big-stat",
+  { id: "big-stat/v1", label: "Big stat", tag: "one number", family: "big-stat", mood: "classic",
     canvas: { w: 960, h: 540 },
     slots: [
       { id: "bg", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 540, z: 1, fill: "$primary" },
@@ -237,7 +237,7 @@ export const SLIDE_TEMPLATES = [
     ],
     sample: { stat_value: "100", slide_title: "years of family cheesemaking" } },
 
-  { id: "quote/v1", label: "Quote", tag: "testimonial", family: "quote",
+  { id: "quote/v1", label: "Quote", tag: "testimonial", family: "quote", mood: "classic",
     canvas: { w: 960, h: 540 },
     slots: [
       { id: "bg", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 540, z: 1, fill: "$paper" },
@@ -254,7 +254,7 @@ export const SLIDE_TEMPLATES = [
     ],
     sample: { slide_title: "From our buyers", quote_block: "The mountain origin you can actually taste.", attribution: "— Specialty buyer, New York" } },
 
-  { id: "product-range/v1", label: "Product range", tag: "catalog cards", family: "product-range",
+  { id: "product-range/v1", label: "Product range", tag: "catalog cards", family: "product-range", mood: "classic",
     canvas: { w: 960, h: 540 },
     slots: [
       { id: "bg", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 540, z: 1, fill: "$cream" },
@@ -273,7 +273,7 @@ export const SLIDE_TEMPLATES = [
     ],
     sample: { slide_title: "The Range", name1: "Asiago DOP", name2: "Squared Table", name3: "Alpine Classic" } },
 
-  { id: "closing/v1", label: "Closing / CTA", tag: "ender", family: "closing",
+  { id: "closing/v1", label: "Closing / CTA", tag: "ender", family: "closing", mood: "classic",
     canvas: { w: 960, h: 540 },
     slots: [
       { id: "bg", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 540, z: 1, fill: "$primary" },
@@ -289,7 +289,7 @@ export const SLIDE_TEMPLATES = [
     ],
     sample: { slide_title: "Let's bring the mountains to your table.", cta: "Request samples", contact: "hello@montitrentini.us" } },
 
-  { id: "image/v1", label: "Image (full-bleed)", tag: "photo + caption", family: "image",
+  { id: "image/v1", label: "Image (full-bleed)", tag: "photo + caption", family: "image", mood: "classic",
     canvas: { w: 960, h: 540 },
     slots: [
       { id: "hero_image", role: "var", kind: "image", fit: "cover", x: 0, y: 0, w: 960, h: 540, z: 1, required: true, tag: "hero", label: "Photo" },
@@ -331,7 +331,7 @@ export const SLIDE_TEMPLATES = [
   // file convention of literal rgba() overlays in `gradient` strings (see cover/v1's scrim, which
   // already does this) — kept neutral (black/white alpha) wherever the mood allows it.
 
-  { id: "cover/v4", label: "Cover — Alta Quota", tag: "restrained editorial", family: "cover",
+  { id: "cover/v4", label: "Cover — Alta Quota", tag: "restrained editorial", family: "cover", mood: "alta-quota",
     canvas: { w: 960, h: 540 },
     slots: [
       { id: "hero_image", role: "var", kind: "image", fit: "cover", x: 0, y: 0, w: 960, h: 540, z: 1, required: true, tag: "hero", label: "Background photo" },
@@ -344,7 +344,7 @@ export const SLIDE_TEMPLATES = [
     ],
     sample: { topic_label: "Casa Finco · Casari dal 1925", slide_title: "Crafted for the Modern Table" } },
 
-  { id: "cover/v5", label: "Cover — Casa Finco", tag: "warm card", family: "cover",
+  { id: "cover/v5", label: "Cover — Casa Finco", tag: "warm card", family: "cover", mood: "casa-finco",
     canvas: { w: 960, h: 540 },
     slots: [
       { id: "bg", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 540, z: 1, fill: "$paper" },
@@ -359,7 +359,7 @@ export const SLIDE_TEMPLATES = [
     ],
     sample: { topic_label: "A Partner For Your Shelves", slide_title: "Happiness Has Plenty of Shapes" } },
 
-  { id: "cover/v6", label: "Cover — Vetta", tag: "bold graphic", family: "cover",
+  { id: "cover/v6", label: "Cover — Vetta", tag: "bold graphic", family: "cover", mood: "vetta",
     canvas: { w: 960, h: 540 },
     slots: [
       { id: "bg", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 540, z: 1, fill: "$ink" },
@@ -373,7 +373,7 @@ export const SLIDE_TEMPLATES = [
     ],
     sample: { topic_label: "Casa Finco · Casari dal 1925", slide_title: "Asiago, Grown at Altitude" } },
 
-  { id: "story/v4", label: "Story — Alta Quota", tag: "restrained editorial", family: "story",
+  { id: "story/v4", label: "Story — Alta Quota", tag: "restrained editorial", family: "story", mood: "alta-quota",
     canvas: { w: 960, h: 540 },
     slots: [
       { id: "hero_image", role: "var", kind: "image", fit: "cover", x: 0, y: 0, w: 960, h: 540, z: 1, required: true, tag: "lifestyle", label: "Photo" },
@@ -390,7 +390,7 @@ export const SLIDE_TEMPLATES = [
     sample: { slide_title: "Why the Mountains Matter",
       story_block: { headline: "THE TERROIR", narrative: "The mountain is the difference your customers can taste." } } },
 
-  { id: "story/v5", label: "Story — Casa Finco", tag: "warm card", family: "story",
+  { id: "story/v5", label: "Story — Casa Finco", tag: "warm card", family: "story", mood: "casa-finco",
     canvas: { w: 960, h: 540 },
     slots: [
       { id: "bg", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 540, z: 1, fill: "$paper" },
@@ -409,7 +409,7 @@ export const SLIDE_TEMPLATES = [
     sample: { slide_title: "A Hundred-Year Story",
       story_block: { headline: "ORIGIN", narrative: "The mountain origin isn't a marketing line; it's the product." } } },
 
-  { id: "story/v6", label: "Story — Vetta", tag: "bold graphic", family: "story",
+  { id: "story/v6", label: "Story — Vetta", tag: "bold graphic", family: "story", mood: "vetta",
     canvas: { w: 960, h: 540 },
     slots: [
       { id: "bg", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 540, z: 1, fill: "$ink" },
@@ -429,7 +429,7 @@ export const SLIDE_TEMPLATES = [
     sample: { topic_label: "02 · Terroir", slide_title: "Why the Mountains Matter",
       story_block: { headline: "THE TERROIR", narrative: "The mountain is the difference your customers can taste." } } },
 
-  { id: "product-feature/v4", label: "Product Feature — Alta Quota", tag: "restrained editorial", family: "product-feature",
+  { id: "product-feature/v4", label: "Product Feature — Alta Quota", tag: "restrained editorial", family: "product-feature", mood: "alta-quota",
     canvas: { w: 960, h: 540 },
     slots: [
       { id: "bg_panel", role: "lock", kind: "shape", x: 0, y: 0, w: 420, h: 540, z: 1, fill: "$paper" },
@@ -450,7 +450,7 @@ export const SLIDE_TEMPLATES = [
     sample: { slide_title: "Italian Certified Excellence", topic_label: "Special squared format cheese",
       story_block: { headline: "PRODUCED EXCLUSIVELY WITH ITALIAN COW'S MILK.", narrative: "A compact, elastic texture, perfect for slicing." } } },
 
-  { id: "product-feature/v5", label: "Product Feature — Casa Finco", tag: "warm card", family: "product-feature",
+  { id: "product-feature/v5", label: "Product Feature — Casa Finco", tag: "warm card", family: "product-feature", mood: "casa-finco",
     canvas: { w: 960, h: 540 },
     slots: [
       { id: "bg", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 540, z: 1, fill: "$paper" },
@@ -472,7 +472,7 @@ export const SLIDE_TEMPLATES = [
     sample: { slide_title: "Italian Certified Excellence", topic_label: "Special squared format cheese",
       story_block: { headline: "PRODUCED EXCLUSIVELY WITH ITALIAN COW'S MILK.", narrative: "A compact, elastic texture, perfect for slicing." } } },
 
-  { id: "product-feature/v6", label: "Product Feature — Vetta", tag: "bold graphic", family: "product-feature",
+  { id: "product-feature/v6", label: "Product Feature — Vetta", tag: "bold graphic", family: "product-feature", mood: "vetta",
     canvas: { w: 960, h: 540 },
     slots: [
       { id: "bg", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 540, z: 1, fill: "$ink" },
@@ -492,7 +492,7 @@ export const SLIDE_TEMPLATES = [
     sample: { slide_title: "Italian Certified Excellence", topic_label: "Special squared format cheese",
       story_block: { headline: "PRODUCED EXCLUSIVELY WITH ITALIAN COW'S MILK.", narrative: "A compact, elastic texture, perfect for slicing." } } },
 
-  { id: "big-stat/v2", label: "Big stat — Alta Quota", tag: "restrained editorial", family: "big-stat",
+  { id: "big-stat/v2", label: "Big stat — Alta Quota", tag: "restrained editorial", family: "big-stat", mood: "alta-quota",
     canvas: { w: 960, h: 540 },
     slots: [
       { id: "bg", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 540, z: 1, fill: "$paper" },
@@ -506,7 +506,7 @@ export const SLIDE_TEMPLATES = [
     ],
     sample: { stat_value: "9", slide_title: "months aged" } },
 
-  { id: "big-stat/v3", label: "Big stat — Casa Finco", tag: "warm card", family: "big-stat",
+  { id: "big-stat/v3", label: "Big stat — Casa Finco", tag: "warm card", family: "big-stat", mood: "casa-finco",
     canvas: { w: 960, h: 540 },
     slots: [
       { id: "bg", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 540, z: 1, fill: "$paper" },
@@ -520,7 +520,7 @@ export const SLIDE_TEMPLATES = [
     ],
     sample: { stat_value: "9", slide_title: "months aged" } },
 
-  { id: "big-stat/v4", label: "Big stat — Vetta", tag: "bold graphic", family: "big-stat",
+  { id: "big-stat/v4", label: "Big stat — Vetta", tag: "bold graphic", family: "big-stat", mood: "vetta",
     canvas: { w: 960, h: 540 },
     slots: [
       { id: "bg", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 540, z: 1, fill: "$ink" },
@@ -536,7 +536,7 @@ export const SLIDE_TEMPLATES = [
     ],
     sample: { stat_value: "9", slide_title: "months aged" } },
 
-  { id: "closing/v2", label: "Closing — Alta Quota", tag: "restrained editorial", family: "closing",
+  { id: "closing/v2", label: "Closing — Alta Quota", tag: "restrained editorial", family: "closing", mood: "alta-quota",
     canvas: { w: 960, h: 540 },
     slots: [
       { id: "hero_image", role: "var", kind: "image", fit: "cover", x: 0, y: 0, w: 960, h: 260, z: 1, tag: "hero", label: "Photo (optional)" },
@@ -553,7 +553,7 @@ export const SLIDE_TEMPLATES = [
     ],
     sample: { slide_title: "Let's bring the mountains to your table.", cta: "Request samples", contact: "hello@montitrentini.us" } },
 
-  { id: "closing/v3", label: "Closing — Casa Finco", tag: "warm card", family: "closing",
+  { id: "closing/v3", label: "Closing — Casa Finco", tag: "warm card", family: "closing", mood: "casa-finco",
     canvas: { w: 960, h: 540 },
     slots: [
       { id: "bg", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 540, z: 1, fill: "$mint" },
@@ -569,7 +569,7 @@ export const SLIDE_TEMPLATES = [
     ],
     sample: { slide_title: "Let's bring the mountains to your table.", cta: "Request samples", contact: "hello@montitrentini.us" } },
 
-  { id: "closing/v4", label: "Closing — Vetta", tag: "bold graphic", family: "closing",
+  { id: "closing/v4", label: "Closing — Vetta", tag: "bold graphic", family: "closing", mood: "vetta",
     canvas: { w: 960, h: 540 },
     slots: [
       { id: "bg", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 540, z: 1, fill: "$ink" },
@@ -586,6 +586,256 @@ export const SLIDE_TEMPLATES = [
       LOGO_TC,
     ],
     sample: { topic_label: "A Partner For Your Shelves", slide_title: "Happiness Has Plenty of Shapes", cta: "Request samples", contact: "hello@montitrentini.us" } },
+
+  // 2026-09-07 — five more slide types per mood (Statement, Quote, Product range, Three-up,
+  // Image), completing each mood's own 10-slide storyline. Design language for each pulls from
+  // the same original hand-authored deck CSS as the first five mood variants (comp1 = Alta
+  // Quota's restrained-editorial rules/list-rows, comp2 = Casa Finco's rounded pull-cards/tiles,
+  // comp3 = Vetta's ink-canvas ribbons/dividers) — see docs reference cached in the build notes.
+  // Same slot-id vocabulary as every other family member (slide_title, quote_block,
+  // attribution, name1/2/3, cap1/2/3, topic_label) so Stage 0/1 and Stage 2 need zero changes.
+
+  { id: "statement/v4", label: "Statement — Alta Quota", tag: "restrained editorial", family: "statement", mood: "alta-quota",
+    canvas: { w: 960, h: 540 },
+    slots: [
+      { id: "bg", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 540, z: 1, fill: "$paper" },
+      { id: "rule_line", role: "lock", kind: "shape", x: 110, y: 150, w: 60, h: 2, z: 5, fill: "$sage" },
+      { id: "slide_title", role: "var", as: "title", kind: "text", x: 110, y: 180, w: 740, h: 200, z: 5, fit: "shrink",
+        font: { font: "$display", size: 42, italic: true, color: "$ink", align: "left" }, label: "Statement" },
+      { id: "topic_label", role: "var", kind: "text", x: 110, y: 420, w: 640, h: 40, z: 5, fit: "shrink",
+        font: { font: "$ui", size: 13, uppercase: true, bold: true, color: "$primary", align: "left" }, label: "Attribution" },
+      ACCENT_BAR, LOGO_TR,
+    ],
+    sample: { slide_title: "A new taste for the future.", topic_label: "Casa Finco — casari dal 1925." } },
+
+  { id: "statement/v5", label: "Statement — Casa Finco", tag: "warm card", family: "statement", mood: "casa-finco",
+    canvas: { w: 960, h: 540 },
+    slots: [
+      { id: "bg", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 540, z: 1, fill: "$mint" },
+      { id: "card", role: "lock", kind: "shape", x: 110, y: 100, w: 740, h: 340, z: 2, fill: "$cream", radius: 28 },
+      { id: "accent_edge", role: "lock", kind: "shape", x: 110, y: 100, w: 8, h: 340, z: 3, fill: "$accent" },
+      { id: "slide_title", role: "var", as: "title", kind: "text", x: 160, y: 150, w: 640, h: 180, z: 5, fit: "shrink",
+        font: { font: "$display", size: 34, italic: true, bold: true, color: "$primary", align: "left" }, label: "Statement" },
+      { id: "topic_label", role: "var", kind: "text", x: 160, y: 350, w: 600, h: 40, z: 5, fit: "shrink",
+        font: { font: "$ui", size: 13, uppercase: true, bold: true, color: "$accent", align: "left" }, label: "Attribution" },
+      LOGO_TC,
+    ],
+    sample: { slide_title: "A new taste for the future.", topic_label: "Casa Finco — casari dal 1925." } },
+
+  { id: "statement/v6", label: "Statement — Vetta", tag: "bold graphic", family: "statement", mood: "vetta",
+    canvas: { w: 960, h: 540 },
+    slots: [
+      { id: "bg", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 540, z: 1, fill: "$ink" },
+      { id: "ribbon", role: "lock", kind: "shape", x: 330, y: 100, w: 300, h: 40, z: 4, fill: "$accent" },
+      { id: "topic_label", role: "var", kind: "text", x: 330, y: 100, w: 300, h: 40, z: 5, fit: "shrink", vcenter: true,
+        font: { font: "$ui", size: 12, uppercase: true, bold: true, color: "$ink", align: "center" }, label: "Kicker" },
+      { id: "slide_title", role: "var", as: "title", kind: "text", x: 80, y: 170, w: 800, h: 240, z: 5, fit: "shrink",
+        font: { font: "$display", size: 50, italic: true, bold: true, gradient: "linear-gradient(120deg, $sage, $accent)", align: "center" }, label: "Statement" },
+    ],
+    sample: { topic_label: "Motto", slide_title: "High level of happiness." } },
+
+  { id: "quote/v2", label: "Quote — Alta Quota", tag: "restrained editorial", family: "quote", mood: "alta-quota",
+    canvas: { w: 960, h: 540 },
+    slots: [
+      { id: "bg", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 540, z: 1, fill: "$paper" },
+      { id: "quote_rule", role: "lock", kind: "shape", x: 110, y: 140, w: 3, h: 220, z: 4, fill: "$primary" },
+      { id: "slide_title", role: "var", as: "title", kind: "text", x: 140, y: 100, w: 700, h: 36, z: 5, fit: "shrink",
+        font: { font: "$ui", size: 13, uppercase: true, bold: true, color: "$sage", align: "left" }, label: "Eyebrow" },
+      { id: "quote_block", role: "var", kind: "text", x: 140, y: 150, w: 680, h: 210, z: 5, fit: "shrink",
+        font: { font: "$display", size: 30, italic: true, color: "$primary", align: "left" }, label: "Quote" },
+      { id: "attribution", role: "var", kind: "text", x: 140, y: 400, w: 680, h: 40, z: 5, fit: "shrink",
+        font: { font: "$ui", size: 15, color: "$charcoal", align: "left" }, label: "Attribution" },
+      ACCENT_BAR, LOGO_TR,
+    ],
+    sample: { slide_title: "From our buyers", quote_block: "The mountain origin you can actually taste.", attribution: "— Specialty buyer, New York" } },
+
+  { id: "quote/v3", label: "Quote — Casa Finco", tag: "warm card", family: "quote", mood: "casa-finco",
+    canvas: { w: 960, h: 540 },
+    slots: [
+      { id: "bg", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 540, z: 1, fill: "$mint" },
+      { id: "card", role: "lock", kind: "shape", x: 110, y: 90, w: 740, h: 360, z: 2, fill: "$paper", radius: 20 },
+      { id: "accent_edge", role: "lock", kind: "shape", x: 110, y: 90, w: 10, h: 360, z: 3, fill: "$accent" },
+      { id: "slide_title", role: "var", as: "title", kind: "text", x: 160, y: 130, w: 640, h: 32, z: 5, fit: "shrink",
+        font: { font: "$ui", size: 12, uppercase: true, bold: true, color: "$accent", align: "left" }, label: "Eyebrow" },
+      { id: "quote_block", role: "var", kind: "text", x: 160, y: 175, w: 640, h: 190, z: 5, fit: "shrink",
+        font: { font: "$display", size: 28, italic: true, color: "$primary", align: "left" }, label: "Quote" },
+      { id: "attribution", role: "var", kind: "text", x: 160, y: 390, w: 640, h: 40, z: 5, fit: "shrink",
+        font: { font: "$ui", size: 15, bold: true, color: "$ink", align: "left" }, label: "Attribution" },
+      LOGO_TC,
+    ],
+    sample: { slide_title: "From our buyers", quote_block: "The mountain origin you can actually taste.", attribution: "— Specialty buyer, New York" } },
+
+  { id: "quote/v4", label: "Quote — Vetta", tag: "bold graphic", family: "quote", mood: "vetta",
+    canvas: { w: 960, h: 540 },
+    slots: [
+      { id: "bg", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 540, z: 1, fill: "$ink" },
+      { id: "ribbon", role: "lock", kind: "shape", x: 110, y: 90, w: 260, h: 40, z: 4, fill: "$accent" },
+      { id: "slide_title", role: "var", as: "title", kind: "text", x: 126, y: 90, w: 228, h: 40, z: 5, fit: "shrink", vcenter: true,
+        font: { font: "$ui", size: 12, uppercase: true, bold: true, color: "$ink", align: "left" }, label: "Eyebrow" },
+      { id: "quote_block", role: "var", kind: "text", x: 110, y: 160, w: 760, h: 220, z: 5, fit: "shrink",
+        font: { font: "$display", size: 34, italic: true, color: "$cream", align: "left" }, label: "Quote" },
+      { id: "attribution", role: "var", kind: "text", x: 110, y: 420, w: 760, h: 40, z: 5, fit: "shrink",
+        font: { font: "$ui", size: 15, color: "$sage", align: "left" }, label: "Attribution" },
+      LOGO_TR,
+    ],
+    sample: { slide_title: "From our buyers", quote_block: "The mountain origin you can actually taste.", attribution: "— Specialty buyer, New York" } },
+
+  { id: "product-range/v2", label: "Product range — Alta Quota", tag: "restrained editorial", family: "product-range", mood: "alta-quota",
+    canvas: { w: 960, h: 540 },
+    slots: [
+      { id: "bg", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 540, z: 1, fill: "$paper" },
+      { id: "slide_title", role: "var", as: "title", kind: "text", x: 90, y: 66, w: 780, h: 50, z: 5, fit: "shrink",
+        font: { font: "$display", size: 28, italic: true, color: "$ink", align: "left" }, label: "Title" },
+      { id: "idx1", role: "lock", kind: "text", x: 90, y: 172, w: 40, h: 34, z: 5, font: { font: "$display", size: 20, italic: true, color: "$sage", align: "left" } },
+      { id: "row1_rule", role: "lock", kind: "shape", x: 90, y: 168, w: 780, h: 1, z: 4, fill: "rgba(20,20,19,.15)" },
+      { id: "name1", role: "var", kind: "text", x: 140, y: 172, w: 650, h: 36, z: 5, fit: "shrink", font: { font: "$ui", size: 17, bold: true, color: "$ink", align: "left" }, label: "Product 1 name" },
+      { id: "idx2", role: "lock", kind: "text", x: 90, y: 262, w: 40, h: 34, z: 5, font: { font: "$display", size: 20, italic: true, color: "$sage", align: "left" } },
+      { id: "row2_rule", role: "lock", kind: "shape", x: 90, y: 258, w: 780, h: 1, z: 4, fill: "rgba(20,20,19,.15)" },
+      { id: "name2", role: "var", kind: "text", x: 140, y: 262, w: 650, h: 36, z: 5, fit: "shrink", font: { font: "$ui", size: 17, bold: true, color: "$ink", align: "left" }, label: "Product 2 name" },
+      { id: "idx3", role: "lock", kind: "text", x: 90, y: 352, w: 40, h: 34, z: 5, font: { font: "$display", size: 20, italic: true, color: "$sage", align: "left" } },
+      { id: "row3_rule", role: "lock", kind: "shape", x: 90, y: 348, w: 780, h: 1, z: 4, fill: "rgba(20,20,19,.15)" },
+      { id: "name3", role: "var", kind: "text", x: 140, y: 352, w: 650, h: 36, z: 5, fit: "shrink", font: { font: "$ui", size: 17, bold: true, color: "$ink", align: "left" }, label: "Product 3 name" },
+      { id: "row4_rule", role: "lock", kind: "shape", x: 90, y: 442, w: 780, h: 1, z: 4, fill: "rgba(20,20,19,.15)" },
+      ACCENT_BAR, LOGO_TR,
+    ],
+    sample: { slide_title: "The Range", idx1: "01", idx2: "02", idx3: "03", name1: "Asiago DOP", name2: "Squared Table", name3: "Alpine Classic" } },
+
+  { id: "product-range/v3", label: "Product range — Casa Finco", tag: "warm card", family: "product-range", mood: "casa-finco",
+    canvas: { w: 960, h: 540 },
+    slots: [
+      { id: "bg", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 540, z: 1, fill: "$mint" },
+      { id: "slide_title", role: "var", as: "title", kind: "text", x: 60, y: 48, w: 840, h: 50, z: 5, fit: "shrink",
+        font: { font: "$display", size: 28, italic: true, bold: true, color: "$primary", align: "center" }, label: "Title" },
+      { id: "card1", role: "lock", kind: "shape", x: 60, y: 130, w: 260, h: 260, z: 2, fill: "$cream", radius: 20 },
+      { id: "img1", role: "var", kind: "image", fit: "cover", x: 60, y: 130, w: 260, h: 260, z: 3, radius: 20, tag: "product", pick: 0, fills: "name1", label: "Product 1 image" },
+      { id: "pill1", role: "lock", kind: "shape", x: 90, y: 410, w: 200, h: 40, z: 4, fill: "$primary", radius: 999 },
+      { id: "name1", role: "var", kind: "text", x: 90, y: 410, w: 200, h: 40, z: 5, fit: "shrink", vcenter: true, font: { font: "$ui", size: 13, bold: true, color: "$cream", align: "center" }, label: "Product 1 name" },
+      { id: "card2", role: "lock", kind: "shape", x: 350, y: 130, w: 260, h: 260, z: 2, fill: "$cream", radius: 20 },
+      { id: "img2", role: "var", kind: "image", fit: "cover", x: 350, y: 130, w: 260, h: 260, z: 3, radius: 20, tag: "product", pick: 1, fills: "name2", label: "Product 2 image" },
+      { id: "pill2", role: "lock", kind: "shape", x: 380, y: 410, w: 200, h: 40, z: 4, fill: "$primary", radius: 999 },
+      { id: "name2", role: "var", kind: "text", x: 380, y: 410, w: 200, h: 40, z: 5, fit: "shrink", vcenter: true, font: { font: "$ui", size: 13, bold: true, color: "$cream", align: "center" }, label: "Product 2 name" },
+      { id: "card3", role: "lock", kind: "shape", x: 640, y: 130, w: 260, h: 260, z: 2, fill: "$cream", radius: 20 },
+      { id: "img3", role: "var", kind: "image", fit: "cover", x: 640, y: 130, w: 260, h: 260, z: 3, radius: 20, tag: "product", pick: 2, fills: "name3", label: "Product 3 image" },
+      { id: "pill3", role: "lock", kind: "shape", x: 670, y: 410, w: 200, h: 40, z: 4, fill: "$primary", radius: 999 },
+      { id: "name3", role: "var", kind: "text", x: 670, y: 410, w: 200, h: 40, z: 5, fit: "shrink", vcenter: true, font: { font: "$ui", size: 13, bold: true, color: "$cream", align: "center" }, label: "Product 3 name" },
+      LOGO_TC,
+    ],
+    sample: { slide_title: "The Range", name1: "Asiago DOP", name2: "Squared Table", name3: "Alpine Classic" } },
+
+  { id: "product-range/v4", label: "Product range — Vetta", tag: "bold graphic", family: "product-range", mood: "vetta",
+    canvas: { w: 960, h: 540 },
+    slots: [
+      { id: "bg", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 540, z: 1, fill: "$ink" },
+      { id: "slide_title", role: "var", as: "title", kind: "text", x: 40, y: 36, w: 880, h: 40, z: 5, fit: "shrink",
+        font: { font: "$display", size: 24, italic: true, bold: true, color: "$cream", align: "left" }, label: "Title" },
+      { id: "div1", role: "lock", kind: "shape", x: 320, y: 100, w: 1, h: 400, z: 4, fill: "rgba(255,251,220,.14)" },
+      { id: "div2", role: "lock", kind: "shape", x: 640, y: 100, w: 1, h: 400, z: 4, fill: "rgba(255,251,220,.14)" },
+      { id: "img1", role: "var", kind: "image", fit: "cover", x: 40, y: 110, w: 240, h: 220, z: 3, tag: "product", pick: 0, fills: "name1", label: "Product 1 image", clipPath: "polygon(10% 0, 100% 0, 100% 100%, 0 100%)" },
+      { id: "ribbon1", role: "lock", kind: "shape", x: 40, y: 350, w: 60, h: 4, z: 5, fill: "$accent" },
+      { id: "name1", role: "var", kind: "text", x: 40, y: 370, w: 250, h: 90, z: 5, fit: "shrink", font: { font: "$display", size: 20, italic: true, color: "$cream", align: "left" }, label: "Product 1 name" },
+      { id: "img2", role: "var", kind: "image", fit: "cover", x: 360, y: 110, w: 240, h: 220, z: 3, tag: "product", pick: 1, fills: "name2", label: "Product 2 image", clipPath: "polygon(10% 0, 100% 0, 100% 100%, 0 100%)" },
+      { id: "ribbon2", role: "lock", kind: "shape", x: 360, y: 350, w: 60, h: 4, z: 5, fill: "$accent" },
+      { id: "name2", role: "var", kind: "text", x: 360, y: 370, w: 250, h: 90, z: 5, fit: "shrink", font: { font: "$display", size: 20, italic: true, color: "$cream", align: "left" }, label: "Product 2 name" },
+      { id: "img3", role: "var", kind: "image", fit: "cover", x: 680, y: 110, w: 240, h: 220, z: 3, tag: "product", pick: 2, fills: "name3", label: "Product 3 image", clipPath: "polygon(10% 0, 100% 0, 100% 100%, 0 100%)" },
+      { id: "ribbon3", role: "lock", kind: "shape", x: 680, y: 350, w: 60, h: 4, z: 5, fill: "$accent" },
+      { id: "name3", role: "var", kind: "text", x: 680, y: 370, w: 250, h: 90, z: 5, fit: "shrink", font: { font: "$display", size: 20, italic: true, color: "$cream", align: "left" }, label: "Product 3 name" },
+      LOGO_TR,
+    ],
+    sample: { slide_title: "The Range", name1: "Asiago DOP", name2: "Squared Table", name3: "Alpine Classic" } },
+
+  { id: "three-up/v2", label: "Three-up — Alta Quota", tag: "restrained editorial", family: "three-up", mood: "alta-quota",
+    canvas: { w: 960, h: 540 },
+    slots: [
+      { id: "bg", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 540, z: 1, fill: "$paper" },
+      { id: "slide_title", role: "var", as: "title", kind: "text", x: 90, y: 60, w: 780, h: 50, z: 5, fit: "shrink",
+        font: { font: "$display", size: 28, italic: true, color: "$ink", align: "left" }, label: "Title" },
+      { id: "div1", role: "lock", kind: "shape", x: 350, y: 190, w: 1, h: 240, z: 4, fill: "rgba(20,20,19,.15)" },
+      { id: "div2", role: "lock", kind: "shape", x: 650, y: 190, w: 1, h: 240, z: 4, fill: "rgba(20,20,19,.15)" },
+      { id: "num1", role: "lock", kind: "text", x: 90, y: 176, w: 60, h: 44, z: 5, font: { font: "$display", size: 26, italic: true, color: "$sage", align: "left" } },
+      { id: "cap1", role: "var", kind: "text", x: 90, y: 228, w: 230, h: 200, z: 5, fit: "shrink", font: { font: "$ui", size: 14, color: "$ink", align: "left" }, label: "Caption 1" },
+      { id: "num2", role: "lock", kind: "text", x: 390, y: 176, w: 60, h: 44, z: 5, font: { font: "$display", size: 26, italic: true, color: "$sage", align: "left" } },
+      { id: "cap2", role: "var", kind: "text", x: 390, y: 228, w: 230, h: 200, z: 5, fit: "shrink", font: { font: "$ui", size: 14, color: "$ink", align: "left" }, label: "Caption 2" },
+      { id: "num3", role: "lock", kind: "text", x: 690, y: 176, w: 60, h: 44, z: 5, font: { font: "$display", size: 26, italic: true, color: "$sage", align: "left" } },
+      { id: "cap3", role: "var", kind: "text", x: 690, y: 228, w: 230, h: 200, z: 5, fit: "shrink", font: { font: "$ui", size: 14, color: "$ink", align: "left" }, label: "Caption 3" },
+      ACCENT_BAR, LOGO_TR,
+    ],
+    sample: { slide_title: "Why Monti Trentini", num1: "01", num2: "02", num3: "03", cap1: "Alpine milk, within 90 km", cap2: "Family dairy since 1925", cap3: "Certified mountain origin" } },
+
+  { id: "three-up/v3", label: "Three-up — Casa Finco", tag: "warm card", family: "three-up", mood: "casa-finco",
+    canvas: { w: 960, h: 540 },
+    slots: [
+      { id: "bg", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 540, z: 1, fill: "$mint" },
+      { id: "slide_title", role: "var", as: "title", kind: "text", x: 60, y: 60, w: 840, h: 50, z: 5, fit: "shrink",
+        font: { font: "$display", size: 28, italic: true, bold: true, color: "$primary", align: "center" }, label: "Title" },
+      { id: "tile1", role: "lock", kind: "shape", x: 60, y: 200, w: 260, h: 180, z: 2, fill: "$cream", radius: 20 },
+      { id: "cap1", role: "var", kind: "text", x: 84, y: 226, w: 212, h: 60, z: 5, fit: "shrink", font: { font: "$display", size: 20, italic: true, bold: true, color: "$primary", align: "left" }, label: "Caption 1" },
+      { id: "tile2", role: "lock", kind: "shape", x: 350, y: 200, w: 260, h: 180, z: 2, fill: "$cream", radius: 20 },
+      { id: "cap2", role: "var", kind: "text", x: 374, y: 226, w: 212, h: 60, z: 5, fit: "shrink", font: { font: "$display", size: 20, italic: true, bold: true, color: "$primary", align: "left" }, label: "Caption 2" },
+      { id: "tile3", role: "lock", kind: "shape", x: 640, y: 200, w: 260, h: 180, z: 2, fill: "$cream", radius: 20 },
+      { id: "cap3", role: "var", kind: "text", x: 664, y: 226, w: 212, h: 60, z: 5, fit: "shrink", font: { font: "$display", size: 20, italic: true, bold: true, color: "$primary", align: "left" }, label: "Caption 3" },
+      LOGO_TC,
+    ],
+    sample: { slide_title: "Why Monti Trentini", cap1: "Alpine milk, within 90 km", cap2: "Family dairy since 1925", cap3: "Certified mountain origin" } },
+
+  { id: "three-up/v4", label: "Three-up — Vetta", tag: "bold graphic", family: "three-up", mood: "vetta",
+    canvas: { w: 960, h: 540 },
+    slots: [
+      { id: "bg", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 540, z: 1, fill: "$ink" },
+      { id: "slide_title", role: "var", as: "title", kind: "text", x: 40, y: 40, w: 880, h: 40, z: 5, fit: "shrink",
+        font: { font: "$display", size: 24, italic: true, bold: true, color: "$cream", align: "left" }, label: "Title" },
+      { id: "div1", role: "lock", kind: "shape", x: 320, y: 120, w: 1, h: 360, z: 4, fill: "rgba(255,251,220,.14)" },
+      { id: "div2", role: "lock", kind: "shape", x: 640, y: 120, w: 1, h: 360, z: 4, fill: "rgba(255,251,220,.14)" },
+      { id: "num1", role: "lock", kind: "text", x: 40, y: 140, w: 200, h: 100, z: 5,
+        font: { font: "$display", size: 60, italic: true, bold: true, gradient: "linear-gradient(120deg, $sage, $accent)", align: "left" } },
+      { id: "cap1", role: "var", kind: "text", x: 40, y: 250, w: 250, h: 160, z: 5, fit: "shrink", font: { font: "$ui", size: 14, color: "$mint", align: "left" }, label: "Caption 1" },
+      { id: "num2", role: "lock", kind: "text", x: 360, y: 140, w: 200, h: 100, z: 5,
+        font: { font: "$display", size: 60, italic: true, bold: true, gradient: "linear-gradient(120deg, $sage, $accent)", align: "left" } },
+      { id: "cap2", role: "var", kind: "text", x: 360, y: 250, w: 250, h: 160, z: 5, fit: "shrink", font: { font: "$ui", size: 14, color: "$mint", align: "left" }, label: "Caption 2" },
+      { id: "num3", role: "lock", kind: "text", x: 680, y: 140, w: 200, h: 100, z: 5,
+        font: { font: "$display", size: 60, italic: true, bold: true, gradient: "linear-gradient(120deg, $sage, $accent)", align: "left" } },
+      { id: "cap3", role: "var", kind: "text", x: 680, y: 250, w: 250, h: 160, z: 5, fit: "shrink", font: { font: "$ui", size: 14, color: "$mint", align: "left" }, label: "Caption 3" },
+      LOGO_TR,
+    ],
+    sample: { slide_title: "Why Monti Trentini", num1: "01", num2: "02", num3: "03", cap1: "Alpine milk, within 90 km", cap2: "Family dairy since 1925", cap3: "Certified mountain origin" } },
+
+  { id: "image/v3", label: "Image — Alta Quota", tag: "restrained editorial", family: "image", mood: "alta-quota",
+    canvas: { w: 960, h: 540 },
+    slots: [
+      { id: "hero_image", role: "var", kind: "image", fit: "cover", x: 0, y: 0, w: 960, h: 540, z: 1, required: true, tag: "hero", label: "Photo" },
+      { id: "caption_plate", role: "lock", kind: "shape", x: 0, y: 440, w: 520, h: 100, z: 4, fill: "$cream" },
+      { id: "topic_label", role: "var", kind: "text", x: 40, y: 456, w: 440, h: 26, z: 5, fit: "shrink",
+        font: { font: "$ui", size: 12, uppercase: true, bold: true, color: "$primary", align: "left" }, label: "Kicker" },
+      { id: "slide_title", role: "var", as: "title", kind: "text", x: 40, y: 484, w: 440, h: 46, z: 5, fit: "shrink",
+        font: { font: "$display", size: 20, italic: true, color: "$ink", align: "left" }, label: "Caption" },
+      ACCENT_BAR, LOGO_TR,
+    ],
+    sample: { topic_label: "Gallery", slide_title: "Aged twelve months, cut to order." } },
+
+  { id: "image/v4", label: "Image — Casa Finco", tag: "warm card", family: "image", mood: "casa-finco",
+    canvas: { w: 960, h: 540 },
+    slots: [
+      { id: "bg", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 540, z: 1, fill: "$mint" },
+      { id: "img_shadow", role: "lock", kind: "shape", x: 90, y: 50, w: 780, h: 380, z: 2, fill: "rgba(20,20,19,.10)", radius: 28 },
+      { id: "hero_image", role: "var", kind: "image", fit: "cover", x: 100, y: 60, w: 760, h: 360, z: 3, required: true, radius: 24, tag: "hero", label: "Photo" },
+      { id: "pill", role: "lock", kind: "shape", x: 100, y: 460, w: 320, h: 46, z: 4, fill: "$primary", radius: 999 },
+      { id: "slide_title", role: "var", as: "title", kind: "text", x: 100, y: 460, w: 320, h: 46, z: 5, fit: "shrink", vcenter: true,
+        font: { font: "$ui", size: 14, bold: true, color: "$cream", align: "center" }, label: "Caption" },
+      LOGO_TC,
+    ],
+    sample: { slide_title: "Aged twelve months, cut to order." } },
+
+  { id: "image/v5", label: "Image — Vetta", tag: "bold graphic", family: "image", mood: "vetta",
+    canvas: { w: 960, h: 540 },
+    slots: [
+      { id: "hero_image", role: "var", kind: "image", fit: "cover", x: 0, y: 0, w: 960, h: 540, z: 1, required: true, tag: "hero", label: "Photo" },
+      { id: "scrim", role: "lock", kind: "shape", x: 0, y: 340, w: 960, h: 200, z: 2, gradient: "linear-gradient(180deg, rgba(20,20,19,0), $ink)" },
+      { id: "ribbon", role: "lock", kind: "shape", x: 40, y: 400, w: 260, h: 40, z: 4, fill: "$accent" },
+      { id: "topic_label", role: "var", kind: "text", x: 56, y: 400, w: 228, h: 40, z: 5, fit: "shrink", vcenter: true,
+        font: { font: "$ui", size: 12, uppercase: true, bold: true, color: "$ink", align: "left" }, label: "Kicker" },
+      { id: "slide_title", role: "var", as: "title", kind: "text", x: 40, y: 456, w: 800, h: 60, z: 5, fit: "shrink",
+        font: { font: "$display", size: 26, italic: true, bold: true, color: "$cream", align: "left" }, label: "Caption" },
+    ],
+    sample: { topic_label: "Gallery", slide_title: "Where cows graze in the Dolomites' shades." } },
 ];
 
 export const getSlideTemplate = (id) => SLIDE_TEMPLATES.find((t) => t.id === id) || SLIDE_TEMPLATES[0];
@@ -617,4 +867,37 @@ export function firstImageId(slide) {
   const tpl = getSlideTemplate(slide.t);
   const s = tpl.slots.find((x) => x.kind === "image" && x.role === "var" && slide.slots?.[x.id]);
   return s ? slide.slots[s.id] : null;
+}
+
+// 2026-09-07 — Style storylines (Rick: "10 template story line per style that auto loads into
+// the compose field when you select a design style"). A `mood` groups templates into a named
+// visual style (see the `mood:` field added to every mood template above); MOOD_STYLES lists the
+// styles Slide Studio's opening screen offers as one generic thumbnail each, and MOOD_STORYLINES
+// gives each style's canonical 10-slide narrative order — one slide per family (cover → statement
+// → story → product feature → three-up → quote → big stat → product range → image → closing) so
+// every style tells the same complete story, just painted differently. "Classic" is the original
+// generic (un-mooded) template set, already exactly 10 families — no new templates needed for it.
+// loadMoodStoryline() returns ready-to-drop deck entries seeded from each template's own `sample`,
+// exactly like addSlide()/autoCompose() already produce — Studio Director and AI Polish need zero
+// changes since this only ever hands them ids + slots they already know how to resolve.
+export const MOOD_STORYLINES = {
+  classic: ["cover/v1", "statement/v1", "story/v1", "product-feature/v1", "three-up/v1", "quote/v1", "big-stat/v1", "product-range/v1", "image/v1", "closing/v1"],
+  "alta-quota": ["cover/v4", "statement/v4", "story/v4", "product-feature/v4", "three-up/v2", "quote/v2", "big-stat/v2", "product-range/v2", "image/v3", "closing/v2"],
+  "casa-finco": ["cover/v5", "statement/v5", "story/v5", "product-feature/v5", "three-up/v3", "quote/v3", "big-stat/v3", "product-range/v3", "image/v4", "closing/v3"],
+  vetta: ["cover/v6", "statement/v6", "story/v6", "product-feature/v6", "three-up/v4", "quote/v4", "big-stat/v4", "product-range/v4", "image/v5", "closing/v4"],
+};
+
+export const MOOD_STYLES = [
+  { id: "classic", label: "Classic", tag: "the original library", thumbnail: "cover/v1" },
+  { id: "alta-quota", label: "Alta Quota", tag: "restrained editorial", thumbnail: "cover/v4" },
+  { id: "casa-finco", label: "Casa Finco", tag: "warm card", thumbnail: "cover/v5" },
+  { id: "vetta", label: "Vetta", tag: "bold graphic", thumbnail: "cover/v6" },
+];
+
+/** The 10-slide storyline for a style, as ready-to-drop deck entries ({ t, slots }), each
+ * slide's slots seeded from its template's own `sample` — same shape addSlide()/autoCompose()
+ * already produce, so Slide Studio can drop this straight into setDeck(). */
+export function loadMoodStoryline(moodId) {
+  const ids = MOOD_STORYLINES[moodId] || MOOD_STORYLINES.classic;
+  return ids.map((id) => ({ t: id, slots: { ...(getSlideTemplate(id).sample || {}) } }));
 }

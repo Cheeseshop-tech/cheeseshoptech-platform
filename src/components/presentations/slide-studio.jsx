@@ -3,7 +3,7 @@ import { Plus, ArrowLeft, Trash2, Wand2, Sparkles, Maximize2, Minimize2, Expand,
 import { Button } from "@/components/ui/button.jsx";
 import { MediaPicker } from "@/components/media/media-picker.jsx";
 import { SlideRenderer } from "./slide-renderer.jsx";
-import { SLIDE_TEMPLATES, getSlideTemplate, firstImageId } from "@/lib/slide-templates.js";
+import { SLIDE_TEMPLATES, getSlideTemplate, firstImageId, MOOD_STYLES, loadMoodStoryline } from "@/lib/slide-templates.js";
 import { voiceOptions } from "@/lib/brand-tokens.js";
 import { directDraft } from "@/lib/studio-director.js";
 import { getBrandKit } from "@/lib/brandKit.js";
@@ -101,6 +101,18 @@ export function SlideStudio({ resolved, onClose, onSave, opportunity }) {
         setIdx(0);
       }
     } finally { setComposing(false); }
+  }
+
+  // Style storylines (Rick: "10 template story line per style that auto loads into the compose
+  // field when you select a design style"). Loads a style's canonical 10-slide narrative straight
+  // into the editor — same deck shape autoCompose()/addSlide() already produce, so nothing else
+  // downstream (save, AI Polish, template switching) needs to know this deck started from a style
+  // pick instead of a blank template or the Director.
+  function loadStoryline(moodId) {
+    const deck = loadMoodStoryline(moodId);
+    setDeck(deck);
+    setTitle((t) => t || deck[0]?.slots?.slide_title || "");
+    setIdx(0);
   }
 
   // Studio Director Stage 2 (CONTENT_ENGINE_WIRING_SPEC §3, AGENT_A1_BUILD_SPEC.md Part C) —
@@ -218,14 +230,23 @@ export function SlideStudio({ resolved, onClose, onSave, opportunity }) {
               <Wand2 className="h-4 w-4" /> {composing ? "Composing…" : "Auto-compose"}
             </Button>
           </div>
-          <p className="mb-3 text-sm text-fg-muted">Or pick a template for your first slide — each opens painted in {resolved.brand?.name || "the"} brand. Every template carries a required Title.</p>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-            {SLIDE_TEMPLATES.map((t) => (
-              <button key={t.id} onClick={() => addSlide(t.id)} className="overflow-hidden rounded-base border border-border bg-bg text-left transition hover:border-brand-primary hover:shadow">
-                <SlideRenderer slide={{ t: t.id, slots: { ...(t.sample || {}) } }} resolved={resolved} present />
-                <div className="flex items-center justify-between p-2"><span className="text-sm font-medium text-fg">{t.label}</span><span className="text-xs text-fg-muted">{t.tag}</span></div>
-              </button>
-            ))}
+          <p className="mb-3 text-sm text-fg-muted">Or pick a design style — each loads a complete 10-slide storyline painted in {resolved.brand?.name || "the"} brand, ready to swap in your own photos and copy.</p>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            {MOOD_STYLES.map((m) => {
+              const thumbTpl = getSlideTemplate(m.thumbnail);
+              return (
+                <button key={m.id} onClick={() => loadStoryline(m.id)} className="overflow-hidden rounded-base border border-border bg-bg text-left transition hover:border-brand-primary hover:shadow">
+                  <SlideRenderer slide={{ t: thumbTpl.id, slots: { ...(thumbTpl.sample || {}) } }} resolved={resolved} present />
+                  <div className="p-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-semibold text-fg">{m.label}</span>
+                      <span className="text-xs text-fg-muted">{m.tag}</span>
+                    </div>
+                    <span className="mt-0.5 block text-xs text-fg-muted">10-slide storyline</span>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
       ) : (
