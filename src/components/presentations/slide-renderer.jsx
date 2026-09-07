@@ -61,8 +61,9 @@ function SlideInner({ slide, tk, present }) {
             if (adj.skewY) tf.push(`skewY(${adj.skewY}deg)`);
             if (tf.length) { imgStyle.transform = tf.join(" "); imgStyle.transformOrigin = "center"; }
           }
+          const imgBox = { ...box, borderRadius: slot.radius ? (slot.radius >= 999 ? "999px" : pct(slot.radius, cw)) : undefined };
           return (
-            <div key={idx} style={box}>
+            <div key={idx} style={imgBox}>
               <img src={src} alt="" style={imgStyle} onError={(e) => { e.currentTarget.style.display = "none"; }} />
             </div>
           );
