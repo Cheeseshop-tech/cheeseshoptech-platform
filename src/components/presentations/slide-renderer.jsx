@@ -52,7 +52,11 @@ function SlideInner({ slide, tk, present }) {
         if (slot.kind === "image") {
           // honor a per-slide override (incl. logo/brand asset swaps); else kit asset for lock/brand
           const raw = slots[slot.id] || (slot.role === "var" ? null : resolveTok(slot.asset, tk));
-          if (!raw) return present ? null : <div key={idx} style={box}><Ph slot={slot} /></div>;
+          if (!raw) {
+            if (present) return null;
+            const phBox = { ...box, borderRadius: slot.radius ? (slot.radius >= 999 ? "999px" : pct(slot.radius, cw)) : undefined, clipPath: slot.clipPath || undefined };
+            return <div key={idx} style={phBox}><Ph slot={slot} /></div>;
+          }
           const src = /^(https?:|data:)/.test(raw) ? raw : cldUrl(raw, "hero");
           const adj = (slots.__img || {})[slot.id];
           const imgStyle = {
