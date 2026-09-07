@@ -718,7 +718,7 @@ export const SLIDE_TEMPLATES = [
       { id: "img3", role: "var", kind: "image", fit: "cover", x: 640, y: 130, w: 260, h: 260, z: 3, radius: 20, tag: "product", pick: 2, fills: "name3", label: "Product 3 image" },
       { id: "pill3", role: "lock", kind: "shape", x: 670, y: 410, w: 200, h: 40, z: 4, fill: "$primary", radius: 999 },
       { id: "name3", role: "var", kind: "text", x: 670, y: 410, w: 200, h: 40, z: 5, fit: "shrink", vcenter: true, font: { font: "$ui", size: 13, bold: true, color: "$cream", align: "center" }, label: "Product 3 name" },
-      LOGO_TC,
+      LOGO_TR,
     ],
     sample: { slide_title: "The Range", name1: "Asiago DOP", name2: "Squared Table", name3: "Alpine Classic" } },
 
@@ -773,7 +773,7 @@ export const SLIDE_TEMPLATES = [
       { id: "cap2", role: "var", kind: "text", x: 374, y: 226, w: 212, h: 60, z: 5, fit: "shrink", font: { font: "$display", size: 20, italic: true, bold: true, color: "$primary", align: "left" }, label: "Caption 2" },
       { id: "tile3", role: "lock", kind: "shape", x: 640, y: 200, w: 260, h: 180, z: 2, fill: "$cream", radius: 20 },
       { id: "cap3", role: "var", kind: "text", x: 664, y: 226, w: 212, h: 60, z: 5, fit: "shrink", font: { font: "$display", size: 20, italic: true, bold: true, color: "$primary", align: "left" }, label: "Caption 3" },
-      LOGO_TC,
+      LOGO_TR,
     ],
     sample: { slide_title: "Why Monti Trentini", cap1: "Alpine milk, within 90 km", cap2: "Family dairy since 1925", cap3: "Certified mountain origin" } },
 
@@ -820,7 +820,7 @@ export const SLIDE_TEMPLATES = [
       { id: "pill", role: "lock", kind: "shape", x: 100, y: 460, w: 320, h: 46, z: 4, fill: "$primary", radius: 999 },
       { id: "slide_title", role: "var", as: "title", kind: "text", x: 100, y: 460, w: 320, h: 46, z: 5, fit: "shrink", vcenter: true,
         font: { font: "$ui", size: 14, bold: true, color: "$cream", align: "center" }, label: "Caption" },
-      LOGO_TC,
+      LOGO_TR,
     ],
     sample: { slide_title: "Aged twelve months, cut to order." } },
 
