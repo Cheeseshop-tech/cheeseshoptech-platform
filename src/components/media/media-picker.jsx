@@ -20,16 +20,32 @@ export function MediaPicker({ resolved, value, onChange, defaultTag = "", label 
   const [hover, setHover] = useState("");
   const rootRef = useRef(null);
 
+  // True until the component actually unmounts (guards setState-after-unmount only). Deliberately
+  // NOT reset when the dropdown closes -- the picker stays mounted when `open` goes false, so a
+  // fetch that's still in flight at that moment is fine to land.
+  //
+  // Bug fixed here (2026-09-07, Rick: "cloudinary is not loading images in image selection
+  // dropdown"): this used to be a per-effect `let alive = true` closed over by the fetch, reset to
+  // false on EVERY close (the effect's cleanup ran whenever `open` flipped). Closing the panel
+  // before its fetch resolved -- easy to do, since a cold Netlify Function call can take a couple
+  // seconds -- flipped `alive` false right as the promise settled, so `finally(() => { if (alive)
+  // setLoading(false) })` silently skipped the reset and `loading` got stuck at `true` forever.
+  // Every later open then bailed out of the "fetch assets" effect on its own guard
+  // (`assets.length || loading`) without ever calling listAssets() again, so the panel showed
+  // "Loading Media Hub…" / "All tags (0)" permanently -- no error, no retry, no way out short of a
+  // full page reload. Tracking unmount instead of open/close fixes it: closing early no longer
+  // poisons the loading flag, so the very next open finishes normally.
+  const mountedRef = useRef(true);
+  useEffect(() => () => { mountedRef.current = false; }, []);
+
   // Lazy-load assets the first time the panel opens.
   useEffect(() => {
     if (!open || assets.length || loading) return;
-    let alive = true;
     setLoading(true); setErr("");
     listAssets({ tenantFolder: resolved.cloudinaryFolder, legacyFolders: resolved.cloudinaryLegacyFolders, user, tenantId: resolved.id })
-      .then((a) => { if (alive) setAssets(a || []); })
-      .catch((e) => { if (alive) setErr(String(e?.message || e)); })
-      .finally(() => { if (alive) setLoading(false); });
-    return () => { alive = false; };
+      .then((a) => { if (mountedRef.current) setAssets(a || []); })
+      .catch((e) => { if (mountedRef.current) setErr(String(e?.message || e)); })
+      .finally(() => { if (mountedRef.current) setLoading(false); });
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Close on outside click.
