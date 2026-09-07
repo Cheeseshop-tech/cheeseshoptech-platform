@@ -1,5 +1,12 @@
 # CheeseShop TECH — Project Roadmap & Daily Accountability
 
+> **⚠️ STALE AS OF 2026-09-07.** This doc was last synced 2026-08-23 and does not reflect the
+> 2026-09-03 hardening plan, the 2026-09-03 priority roadmap, the Onboarding Engine scope, or the
+> design-flip work from September. For current sequencing see
+> `docs/CST_UNIFIED_DIRECTION_2026-09-07.md`; for current status see
+> `docs/CST_DEVELOPMENT_STATUS_2026-09-07.md`. Kept as historical record below, not deleted.
+
+
 **Purpose:** Rick's own words (2026-08-17): "I constantly propose new ideas and projects with
 little continuity." This doc is the fix — the single place every open thread lives, kept current,
 that the daily email reads from and points back to. If it's not in here, it doesn't exist yet as

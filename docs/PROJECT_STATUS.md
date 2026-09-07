@@ -1,5 +1,12 @@
 # CheeseShop TECH — Project Status & Launch Tracker
 
+> **⚠️ STALE AS OF 2026-09-07.** This doc was last updated 2026-06-12 and predates nearly
+> everything shipped since (auth, hardening, Campaign Management, Content Engine, Onboarding
+> Engine scope). For current sequencing see `docs/CST_UNIFIED_DIRECTION_2026-09-07.md`; for
+> current status see `docs/CST_DEVELOPMENT_STATUS_2026-09-07.md`. Kept as historical record
+> below, not deleted.
+
+
 **Living checklist** for the platform + the Monti Trentini pilot. Check items off as they land.
 Code/decision history lives in `docs/BUILD_LOG.md`; current-state snapshot in `HANDOFF.md`; this
 doc is the **big-picture "definition of done."**

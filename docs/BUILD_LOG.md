@@ -4894,3 +4894,51 @@ before adding new workstreams.
 - [ ] Scope Build & Maintenance Manual + ownership (Agenda item 4)
 - [ ] Set up Cloudinary account + per-client folder convention
 - [ ] Build Make scenario: HubSpot + Monti Trentini CRM → dashboard
+
+---
+
+## 2026-09-07 — Onboarding Engine scope split into a real doc set; development status audited; conflicting scopes reconciled
+
+**Action.** Rick asked to (1) separate the actual Onboarding Engine build from every future app
+function it had gotten bundled with in conversation (social automation, self-redesigning
+storefront, ops backbone, distributor portals, e-commerce), with one document per section in one
+folder; (2) update this build log; (3) produce a real development-status inventory; (4) reconcile
+the platform's several scope docs, which by this point described different, sometimes-conflicting
+futures.
+
+**What shipped:**
+- **`docs/onboarding-engine/`** — new folder, 8 docs. `01-CORE-BUILD.md` is the actual Onboarding
+  Engine (Phase 0, active): brand ingestion, voice/design extraction, design algorithm, template
+  generation. `07-SALES-OUTREACH-ENRICHMENT-STATUS.md` documents the one piece that's already
+  real. `02` through `06` are the future app functions — campaign/storefront, operations backbone,
+  distributor portals, social automation, e-commerce completion — each graded honestly
+  (real/partial/scoped/idea) and explicitly marked NOT part of the Onboarding Engine itself.
+- **`docs/CST_DEVELOPMENT_STATUS_2026-09-07.md`** — fresh, whole-platform status inventory
+  (core platform, Onboarding Engine pieces, future app functions, business/strategy threads),
+  replacing the two stale trackers below as the current source of truth.
+- **`docs/CST_UNIFIED_DIRECTION_2026-09-07.md`** — reconciles `PROJECT_ROADMAP.md`,
+  `PROJECT_STATUS.md`, the 2026-09-03 priority roadmap, the 2026-09-03 hardening plan, and the
+  Onboarding Engine scope into one sequencing: Onboarding (Phase 0, now) → Campaign small-scale
+  tests → ACE Endico Fall Show 2026-09-15 (the real accuracy proof) → hardening (the 7-item
+  roadmap, re-slotted as Phase 2, not a gate ahead of onboarding) → post-show
+  landing/email/social launch → social automation/market watch → e-commerce completion (7
+  sub-pieces, the largest remaining phase) → distributor portal integration. Explicitly calls out
+  what's now settled (Monti stays the sole proving ground; the Fall Show is the named test) versus
+  what's still open (B2B/B2C platform split; whether onboarding-first reopens the parked
+  multi-tenant work; human-in-the-loop vs. automatic design algorithm; which non-deck channel to
+  prove first; billing/accounting scope).
+- **`docs/PROJECT_ROADMAP.md`** (stale since 2026-08-23) and **`docs/PROJECT_STATUS.md`** (stale
+  since 2026-06-12) both got a banner at the top pointing to the two new docs above. Neither was
+  deleted or rewritten in place — real history, just no longer current planning.
+
+**Why.** These conversations were happening in project memory and one-off artifacts, readable
+session-to-session but not in the repo where a developer (human or agent) would actually look for
+the current plan. Splitting "what's actually being built" from "what got talked about in the same
+breath" was the fix Rick asked for directly, after reviewing how much had accumulated across
+separate scope docs that no longer agreed with each other.
+
+**Not done in this pass:** none of the open decisions listed in
+`CST_UNIFIED_DIRECTION_2026-09-07.md` were resolved — this was a documentation/reconciliation
+pass, not a decision session. `PROJECT_ROADMAP.md`/`PROJECT_STATUS.md` still need a real content
+refresh at some point rather than just a stale-banner; deferred since the new docs now carry
+current information and a full rewrite of two long-lived docs wasn't asked for.
