@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Image as ImageIcon, Check, X } from "lucide-react";
 import { useAuth } from "@/lib/auth-context.jsx";
-import { listAssets, USAGE, IS_MOCK_MODE, MOCK_MODE_MSG } from "@/lib/media.js";
+import { listAssetsPage, USAGE, IS_MOCK_MODE, MOCK_MODE_MSG } from "@/lib/media.js";
 import { cldUrl } from "@/lib/cloudinary.js";
 
 // Tag-driven Media Hub picker (the "design element that reads the Media Hub tags").
@@ -39,13 +39,41 @@ export function MediaPicker({ resolved, value, onChange, defaultTag = "", label 
   useEffect(() => () => { mountedRef.current = false; }, []);
 
   // Lazy-load assets the first time the panel opens.
+  //
+  // Paginated, not one big listAssets() call (2026-09-07, Rick: "it just loads slow" -- follow-up
+  // to the stuck-loading fix above). listAssets() used the Media List function's "full mode",
+  // which pages through up to 500 Cloudinary assets per folder in SEQUENTIAL round trips and then
+  // does the same again for every legacy folder, all before the picker can render a single thumb
+  // -- with Monti's 342+ tagged assets across the main + legacy folder that's several serial
+  // network round trips of dead air. listAssetsPage() (already built for the Media Hub's own
+  // load-time fix, just never wired into this picker) returns one page (60 assets) immediately;
+  // the first page clears `loading` right away so the grid + tag filter are usable, and remaining
+  // pages stream in after in the background so the tag list and full grid still fill in completely
+  // -- just without blocking first paint on all of it.
   useEffect(() => {
     if (!open || assets.length || loading) return;
     setLoading(true); setErr("");
-    listAssets({ tenantFolder: resolved.cloudinaryFolder, legacyFolders: resolved.cloudinaryLegacyFolders, user, tenantId: resolved.id })
-      .then((a) => { if (mountedRef.current) setAssets(a || []); })
-      .catch((e) => { if (mountedRef.current) setErr(String(e?.message || e)); })
-      .finally(() => { if (mountedRef.current) setLoading(false); });
+    let cancelled = false;
+    const loadPage = (cursor) => {
+      listAssetsPage({ tenantFolder: resolved.cloudinaryFolder, legacyFolders: resolved.cloudinaryLegacyFolders, user, cursor, tenantId: resolved.id })
+        .then(({ assets: page, nextCursor }) => {
+          if (!mountedRef.current || cancelled) return;
+          setAssets((prev) => [...prev, ...(page || [])]);
+          setLoading(false); // first page in -- picker is usable even if more is still coming
+          if (nextCursor) loadPage(nextCursor); // keep streaming the rest quietly in the background
+        })
+        .catch((e) => {
+          if (!mountedRef.current || cancelled) return;
+          // Only surface an error if we never got anything to show; a later page failing after
+          // the first page already rendered just means the grid stops growing, not an error state.
+          setLoading((wasLoading) => {
+            if (wasLoading) setErr(String(e?.message || e));
+            return false;
+          });
+        });
+    };
+    loadPage(undefined);
+    return () => { cancelled = true; };
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Close on outside click.
