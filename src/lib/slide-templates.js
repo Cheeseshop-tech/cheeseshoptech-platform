@@ -299,6 +299,28 @@ export const SLIDE_TEMPLATES = [
       { id: "top_accent_bar", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 8, z: 4, fill: "$accent" },
     ],
     sample: { slide_title: "Where cows graze in the Dolomites' shades." } },
+
+
+  // 2026-09-07 — structural reference: docs/design-references/awesome-design-md/design-md/apple/DESIGN.md
+  // ("edge-to-edge product tiles... UI chrome recedes so the product can speak — no decorative
+  // gradients, no shadows on chrome"). Same hero_image/slide_title slot ids as image/v1 — Stage
+  // 0/1 and Stage 2 (ai-compose.js) both already know how to fill this, only the geometry and
+  // restraint differ. Departs from every other template in this file on purpose: no gradient
+  // scrim, no rounded card, no bold/uppercase/italic caption. A single solid, opaque caption
+  // plate replaces the usual scrim (Apple's "no decorative gradients" rule taken literally), and
+  // the caption itself sits at a quieter weight than the house default — this is the one template
+  // in the library built for a photo strong enough to need nothing else on the slide.
+  { id: "image/v2", label: "Image — Editorial", tag: "gallery caption", family: "image",
+    canvas: { w: 960, h: 540 },
+    slots: [
+      { id: "hero_image", role: "var", kind: "image", fit: "cover", x: 0, y: 0, w: 960, h: 540, z: 1, required: true, tag: "hero", label: "Photo" },
+      { id: "caption_plate", role: "lock", kind: "shape", x: 0, y: 452, w: 460, h: 88, z: 4, fill: "$ink" },
+      { id: "slide_title", role: "var", as: "title", kind: "text", x: 40, y: 468, w: 380, h: 56, z: 5, fit: "shrink",
+        font: { font: "$display", size: 19, color: "$cream", align: "left" }, label: "Caption" },
+      { id: "top_accent_bar", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 8, z: 6, fill: "$accent" },
+      { id: "brand_logo", role: "lock", kind: "image", fit: "contain", x: 806, y: 16, w: 130, h: 54, z: 9, asset: "$logo", toggle: true, tag: "logo", label: "Logo" },
+    ],
+    sample: { slide_title: "Aged twelve months, cut to order." } },
 ];
 
 export const getSlideTemplate = (id) => SLIDE_TEMPLATES.find((t) => t.id === id) || SLIDE_TEMPLATES[0];
