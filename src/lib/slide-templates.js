@@ -363,7 +363,7 @@ export const SLIDE_TEMPLATES = [
     canvas: { w: 960, h: 540 },
     slots: [
       { id: "bg", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 540, z: 1, fill: "$ink" },
-      { id: "hero_image", role: "var", kind: "image", fit: "cover", x: 480, y: 0, w: 480, h: 540, z: 2, required: true, tag: "hero", label: "Background photo" },
+      { id: "hero_image", role: "var", kind: "image", fit: "cover", x: 480, y: 0, w: 480, h: 540, z: 2, required: true, tag: "hero", label: "Background photo", clipPath: "polygon(18% 0, 100% 0, 100% 100%, 0% 100%)" },
       { id: "ribbon", role: "lock", kind: "shape", x: 0, y: 126, w: 300, h: 44, z: 4, fill: "$accent" },
       { id: "topic_label", role: "var", kind: "text", x: 24, y: 126, w: 260, h: 44, z: 5, fit: "shrink", vcenter: true,
         font: { font: "$ui", size: 12, uppercase: true, bold: true, color: "$cream", align: "left" }, label: "Kicker" },
@@ -413,7 +413,7 @@ export const SLIDE_TEMPLATES = [
     canvas: { w: 960, h: 540 },
     slots: [
       { id: "bg", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 540, z: 1, fill: "$ink" },
-      { id: "hero_image", role: "var", kind: "image", fit: "cover", x: 0, y: 0, w: 460, h: 540, z: 2, required: true, tag: "lifestyle", label: "Photo" },
+      { id: "hero_image", role: "var", kind: "image", fit: "cover", x: 0, y: 0, w: 460, h: 540, z: 2, required: true, tag: "lifestyle", label: "Photo", clipPath: "polygon(0 0, 100% 0, 82% 100%, 0% 100%)" },
       { id: "ribbon", role: "lock", kind: "shape", x: 500, y: 70, w: 280, h: 40, z: 4, fill: "$accent" },
       { id: "topic_label", role: "var", kind: "text", x: 516, y: 70, w: 248, h: 40, z: 5, fit: "shrink", vcenter: true,
         font: { font: "$ui", size: 12, uppercase: true, bold: true, color: "$cream", align: "left" }, label: "Kicker" },
@@ -476,7 +476,7 @@ export const SLIDE_TEMPLATES = [
     canvas: { w: 960, h: 540 },
     slots: [
       { id: "bg", role: "lock", kind: "shape", x: 0, y: 0, w: 960, h: 540, z: 1, fill: "$ink" },
-      { id: "hero_image", role: "var", kind: "image", fit: "cover", x: 0, y: 0, w: 480, h: 540, z: 2, required: true, tag: "product", label: "Product photo" },
+      { id: "hero_image", role: "var", kind: "image", fit: "cover", x: 0, y: 0, w: 480, h: 540, z: 2, required: true, tag: "product", label: "Product photo", clipPath: "polygon(12% 0, 100% 0, 100% 100%, 0% 100%)" },
       { id: "ribbon", role: "lock", kind: "shape", x: 520, y: 60, w: 300, h: 44, z: 4, fill: "$accent" },
       { id: "topic_label", role: "var", kind: "text", x: 536, y: 60, w: 268, h: 44, z: 5, fit: "shrink", vcenter: true,
         font: { font: "$ui", size: 12, uppercase: true, bold: true, color: "$cream", align: "left" }, label: "Topic" },
@@ -529,7 +529,7 @@ export const SLIDE_TEMPLATES = [
       { id: "topic_label", role: "var", kind: "text", x: 76, y: 70, w: 190, h: 34, z: 5, fit: "shrink", vcenter: true,
         font: { font: "$ui", size: 11, uppercase: true, bold: true, color: "$ink", align: "left" }, label: "Kicker" },
       { id: "stat_value", role: "var", kind: "text", x: 60, y: 120, w: 480, h: 280, z: 5, fit: "shrink",
-        font: { font: "$display", size: 200, italic: true, bold: true, color: "$accent", align: "left" }, label: "Stat (e.g. 9)" },
+        font: { font: "$display", size: 200, italic: true, bold: true, gradient: "linear-gradient(120deg, $sage, $accent)", align: "left" }, label: "Stat (e.g. 9)" },
       { id: "slide_title", role: "var", as: "title", kind: "text", x: 60, y: 410, w: 480, h: 90, z: 5, fit: "shrink",
         font: { font: "$display", size: 24, italic: true, color: "$cream", align: "left" }, label: "Label" },
       LOGO_TR,

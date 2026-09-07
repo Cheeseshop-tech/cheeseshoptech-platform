@@ -9,6 +9,12 @@ import { brandTokens, resolveTok } from "@/lib/brand-tokens.js";
 // A structured slide = { t, slots }. A plain string is a legacy full-bleed image URL.
 const ptToCqw = (pt, cw) => (pt * 96 / 72) / cw * 100;
 const pct = (v, t) => (v / t * 100) + "%";
+// Resolve every $token inside a raw CSS gradient string against the tenant's Brand Kit, so a
+// gradient (shape fill or gradient text) stays tenant-safe instead of being locked to one brand's
+// hex values. Literal colors (rgba(), hex, named) pass through unchanged -- only $word segments
+// are substituted, same hybrid-safe rule as resolveTok.
+const resolveGradientTokens = (str, tk) =>
+  typeof str !== "string" ? str : str.replace(/\$([a-zA-Z-]+)/g, (m, k) => tk.colors[k] ?? tk.fonts[k] ?? tk.assets[k] ?? m);
 
 export function SlideRenderer({ slide, resolved, className = "", present = false }) {
   const tk = brandTokens(resolved);
@@ -40,7 +46,7 @@ function SlideInner({ slide, tk, present }) {
         const box = { position: "absolute", left: pct(slot.x, cw), top: pct(slot.y, ch), width: pct(slot.w, cw), height: pct(slot.h, ch), zIndex: slot.z || 0, overflow: "hidden" };
 
         if (slot.kind === "shape") {
-          return <div key={idx} style={{ ...box, background: slot.gradient ? slot.gradient : resolveTok(slot.fill || "$primary", tk), borderRadius: slot.radius ? (slot.radius >= 999 ? "999px" : pct(slot.radius, cw)) : undefined }} />;
+          return <div key={idx} style={{ ...box, background: slot.gradient ? resolveGradientTokens(slot.gradient, tk) : resolveTok(slot.fill || "$primary", tk), borderRadius: slot.radius ? (slot.radius >= 999 ? "999px" : pct(slot.radius, cw)) : undefined, clipPath: slot.clipPath || undefined }} />;
         }
 
         if (slot.kind === "image") {
@@ -61,7 +67,7 @@ function SlideInner({ slide, tk, present }) {
             if (adj.skewY) tf.push(`skewY(${adj.skewY}deg)`);
             if (tf.length) { imgStyle.transform = tf.join(" "); imgStyle.transformOrigin = "center"; }
           }
-          const imgBox = { ...box, borderRadius: slot.radius ? (slot.radius >= 999 ? "999px" : pct(slot.radius, cw)) : undefined };
+          const imgBox = { ...box, borderRadius: slot.radius ? (slot.radius >= 999 ? "999px" : pct(slot.radius, cw)) : undefined, clipPath: slot.clipPath || undefined };
           return (
             <div key={idx} style={imgBox}>
               <img src={src} alt="" style={imgStyle} onError={(e) => { e.currentTarget.style.display = "none"; }} />
@@ -115,9 +121,12 @@ function TextSlot({ box, slot, value, tk, cw, present }) {
 }
 
 function fontBase(f, tk) {
+  const paint = f.gradient
+    ? { backgroundImage: resolveGradientTokens(f.gradient, tk), WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }
+    : { color: resolveTok(f.color || "$ink", tk) };
   return {
     fontFamily: resolveTok(f.font || "$display", tk),
-    color: resolveTok(f.color || "$ink", tk),
+    ...paint,
     fontStyle: f.italic ? "italic" : "normal",
     fontWeight: f.bold ? 700 : 400,
     textTransform: f.uppercase ? "uppercase" : "none",
