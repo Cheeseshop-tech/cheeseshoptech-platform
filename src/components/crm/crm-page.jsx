@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { getCrmData, getOutreach, saveOutreach, OUTREACH_STAGES, FUNNEL_STAGES, regionOf, stateOf, crmIsSample } from "@/lib/crm.js";
+import { getCrmData, getOutreach, saveOutreach, OUTREACH_STAGES, FUNNEL_STAGES, regionOf, stateOf, crmIsSample, addressOf, mapUrlOf, websiteUrlOf } from "@/lib/crm.js";
 
 // CRM page — THE OUTREACH CONSOLE, cloned 1:1 from the campaign-CRM artifact
 // (Prospecting Phase 10, `MontiTrentini_Campaign_CRM.html`). The artifact's faceplate is kept
@@ -71,6 +71,23 @@ const CSS = `
 .crmc .pager{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:12px;}
 .crmc .pager .btn:disabled{opacity:.4;cursor:default;}
 @media(max-width:820px){.crmc .kpis{grid-template-columns:repeat(3,1fr);}}
+.crmc .lnk{background:none;border:none;padding:0;font:inherit;color:var(--cs-color-brand-primary);cursor:pointer;font-size:12px;}
+.crmc .lnk:hover{text-decoration:underline;}
+.crmc-back{position:fixed;inset:0;background:rgba(20,20,15,.5);display:flex;align-items:flex-start;justify-content:center;z-index:60;padding:16px;overflow-y:auto;}
+.crmc-sheet{background:var(--cs-color-surface);border-radius:14px;padding:20px;width:100%;max-width:520px;margin:auto;color:var(--cs-color-fg);}
+.crmc-sheet .pc-hdr{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;border-bottom:2px solid var(--cs-color-brand-primary);padding-bottom:10px;margin-bottom:12px;}
+.crmc-sheet .pc-hdr h2{margin:0;font-size:18px;color:var(--cs-color-brand-primary);}
+.crmc-sheet .pc-sub{font-size:12px;color:var(--cs-color-fg-muted);margin-top:2px;}
+.crmc-sheet .pc-x{background:none;border:none;font-size:18px;cursor:pointer;color:var(--cs-color-fg-muted);line-height:1;padding:2px 4px;}
+.crmc-sheet .pc-row{display:grid;grid-template-columns:90px 1fr;gap:10px;padding:8px 0;border-bottom:1px solid var(--cs-color-border);align-items:start;}
+.crmc-sheet .pc-l{font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--cs-color-fg-muted);padding-top:2px;}
+.crmc-sheet .pc-v{font-size:14px;}
+.crmc-sheet .pc-v a{display:inline-block;}
+.crmc-sheet .pc-v .note{width:100%;min-height:56px;}
+.crmc-sheet .pc-activity{margin-top:10px;background:var(--cs-color-bg);border:1px solid var(--cs-color-border);border-radius:8px;padding:10px 12px;}
+.crmc-sheet .pc-act-item{font-size:12.5px;margin-top:4px;}
+.crmc-sheet .pc-acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;}
+.crmc-sheet .pc-acts .btn{text-decoration:none;display:inline-flex;align-items:center;}
 `;
 
 const statusClass = (s) => "status-sel s-" + String(s).replace(/[^A-Za-z]/g, "").replace(/^Nota/, "Nota");
@@ -87,6 +104,8 @@ export function CrmPage({ resolved, onNavigate }) {
   const [fEmail, setFEmail] = useState("");
   const [sort, setSort] = useState({ k: "name", dir: 1 });
   const [page, setPage] = useState(0);
+  const [lookup, setLookup] = useState(null); // company id open in the prospect quick-look card, or null
+  const [refreshing, setRefreshing] = useState(false);
   const timer = useRef(null);
   const entriesRef = useRef(entries);
   entriesRef.current = entries;
@@ -181,6 +200,19 @@ export function CrmPage({ resolved, onNavigate }) {
   }
   const patch = (id, part) => scheduleSave({ ...entriesRef.current, [id]: { ...entriesRef.current[id], ...part, updatedAt: new Date().toISOString() } });
 
+  // Prospect quick-look card's "Refresh" button — re-pulls the full account book from HubSpot
+  // (bypassing the 5-min session cache) so a rep gets current data right before a call, without
+  // reloading the whole page or losing their place in the table.
+  async function refreshCrm() {
+    setRefreshing(true);
+    try {
+      const fresh = await getCrmData(resolved, { force: true });
+      if (fresh) setData(fresh);
+    } finally {
+      setRefreshing(false);
+    }
+  }
+
   function exportCsv() {
     const hdr = ["Company", "Channel", "Region", "City", "State", "Owner", "Email", "Phone", "Status", "LastReply", "Notes"];
     const esc = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
@@ -245,7 +277,13 @@ export function CrmPage({ resolved, onNavigate }) {
       </div>
 
       <div className="controls">
-        <input className="search" placeholder="Search shop, owner, city, email…" value={q} onChange={(e) => setQ(e.target.value)} />
+        <input
+          className="search"
+          placeholder="Search shop, owner, city, email… (Enter opens the top match)"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter" && filtered.length) setLookup(filtered[0].id); }}
+        />
         <select value={fRegion} onChange={(e) => setFRegion(e.target.value)}>
           <option value="">All regions ({companies.length.toLocaleString()})</option>
           {regions.map(([r, n]) => <option key={r} value={r}>{r} ({n})</option>)}
@@ -336,6 +374,7 @@ export function CrmPage({ resolved, onNavigate }) {
                 <td className="muted">{r.lastReply ? <>{r.lastReply}{r.lastSubj && <><br />{r.lastSubj}</>}</> : "—"}</td>
                 <td><textarea className="note" placeholder="note…" defaultValue={r.note || ""} onChange={(e) => patch(c.id, { note: e.target.value })} /></td>
                 <td className="cell-actions">
+                  <button className="lnk" onClick={() => setLookup(c.id)}>🔎 Look up</button>{" "}
                   {c.ownerEmail && <a href={`mailto:${c.ownerEmail}`}>✉ Email</a>}
                   {c.domain && <a href={`https://${c.domain}`} target="_blank" rel="noreferrer">↗ Site</a>}
                 </td>
@@ -358,6 +397,114 @@ export function CrmPage({ resolved, onNavigate }) {
         Owned by CheeseShop TECH. Accounts &amp; contacts live in HubSpot (read-only of record); status &amp; notes
         save to the platform (admin passcode). Gmail sync &amp; one-click drafts return once a server-side Gmail
         line is wired in.
+      </div>
+
+      {/* Prospect quick-look card (2026-09-09) — one focused window with the full address,
+          website, and contact for a single account, meant to be opened right before a call or
+          email: search → Enter (or the row's "Look up" action) → this card → Call/Email. */}
+      {lookup && (
+        <ProspectCard
+          company={companies.find((c) => c.id === lookup)}
+          entry={entryOf(lookup)}
+          activity={data?.activity}
+          refreshing={refreshing}
+          onClose={() => setLookup(null)}
+          onPatch={(part) => patch(lookup, part)}
+          onRefresh={refreshCrm}
+        />
+      )}
+    </div>
+  );
+}
+
+// Prospect quick-look card — full address (with a map link), website, phone, primary contact,
+// outreach status/notes, and any matching recent email activity, plus one-tap Call/Email. This
+// is the "just before a call" window: everything a rep needs in one place, with a Refresh button
+// that re-pulls HubSpot without losing the table's search/filter state underneath.
+function ProspectCard({ company, entry, activity, refreshing, onClose, onPatch, onRefresh }) {
+  if (!company) return null;
+  const addr = addressOf(company);
+  const mapUrl = mapUrlOf(company);
+  const site = websiteUrlOf(company);
+  const phone = company.ownerPhone || company.phone;
+  const status = entry?.status || "New";
+  // The email-activity feed has no companyId to join on — best-effort match against the shop
+  // name or primary contact's name (the feed itself is capped at 20 recent items app-wide).
+  const related = (activity || []).filter(
+    (a) => (company.name && a.who?.includes(company.name)) || (company.owner && a.who?.includes(company.owner))
+  );
+
+  return (
+    <div className="crmc-back" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="crmc-sheet" role="dialog" aria-modal="true" aria-label={`${company.name} — prospect lookup`}>
+        <div className="pc-hdr">
+          <div>
+            <h2>{company.name}</h2>
+            <div className="pc-sub">{company.channel || "—"}{company.businessType ? ` · ${company.businessType}` : ""}</div>
+          </div>
+          <button className="pc-x" onClick={onClose} aria-label="Close">✕</button>
+        </div>
+
+        <div className="pc-row">
+          <div className="pc-l">Address</div>
+          <div className="pc-v">
+            {addr || <span className="muted">no address on file</span>}
+            {mapUrl && <><br /><a href={mapUrl} target="_blank" rel="noreferrer">📍 Map</a></>}
+          </div>
+        </div>
+        <div className="pc-row">
+          <div className="pc-l">Website</div>
+          <div className="pc-v">
+            {site ? <a href={site} target="_blank" rel="noreferrer">{company.domain} ↗</a> : <span className="muted">no website on file</span>}
+          </div>
+        </div>
+        <div className="pc-row">
+          <div className="pc-l">Phone</div>
+          <div className="pc-v">{phone ? <a href={`tel:${phone}`}>{phone}</a> : <span className="muted">no phone on file</span>}</div>
+        </div>
+        <div className="pc-row">
+          <div className="pc-l">Contact</div>
+          <div className="pc-v">
+            {company.owner || <span className="muted">owner n/a</span>}
+            {company.ownerEmail && <><br /><a href={`mailto:${company.ownerEmail}`}>{company.ownerEmail}</a></>}
+          </div>
+        </div>
+        <div className="pc-row">
+          <div className="pc-l">Status</div>
+          <div className="pc-v">
+            <select className={statusClass(status)} value={status} onChange={(e) => onPatch({ status: e.target.value })}>
+              {OUTREACH_STAGES.map((o) => <option key={o}>{o}</option>)}
+            </select>
+            {entry?.lastReply && <span className="muted"> · last reply {entry.lastReply}</span>}
+          </div>
+        </div>
+        <div className="pc-row">
+          <div className="pc-l">Notes</div>
+          <div className="pc-v">
+            <textarea
+              className="note"
+              placeholder="note before the call…"
+              defaultValue={entry?.note || ""}
+              onChange={(e) => onPatch({ note: e.target.value })}
+            />
+          </div>
+        </div>
+
+        {related.length > 0 && (
+          <div className="pc-activity">
+            <div className="pc-l" style={{ marginBottom: 4 }}>Recent activity</div>
+            {related.slice(0, 4).map((a, i) => (
+              <div key={i} className="pc-act-item">{a.what} · <span className="muted">{a.when}</span></div>
+            ))}
+          </div>
+        )}
+
+        <div className="pc-acts">
+          {phone && <a className="btn" href={`tel:${phone}`}>📞 Call</a>}
+          {company.ownerEmail && <a className="btn" href={`mailto:${company.ownerEmail}`}>✉ Email</a>}
+          <button className="btn ghost" onClick={onRefresh} disabled={refreshing}>{refreshing ? "Refreshing…" : "⟳ Refresh"}</button>
+          <button className="btn ghost" onClick={onClose}>Close</button>
+        </div>
       </div>
     </div>
   );

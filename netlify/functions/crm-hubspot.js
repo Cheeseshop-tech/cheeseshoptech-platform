@@ -217,10 +217,12 @@ async function fetchAllCompanies(token) {
   for (let page = 0; page < MAX_PAGES; page++) {
     const data = await hsSearch(token, HUBSPOT_SEARCH, {
       limit: PAGE_SIZE,
-      // city/state/domain/phone: standard HubSpot company properties (populated by the
-      // 2026-07-22 campaign import) — power the CRM outreach console's location column,
-      // region filter, and site links. Absent values come back undefined → null below.
-      properties: ["name", CHANNEL_PROPERTY, BUSINESS_TYPE_PROPERTY, "city", "state", "domain", "phone"],
+      // city/state/address/zip/domain/phone: standard HubSpot company properties (city/state/
+      // domain/phone populated by the 2026-07-22 campaign import; address/zip added 2026-09-09
+      // for the prospect quick-look card). Power the CRM outreach console's location column,
+      // region filter, site links, and the quick-look card's full address. Absent values come
+      // back undefined → null below.
+      properties: ["name", CHANNEL_PROPERTY, BUSINESS_TYPE_PROPERTY, "city", "state", "address", "zip", "domain", "phone"],
       ...(after ? { after } : {}),
     });
     if (!data) break; // degrade: serve what we have rather than 502 the payload
@@ -236,6 +238,11 @@ async function fetchAllCompanies(token) {
         businessType: r.properties?.[BUSINESS_TYPE_PROPERTY] || null,
         city: r.properties?.city || null,
         state: r.properties?.state || null,
+        // Street address + zip (2026-09-09, prospect quick-look card) — standard HubSpot
+        // company properties, not previously requested. Absent on many records; the UI shows
+        // whatever's populated rather than requiring all four.
+        address: r.properties?.address || null,
+        zip: r.properties?.zip || null,
         domain: r.properties?.domain || null,
         phone: r.properties?.phone || null,
       });

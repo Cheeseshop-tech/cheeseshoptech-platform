@@ -65,6 +65,30 @@ export function stateOf(company) {
   return STATE_ABBREV[raw] || raw;
 }
 
+/** Full mailing address as one display string, or "" if nothing's on file.
+ *  Prefers "123 Main St, City, ST 07081"; degrades gracefully as fields are missing. */
+export function addressOf(company) {
+  if (!company) return "";
+  const line1 = String(company.address || "").trim();
+  const cityStateZip = [[company.city, stateOf(company)].filter(Boolean).join(", "), company.zip]
+    .filter(Boolean).join(" ").trim();
+  return [line1, cityStateZip].filter(Boolean).join(", ");
+}
+
+/** https://maps.google.com link for a company's address (falls back to name+city/state so a
+ *  prospect with no street address on file still gets a usable map search). */
+export function mapUrlOf(company) {
+  const addr = addressOf(company) || [company?.name, company?.city, stateOf(company)].filter(Boolean).join(", ");
+  if (!addr) return null;
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`;
+}
+
+/** Full https:// website URL from a HubSpot domain property, or null if none on file. */
+export function websiteUrlOf(company) {
+  const d = String(company?.domain || "").trim();
+  return d ? `https://${d.replace(/^https?:\/\//, "")}` : null;
+}
+
 export function regionOf(company) {
   const st = stateOf(company);
   if (!st) return "—";
