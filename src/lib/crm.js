@@ -89,6 +89,27 @@ export function websiteUrlOf(company) {
   return d ? `https://${d.replace(/^https?:\/\//, "")}` : null;
 }
 
+// ---- Gmail identity-aware compose (2026-09-09) -----------------------------------------------
+// Same trick already shipped for Booth's Calendar/Recap buttons (src/lib/booth.js) — Gmail's web
+// compose URL honors an `authuser=` param that selects which ALREADY-SIGNED-IN Google account
+// composes the message. Not authentication and not a login trigger: if that account isn't signed
+// into the browser, Gmail just falls back to its own account picker instead of composing as it.
+// The rep still taps Send themselves — nothing leaves the device on its own. Reads the same
+// `resolved.calendar` config Booth already reads (tenant config: calendar.provider/address) —
+// no new config needed for a tenant that already has Booth's Calendar button working.
+const GMAIL_COMPOSE = "https://mail.google.com/mail/?view=cm&fs=1";
+
+/** Gmail compose URL forced onto the tenant's shared sales identity when `calendar` is a
+ *  configured Google account, else a plain mailto: fallback (unaffected for any tenant without
+ *  that identity set up). `calendar` is `resolved.calendar` from the tenant config. */
+export function composeUrl({ calendar, to = "", subject = "", body = "" } = {}) {
+  if (calendar?.provider !== "google" || !calendar?.address) {
+    return `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  }
+  const params = new URLSearchParams({ to, su: subject, body, authuser: calendar.address });
+  return `${GMAIL_COMPOSE}&${params.toString()}`;
+}
+
 export function regionOf(company) {
   const st = stateOf(company);
   if (!st) return "—";

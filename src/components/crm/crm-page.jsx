@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { getCrmData, getOutreach, saveOutreach, OUTREACH_STAGES, FUNNEL_STAGES, regionOf, stateOf, crmIsSample, addressOf, mapUrlOf, websiteUrlOf } from "@/lib/crm.js";
+import { getCrmData, getOutreach, saveOutreach, OUTREACH_STAGES, FUNNEL_STAGES, regionOf, stateOf, crmIsSample, addressOf, mapUrlOf, websiteUrlOf, composeUrl } from "@/lib/crm.js";
 
 // CRM page — THE OUTREACH CONSOLE, cloned 1:1 from the campaign-CRM artifact
 // (Prospecting Phase 10, `MontiTrentini_Campaign_CRM.html`). The artifact's faceplate is kept
@@ -91,6 +91,13 @@ const CSS = `
 `;
 
 const statusClass = (s) => "status-sel s-" + String(s).replace(/[^A-Za-z]/g, "").replace(/^Nota/, "Nota");
+
+// Minimal, honest prefill for the Gmail-forced compose links below — a greeting stub, not a
+// drafted email. The rep writes the actual message; this just saves retyping "Hi <first name>,".
+const greetingFor = (ownerName) => {
+  const first = String(ownerName || "").trim().split(/\s+/)[0];
+  return first ? `Hi ${first},\n\n` : "Hi,\n\n";
+};
 
 export function CrmPage({ resolved, onNavigate }) {
   const [state, setState] = useState("loading"); // "loading" | "error" | "ok"
@@ -362,8 +369,13 @@ export function CrmPage({ resolved, onNavigate }) {
                 <td>{[c.city, c.state].filter(Boolean).join(", ") || <span className="muted">—</span>}</td>
                 <td>
                   {c.owner || <span className="muted">owner n/a</span>}<br />
-                  {c.ownerEmail ? <a href={`mailto:${c.ownerEmail}`}>{c.ownerEmail}</a> : <span className="muted">no email</span>}
-                  {(c.ownerPhone || c.phone) && <><br /><span className="muted">{c.ownerPhone || c.phone}</span></>}
+                  {c.ownerEmail ? (
+                    <a
+                      href={composeUrl({ calendar: resolved.calendar, to: c.ownerEmail, subject: `${c.name} — following up`, body: greetingFor(c.owner) })}
+                      target="_blank" rel="noreferrer"
+                    >{c.ownerEmail}</a>
+                  ) : <span className="muted">no email</span>}
+                  {(c.ownerPhone || c.phone) && <><br /><a href={`tel:${c.ownerPhone || c.phone}`}>{c.ownerPhone || c.phone}</a></>}
                 </td>
                 <td><span className="pill">{regionOf(c)}</span></td>
                 <td>
@@ -375,7 +387,13 @@ export function CrmPage({ resolved, onNavigate }) {
                 <td><textarea className="note" placeholder="note…" defaultValue={r.note || ""} onChange={(e) => patch(c.id, { note: e.target.value })} /></td>
                 <td className="cell-actions">
                   <button className="lnk" onClick={() => setLookup(c.id)}>🔎 Look up</button>{" "}
-                  {c.ownerEmail && <a href={`mailto:${c.ownerEmail}`}>✉ Email</a>}
+                  {(c.ownerPhone || c.phone) && <a href={`tel:${c.ownerPhone || c.phone}`}>📞 Call</a>}
+                  {c.ownerEmail && (
+                    <a
+                      href={composeUrl({ calendar: resolved.calendar, to: c.ownerEmail, subject: `${c.name} — following up`, body: greetingFor(c.owner) })}
+                      target="_blank" rel="noreferrer"
+                    >✉ Email</a>
+                  )}
                   {c.domain && <a href={`https://${c.domain}`} target="_blank" rel="noreferrer">↗ Site</a>}
                 </td>
               </tr>
@@ -407,6 +425,7 @@ export function CrmPage({ resolved, onNavigate }) {
           company={companies.find((c) => c.id === lookup)}
           entry={entryOf(lookup)}
           activity={data?.activity}
+          calendar={resolved.calendar}
           refreshing={refreshing}
           onClose={() => setLookup(null)}
           onPatch={(part) => patch(lookup, part)}
@@ -421,13 +440,16 @@ export function CrmPage({ resolved, onNavigate }) {
 // outreach status/notes, and any matching recent email activity, plus one-tap Call/Email. This
 // is the "just before a call" window: everything a rep needs in one place, with a Refresh button
 // that re-pulls HubSpot without losing the table's search/filter state underneath.
-function ProspectCard({ company, entry, activity, refreshing, onClose, onPatch, onRefresh }) {
+function ProspectCard({ company, entry, activity, calendar, refreshing, onClose, onPatch, onRefresh }) {
   if (!company) return null;
   const addr = addressOf(company);
   const mapUrl = mapUrlOf(company);
   const site = websiteUrlOf(company);
   const phone = company.ownerPhone || company.phone;
   const status = entry?.status || "New";
+  const emailHref = company.ownerEmail
+    ? composeUrl({ calendar, to: company.ownerEmail, subject: `${company.name} — following up`, body: greetingFor(company.owner) })
+    : null;
   // The email-activity feed has no companyId to join on — best-effort match against the shop
   // name or primary contact's name (the feed itself is capped at 20 recent items app-wide).
   const related = (activity || []).filter(
@@ -466,7 +488,7 @@ function ProspectCard({ company, entry, activity, refreshing, onClose, onPatch, 
           <div className="pc-l">Contact</div>
           <div className="pc-v">
             {company.owner || <span className="muted">owner n/a</span>}
-            {company.ownerEmail && <><br /><a href={`mailto:${company.ownerEmail}`}>{company.ownerEmail}</a></>}
+            {company.ownerEmail && <><br /><a href={emailHref} target="_blank" rel="noreferrer">{company.ownerEmail}</a></>}
           </div>
         </div>
         <div className="pc-row">
@@ -501,7 +523,7 @@ function ProspectCard({ company, entry, activity, refreshing, onClose, onPatch, 
 
         <div className="pc-acts">
           {phone && <a className="btn" href={`tel:${phone}`}>📞 Call</a>}
-          {company.ownerEmail && <a className="btn" href={`mailto:${company.ownerEmail}`}>✉ Email</a>}
+          {company.ownerEmail && <a className="btn" href={emailHref} target="_blank" rel="noreferrer">✉ Email</a>}
           <button className="btn ghost" onClick={onRefresh} disabled={refreshing}>{refreshing ? "Refreshing…" : "⟳ Refresh"}</button>
           <button className="btn ghost" onClick={onClose}>Close</button>
         </div>
