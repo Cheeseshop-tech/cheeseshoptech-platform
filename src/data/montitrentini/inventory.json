@@ -1,14 +1,14 @@
 {
   "schemaVersion": "1.2",
   "clientId": "monti-trentini",
-  "lastUpdated": "2026-09-09",
+  "lastUpdated": "2026-09-11",
   "lastUpdatedSource": "drive-modifiedTime",
   "sheetStatedUpdate": "2026-09-09",
-  "sheetModifiedAt": "2026-09-09T19:05:36.168Z",
+  "sheetModifiedAt": "2026-09-11T14:04:42.345Z",
   "sheetFileId": "1meZQQ_0dA1S1IR5xjVWzFvuqCJE6DLgVd-fOfSMGvCk",
   "sheetOwner": "order@montitrentini-usa.com",
-  "source": "availability_2026-09-10.csv",
-  "generatedAt": "2026-09-10T10:55:20.463Z",
+  "source": "availability_2026-09-12.csv",
+  "generatedAt": "2026-09-12T12:48:46.963Z",
   "generatedBy": "scripts/sync-inventory.mjs",
   "skus": {
     "20141": {
@@ -94,47 +94,11 @@
     "20163": {
       "code": "20163",
       "name": "CACIOTTA RUSTEGA WITH TRUFFLE 6 LBS",
-      "casesAvail": 60,
+      "casesAvail": -120,
       "casesInTransit": 300,
       "comment": "TJ preorder",
       "commentEn": "",
       "lots": [
-        {
-          "lotNum": "1316551",
-          "status": "on_hand",
-          "receiptDate": "2026-08-06",
-          "eta": null,
-          "cases": 60,
-          "reserved": 60,
-          "netAvailLb": 1680,
-          "expDate": "2027-07-10",
-          "expMonth": null,
-          "comment": "TJs"
-        },
-        {
-          "lotNum": "1316552",
-          "status": "on_hand",
-          "receiptDate": "2026-08-06",
-          "eta": null,
-          "cases": 60,
-          "reserved": 60,
-          "netAvailLb": 1680,
-          "expDate": "2027-07-10",
-          "expMonth": null,
-          "comment": "TJs"
-        },
-        {
-          "lotNum": "1322644",
-          "status": "on_hand",
-          "receiptDate": "2026-09-01",
-          "eta": null,
-          "cases": 60,
-          "reserved": 60,
-          "netAvailLb": 1680,
-          "expDate": "2027-07-17",
-          "expMonth": null,
-          "comment": "TJs"
-        },
         {
           "lotNum": "1322646",
           "status": "on_hand",
@@ -441,11 +405,11 @@
           "receiptDate": "2026-09-04",
           "eta": null,
           "cases": 60,
-          "reserved": 0,
+          "reserved": 60,
           "netAvailLb": 1680,
           "expDate": "2027-08-06",
           "expMonth": null,
-          "comment": ""
+          "comment": "TJs"
         },
         {
           "lotNum": "269423014",
@@ -453,11 +417,11 @@
           "receiptDate": null,
           "eta": "2026-09-29",
           "cases": 60,
-          "reserved": 0,
+          "reserved": 60,
           "netAvailLb": 1451.44,
           "expDate": null,
           "expMonth": "2027-08",
-          "comment": ""
+          "comment": "TJs"
         },
         {
           "lotNum": "269423014",
@@ -465,11 +429,11 @@
           "receiptDate": null,
           "eta": "2026-09-29",
           "cases": 60,
-          "reserved": 0,
+          "reserved": 60,
           "netAvailLb": 1450.41,
           "expDate": null,
           "expMonth": "2027-08",
-          "comment": ""
+          "comment": "TJs"
         },
         {
           "lotNum": "269423014",
