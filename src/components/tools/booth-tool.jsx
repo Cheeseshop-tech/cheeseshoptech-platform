@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getCrmData, getOutreach, saveOutreach, regionOf, stateOf, crmIsSample } from "@/lib/crm.js";
 import {
-  FOLLOW_UP_TYPES, FOLLOW_UP_WINDOWS, TEMPERATURES, loadBooth, addCapture, updateCapture,
+  FOLLOW_UP_TYPES, FOLLOW_UP_WINDOWS, TEMPERATURES, loadBooth, saveBooth, addCapture, updateCapture,
   removeCapture, newCapture, cacheAccounts, readCachedAccounts, boothStats, downloadIcs,
   recapComposeUrl, rideAlongComposeUrl, buildRecap, buildInternalNote, buildShowDigest, prettyWhen, suggestTemperature,
   suggestedFollowUp, splitPushable, pushToHubspot, googleCalendarUrl, boothCatalog,
   searchCatalog, productSpec, activeDeals, nextStepText, indexContacts, contactsForCompany, cityOf,
-  phoneText,
+  phoneText, fetchHistory, pushToHistory, pushHistoryEdit, canEditHistoryRecord, NEXT_STEP_MODES,
 } from "@/lib/booth.js";
+import { useAuth } from "@/lib/auth-context.jsx";
 import { openCamera, closeCamera, grabFrame, listCameras } from "@/lib/card-scan.js";
 import {
   CONTACT_ROLES, businessTypesByChannel, contactRole, isMultiplierRole, guessBusinessType,
@@ -154,6 +155,15 @@ const plural = (n, one, many) => `${n} ${n === 1 ? one : many || one + "s"}`;
 
 export function BoothTool({ resolved }) {
   const tenantId = resolved.id;
+  const { user, passcodeMode } = useAuth();
+  // Booth-history sync (HANDOFF_2026-09-16 v1+v2) — ids currently mid-POST, so the persist()
+  // choke point and the offline retry sweep below can never double-fire the same capture.
+  const historyInFlight = useRef(new Set());
+  const [history, setHistory] = useState([]);
+  const [historyLoadState, setHistoryLoadState] = useState("idle"); // idle | loading | loaded | error
+  const [editingHistoryId, setEditingHistoryId] = useState(null);
+  const [historyEditForm, setHistoryEditForm] = useState(null);
+  const [historyEditSaving, setHistoryEditSaving] = useState(false);
   const [captures, setCaptures] = useState(() => loadBooth(tenantId).captures);
   const [accounts, setAccounts] = useState([]);
   const [people, setPeople] = useState([]);
@@ -543,7 +553,33 @@ export function BoothTool({ resolved }) {
     [captures]
   );
 
-  function persist(next) { setCaptures(next.captures); }
+  function persist(next) {
+    setCaptures(next.captures);
+    syncHistory(next.captures);
+  }
+
+  /** The v1/v2 "instant write" — fire-and-forget, never awaited into the capture UI, never
+   *  throws. Only captures missing `historySyncedAt` are sent; on a confirmed 200 they're stamped
+   *  synced directly (bypassing persist() on purpose, so a successful stamp can't re-trigger this
+   *  same sync). A failed attempt (offline, or no real Identity session yet) just leaves them
+   *  queued — the retry sweep below covers it. */
+  function syncHistory(currentCaptures) {
+    const due = (currentCaptures || []).filter(
+      (c) => !c.historySyncedAt && !historyInFlight.current.has(c.id)
+    );
+    if (!due.length) return;
+    due.forEach((c) => historyInFlight.current.add(c.id));
+    pushToHistory(resolved, due).then((res) => {
+      due.forEach((c) => historyInFlight.current.delete(c.id));
+      if (!res.ok || !res.syncedIds?.length) return;
+      const synced = new Set(res.syncedIds);
+      const stampedAt = new Date().toISOString();
+      const doc = loadBooth(tenantId);
+      const stamped = { ...doc, captures: doc.captures.map((c) => (synced.has(c.id) ? { ...c, historySyncedAt: stampedAt } : c)) };
+      saveBooth(tenantId, stamped);
+      setCaptures(stamped.captures);
+    });
+  }
 
   // `person` is optional: tapping the account seeds its primary contact, tapping a named contact
   // seeds that person.
@@ -558,6 +594,7 @@ export function BoothTool({ resolved }) {
       : { name: account.owner || "", email: account.ownerEmail || "", phone: account.ownerPhone || "" };
     setSheet(newCapture({
       source: "territory",
+      scopeId: scopeId || null,
       company: account.name,
       companyId: account.id,
       ...who,
@@ -573,7 +610,7 @@ export function BoothTool({ resolved }) {
     }));
   }
 
-  function openBlank() { setSheet(newCapture({ source: "booth" })); }
+  function openBlank() { setSheet(newCapture({ source: "booth", scopeId: scopeId || null })); }
 
   // ---- Card scan ---------------------------------------------------------------------------
   // The speed path (Rick: "I don't want to be typing in info"). Order matters and is deliberate:
@@ -593,7 +630,7 @@ export function BoothTool({ resolved }) {
     setScanning(true);
     let claimed = null;
     setFlash("");
-    let capture = newCapture({ source: "booth", scanState: "pending" });
+    let capture = newCapture({ source: "booth", scanState: "pending", scopeId: scopeId || null });
 
     try {
       const { dataUrl } = await compressCardImage(file);
@@ -804,6 +841,17 @@ export function BoothTool({ resolved }) {
     return () => { cancelled = true; };
   }, [online, captures.length, accounts.length, people.length]);
 
+  // Booth-history retry sweep (v1 spec: "reuse the same retry-sweep shape already in
+  // booth-tool.jsx for pending OCR reads"). Covers what the fire-and-forget in persist() can't:
+  // a capture written while offline, or one whose POST failed (no Identity session yet, a
+  // dropped connection mid-show). Runs whenever connectivity flips back on or the capture list
+  // changes; syncHistory() itself is the de-dupe guard (historyInFlight + historySyncedAt), so
+  // firing this on every captures.length change is cheap and safe, never a double-send.
+  useEffect(() => {
+    if (!online) return;
+    syncHistory(captures);
+  }, [online, captures.length]);
+
   function saveSheet(capture) {
     const exists = captures.some((c) => c.id === capture.id);
     persist(exists ? updateCapture(tenantId, capture.id, capture) : addCapture(tenantId, capture));
@@ -1007,6 +1055,43 @@ export function BoothTool({ resolved }) {
     [captures, resolved.brand.name, deals]
   );
 
+  // ---- History tab (v1: read-only cross-device log · v2: Edit for owner/admin) --------------
+  useEffect(() => {
+    if (mode !== "history" || historyLoadState !== "idle") return;
+    setHistoryLoadState("loading");
+    fetchHistory(resolved).then((res) => {
+      setHistory(res.ok ? res.records : []);
+      setHistoryLoadState(res.ok ? "loaded" : "error");
+    });
+  }, [mode, historyLoadState, resolved]);
+
+  function startHistoryEdit(record) {
+    setEditingHistoryId(record.id);
+    setHistoryEditForm({
+      name: record.name || "", company: record.company || "", phone: record.phone || "",
+      email: record.email || "", nextStepMode: record.nextStepMode || "", notes: record.notes || "",
+    });
+  }
+  function cancelHistoryEdit() { setEditingHistoryId(null); setHistoryEditForm(null); }
+
+  async function saveHistoryEdit(id) {
+    setHistoryEditSaving(true);
+    const res = await pushHistoryEdit(resolved, id, historyEditForm);
+    setHistoryEditSaving(false);
+    if (!res.ok) {
+      setFlash(`Couldn't save that edit (${res.error || res.status}). Try again once you're online.`);
+      return;
+    }
+    setHistory((prev) => prev.map((r) => (r.id === id ? res.record : r)));
+    cancelHistoryEdit();
+  }
+
+  // A real rep name only for an actual Identity session — not passcode mode's synthetic
+  // "Portal"/"Portal Admin"/"CST Admin" user, and not the local dev bypass.
+  const repDisplayName = (!passcodeMode && user?.email && user.email !== "dev@cheeseshoptech.com")
+    ? (user.user_metadata?.full_name || user.email)
+    : null;
+
   const net = !online ? { cls: "off", text: "Offline — capturing to this device" }
     : loadState === "live" ? { cls: "live", text: `Live ✓ ${accounts.length.toLocaleString()} accounts` }
     : loadState === "cached" ? { cls: "", text: `Offline copy · ${accounts.length.toLocaleString()} accounts` }
@@ -1020,7 +1105,10 @@ export function BoothTool({ resolved }) {
       <div className="hdr">
         <div>
           <h1>{resolved.brand.name} — Booth to Meeting</h1>
-          <div className="sub">Capture the conversation, agree the next step before they walk away.</div>
+          <div className="sub">
+            Capture the conversation, agree the next step before they walk away.
+            {repDisplayName && <> · Signed in as <strong>{repDisplayName}</strong></>}
+          </div>
         </div>
         <div className={`net ${net.cls}`}>{net.text}</div>
       </div>
@@ -1044,6 +1132,9 @@ export function BoothTool({ resolved }) {
         </button>
         <button className={`mode ${mode === "repcheckin" ? "on" : ""}`} onClick={() => setMode("repcheckin")}>
           Rep check-in
+        </button>
+        <button className={`mode ${mode === "history" ? "on" : ""}`} onClick={() => setMode("history")}>
+          History
         </button>
         {/* THE fast path — first among the actions because it's the one the rep should reach for
             by default. `capture="environment"` opens the rear camera straight into the card. */}
@@ -1337,6 +1428,70 @@ export function BoothTool({ resolved }) {
                 <button className="btn ghost" onClick={endCheckin}>New rep</button>
               </div>
             </div>
+          )}
+        </>
+      ) : mode === "history" ? (
+        <>
+          <p className="muted" style={{ margin: "0 0 10px" }}>
+            Every capture this team has ever logged, across every device — the durable record,
+            separate from HubSpot sync. Read-only except editing your own entries (or any, as an
+            admin/client-admin).
+          </p>
+          {historyLoadState === "loading" ? (
+            <div className="empty">Loading history…</div>
+          ) : historyLoadState === "error" ? (
+            <div className="empty">Couldn't load history right now{online ? "" : " — no signal"}. Try again once you're back online.</div>
+          ) : history.length === 0 ? (
+            <div className="empty">No history yet — this fills in as captures sync.</div>
+          ) : (
+            [...history].sort((a, b) => String(b.capturedAt).localeCompare(String(a.capturedAt))).map((r) => (
+              <div className="row" key={r.id} style={{ alignItems: "flex-start" }}>
+                {editingHistoryId === r.id ? (
+                  <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 8, minWidth: 260 }}>
+                    <input placeholder="Name" value={historyEditForm.name} onChange={(e) => setHistoryEditForm((f) => ({ ...f, name: e.target.value }))} />
+                    <input placeholder="Company" value={historyEditForm.company} onChange={(e) => setHistoryEditForm((f) => ({ ...f, company: e.target.value }))} />
+                    <input placeholder="Phone" value={historyEditForm.phone} onChange={(e) => setHistoryEditForm((f) => ({ ...f, phone: e.target.value }))} />
+                    <input placeholder="Email" value={historyEditForm.email} onChange={(e) => setHistoryEditForm((f) => ({ ...f, email: e.target.value }))} />
+                    <select value={historyEditForm.nextStepMode} onChange={(e) => setHistoryEditForm((f) => ({ ...f, nextStepMode: e.target.value }))}>
+                      <option value="">No next step</option>
+                      {Object.values(NEXT_STEP_MODES).map((m) => <option key={m.key} value={m.key}>{m.label}</option>)}
+                    </select>
+                    <textarea placeholder="Notes" rows={2} value={historyEditForm.notes} onChange={(e) => setHistoryEditForm((f) => ({ ...f, notes: e.target.value }))} />
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <button className="btn sm" onClick={() => saveHistoryEdit(r.id)} disabled={historyEditSaving}>
+                        {historyEditSaving ? "Saving…" : "Save"}
+                      </button>
+                      <button className="btn ghost sm" onClick={cancelHistoryEdit} disabled={historyEditSaving}>Cancel</button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div style={{ minWidth: 200, flex: 1 }}>
+                      <div className="rn">{r.name || <span className="muted">no name</span>}</div>
+                      <div className="rm">
+                        {r.company || "—"}
+                        {r.email ? ` · ${r.email}` : ""}{r.phone ? ` · ${r.phone}` : ""}
+                        {r.notes ? ` · ${r.notes}` : ""}
+                      </div>
+                      <div className="rm muted" style={{ marginTop: 2 }}>
+                        {prettyWhen(r.capturedAt) || new Date(r.capturedAt).toLocaleString()}
+                        {r.scopeId ? ` · ${campaigns.find((cm) => cm.id === r.scopeId)?.name || r.scopeId}` : ""}
+                        {r.capturedBy?.name ? ` · captured by ${r.capturedBy.name}` : ""}
+                        {r.editedBy?.length ? ` · edited by ${r.editedBy[r.editedBy.length - 1].name}` : ""}
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                      <span className={`pill ${r.temperature}`}>{r.temperature}</span>
+                      {r.nextStepMode && <span className="pill">{NEXT_STEP_MODES[r.nextStepMode]?.label || r.nextStepMode}</span>}
+                      {r.pushedAt && <span className="pill">Synced to HubSpot</span>}
+                      {canEditHistoryRecord(user, r) && (
+                        <button className="btn ghost sm" onClick={() => startHistoryEdit(r)}>Edit</button>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+            ))
           )}
         </>
       ) : (

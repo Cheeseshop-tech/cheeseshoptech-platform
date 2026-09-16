@@ -14,6 +14,7 @@
 // itself — the UI has to ask for it. HubSpot stays the CRM of record either way.
 
 import { authHeaders } from "./auth-context.jsx";
+import { rolesOf } from "./auth.js";
 import { seedFor } from "./items-seeds.js";
 import { businessTypeLabel, contactRoleLabel, isMultiplierRole, channelForBusinessType } from "./lead-taxonomy.js";
 
@@ -245,6 +246,12 @@ export function newCapture(seed = {}) {
     recapSentAt: null,
     calendarAddedAt: null,             // set once the rep has taken it into Google Calendar
     pushedAt: null,
+    // Booth-history fields (HANDOFF_2026-09-16_booth-history-spec v1+v2) — the durable,
+    // cross-device log this capture syncs to, separate from the HubSpot push above.
+    scopeId: seed.scopeId || null,      // active campaign/show scope at capture time, if any
+    capturedBy: null,                   // { email, name } — stamped server-side, never client-set
+    editedBy: [],                       // [{ email, name, at }] — append-only edit trail
+    historySyncedAt: null,              // set once booth-history.js has confirmed this id
   };
 }
 
@@ -947,5 +954,104 @@ export async function pushToHubspot(resolved, captures, { commit = false } = {})
     // Offline is the expected case here, not an exception — the captures stay local and the rep
     // syncs from anywhere with a signal later. Nothing is lost by a failed push.
     return { ok: false, status: 0, dryRun: !commit, pushedIds: [], error: String(e?.message || e) };
+  }
+}
+
+// ---- Sync to booth-history (durable cross-device log, v1+v2) ---------------------------
+//
+// Separate from pushToHubspot above on purpose: HubSpot sync is a deliberate, rep-triggered
+// commit to the CRM of record; booth-history is the automatic safety net that fires the instant
+// a capture is written, with no rep action and no "commit" concept — see
+// HANDOFF_2026-09-16_booth-history-spec.md and its v2 (identity + edit rights).
+
+/** Capture -> booth-history's server record shape. Deliberately light — the products list here
+ *  is what the History tab shows, not the full catalog row (that's still on the local capture
+ *  and on whatever HubSpot ends up with). */
+export function toHistoryRecord(capture) {
+  return {
+    id: capture.id,
+    capturedAt: capture.capturedAt,
+    name: capture.name || "",
+    company: capture.company || "",
+    email: capture.email || "",
+    phone: phoneText(capture),
+    contactRole: capture.contactRole || "",
+    temperature: capture.temperature || "cold",
+    nextStepMode: capture.nextStepMode || "",
+    products: (capture.products || []).map((p) => ({ name: p.name, spec: productSpec(p) })),
+    scopeId: capture.scopeId || null,
+    pushedAt: capture.pushedAt || null,
+  };
+}
+
+/** Fire-and-forget POST of every capture missing `historySyncedAt` — the "instant write" half of
+ *  the durability story. Never awaited into the capture UI's critical path and never throws;
+ *  callers pass the ids that actually landed to `onSynced` so they can stamp historySyncedAt
+ *  locally (mirrors the pushedAt/pushToHubspot pattern, kept separate so a failed HubSpot sync
+ *  can never be confused with a failed history write or vice versa).
+ *  Requires a real Identity session (booth-history.js 401s otherwise, v2) — a passcode-only
+ *  session simply fails here and the record stays queued for the next retry, same as being
+ *  offline; nothing in the capture flow depends on this succeeding. */
+export async function pushToHistory(resolved, captures) {
+  const pending = (captures || []).filter((c) => !c.historySyncedAt);
+  if (!pending.length) return { ok: true, syncedIds: [] };
+  try {
+    const res = await fetch("/.netlify/functions/booth-history", {
+      method: "POST",
+      headers: { "content-type": "application/json", ...(await authHeaders()) },
+      body: JSON.stringify({ tenant: resolved.id, records: pending.map(toHistoryRecord) }),
+    });
+    if (!res.ok) return { ok: false, status: res.status, syncedIds: [] };
+    // The function dedupes and doesn't echo which ids it accepted — a 200 here means every id in
+    // this batch is now durably stored (it either just appended or was already there from a
+    // previous attempt), so the whole batch can be stamped synced.
+    return { ok: true, syncedIds: pending.map((c) => c.id) };
+  } catch (e) {
+    // Offline/unreachable — expected, not exceptional. Left unsynced for the next retry sweep.
+    return { ok: false, status: 0, syncedIds: [], error: String(e?.message || e) };
+  }
+}
+
+/** GET the tenant's full booth-history log for the History tab. */
+export async function fetchHistory(resolved) {
+  try {
+    const res = await fetch(`/.netlify/functions/booth-history?tenant=${encodeURIComponent(resolved.id)}`, {
+      headers: { ...(await authHeaders()) },
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) return { ok: false, status: res.status, records: [], error: data?.error };
+    return { ok: true, records: Array.isArray(data.records) ? data.records : [] };
+  } catch (e) {
+    return { ok: false, status: 0, records: [], error: String(e?.message || e) };
+  }
+}
+
+/** Who may edit a booth-history row (v2): the rep who captured it, or admin/client-admin — mirrors
+ *  the server-side check in booth-history.js exactly (that check is the real gate; this just
+ *  keeps the Edit button honest with what the server will actually allow). */
+export function canEditHistoryRecord(user, record) {
+  const email = (user?.email || "").toLowerCase();
+  const capturedByEmail = (record?.capturedBy?.email || "").toLowerCase();
+  if (email && capturedByEmail && email === capturedByEmail) return true;
+  const roles = rolesOf(user);
+  return roles.includes("admin") || roles.includes("client-admin");
+}
+
+/** Save an edit to a booth-history row. Whitelisted fields only (name/company/phone/email/
+ *  nextStepMode/notes) — the server enforces the same whitelist; this just keeps the client from
+ *  sending fields that would be silently dropped. Resolves the SERVER's updated record (with the
+ *  new editedBy entry) so the caller can render "edited by X" immediately without a re-fetch. */
+export async function pushHistoryEdit(resolved, id, patch) {
+  try {
+    const res = await fetch("/.netlify/functions/booth-history", {
+      method: "POST",
+      headers: { "content-type": "application/json", ...(await authHeaders()) },
+      body: JSON.stringify({ tenant: resolved.id, id, patch, action: "update" }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) return { ok: false, status: res.status, error: data?.error || "Edit failed" };
+    return { ok: true, record: data.record };
+  } catch (e) {
+    return { ok: false, status: 0, error: String(e?.message || e) };
   }
 }
