@@ -602,6 +602,8 @@ function AssetDialog({ asset, onClose, canManage, canDelete, onCopy, onSave, onD
       minAge: it.minAge || "",
       shortDescription: it.shortDescription || "",
       longDescription: it.longDescription || "",
+      // Edited as one link per line; split back into the real array on save (see save() below).
+      trainingVideoLinksText: (it.trainingVideoLinks || []).join("\n"),
     });
     setEditing(true);
   };
@@ -615,7 +617,9 @@ function AssetDialog({ asset, onClose, canManage, canDelete, onCopy, onSave, onD
     let itemOk = true;
     const sku = (form.sku || "").trim();
     if (ok && sku && canManageItem && itemForm && isProductEdit) {
-      itemOk = await onSaveItem(sku, itemForm);
+      const { trainingVideoLinksText, ...itemFields } = itemForm;
+      itemFields.trainingVideoLinks = (trainingVideoLinksText || "").split("\n").map((s) => s.trim()).filter(Boolean);
+      itemOk = await onSaveItem(sku, itemFields);
     }
     setSaving(false);
     if (ok && itemOk) setEditing(false);
@@ -706,6 +710,19 @@ function AssetDialog({ asset, onClose, canManage, canDelete, onCopy, onSave, onD
                       </div>
                     )}
                   </>
+                )}
+                {/* Internal-only (canManage) — staff/sales training links, not part of buyer-facing copy. */}
+                {canManage && linkedItem.trainingVideoLinks?.length > 0 && (
+                  <div className="mt-2 border-t border-border pt-2">
+                    <p className="text-xs font-medium text-fg-muted">Training videos</p>
+                    <ul className="mt-1 space-y-0.5">
+                      {linkedItem.trainingVideoLinks.map((url) => (
+                        <li key={url}>
+                          <a href={url} target="_blank" rel="noreferrer" className="text-xs text-brand-primary underline break-all">{url}</a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 )}
               </div>
             )}
@@ -817,6 +834,13 @@ function AssetDialog({ asset, onClose, canManage, canDelete, onCopy, onSave, onD
                   <Field label="Long description — slides, blog, sell sheets">
                     <textarea rows={4} value={itemForm.longDescription} onChange={(e) => setItemField("longDescription", e.target.value)}
                       className="w-full rounded-base border border-border bg-bg px-2 py-1.5 text-sm text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand" />
+                  </Field>
+                </div>
+                <div className="mt-3">
+                  <Field label="Training video links — one per line, reserved for future use">
+                    <textarea rows={2} value={itemForm.trainingVideoLinksText} onChange={(e) => setItemField("trainingVideoLinksText", e.target.value)}
+                      placeholder="https://…"
+                      className="w-full rounded-base border border-border bg-bg px-2 py-1.5 font-mono text-xs text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand" />
                   </Field>
                 </div>
               </div>

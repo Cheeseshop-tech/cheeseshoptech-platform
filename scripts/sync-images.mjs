@@ -36,6 +36,15 @@ const LIVE = process.argv.includes("--live") || !(cloud && key && secret);
 
 const APPROVAL_TAGS = ["approved-for-influencers", "approved-for-press", "draft"];
 const APPROVED_STATES = ["approved-for-press", "approved-for-influencers"];
+// Usage taxonomy (mirror of netlify/functions/media-list.js's own USAGE_IDS / src/lib/media.js's
+// USAGE) — threaded onto each manifest record (2026-09-17, media-roles-and-spec-sheets Gap 2) so
+// consumers can sort/label alternate photos (hero, back-shot, unwrapped, map-reference, etc.)
+// instead of every code's photos looking identical in a multi-photo lightbox.
+const USAGE_IDS = [
+  "product-catalog", "hero", "back-shot", "unwrapped", "map-reference", "story-block", "lifestyle",
+  "food-styling", "production", "social", "press", "event", "brand-asset", "email-campaign",
+  "print", "web-marketing",
+];
 
 // Legacy Cloudinary folders predating the tenant folder (config/clients/<tenant>.json
 // `cloudinaryLegacyFolders`, e.g. Monti's `monti/<itemcode>` packshots) — read here so BOTH sync
@@ -140,6 +149,7 @@ if (!LIVE) {
       sku: code,
       orig: ctx.orig || null,
       approvalState,
+      usage: tags.filter((t) => USAGE_IDS.includes(t)),
       bgRemoved: tags.includes(BG_REMOVED_TAG),
       width: r.width,
       height: r.height,
@@ -197,6 +207,7 @@ if (!LIVE) {
       sku: code,
       orig: null,
       approvalState,
+      usage: tags,
       bgRemoved: !!a.bgRemoved, // media-list.js surfaces this as its own boolean, not in usage[]
       width: a.width,
       height: a.height,

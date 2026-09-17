@@ -21,6 +21,9 @@ export const FOLDERS = ["products", "brand", "raw"];
 export const USAGE = [
   { id: "product-catalog", label: "Product Catalog", catalog: true },
   { id: "hero", label: "Hero" },
+  { id: "back-shot", label: "Back of package" },
+  { id: "unwrapped", label: "Unwrapped / interior" },
+  { id: "map-reference", label: "Map reference" },
   { id: "story-block", label: "Story block" },
   { id: "lifestyle", label: "Lifestyle" },
   { id: "food-styling", label: "Food styling" },

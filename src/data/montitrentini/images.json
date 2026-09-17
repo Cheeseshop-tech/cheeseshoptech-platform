@@ -16,6 +16,9 @@
    "sku": "01021",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 1200,
    "height": 1200,
@@ -32,6 +35,9 @@
    "sku": "01032",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 800,
    "height": 800,
@@ -48,6 +54,9 @@
    "sku": "01101",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 3200,
    "height": 3200,
@@ -64,6 +73,9 @@
    "sku": "01155",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 2000,
    "height": 1981,
@@ -80,6 +92,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 1500,
    "height": 1000,
@@ -96,6 +109,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 6508,
    "height": 6508,
@@ -112,6 +126,9 @@
    "sku": "01269",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 800,
    "height": 800,
@@ -128,6 +145,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [],
    "bgRemoved": false,
    "width": 1160,
    "height": 1160,
@@ -144,6 +162,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [],
    "bgRemoved": false,
    "width": 1116,
    "height": 1116,
@@ -160,6 +179,9 @@
    "sku": "02005",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 1200,
    "height": 1200,
@@ -176,6 +198,9 @@
    "sku": "02073",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 1200,
    "height": 800,
@@ -192,6 +217,9 @@
    "sku": "02206",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 1200,
    "height": 1200,
@@ -208,6 +236,9 @@
    "sku": "03003",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 1200,
    "height": 1200,
@@ -224,6 +255,9 @@
    "sku": "03010",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 1200,
    "height": 974,
@@ -240,6 +274,9 @@
    "sku": "03014",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 1800,
    "height": 1461,
@@ -256,6 +293,9 @@
    "sku": "03023",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 1200,
    "height": 1200,
@@ -272,6 +312,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 6732,
    "height": 6732,
@@ -288,6 +329,9 @@
    "sku": "03057",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 1200,
    "height": 1200,
@@ -304,6 +348,9 @@
    "sku": "04028",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 1200,
    "height": 1200,
@@ -320,6 +367,9 @@
    "sku": "04046",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 1200,
    "height": 800,
@@ -336,6 +386,9 @@
    "sku": "04067",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 1200,
    "height": 1200,
@@ -352,6 +405,9 @@
    "sku": "04154",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 1200,
    "height": 1200,
@@ -368,6 +424,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 6732,
    "height": 6732,
@@ -384,6 +441,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 5708,
    "height": 5708,
@@ -400,6 +458,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 3000,
    "height": 2814,
@@ -416,6 +475,9 @@
    "sku": "05007",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 1200,
    "height": 1200,
@@ -432,6 +494,9 @@
    "sku": "05093",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 1200,
    "height": 1200,
@@ -448,6 +513,9 @@
    "sku": "05123",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 1125,
    "height": 1125,
@@ -464,6 +532,9 @@
    "sku": "05205",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 6045,
    "height": 6045,
@@ -480,6 +551,9 @@
    "sku": "05211",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 6045,
    "height": 6045,
@@ -496,6 +570,9 @@
    "sku": "05411",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 1200,
    "height": 1200,
@@ -512,6 +589,9 @@
    "sku": "20141",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 1200,
    "height": 1200,
@@ -528,6 +608,9 @@
    "sku": "20144",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 1200,
    "height": 1200,
@@ -544,6 +627,9 @@
    "sku": "20150",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 1200,
    "height": 1200,
@@ -560,6 +646,9 @@
    "sku": "20161",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 1200,
    "height": 1200,
@@ -576,6 +665,9 @@
    "sku": "20162",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 1200,
    "height": 1200,
@@ -592,6 +684,9 @@
    "sku": "20163",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 6732,
    "height": 6732,
@@ -608,6 +703,9 @@
    "sku": "20228",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 1200,
    "height": 1200,
@@ -624,6 +722,9 @@
    "sku": "20313",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 800,
    "height": 800,
@@ -640,6 +741,9 @@
    "sku": "20533",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 800,
    "height": 800,
@@ -656,6 +760,9 @@
    "sku": "30014-back",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 1200,
    "height": 1600,
@@ -672,6 +779,9 @@
    "sku": "30014",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 2126,
    "height": 1350,
@@ -688,6 +798,9 @@
    "sku": "30015-back",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 1200,
    "height": 1600,
@@ -704,6 +817,9 @@
    "sku": "30015",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 4500,
    "height": 2857,
@@ -720,6 +836,9 @@
    "sku": "30016",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 1125,
    "height": 1125,
@@ -736,6 +855,9 @@
    "sku": "30017",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 1125,
    "height": 1125,
@@ -752,6 +874,9 @@
    "sku": "40020",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 800,
    "height": 800,
@@ -768,6 +893,9 @@
    "sku": "40140",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 1200,
    "height": 988,
@@ -784,6 +912,9 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 1125,
    "height": 1125,
@@ -800,6 +931,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 1125,
    "height": 1125,
@@ -816,6 +948,12 @@
    "sku": "20724",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "email-campaign",
+    "print",
+    "product-catalog",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 3000,
    "height": 2814,
@@ -832,6 +970,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 6732,
    "height": 6732,
@@ -848,6 +987,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 6417,
    "height": 6417,
@@ -864,6 +1004,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 6732,
    "height": 6732,
@@ -880,6 +1021,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 6732,
    "height": 6732,
@@ -896,6 +1038,9 @@
    "sku": "02005",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 6732,
    "height": 6732,
@@ -912,6 +1057,14 @@
    "sku": "02005",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "email-campaign",
+    "press",
+    "print",
+    "product-catalog",
+    "social",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 6732,
    "height": 6732,
@@ -928,6 +1081,11 @@
    "sku": "02073",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "email-campaign",
+    "print",
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 2500,
    "height": 1667,
@@ -944,6 +1102,14 @@
    "sku": "02206",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "email-campaign",
+    "press",
+    "print",
+    "product-catalog",
+    "social",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 6732,
    "height": 6732,
@@ -960,6 +1126,9 @@
    "sku": "02091",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 2196,
    "height": 2204,
@@ -976,6 +1145,13 @@
    "sku": "03023",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "press",
+    "print",
+    "product-catalog",
+    "social",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 6732,
    "height": 6732,
@@ -992,6 +1168,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 1800,
    "height": 1461,
@@ -1008,6 +1185,13 @@
    "sku": "03057",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "email-campaign",
+    "press",
+    "print",
+    "product-catalog",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 6732,
    "height": 6732,
@@ -1024,6 +1208,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 6732,
    "height": 6732,
@@ -1040,6 +1225,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 6000,
    "height": 4000,
@@ -1056,6 +1242,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 5897,
    "height": 5897,
@@ -1072,6 +1259,9 @@
    "sku": "20161",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 5897,
    "height": 5897,
@@ -1088,6 +1278,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 5897,
    "height": 5897,
@@ -1104,6 +1295,9 @@
    "sku": "20141",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 5897,
    "height": 5897,
@@ -1120,6 +1314,9 @@
    "sku": "20144",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 5897,
    "height": 5897,
@@ -1136,6 +1333,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 6340,
    "height": 6340,
@@ -1152,6 +1350,9 @@
    "sku": "20150",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 6732,
    "height": 6732,
@@ -1168,6 +1369,9 @@
    "sku": "20162",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 6732,
    "height": 6732,
@@ -1184,6 +1388,9 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 5897,
    "height": 5897,
@@ -1200,6 +1407,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 5897,
    "height": 5897,
@@ -1216,6 +1424,9 @@
    "sku": "20228",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 5897,
    "height": 5897,
@@ -1232,6 +1443,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 5160,
    "height": 5160,
@@ -1248,6 +1460,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 5708,
    "height": 5708,
@@ -1264,6 +1477,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 5897,
    "height": 5897,
@@ -1280,6 +1494,9 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 5897,
    "height": 5897,
@@ -1296,6 +1513,9 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 5897,
    "height": 5897,
@@ -1312,6 +1532,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 6732,
    "height": 6732,
@@ -1328,6 +1549,9 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 5897,
    "height": 5897,
@@ -1344,6 +1568,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 5897,
    "height": 5897,
@@ -1360,6 +1585,9 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 2688,
    "height": 2408,
@@ -1376,6 +1604,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 896,
    "height": 1200,
@@ -1392,6 +1621,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 6732,
    "height": 6732,
@@ -1408,6 +1638,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 5420,
    "height": 5420,
@@ -1424,6 +1655,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 5897,
    "height": 5897,
@@ -1440,6 +1672,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 6153,
    "height": 6153,
@@ -1456,6 +1689,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 6279,
    "height": 6279,
@@ -1472,6 +1706,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 6732,
    "height": 6732,
@@ -1488,6 +1723,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 6732,
    "height": 6732,
@@ -1504,6 +1740,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 5708,
    "height": 5708,
@@ -1520,6 +1757,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 2000,
    "height": 2000,
@@ -1536,6 +1774,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 6732,
    "height": 6732,
@@ -1552,6 +1791,9 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 5897,
    "height": 5897,
@@ -1568,6 +1810,9 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 6565,
    "height": 6565,
@@ -1584,6 +1829,9 @@
    "sku": "05001",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 6732,
    "height": 6732,
@@ -1600,6 +1848,9 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 1125,
    "height": 1125,
@@ -1616,6 +1867,9 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 6576,
    "height": 6576,
@@ -1632,6 +1886,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 3000,
    "height": 3000,
@@ -1648,6 +1903,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 1772,
    "height": 1772,
@@ -1664,6 +1920,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 704,
    "height": 898,
@@ -1680,6 +1937,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 6384,
    "height": 6384,
@@ -1696,6 +1954,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 6045,
    "height": 6045,
@@ -1712,6 +1971,11 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "event",
+    "social",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 2048,
    "height": 2560,
@@ -1728,6 +1992,9 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-influencers",
+   "usage": [
+    "social"
+   ],
    "bgRemoved": false,
    "width": 1080,
    "height": 1920,
@@ -1744,6 +2011,14 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "brand-asset",
+    "lifestyle",
+    "press",
+    "print",
+    "story-block",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 2250,
    "height": 1435,
@@ -1760,6 +2035,11 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "brand-asset",
+    "story-block",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 1670,
    "height": 870,
@@ -1776,6 +2056,9 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 1125,
    "height": 1125,
@@ -1792,6 +2075,9 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 1125,
    "height": 1125,
@@ -1808,6 +2094,9 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "food-styling"
+   ],
    "bgRemoved": false,
    "width": 2560,
    "height": 1440,
@@ -1824,6 +2113,9 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "brand-asset"
+   ],
    "bgRemoved": false,
    "width": 144,
    "height": 18,
@@ -1840,6 +2132,9 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "brand-asset"
+   ],
    "bgRemoved": false,
    "width": 106,
    "height": 19,
@@ -1856,6 +2151,11 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "press",
+    "production",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 1235,
    "height": 1829,
@@ -1872,6 +2172,9 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 1125,
    "height": 1125,
@@ -1888,6 +2191,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "event",
+    "food-styling",
+    "press",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 2048,
    "height": 2560,
@@ -1904,6 +2213,10 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "press",
+    "production"
+   ],
    "bgRemoved": false,
    "width": 2048,
    "height": 2560,
@@ -1920,6 +2233,9 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "food-styling"
+   ],
    "bgRemoved": false,
    "width": 2048,
    "height": 2560,
@@ -1936,6 +2252,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "email-campaign",
+    "social",
+    "story-block",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 2048,
    "height": 2560,
@@ -1952,6 +2274,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "email-campaign",
+    "social",
+    "story-block",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 2048,
    "height": 2560,
@@ -1968,6 +2296,11 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "event",
+    "social",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 2048,
    "height": 2560,
@@ -1984,6 +2317,11 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "event",
+    "social",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 2048,
    "height": 2560,
@@ -2000,6 +2338,11 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "event",
+    "social",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 2048,
    "height": 2560,
@@ -2016,6 +2359,11 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "event",
+    "social",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 2048,
    "height": 2560,
@@ -2032,6 +2380,11 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "event",
+    "social",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 2048,
    "height": 2560,
@@ -2048,6 +2401,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "event",
+    "press",
+    "social",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 2048,
    "height": 2560,
@@ -2064,6 +2423,14 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "brand-asset",
+    "event",
+    "press",
+    "production",
+    "story-block",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 2048,
    "height": 2560,
@@ -2080,6 +2447,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [],
    "bgRemoved": false,
    "width": 2048,
    "height": 2560,
@@ -2096,6 +2464,9 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 6274,
    "height": 7843,
@@ -2112,6 +2483,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [],
    "bgRemoved": false,
    "width": 2048,
    "height": 2560,
@@ -2128,6 +2500,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "email-campaign",
+    "hero",
+    "press",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 2048,
    "height": 2560,
@@ -2144,6 +2522,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [],
    "bgRemoved": false,
    "width": 2048,
    "height": 2560,
@@ -2160,6 +2539,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "food-styling",
+    "press",
+    "production",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 2048,
    "height": 2560,
@@ -2176,6 +2561,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "food-styling",
+    "press",
+    "production",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 2048,
    "height": 2560,
@@ -2192,6 +2583,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "food-styling",
+    "press",
+    "production",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 2048,
    "height": 2560,
@@ -2208,6 +2605,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "food-styling",
+    "press",
+    "production",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 2048,
    "height": 2560,
@@ -2224,6 +2627,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "food-styling",
+    "press",
+    "production",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 2048,
    "height": 2560,
@@ -2240,6 +2649,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "food-styling",
+    "press",
+    "production",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 2048,
    "height": 2560,
@@ -2256,6 +2671,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "email-campaign",
+    "press",
+    "print",
+    "social"
+   ],
    "bgRemoved": false,
    "width": 1183,
    "height": 2560,
@@ -2272,6 +2693,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "food-styling",
+    "press",
+    "production",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 2048,
    "height": 2560,
@@ -2288,6 +2715,11 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "food-styling",
+    "press",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 2048,
    "height": 2560,
@@ -2304,6 +2736,9 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "food-styling"
+   ],
    "bgRemoved": false,
    "width": 2048,
    "height": 2560,
@@ -2320,6 +2755,13 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "email-campaign",
+    "food-styling",
+    "social",
+    "story-block",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 2048,
    "height": 2560,
@@ -2336,6 +2778,14 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "email-campaign",
+    "food-styling",
+    "hero",
+    "social",
+    "story-block",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 2048,
    "height": 2560,
@@ -2352,6 +2802,9 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 2560,
    "height": 2560,
@@ -2368,6 +2821,10 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "press",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 2560,
    "height": 2560,
@@ -2384,6 +2841,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "food-styling",
+    "press",
+    "production",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 2048,
    "height": 2560,
@@ -2400,6 +2863,9 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "production"
+   ],
    "bgRemoved": false,
    "width": 2048,
    "height": 2560,
@@ -2416,6 +2882,14 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "email-campaign",
+    "hero",
+    "lifestyle",
+    "press",
+    "story-block",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 1670,
    "height": 870,
@@ -2432,6 +2906,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "hero",
+    "lifestyle",
+    "press",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 2250,
    "height": 1435,
@@ -2448,6 +2928,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "email-campaign",
+    "press",
+    "social",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 2048,
    "height": 2560,
@@ -2464,6 +2950,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [],
    "bgRemoved": false,
    "width": 1920,
    "height": 1083,
@@ -2480,6 +2967,13 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "email-campaign",
+    "press",
+    "social",
+    "story-block",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 1200,
    "height": 1600,
@@ -2496,6 +2990,9 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "brand-asset"
+   ],
    "bgRemoved": false,
    "width": 430,
    "height": 225,
@@ -2512,6 +3009,9 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "brand-asset"
+   ],
    "bgRemoved": false,
    "width": 455,
    "height": 225,
@@ -2528,6 +3028,11 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "brand-asset",
+    "lifestyle",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 1125,
    "height": 1125,
@@ -2544,6 +3049,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "food-styling",
+    "press",
+    "production",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 1148,
    "height": 1444,
@@ -2560,6 +3071,9 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "production"
+   ],
    "bgRemoved": false,
    "width": 1706,
    "height": 2560,
@@ -2576,6 +3090,9 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 1125,
    "height": 1125,
@@ -2592,6 +3109,9 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "food-styling"
+   ],
    "bgRemoved": false,
    "width": 1024,
    "height": 1024,
@@ -2608,6 +3128,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "food-styling",
+    "press",
+    "production",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 2932,
    "height": 1544,
@@ -2624,6 +3150,9 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 1125,
    "height": 1125,
@@ -2640,6 +3169,9 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 6000,
    "height": 4000,
@@ -2656,6 +3188,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [],
    "bgRemoved": false,
    "width": 6000,
    "height": 4000,
@@ -2672,6 +3205,11 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "email-campaign",
+    "hero",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 6000,
    "height": 4000,
@@ -2688,6 +3226,10 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "brand-asset",
+    "hero"
+   ],
    "bgRemoved": false,
    "width": 2250,
    "height": 2000,
@@ -2704,6 +3246,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [],
    "bgRemoved": false,
    "width": 2560,
    "height": 1705,
@@ -2720,6 +3263,9 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 2048,
    "height": 2560,
@@ -2736,6 +3282,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "email-campaign",
+    "social",
+    "story-block",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 2048,
    "height": 2560,
@@ -2752,6 +3304,9 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 2048,
    "height": 2560,
@@ -2768,6 +3323,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "food-styling",
+    "press",
+    "production",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 2048,
    "height": 2560,
@@ -2784,6 +3345,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [],
    "bgRemoved": false,
    "width": 640,
    "height": 2505,
@@ -2800,6 +3362,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [],
    "bgRemoved": false,
    "width": 1200,
    "height": 1552,
@@ -2816,6 +3379,14 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "brand-asset",
+    "email-campaign",
+    "press",
+    "print",
+    "social",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 500,
    "height": 249,
@@ -2832,6 +3403,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "food-styling",
+    "press",
+    "production",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 2247,
    "height": 1474,
@@ -2848,6 +3425,9 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 1125,
    "height": 1125,
@@ -2864,6 +3444,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "food-styling",
+    "press",
+    "production",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 1707,
    "height": 2560,
@@ -2880,6 +3466,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "food-styling",
+    "press",
+    "production",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 2560,
    "height": 1707,
@@ -2896,6 +3488,11 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-influencers",
+   "usage": [
+    "food-styling",
+    "press",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 1692,
    "height": 2560,
@@ -2912,6 +3509,9 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "social"
+   ],
    "bgRemoved": false,
    "width": 2196,
    "height": 2560,
@@ -2928,6 +3528,9 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 1125,
    "height": 1125,
@@ -2944,6 +3547,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "food-styling",
+    "press",
+    "production",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 1829,
    "height": 1256,
@@ -2960,6 +3569,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [],
    "bgRemoved": false,
    "width": 1080,
    "height": 1830,
@@ -2976,6 +3586,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "email-campaign",
+    "press",
+    "story-block",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 1598,
    "height": 1602,
@@ -2992,6 +3608,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "food-styling",
+    "press",
+    "production",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 1286,
    "height": 1604,
@@ -3008,6 +3630,9 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 1280,
    "height": 1594,
@@ -3024,6 +3649,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "food-styling",
+    "press",
+    "production",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 2196,
    "height": 1460,
@@ -3040,6 +3671,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "food-styling",
+    "press",
+    "production",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 2190,
    "height": 1464,
@@ -3056,6 +3693,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "food-styling",
+    "press",
+    "production",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 2196,
    "height": 1462,
@@ -3072,6 +3715,9 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 681,
    "height": 850,
@@ -3088,6 +3734,10 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "lifestyle",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 1000,
    "height": 865,
@@ -3104,6 +3754,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "food-styling",
+    "hero",
+    "press",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 658,
    "height": 878,
@@ -3120,6 +3776,9 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "production"
+   ],
    "bgRemoved": false,
    "width": 634,
    "height": 790,
@@ -3136,6 +3795,10 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "production",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 634,
    "height": 788,
@@ -3152,6 +3815,11 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "press",
+    "story-block",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 1586,
    "height": 1190,
@@ -3168,6 +3836,14 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "email-campaign",
+    "press",
+    "print",
+    "production",
+    "social",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 1214,
    "height": 1574,
@@ -3184,6 +3860,14 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "email-campaign",
+    "press",
+    "production",
+    "social",
+    "story-block",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 1218,
    "height": 1558,
@@ -3200,6 +3884,14 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "email-campaign",
+    "press",
+    "production",
+    "social",
+    "story-block",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 1264,
    "height": 1578,
@@ -3216,6 +3908,15 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "email-campaign",
+    "hero",
+    "press",
+    "print",
+    "social",
+    "story-block",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 1416,
    "height": 1064,
@@ -3232,6 +3933,14 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "email-campaign",
+    "hero",
+    "press",
+    "print",
+    "social",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 1296,
    "height": 1062,
@@ -3248,6 +3957,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "food-styling",
+    "press",
+    "production",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 1286,
    "height": 1606,
@@ -3264,6 +3979,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "food-styling",
+    "press",
+    "production",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 545,
    "height": 681,
@@ -3280,6 +4001,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "food-styling",
+    "press",
+    "production",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 1160,
    "height": 1456,
@@ -3296,6 +4023,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "food-styling",
+    "press",
+    "production",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 934,
    "height": 1460,
@@ -3312,6 +4045,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "food-styling",
+    "press",
+    "production",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 1178,
    "height": 1460,
@@ -3328,6 +4067,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "food-styling",
+    "press",
+    "production",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 1174,
    "height": 1458,
@@ -3344,6 +4089,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "food-styling",
+    "press",
+    "production",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 1086,
    "height": 1454,
@@ -3360,6 +4111,10 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "lifestyle",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 2250,
    "height": 1435,
@@ -3376,6 +4131,9 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 1125,
    "height": 1125,
@@ -3392,6 +4150,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "email-campaign",
+    "social",
+    "story-block",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 2560,
    "height": 1706,
@@ -3408,6 +4172,13 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "email-campaign",
+    "production",
+    "social",
+    "story-block",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 1706,
    "height": 2560,
@@ -3424,6 +4195,13 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "email-campaign",
+    "production",
+    "social",
+    "story-block",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 1706,
    "height": 2560,
@@ -3440,6 +4218,13 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "email-campaign",
+    "production",
+    "social",
+    "story-block",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 1706,
    "height": 2560,
@@ -3456,6 +4241,13 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "email-campaign",
+    "production",
+    "social",
+    "story-block",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 2560,
    "height": 1706,
@@ -3472,6 +4264,13 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "email-campaign",
+    "production",
+    "social",
+    "story-block",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 2560,
    "height": 1706,
@@ -3488,6 +4287,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "email-campaign",
+    "social",
+    "story-block",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 2560,
    "height": 1706,
@@ -3504,6 +4309,13 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "email-campaign",
+    "production",
+    "social",
+    "story-block",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 1706,
    "height": 2560,
@@ -3520,6 +4332,13 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "email-campaign",
+    "production",
+    "social",
+    "story-block",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 2560,
    "height": 1706,
@@ -3536,6 +4355,14 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "email-campaign",
+    "hero",
+    "production",
+    "social",
+    "story-block",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 1706,
    "height": 2560,
@@ -3552,6 +4379,13 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "email-campaign",
+    "production",
+    "social",
+    "story-block",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 2560,
    "height": 1706,
@@ -3568,6 +4402,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "email-campaign",
+    "social",
+    "story-block",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 2560,
    "height": 1706,
@@ -3584,6 +4424,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "email-campaign",
+    "social",
+    "story-block",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 1706,
    "height": 2560,
@@ -3600,6 +4446,13 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "email-campaign",
+    "production",
+    "social",
+    "story-block",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 2560,
    "height": 1706,
@@ -3616,6 +4469,13 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "email-campaign",
+    "production",
+    "social",
+    "story-block",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 1706,
    "height": 2560,
@@ -3632,6 +4492,13 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "email-campaign",
+    "production",
+    "social",
+    "story-block",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 2560,
    "height": 1706,
@@ -3648,6 +4515,13 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "email-campaign",
+    "production",
+    "social",
+    "story-block",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 1706,
    "height": 2560,
@@ -3664,6 +4538,13 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "email-campaign",
+    "production",
+    "social",
+    "story-block",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 2560,
    "height": 1706,
@@ -3680,6 +4561,13 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "email-campaign",
+    "production",
+    "social",
+    "story-block",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 1706,
    "height": 2560,
@@ -3696,6 +4584,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "email-campaign",
+    "social",
+    "story-block",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 1706,
    "height": 2560,
@@ -3712,6 +4606,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "email-campaign",
+    "social",
+    "story-block",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 1706,
    "height": 2560,
@@ -3728,6 +4628,13 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "email-campaign",
+    "production",
+    "social",
+    "story-block",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 1706,
    "height": 2560,
@@ -3744,6 +4651,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "email-campaign",
+    "social",
+    "story-block",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 1706,
    "height": 2560,
@@ -3760,6 +4673,13 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "email-campaign",
+    "production",
+    "social",
+    "story-block",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 1706,
    "height": 2560,
@@ -3776,6 +4696,13 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "email-campaign",
+    "production",
+    "social",
+    "story-block",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 1706,
    "height": 2560,
@@ -3792,6 +4719,13 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "email-campaign",
+    "production",
+    "social",
+    "story-block",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 1706,
    "height": 2560,
@@ -3808,6 +4742,13 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "email-campaign",
+    "production",
+    "social",
+    "story-block",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 1706,
    "height": 2560,
@@ -3824,6 +4765,13 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "email-campaign",
+    "production",
+    "social",
+    "story-block",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 2560,
    "height": 1706,
@@ -3840,6 +4788,13 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "email-campaign",
+    "production",
+    "social",
+    "story-block",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 1706,
    "height": 2560,
@@ -3856,6 +4811,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "food-styling",
+    "press",
+    "production",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 2560,
    "height": 1706,
@@ -3872,6 +4833,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "food-styling",
+    "press",
+    "production",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 1706,
    "height": 2560,
@@ -3888,6 +4855,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "email-campaign",
+    "social",
+    "story-block",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 1706,
    "height": 2560,
@@ -3904,6 +4877,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "email-campaign",
+    "social",
+    "story-block",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 1706,
    "height": 2560,
@@ -3920,6 +4899,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "email-campaign",
+    "social",
+    "story-block",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 1706,
    "height": 2560,
@@ -3936,6 +4921,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "email-campaign",
+    "social",
+    "story-block",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 1706,
    "height": 2560,
@@ -3952,6 +4943,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "email-campaign",
+    "social",
+    "story-block",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 1706,
    "height": 2560,
@@ -3968,6 +4965,13 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "email-campaign",
+    "hero",
+    "social",
+    "story-block",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "width": 1706,
    "height": 2560,
@@ -3984,6 +4988,9 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "brand-asset"
+   ],
    "bgRemoved": false,
    "width": 880,
    "height": 481,
@@ -4000,6 +5007,9 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "brand-asset"
+   ],
    "bgRemoved": false,
    "width": 1306,
    "height": 378,
@@ -4016,6 +5026,9 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "brand-asset"
+   ],
    "bgRemoved": false,
    "width": 1909,
    "height": 1121,
@@ -4032,6 +5045,12 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [
+    "food-styling",
+    "press",
+    "production",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 1024,
    "height": 1024,
@@ -4048,6 +5067,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [],
    "bgRemoved": false,
    "width": 1080,
    "height": 1080,
@@ -4064,6 +5084,11 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-influencers",
+   "usage": [
+    "food-styling",
+    "press",
+    "story-block"
+   ],
    "bgRemoved": false,
    "width": 1707,
    "height": 2560,
@@ -4080,6 +5105,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 401,
    "height": 308,
@@ -4096,6 +5122,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 143,
    "height": 142,
@@ -4112,6 +5139,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 1125,
    "height": 1125,
@@ -4128,6 +5156,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 1125,
    "height": 1125,
@@ -4144,6 +5173,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 3000,
    "height": 3000,
@@ -4160,6 +5190,9 @@
    "sku": "40163",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 1714,
    "height": 1411,
@@ -4176,6 +5209,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 6513,
    "height": 6513,
@@ -4192,6 +5226,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 6513,
    "height": 6513,
@@ -4208,6 +5243,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 6513,
    "height": 6513,
@@ -4224,6 +5260,9 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-influencers",
+   "usage": [
+    "production"
+   ],
    "bgRemoved": false,
    "width": 6513,
    "height": 6513,
@@ -4240,6 +5279,9 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 6010,
    "height": 6010,
@@ -4256,6 +5298,9 @@
    "sku": "01021",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 5897,
    "height": 5897,
@@ -4272,6 +5317,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 6207,
    "height": 6207,
@@ -4288,6 +5334,9 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 6508,
    "height": 6508,
@@ -4304,6 +5353,9 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 6214,
    "height": 6214,
@@ -4320,6 +5372,9 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 6513,
    "height": 6513,
@@ -4336,6 +5391,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 959,
    "height": 540,
@@ -4352,6 +5408,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 959,
    "height": 540,
@@ -4368,6 +5425,9 @@
    "sku": "03073",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 4976,
    "height": 4496,
@@ -4384,6 +5444,11 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "email-campaign",
+    "event",
+    "print"
+   ],
    "bgRemoved": false,
    "width": 384,
    "height": 480,
@@ -4400,6 +5465,9 @@
    "sku": "04211",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 2000,
    "height": 2000,
@@ -4416,6 +5484,9 @@
    "sku": "03044",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 4976,
    "height": 4496,
@@ -4432,6 +5503,11 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "email-campaign",
+    "event",
+    "print"
+   ],
    "bgRemoved": false,
    "width": 384,
    "height": 480,
@@ -4448,6 +5524,11 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "email-campaign",
+    "event",
+    "print"
+   ],
    "bgRemoved": false,
    "width": 384,
    "height": 480,
@@ -4464,6 +5545,11 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "email-campaign",
+    "event",
+    "print"
+   ],
    "bgRemoved": false,
    "width": 384,
    "height": 480,
@@ -4480,6 +5566,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
+   "usage": [],
    "bgRemoved": false,
    "width": 1179,
    "height": 1584,
@@ -4496,6 +5583,9 @@
    "sku": "04165",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 4305,
    "height": 4305,
@@ -4512,6 +5602,11 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "email-campaign",
+    "event",
+    "print"
+   ],
    "bgRemoved": false,
    "width": 384,
    "height": 480,
@@ -4528,6 +5623,11 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "email-campaign",
+    "event",
+    "print"
+   ],
    "bgRemoved": false,
    "width": 384,
    "height": 480,
@@ -4544,6 +5644,9 @@
    "sku": "40184",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 4000,
    "height": 4000,
@@ -4560,6 +5663,10 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "event",
+    "print"
+   ],
    "bgRemoved": false,
    "width": 612,
    "height": 792,
@@ -4576,6 +5683,9 @@
    "sku": "04182",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 2480,
    "height": 2480,
@@ -4592,6 +5702,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 5976,
    "height": 5976,
@@ -4608,6 +5719,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 6513,
    "height": 6513,
@@ -4624,6 +5736,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 4032,
    "height": 3024,
@@ -4640,6 +5753,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 1400,
    "height": 1313,
@@ -4656,6 +5770,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 1400,
    "height": 1400,
@@ -4672,6 +5787,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 1400,
    "height": 1400,
@@ -4688,6 +5804,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 1400,
    "height": 1400,
@@ -4704,6 +5821,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 1400,
    "height": 1400,
@@ -4720,6 +5838,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 5708,
    "height": 5708,
@@ -4736,6 +5855,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 5708,
    "height": 5708,
@@ -4752,6 +5872,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 2000,
    "height": 2000,
@@ -4768,6 +5889,9 @@
    "sku": "04028",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 5708,
    "height": 5708,
@@ -4784,6 +5908,9 @@
    "sku": "04176",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 6000,
    "height": 4000,
@@ -4800,6 +5927,9 @@
    "sku": "04154",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 6732,
    "height": 6732,
@@ -4816,6 +5946,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 6732,
    "height": 6732,
@@ -4832,6 +5963,9 @@
    "sku": "04181",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 5708,
    "height": 5708,
@@ -4848,6 +5982,9 @@
    "sku": "04108",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 1000,
    "height": 1000,
@@ -4864,6 +6001,9 @@
    "sku": "04046",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 2500,
    "height": 1667,
@@ -4880,6 +6020,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 6732,
    "height": 6732,
@@ -4896,6 +6037,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 4000,
    "height": 3752,
@@ -4912,6 +6054,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 5708,
    "height": 5708,
@@ -4928,6 +6071,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 6732,
    "height": 6732,
@@ -4944,6 +6088,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 5897,
    "height": 5897,
@@ -4960,6 +6105,9 @@
    "sku": "40107",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 652,
    "height": 832,
@@ -4976,6 +6124,9 @@
    "sku": "40109",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 672,
    "height": 884,
@@ -4992,6 +6143,7 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [],
    "bgRemoved": false,
    "width": 2000,
    "height": 2000,
@@ -5008,6 +6160,9 @@
    "sku": "tbd",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 6000,
    "height": 4000,
@@ -5024,6 +6179,9 @@
    "sku": "20423",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 6000,
    "height": 4216,
@@ -5040,6 +6198,9 @@
    "sku": "20424",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 5304,
    "height": 4000,
@@ -5056,6 +6217,9 @@
    "sku": "20480",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 5112,
    "height": 3544,
@@ -5072,6 +6236,9 @@
    "sku": "20481",
    "orig": null,
    "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 3000,
    "height": 2169,

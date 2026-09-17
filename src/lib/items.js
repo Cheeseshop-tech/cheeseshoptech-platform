@@ -43,6 +43,7 @@ export function emptyItem(sku = "") {
     shortDescription: "",  // one-liner — social posts, email subject areas, catalog blurbs
     longDescription: "",   // full story — slides, blog posts, sell sheets
     certification: "",     // e.g. "DOP", "PDO · EU Organic"
+    trainingVideoLinks: [], // external links (sales/staff training video) — reserved for future use
     updatedAt: null,
   };
 }

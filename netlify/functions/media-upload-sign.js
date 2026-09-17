@@ -18,7 +18,7 @@ import { logWrite } from "./_write-log.js";
 import { withMonitoring } from "./_sentry.js";
 
 const USAGE_IDS = [
-  "product-catalog", "hero", "story-block", "lifestyle", "food-styling", "production",
+  "product-catalog", "hero", "back-shot", "unwrapped", "map-reference", "story-block", "lifestyle", "food-styling", "production",
   "social", "press", "event", "brand-asset", "email-campaign", "print", "web-marketing",
 ];
 

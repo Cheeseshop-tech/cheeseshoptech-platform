@@ -11,9 +11,22 @@ import { useToast } from "@/components/ui/toast.jsx";
 import { getBuyerCatalog, cldThumb, cldBig, cldView, cldDownload, fmtSize } from "@/lib/catalog.js";
 import { loadEdits, applyEdits } from "@/lib/catalog-edits.js";
 import { loadItems, listItems, specLine } from "@/lib/items.js";
+import { usageLabel } from "@/lib/media.js";
 import { useAuth } from "@/lib/auth-context.jsx";
 import { rolesOf } from "@/lib/auth.js";
 import { CATEGORY_ORDER, categoryForItem } from "@/lib/catalog-categories.js";
+
+// Which usage tag, if any, is worth a small caption under a multi-photo lightbox thumbnail
+// (2026-09-17, media-roles-and-spec-sheets Gap 2) — priority order so a photo with several tags
+// shows the most buyer-relevant one. "product-catalog" itself is never shown (every photo here
+// already has it; it says nothing about which one this is).
+const ALT_PHOTO_LABEL_PRIORITY = [
+  "hero", "back-shot", "unwrapped", "map-reference", "food-styling", "social", "lifestyle",
+];
+function altPhotoLabel(usage) {
+  const id = ALT_PHOTO_LABEL_PRIORITY.find((u) => usage?.includes(u));
+  return id ? usageLabel(id) : null;
+}
 
 // Buyer-facing PRODUCT CATALOG — ITEM-DRIVEN (Rick, 2026-07-04): the catalog MIRRORS the item
 // numbers on the price list / item data (the Media Hub item-truth doc in Cloudinary,
@@ -58,6 +71,13 @@ function BuyerCatalog({ data, brandName, tenantId, itemsFolder }) {
   const imagesByCode = useMemo(() => {
     const map = {};
     images.forEach((im) => { if (im.code) (map[im.code] ||= []).push(im); });
+    // Hero-first ordering (2026-09-17, media-roles-and-spec-sheets Gap 1): an item's `hero`-
+    // tagged photo becomes the card thumbnail + lightbox default, regardless of Cloudinary
+    // listing order. Purely additive — a code with no `hero` tag keeps today's first-listed-wins
+    // behavior (stable sort leaves untagged photos in their original order).
+    Object.values(map).forEach((imgs) => {
+      imgs.sort((a, b) => (b.usage?.includes("hero") ? 1 : 0) - (a.usage?.includes("hero") ? 1 : 0));
+    });
     return map;
   }, [images]);
 
@@ -293,18 +313,21 @@ function BuyerCatalog({ data, brandName, tenantId, itemsFolder }) {
                 </div>
                 {activeRow.imgs.length > 1 && (
                   <div className="mt-3 flex flex-wrap gap-2">
-                    {activeRow.imgs.map((im, i) => (
-                      <button
-                        key={im.id}
-                        onClick={() => setHeroIdx(i)}
-                        className={
-                          "h-14 w-14 overflow-hidden rounded-base border bg-white " +
-                          (i === heroIdx ? "border-brand-primary ring-2 ring-brand-primary/30" : "border-border")
-                        }
-                      >
-                        <img src={cldThumb(cloud, im)} alt="" className="h-full w-full object-contain" />
-                      </button>
-                    ))}
+                    {activeRow.imgs.map((im, i) => {
+                      const label = altPhotoLabel(im.usage);
+                      return (
+                        <button key={im.id} onClick={() => setHeroIdx(i)} title={label || undefined}
+                          className="flex flex-col items-center gap-1">
+                          <span className={
+                            "block h-14 w-14 overflow-hidden rounded-base border bg-white " +
+                            (i === heroIdx ? "border-brand-primary ring-2 ring-brand-primary/30" : "border-border")
+                          }>
+                            <img src={cldThumb(cloud, im)} alt="" className="h-full w-full object-contain" />
+                          </span>
+                          {label && <span className="text-[10px] leading-none text-fg-muted">{label}</span>}
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
               </div>

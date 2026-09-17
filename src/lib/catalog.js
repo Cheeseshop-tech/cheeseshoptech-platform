@@ -32,6 +32,7 @@ export function getBuyerCatalog(resolved) {
       cl_w: im.width,
       cl_h: im.height,
       bgRemoved: !!im.bgRemoved, // 2026-07-18: threaded through so the Catalog skips white-pad too
+      usage: im.usage || [], // 2026-09-17: alternate-photo labels (hero, back-shot, unwrapped, ...)
     })),
   };
 }
