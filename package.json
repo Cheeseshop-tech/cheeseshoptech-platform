@@ -11,6 +11,7 @@
     "validate:clients": "node scripts/validate-clients.mjs",
     "sync:images": "node scripts/sync-images.mjs",
     "validate:images": "node scripts/validate-images.mjs",
+    "audit:catalog": "node scripts/audit-catalog-integrity.mjs",
     "prewarm": "node scripts/prewarm-cloudinary.mjs",
     "media:refresh": "node scripts/sync-images.mjs && node scripts/prewarm-cloudinary.mjs",
     "inventory:promote": "node scripts/sync-inventory.mjs --promote",
