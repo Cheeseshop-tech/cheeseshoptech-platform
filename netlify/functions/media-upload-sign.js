@@ -76,7 +76,15 @@ const rawHandler = async (event, context) => {
   // (mirrors media-update.js's clean()). Named uploadContext, NOT context — that name is already
   // the Lambda context param above (caught by a local test run: redeclaring it is a SyntaxError).
   const clean = (s) => (s == null ? "" : String(s)).replace(/[|=\r\n]/g, " ").trim();
-  const uploadContext = `caption=${clean(body.displayName)}`;
+  // A Cloudinary upload REPLACES the asset's context wholesale, so a replace that only sent a
+  // caption would silently drop the `sku` link the manifest gates on — the document would vanish
+  // from the Buyer Catalog while still sitting in Cloudinary. Callers therefore pass the full
+  // context they want to survive the write (read it from media-list first).
+  const ctxParts = [`caption=${clean(body.displayName)}`];
+  if (body.sku != null) ctxParts.push(`sku=${clean(body.sku)}`);
+  if (body.alt != null) ctxParts.push(`alt=${clean(body.alt)}`);
+  if (body.description != null) ctxParts.push(`description=${clean(body.description)}`);
+  const uploadContext = ctxParts.join("|");
 
   const timestamp = Math.floor(Date.now() / 1000);
   // Cloudinary's signature rule: sort every param that will be sent (other than file, cloud_name,
