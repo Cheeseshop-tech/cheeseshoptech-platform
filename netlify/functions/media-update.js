@@ -2,8 +2,9 @@
 // to media-list). Calls the Cloudinary Admin API server-side so the API secret NEVER reaches the
 // browser. Reuses the same env: CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET.
 //
-// Body (JSON): { publicId, displayName?, usage?[], sku?, alt?, approvalState? }
-// Tags written  = approvalState (if valid) + usage ids  (REPLACES the asset's tags)
+// Body (JSON): { publicId, displayName?, usage?[], sku?, alt?, approvalState?, bgRemoved? }
+// Tags written  = approvalState (if valid) + bg-removed (if bgRemoved truthy) + usage ids
+//                 (REPLACES the asset's tags)
 // Context written = caption / sku / alt  (REPLACES the asset's context)
 
 import { requireWriteAuth, jsonUnauthorized } from "./_write-guard.js";
@@ -40,10 +41,13 @@ const rawHandler = async (event, context) => {
   const publicId = (body.publicId || "").toString();
   if (!publicId) return json(400, { error: "Missing publicId" });
 
-  // Tags = validated approval + validated usage (whitelist guards against junk tags).
+  // Tags = validated approval + bg-removed (opt-in boolean) + validated usage (whitelist guards
+  // against junk tags). bg-removed is read by sync-images.mjs/media-list.js as BG_REMOVED_TAG to
+  // skip forcing white-pad on an asset that's already a transparent cutout.
   const usage = Array.isArray(body.usage) ? body.usage.filter((u) => USAGE_IDS.includes(u)) : [];
   const approval = APPROVAL_TAGS.includes(body.approvalState) ? body.approvalState : null;
-  const tags = [...(approval ? [approval] : []), ...usage];
+  const bgRemoved = !!body.bgRemoved;
+  const tags = [...(approval ? [approval] : []), ...(bgRemoved ? ["bg-removed"] : []), ...usage];
 
   // Context = caption / sku / alt. Cloudinary context is key=value|key=value, so strip | and =.
   const clean = (s) => (s == null ? "" : String(s)).replace(/[|=\r\n]/g, " ").trim();
@@ -72,7 +76,7 @@ const rawHandler = async (event, context) => {
       fn: "media-update", ok: true, status: 200, role: writeAuth.role,
       action: `update ${publicId}`, tenant: tenantFromPath(publicId),
     });
-    return json(200, { ok: true, publicId, usage, approvalState: approval });
+    return json(200, { ok: true, publicId, usage, approvalState: approval, bgRemoved });
   } catch (err) {
     return json(502, { error: String(err?.message || err) });
   }
