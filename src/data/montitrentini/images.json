@@ -4359,6 +4359,22 @@
    "modified": "2026-06-16"
   },
   {
+   "publicId": "monti-trentini/products/yn2ljjyw0iytv5mdtd1m",
+   "version": 1789645589,
+   "format": "jpg",
+   "category": "Products",
+   "title": "Aged Asiago (Vecchio) 9 Months 7oz Wedge",
+   "code": "03073",
+   "sku": "03073",
+   "orig": null,
+   "approvalState": "approved-for-press",
+   "bgRemoved": false,
+   "width": 4976,
+   "height": 4496,
+   "bytes": 1855756,
+   "modified": "2026-09-17"
+  },
+  {
    "publicId": "monti-trentini/products/ace-fall-show-2026/alpeggio-aged-cheese-pos-20724",
    "version": 1789387396,
    "format": "png",
@@ -4373,6 +4389,38 @@
    "height": 480,
    "bytes": 146223,
    "modified": "2026-09-14"
+  },
+  {
+   "publicId": "monti-trentini/products/cjpzcjgmp3c3huxihyzz",
+   "version": 1789645583,
+   "format": "jpg",
+   "category": "Products",
+   "title": "Alpeggio Cheese 7oz Wedge",
+   "code": "04211",
+   "sku": "04211",
+   "orig": null,
+   "approvalState": "approved-for-press",
+   "bgRemoved": false,
+   "width": 2000,
+   "height": 2000,
+   "bytes": 1024077,
+   "modified": "2026-09-17"
+  },
+  {
+   "publicId": "monti-trentini/products/mrthei7m809y84tpxufz",
+   "version": 1789645587,
+   "format": "jpg",
+   "category": "Products",
+   "title": "Asiago Aged PDO 7oz Wedge",
+   "code": "03044",
+   "sku": "03044",
+   "orig": null,
+   "approvalState": "approved-for-press",
+   "bgRemoved": false,
+   "width": 4976,
+   "height": 4496,
+   "bytes": 1467917,
+   "modified": "2026-09-17"
   },
   {
    "publicId": "monti-trentini/products/ace-fall-show-2026/asiago-fresco-dop-pos-02073",
@@ -4439,6 +4487,22 @@
    "modified": "2026-06-13"
   },
   {
+   "publicId": "monti-trentini/products/vtopasxlwfebvomcuswb",
+   "version": 1789645593,
+   "format": "png",
+   "category": "Products",
+   "title": "Lagorai Cheese 7oz Wedge",
+   "code": "04165",
+   "sku": "04165",
+   "orig": null,
+   "approvalState": "approved-for-press",
+   "bgRemoved": false,
+   "width": 4305,
+   "height": 4305,
+   "bytes": 3378852,
+   "modified": "2026-09-17"
+  },
+  {
    "publicId": "monti-trentini/products/ace-fall-show-2026/le-malghe-di-vezzena-pos-04046",
    "version": 1789387433,
    "format": "png",
@@ -4471,6 +4535,22 @@
    "modified": "2026-09-14"
   },
   {
+   "publicId": "monti-trentini/products/ekjdoxbemg6z0kjwnkth",
+   "version": 1789645591,
+   "format": "png",
+   "category": "Products",
+   "title": "Pecorino Romano PDO 7oz Wedge",
+   "code": "40184",
+   "sku": "40184",
+   "orig": null,
+   "approvalState": "approved-for-press",
+   "bgRemoved": false,
+   "width": 4000,
+   "height": 4000,
+   "bytes": 2679692,
+   "modified": "2026-09-17"
+  },
+  {
    "publicId": "monti-trentini/products/ace-fall-show-2026/ace-endico-selection-sell-sheet",
    "version": 1789387450,
    "format": "pdf",
@@ -4485,6 +4565,22 @@
    "height": 792,
    "bytes": 5929015,
    "modified": "2026-09-14"
+  },
+  {
+   "publicId": "monti-trentini/products/lm2hdvaiszh93exxncck",
+   "version": 1789645586,
+   "format": "png",
+   "category": "Products",
+   "title": "Vezzena Cheese 7oz Wedge",
+   "code": "04182",
+   "sku": "04182",
+   "orig": null,
+   "approvalState": "approved-for-press",
+   "bgRemoved": false,
+   "width": 2480,
+   "height": 2480,
+   "bytes": 3130880,
+   "modified": "2026-09-17"
   },
   {
    "publicId": "monti-trentini/provolone/provolone-dolce-1lrkgx",
