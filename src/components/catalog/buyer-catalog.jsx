@@ -117,6 +117,11 @@ function BuyerCatalog({ data, brandName, tenantId, itemsFolder }) {
   // print rather than something you could look at.
   const [pane, setPane] = useState("photos"); // "photos" | "docs"
   const [docPageIdx, setDocPageIdx] = useState(0);
+  // Document pages whose raster came back 404 — dropped from the strip so a PDF with fewer
+  // pages than assumed degrades to what it actually has instead of showing a broken tile.
+  const [failedPages, setFailedPages] = useState(() => new Set());
+  const markPageFailed = (doc, page) =>
+    setFailedPages((prev) => new Set(prev).add(`${doc.id}#${page}`));
 
   // Category = the item's pack format (7 oz wedge, whole wheel, ...), not the photo's Cloudinary
   // folder — see lib/catalog-categories.js for why. Tab order is CATEGORY_ORDER, fixed, not
@@ -156,23 +161,24 @@ function BuyerCatalog({ data, brandName, tenantId, itemsFolder }) {
   const hero = activeRow?.imgs[Math.min(heroIdx, Math.max(activeRow.imgs.length - 1, 0))] || null;
   const openItem = (sku) => { setActive(sku); setHeroIdx(0); setPane("photos"); setDocPageIdx(0); };
 
-  // Every viewable PAGE of every document on this item, flattened — a 2-page Scheda contributes
-  // its spec sheet and its nutrition panel as two browsable thumbnails. Page 2 is only offered
-  // when Cloudinary reports the PDF actually has one, so a single-page document never renders a
-  // pg_2 that doesn't exist. (Only image-type PDFs can be rasterized at all; a legacy raw-stored
-  // document yields no thumbnail, which cldDocThumb signals by returning "".)
+  // Every viewable PAGE of every document on this item, flattened — a Scheda contributes its spec
+  // sheet and its nutrition panel as two browsable thumbnails.
+  //
+  // Page 2 is offered for SPEC SHEETS ONLY, because a Monti Scheda's page 2 always IS its
+  // nutritional panel — verified across all 15 on file. Cloudinary's resource LIST endpoint does
+  // not return a page count (only the per-resource detail call does), so there's nothing to test
+  // against without an extra API round trip per document; `failedPages` below covers the case
+  // where a page genuinely isn't there, by dropping the thumbnail when its render 404s.
+  // Only image-type PDFs can be rasterized at all — cldDocThumb returns "" for a legacy raw one.
   const docPages = useMemo(() => {
     const out = [];
     for (const doc of activeRow?.docs || []) {
       const isSpec = doc.docType === "spec-sheet";
       out.push({ doc, page: 1, label: isSpec ? "Spec sheet" : (doc.title || "Document") });
-      // A Monti Scheda's page 2 IS its nutritional panel — verified across all 15 on file.
-      if ((doc.pages || 1) > 1) {
-        out.push({ doc, page: 2, label: isSpec ? "Nutrition panel" : "Page 2" });
-      }
+      if (isSpec) out.push({ doc, page: 2, label: "Nutrition panel" });
     }
-    return out;
-  }, [activeRow]);
+    return out.filter((dp) => !failedPages.has(`${dp.doc.id}#${dp.page}`));
+  }, [activeRow, failedPages]);
   const activeDocPage = docPages[Math.min(docPageIdx, Math.max(docPages.length - 1, 0))] || null;
 
   function copyShareLink(im, itName) {
@@ -375,6 +381,7 @@ function BuyerCatalog({ data, brandName, tenantId, itemsFolder }) {
                           <img
                             src={cldDocThumb(cloud, activeDocPage.doc, { page: activeDocPage.page, width: 1000 })}
                             alt={`${activeDocPage.label} — ${activeRow.it.name || activeRow.it.sku}`}
+                            onError={() => { markPageFailed(activeDocPage.doc, activeDocPage.page); setDocPageIdx(0); }}
                             className="max-h-[62vh] w-auto max-w-full rounded-base border border-border bg-white object-contain"
                           />
                         </a>
@@ -400,7 +407,9 @@ function BuyerCatalog({ data, brandName, tenantId, itemsFolder }) {
                             (i === docPageIdx ? "border-brand-primary ring-2 ring-brand-primary/30" : "border-border")
                           }>
                             {cldDocThumb(cloud, dp.doc, { page: dp.page, width: 120 }) ? (
-                              <img src={cldDocThumb(cloud, dp.doc, { page: dp.page, width: 120 })} alt="" className="h-full w-full object-contain" />
+                              <img src={cldDocThumb(cloud, dp.doc, { page: dp.page, width: 120 })} alt=""
+                                onError={() => markPageFailed(dp.doc, dp.page)}
+                                className="h-full w-full object-contain" />
                             ) : (
                               <span className="flex h-full w-full items-center justify-center text-fg-muted"><FileText className="h-5 w-5" /></span>
                             )}

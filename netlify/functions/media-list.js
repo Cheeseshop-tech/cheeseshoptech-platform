@@ -96,9 +96,6 @@ function mapResource(r, resourceType = "image") {
     // Cloudinary returns no `format` for a raw resource, which left tiles reading "FILE" and the
     // catalog's Format row empty. A raw public_id carries its own extension -- use that.
     format: r.format || (resourceType === "raw" ? extFromPublicId(r.public_id) : undefined),
-    // Page count on an image-type PDF — lets a consumer offer page 2 (a Scheda's nutrition
-    // panel) only when the document actually has one, instead of guessing and 404ing.
-    pages: r.pages,
     width: r.width,
     height: r.height,
     // Added so this ONE live endpoint can also feed the canonical images.json manifest
