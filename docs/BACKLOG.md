@@ -40,6 +40,14 @@ See `docs/CONTINUAL_IMPROVEMENT.md` for the loop. Updated 2026-06-18.
 ## Blocked
 - [high/low] **Class-of-trade margin alignment** — reshape tiers to importer +15% / retail distrib +20–30% /
   food-service +25–35%. BLOCKED on Sales Management's real numbers. (On the next client data request.)
+- [med/med] **Spec sheet documents in Media Hub (Gap 3)** — let a PDF spec sheet live alongside a
+  SKU's photos via Cloudinary `resource_type=raw`, surfaced as a download link in the Buyer Catalog
+  lightbox. Needs a new fetch path in both `sync-images.mjs` and `media-list.js`, a `kind` manifest
+  field, and a UI slot — scoped in `docs/HANDOFF_2026-09-17_media-roles-and-spec-sheets.md`
+  (its Gaps 1-2 — hero ordering, usage-tag labels on alternates — already shipped 2026-09-17).
+  BLOCKED on Rick gathering the actual PDF files first (2026-09-17). Lighter-weight than the
+  **Product Compliance Documents** item above — that one is revision-controlled compliance data
+  across three layers; this is just "the file lives next to the photo."
 
 ## Later
 - [med/high] **Forecasting dashboards** — monthly/yearly projections once the history store has accrued data.
