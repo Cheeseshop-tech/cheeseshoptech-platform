@@ -9,6 +9,7 @@ import { EmptyState } from "@/components/ui/empty-state.jsx";
 import { Dialog, DialogContent } from "@/components/ui/dialog.jsx";
 import { useToast } from "@/components/ui/toast.jsx";
 import { getBuyerCatalog, cldThumb, cldBig, cldView, cldDownload, cldDocDownload, fmtSize } from "@/lib/catalog.js";
+import { onboardingUrl } from "@/components/catalog/onboarding-docs-page.jsx";
 import { loadEdits, applyEdits } from "@/lib/catalog-edits.js";
 import { loadItems, listItems, specLine } from "@/lib/items.js";
 import { usageLabel } from "@/lib/media.js";
@@ -406,8 +407,30 @@ function BuyerCatalog({ data, brandName, tenantId, itemsFolder }) {
                     Link or unlink photos in the Media Hub asset editor.
                   </p>
                 )}
-                {hero && (
+                {/* Onboarding docs — the whole point of the link: ONE url carrying the image, the
+                    pack details, the spec sheet and the nutrition panel, instead of a three- or
+                    four-email exchange with attachments. Deliberately OUTSIDE the `hero` guard
+                    below: an item with a spec sheet but no photo yet is still worth sending. */}
+                {activeRow.it.sku && (
                   <div className="mt-6 flex flex-col gap-2">
+                    <Button variant="primary" onClick={() => window.open(onboardingUrl(activeRow.it.sku), "_blank", "noopener,noreferrer")}>
+                      <FileText className="h-4 w-4" /> Open onboarding docs
+                    </Button>
+                    <Button variant="secondary" onClick={async () => {
+                      const url = onboardingUrl(activeRow.it.sku);
+                      try {
+                        await navigator.clipboard.writeText(url);
+                        toast({ title: "Onboarding link copied", description: "Paste it into an email — it always serves the current files.", tone: "success" });
+                      } catch {
+                        toast({ title: "Couldn't copy", description: url, tone: "warning" });
+                      }
+                    }}>
+                      <LinkIcon className="h-4 w-4" /> Copy onboarding link
+                    </Button>
+                  </div>
+                )}
+                {hero && (
+                  <div className="mt-2 flex flex-col gap-2">
                     <Button variant="primary" onClick={() => window.open(cldView(cloud, hero), "_blank", "noopener,noreferrer")}>
                       <ExternalLink className="h-4 w-4" /> View original
                     </Button>

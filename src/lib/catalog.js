@@ -34,6 +34,8 @@ export function getBuyerCatalog(resolved) {
       bgRemoved: !!im.bgRemoved, // 2026-07-18: threaded through so the Catalog skips white-pad too
       usage: im.usage || [], // 2026-09-17: alternate-photo labels (hero, back-shot, unwrapped, ...)
       kind: im.kind || "image", // 2026-09-17 (Gap 3): "document" = spec-sheet PDF, not a photo
+      docType: im.docType, // spec-sheet | presentation | sales-sheet | email-campaign (documents only)
+      pages: im.pages, // page count on an image-type PDF — page 2 of a Scheda is its nutrition panel
     })),
   };
 }

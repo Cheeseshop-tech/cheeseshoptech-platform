@@ -29,6 +29,7 @@ import { OrdersPage } from "@/components/crm/crm-dashboard.jsx";
 import { CrmPage } from "@/components/crm/crm-page.jsx";
 import { HomeHub } from "@/components/home/home-hub.jsx";
 import { SignInPage } from "@/components/marketing/sign-in-page.jsx";
+import { OnboardingDocsPage } from "@/components/catalog/onboarding-docs-page.jsx";
 import { RequireAuth, RoleGate } from "@/components/auth/require-auth.jsx";
 import { PasscodeGate } from "@/components/auth/passcode-gate.jsx";
 import { SetPassword } from "@/components/auth/set-password.jsx";
@@ -68,7 +69,7 @@ const NAV_ORDER = ["dashboard", "tool:price-list", "crm", "tool:booth", "campaig
 // Pages reachable WITHOUT a nav tab: buyer share links + Opportunity-Engine compose (as before),
 // plus the Content Engine's apps (their tabs moved into the engine page's cards). `catalog`
 // stays listed so dashboard cards + ?page=catalog deep links keep working alongside the tab.
-const NON_NAV_PAGES = ["proposal", "compose", "media", "proposals", "presentations", "brand", "catalog", "brand-systems"];
+const NON_NAV_PAGES = ["proposal", "compose", "media", "proposals", "presentations", "brand", "catalog", "brand-systems", "onboarding"];
 const NON_NAV_LABELS = {
   proposal: "Proposal",
   compose: "Compose",
@@ -77,6 +78,7 @@ const NON_NAV_LABELS = {
   presentations: "Content Library",
   brand: "Brand Kits",
   catalog: "Product Catalog",
+  onboarding: "Onboarding Docs",
   "brand-systems": "Brand Systems",
 };
 
@@ -211,6 +213,10 @@ export default function App({ initialResolved }) {
         </RoleGate>
       ) : effectivePage === "proposals" || effectivePage === "compose" ? (
         <ContentStudio resolved={resolved} />
+      ) : effectivePage === "onboarding" ? (
+        // Per-item onboarding docs — the link a rep pastes into an email instead of
+        // attaching a folder of files (Rick, 2026-09-17).
+        <OnboardingDocsPage resolved={resolved} />
       ) : effectivePage === "proposal" ? (
         <ProposalView resolved={resolved} />
       ) : effectivePage === "brand" ? (
