@@ -177,6 +177,7 @@ if (!LIVE) {
       usage: tags.filter((t) => USAGE_IDS.includes(t)),
       bgRemoved: tags.includes(BG_REMOVED_TAG),
       kind: r._kind || "image",
+      pages: r.pages,
       // Mirrors media-list.js's docTypeOf() — an explicit tag wins, public_id patterns cover the
       // documents that predate doc-type tagging. Kept in sync by hand: --live mode takes whatever
       // media-list already resolved, so a divergence would only show in Admin-API mode.
@@ -249,6 +250,7 @@ if (!LIVE) {
       bgRemoved: !!a.bgRemoved, // media-list.js surfaces this as its own boolean, not in usage[]
       kind: a.kind || "image",
       docType: a.docType,
+      pages: a.pages,
       width: a.width,
       height: a.height,
       bytes: a.bytes,

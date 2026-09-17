@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input.jsx";
 import { EmptyState } from "@/components/ui/empty-state.jsx";
 import { Dialog, DialogContent } from "@/components/ui/dialog.jsx";
 import { useToast } from "@/components/ui/toast.jsx";
-import { getBuyerCatalog, cldThumb, cldBig, cldView, cldDownload, cldDocDownload, fmtSize } from "@/lib/catalog.js";
+import { getBuyerCatalog, cldThumb, cldBig, cldView, cldDownload, cldDocUrl, cldDocDownload, cldDocThumb, fmtSize } from "@/lib/catalog.js";
 import { onboardingUrl } from "@/components/catalog/onboarding-docs-page.jsx";
 import { loadEdits, applyEdits } from "@/lib/catalog-edits.js";
 import { loadItems, listItems, specLine } from "@/lib/items.js";
@@ -111,6 +111,12 @@ function BuyerCatalog({ data, brandName, tenantId, itemsFolder }) {
   const [view, setView] = useState("grid");
   const [active, setActive] = useState(null);   // active item number (sku)
   const [heroIdx, setHeroIdx] = useState(0);    // selected photo inside the lightbox
+  // Lightbox viewer pane: photos, or the item's documents (Rick, 2026-09-17 — "I want the
+  // thumbnail view with an option to download or copy link, so a spec sheet tab, in the same
+  // item window"). Documents used to be a text link in the detail column, which read as fine
+  // print rather than something you could look at.
+  const [pane, setPane] = useState("photos"); // "photos" | "docs"
+  const [docPageIdx, setDocPageIdx] = useState(0);
 
   // Category = the item's pack format (7 oz wedge, whole wheel, ...), not the photo's Cloudinary
   // folder — see lib/catalog-categories.js for why. Tab order is CATEGORY_ORDER, fixed, not
@@ -148,7 +154,26 @@ function BuyerCatalog({ data, brandName, tenantId, itemsFolder }) {
 
   const activeRow = active && rows ? rows.find((r) => r.it.sku === active) : null;
   const hero = activeRow?.imgs[Math.min(heroIdx, Math.max(activeRow.imgs.length - 1, 0))] || null;
-  const openItem = (sku) => { setActive(sku); setHeroIdx(0); };
+  const openItem = (sku) => { setActive(sku); setHeroIdx(0); setPane("photos"); setDocPageIdx(0); };
+
+  // Every viewable PAGE of every document on this item, flattened — a 2-page Scheda contributes
+  // its spec sheet and its nutrition panel as two browsable thumbnails. Page 2 is only offered
+  // when Cloudinary reports the PDF actually has one, so a single-page document never renders a
+  // pg_2 that doesn't exist. (Only image-type PDFs can be rasterized at all; a legacy raw-stored
+  // document yields no thumbnail, which cldDocThumb signals by returning "".)
+  const docPages = useMemo(() => {
+    const out = [];
+    for (const doc of activeRow?.docs || []) {
+      const isSpec = doc.docType === "spec-sheet";
+      out.push({ doc, page: 1, label: isSpec ? "Spec sheet" : (doc.title || "Document") });
+      // A Monti Scheda's page 2 IS its nutritional panel — verified across all 15 on file.
+      if ((doc.pages || 1) > 1) {
+        out.push({ doc, page: 2, label: isSpec ? "Nutrition panel" : "Page 2" });
+      }
+    }
+    return out;
+  }, [activeRow]);
+  const activeDocPage = docPages[Math.min(docPageIdx, Math.max(docPages.length - 1, 0))] || null;
 
   function copyShareLink(im, itName) {
     navigator.clipboard?.writeText(cldView(cloud, im)).then(
@@ -316,38 +341,130 @@ function BuyerCatalog({ data, brandName, tenantId, itemsFolder }) {
           {activeRow && (
             <div className="grid md:grid-cols-[1.4fr_1fr]">
               <div className="flex flex-col bg-bg p-4 md:rounded-l-base">
-                <div className="flex flex-1 items-center justify-center">
-                  {hero ? (
-                    <img
-                      src={cldBig(cloud, hero)}
-                      alt={activeRow.it.name || activeRow.it.sku}
-                      className="max-h-[62vh] w-auto max-w-full rounded-base object-contain"
-                    />
-                  ) : (
-                    <div className="flex flex-col items-center gap-3 py-24 text-fg-muted">
-                      <ImageOff className="h-10 w-10" />
-                      <p className="text-sm">No photo linked yet{canManage ? " — link one in Media Hub → asset editor" : ""}</p>
+                {/* Photos / documents switch — only worth showing when there IS a document. */}
+                {docPages.length > 0 && (
+                  <div className="mb-3 flex gap-1 self-start rounded-base bg-surface p-1">
+                    {[
+                      { id: "photos", label: `Photos${activeRow.imgs.length ? ` (${activeRow.imgs.length})` : ""}` },
+                      { id: "docs", label: docPages.some((d) => d.doc.docType === "spec-sheet") ? "Spec sheet" : "Documents" },
+                    ].map((t) => (
+                      <button
+                        key={t.id}
+                        onClick={() => setPane(t.id)}
+                        aria-pressed={pane === t.id}
+                        className={"rounded-base px-3 py-1.5 text-sm transition-colors " +
+                          (pane === t.id ? "bg-bg font-medium text-fg shadow-sm" : "text-fg-muted hover:text-fg")}
+                      >
+                        {t.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {pane === "docs" && activeDocPage ? (
+                  <>
+                    <div className="flex flex-1 items-center justify-center">
+                      {cldDocThumb(cloud, activeDocPage.doc, { page: activeDocPage.page, width: 1000 }) ? (
+                        <a
+                          href={cldDocUrl(cloud, activeDocPage.doc)}
+                          target="_blank"
+                          rel="noreferrer"
+                          title="Open the full PDF"
+                          className="block"
+                        >
+                          <img
+                            src={cldDocThumb(cloud, activeDocPage.doc, { page: activeDocPage.page, width: 1000 })}
+                            alt={`${activeDocPage.label} — ${activeRow.it.name || activeRow.it.sku}`}
+                            className="max-h-[62vh] w-auto max-w-full rounded-base border border-border bg-white object-contain"
+                          />
+                        </a>
+                      ) : (
+                        // Raw-stored document: no page can be rasterized, so offer the file itself.
+                        <div className="flex flex-col items-center gap-3 py-24 text-fg-muted">
+                          <FileText className="h-10 w-10" />
+                          <p className="text-sm">Preview unavailable — open or download the PDF</p>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-                {activeRow.imgs.length > 1 && (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {activeRow.imgs.map((im, i) => {
-                      const label = altPhotoLabel(im.usage);
-                      return (
-                        <button key={im.id} onClick={() => setHeroIdx(i)} title={label || undefined}
-                          className="flex flex-col items-center gap-1">
+
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                      {docPages.map((dp, i) => (
+                        <button
+                          key={`${dp.doc.id}-${dp.page}`}
+                          onClick={() => setDocPageIdx(i)}
+                          title={dp.label}
+                          className="flex flex-col items-center gap-1"
+                        >
                           <span className={
                             "block h-14 w-14 overflow-hidden rounded-base border bg-white " +
-                            (i === heroIdx ? "border-brand-primary ring-2 ring-brand-primary/30" : "border-border")
+                            (i === docPageIdx ? "border-brand-primary ring-2 ring-brand-primary/30" : "border-border")
                           }>
-                            <img src={cldThumb(cloud, im)} alt="" className="h-full w-full object-contain" />
+                            {cldDocThumb(cloud, dp.doc, { page: dp.page, width: 120 }) ? (
+                              <img src={cldDocThumb(cloud, dp.doc, { page: dp.page, width: 120 })} alt="" className="h-full w-full object-contain" />
+                            ) : (
+                              <span className="flex h-full w-full items-center justify-center text-fg-muted"><FileText className="h-5 w-5" /></span>
+                            )}
                           </span>
-                          {label && <span className="text-[10px] leading-none text-fg-muted">{label}</span>}
+                          <span className="max-w-16 truncate text-[10px] leading-none text-fg-muted">{dp.label}</span>
                         </button>
-                      );
-                    })}
-                  </div>
+                      ))}
+                      <div className="ml-auto flex gap-2">
+                        <Button size="sm" variant="secondary" onClick={() => {
+                          const a = document.createElement("a");
+                          a.href = cldDocDownload(cloud, activeDocPage.doc);
+                          a.download = `${activeRow.it.sku}-${activeDocPage.doc.docType || "document"}.pdf`;
+                          a.click();
+                        }}>
+                          <Download className="h-4 w-4" /> Download
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => {
+                          const url = cldDocUrl(cloud, activeDocPage.doc);
+                          navigator.clipboard?.writeText(url).then(
+                            () => toast({ title: "Link copied", description: `${activeDocPage.label} — ${activeRow.it.name || activeRow.it.sku}`, tone: "success" }),
+                            () => toast({ title: "Couldn't copy link", tone: "error" }),
+                          );
+                        }}>
+                          <LinkIcon className="h-4 w-4" /> Copy link
+                        </Button>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex flex-1 items-center justify-center">
+                      {hero ? (
+                        <img
+                          src={cldBig(cloud, hero)}
+                          alt={activeRow.it.name || activeRow.it.sku}
+                          className="max-h-[62vh] w-auto max-w-full rounded-base object-contain"
+                        />
+                      ) : (
+                        <div className="flex flex-col items-center gap-3 py-24 text-fg-muted">
+                          <ImageOff className="h-10 w-10" />
+                          <p className="text-sm">No photo linked yet{canManage ? " — link one in Media Hub → asset editor" : ""}</p>
+                        </div>
+                      )}
+                    </div>
+                    {activeRow.imgs.length > 1 && (
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {activeRow.imgs.map((im, i) => {
+                          const label = altPhotoLabel(im.usage);
+                          return (
+                            <button key={im.id} onClick={() => setHeroIdx(i)} title={label || undefined}
+                              className="flex flex-col items-center gap-1">
+                              <span className={
+                                "block h-14 w-14 overflow-hidden rounded-base border bg-white " +
+                                (i === heroIdx ? "border-brand-primary ring-2 ring-brand-primary/30" : "border-border")
+                              }>
+                                <img src={cldThumb(cloud, im)} alt="" className="h-full w-full object-contain" />
+                              </span>
+                              {label && <span className="text-[10px] leading-none text-fg-muted">{label}</span>}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
               <div className="max-h-[78vh] overflow-y-auto p-6">
