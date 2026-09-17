@@ -264,13 +264,11 @@
    "format": "jpg",
    "category": "03023",
    "title": "03023",
-   "code": "03023",
-   "sku": "03023",
+   "code": null,
+   "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
-   "usage": [
-    "product-catalog"
-   ],
+   "usage": [],
    "bgRemoved": false,
    "width": 1200,
    "height": 1200,
@@ -693,13 +691,11 @@
    "format": "jpg",
    "category": "20313",
    "title": "20313",
-   "code": "20313",
-   "sku": "20313",
+   "code": null,
+   "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
-   "usage": [
-    "product-catalog"
-   ],
+   "usage": [],
    "bgRemoved": false,
    "width": 800,
    "height": 800,
@@ -712,13 +708,11 @@
    "format": "jpg",
    "category": "20533",
    "title": "20533",
-   "code": "20533",
-   "sku": "20533",
+   "code": null,
+   "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
-   "usage": [
-    "product-catalog"
-   ],
+   "usage": [],
    "bgRemoved": false,
    "width": 800,
    "height": 800,
@@ -750,13 +744,11 @@
    "format": "png",
    "category": "30014",
    "title": "30014",
-   "code": "30014",
-   "sku": "30014",
+   "code": null,
+   "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
-   "usage": [
-    "product-catalog"
-   ],
+   "usage": [],
    "bgRemoved": false,
    "width": 2126,
    "height": 1350,
@@ -788,13 +780,11 @@
    "format": "png",
    "category": "30015",
    "title": "30015",
-   "code": "30015",
-   "sku": "30015",
+   "code": null,
+   "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
-   "usage": [
-    "product-catalog"
-   ],
+   "usage": [],
    "bgRemoved": false,
    "width": 4500,
    "height": 2857,
@@ -807,13 +797,11 @@
    "format": "png",
    "category": "30016",
    "title": "30016",
-   "code": "30016",
-   "sku": "30016",
+   "code": null,
+   "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
-   "usage": [
-    "product-catalog"
-   ],
+   "usage": [],
    "bgRemoved": false,
    "width": 1125,
    "height": 1125,
@@ -826,13 +814,11 @@
    "format": "png",
    "category": "30017",
    "title": "30017",
-   "code": "30017",
-   "sku": "30017",
+   "code": null,
+   "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
-   "usage": [
-    "product-catalog"
-   ],
+   "usage": [],
    "bgRemoved": false,
    "width": 1125,
    "height": 1125,
@@ -845,13 +831,11 @@
    "format": "jpg",
    "category": "40020",
    "title": "MONTASIO",
-   "code": "40020",
-   "sku": "40020",
+   "code": null,
+   "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
-   "usage": [
-    "product-catalog"
-   ],
+   "usage": [],
    "bgRemoved": false,
    "width": 800,
    "height": 800,
@@ -1891,8 +1875,8 @@
    "format": "jpg",
    "category": "Grana",
    "title": "Grana Padano Porzionato (05091) — Monti Trentini",
-   "code": null,
-   "sku": null,
+   "code": "05091",
+   "sku": "05091",
    "orig": null,
    "approvalState": "approved-for-press",
    "usage": [
@@ -1939,6 +1923,23 @@
    "modified": "2026-05-25"
   },
   {
+   "publicId": "monti-trentini/library/guerkaffrqchcn17btq5",
+   "version": 1789652651,
+   "format": "png",
+   "category": "Library",
+   "title": "04176_IMBRIAGO_7oz_back",
+   "code": null,
+   "sku": null,
+   "orig": null,
+   "approvalState": "draft",
+   "usage": [],
+   "bgRemoved": false,
+   "width": 2500,
+   "height": 2501,
+   "bytes": 3125911,
+   "modified": "2026-09-17"
+  },
+  {
    "publicId": "monti-trentini/library/bowt1igs1nukp0daj2as",
    "version": 1783172981,
    "format": "jpg",
@@ -1977,6 +1978,82 @@
    "height": 1920,
    "bytes": 1475881,
    "modified": "2026-07-04"
+  },
+  {
+   "publicId": "monti-trentini/library/fxlusilre9lqzarxkkte",
+   "version": 1789652650,
+   "format": "png",
+   "category": "Library",
+   "title": "30014_APERICHEESE YELLOW TRIO",
+   "code": null,
+   "sku": null,
+   "orig": null,
+   "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
+   "bgRemoved": false,
+   "width": 2126,
+   "height": 1350,
+   "bytes": 1590648,
+   "modified": "2026-09-17"
+  },
+  {
+   "publicId": "monti-trentini/library/aqhv84vqozr7yedtn3cq",
+   "version": 1789652649,
+   "format": "png",
+   "category": "Library",
+   "title": "30015 APERICHEESE RED",
+   "code": null,
+   "sku": null,
+   "orig": null,
+   "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
+   "bgRemoved": false,
+   "width": 4200,
+   "height": 2666,
+   "bytes": 7719204,
+   "modified": "2026-09-17"
+  },
+  {
+   "publicId": "monti-trentini/library/ftrhliebbdbi5opk0cdw",
+   "version": 1789652644,
+   "format": "png",
+   "category": "Library",
+   "title": "30016_APERICHEESE ORANGE TRIO",
+   "code": null,
+   "sku": null,
+   "orig": null,
+   "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
+   "bgRemoved": false,
+   "width": 2126,
+   "height": 1350,
+   "bytes": 1440462,
+   "modified": "2026-09-17"
+  },
+  {
+   "publicId": "monti-trentini/library/jir2mg6vpyep4wwuw5qf",
+   "version": 1789652643,
+   "format": "png",
+   "category": "Library",
+   "title": "30017_APERICHEESE WHITE TRIO",
+   "code": null,
+   "sku": null,
+   "orig": null,
+   "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
+   "bgRemoved": false,
+   "width": 2126,
+   "height": 1350,
+   "bytes": 1527175,
+   "modified": "2026-09-17"
   },
   {
    "publicId": "monti-trentini/library/mucca",
@@ -5450,6 +5527,25 @@
    "modified": "2026-09-17"
   },
   {
+   "publicId": "monti-trentini/products/m5ovsgknwolnwdm5cwlx",
+   "version": 1789650782,
+   "format": "png",
+   "category": "Products",
+   "title": "03023",
+   "code": "03023",
+   "sku": "03023",
+   "orig": null,
+   "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
+   "bgRemoved": false,
+   "width": 2400,
+   "height": 2400,
+   "bytes": 2139951,
+   "modified": "2026-09-17"
+  },
+  {
    "publicId": "monti-trentini/products/yn2ljjyw0iytv5mdtd1m",
    "version": 1789645589,
    "format": "jpg",
@@ -5506,6 +5602,82 @@
    "width": 2000,
    "height": 2000,
    "bytes": 1024077,
+   "modified": "2026-09-17"
+  },
+  {
+   "publicId": "monti-trentini/products/f7kvr77s40granamblnc",
+   "version": 1789653805,
+   "format": "png",
+   "category": "Products",
+   "title": "Apericheese Orange Trio",
+   "code": "30016",
+   "sku": "30016",
+   "orig": null,
+   "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
+   "bgRemoved": false,
+   "width": 2126,
+   "height": 1350,
+   "bytes": 1440462,
+   "modified": "2026-09-17"
+  },
+  {
+   "publicId": "monti-trentini/products/lh189piylhhekkk9kdb8",
+   "version": 1789653856,
+   "format": "png",
+   "category": "Products",
+   "title": "Apericheese Red Trio",
+   "code": "30015",
+   "sku": "30015",
+   "orig": null,
+   "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
+   "bgRemoved": false,
+   "width": 6000,
+   "height": 3809,
+   "bytes": 9756860,
+   "modified": "2026-09-17"
+  },
+  {
+   "publicId": "monti-trentini/products/rgoofkaduvwhowxh7f15",
+   "version": 1789653808,
+   "format": "png",
+   "category": "Products",
+   "title": "Apericheese White Trio",
+   "code": "30017",
+   "sku": "30017",
+   "orig": null,
+   "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
+   "bgRemoved": false,
+   "width": 2126,
+   "height": 1350,
+   "bytes": 1527175,
+   "modified": "2026-09-17"
+  },
+  {
+   "publicId": "monti-trentini/products/egoctdfkwoyfrwuffxbu",
+   "version": 1789653800,
+   "format": "png",
+   "category": "Products",
+   "title": "Apericheese Yellow Trio",
+   "code": "30014",
+   "sku": "30014",
+   "orig": null,
+   "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
+   "bgRemoved": false,
+   "width": 2126,
+   "height": 1350,
+   "bytes": 1590648,
    "modified": "2026-09-17"
   },
   {
