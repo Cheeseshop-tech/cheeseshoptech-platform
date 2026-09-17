@@ -56,8 +56,14 @@ export function requireWriteAuth(event, tenant = "", context = null) {
     return { ok: false, status: 403, error: "Signed in, but this account can't write here" };
   }
 
-  // Legacy passcode path (pilot auth, docs/AUTH_AND_ROLES.md) — kept as a fallback rather than
-  // removed; harmless no-op now that the passcode env vars are deleted (2026-08-17).
+  // Legacy passcode path (pilot auth, docs/AUTH_AND_ROLES.md) — the PORTAL_* passcodes below are
+  // dead (env vars deleted 2026-08-17, no UI field even submits one anymore — the login screen is
+  // now Identity email/password only). AGENT_GATE_PASSCODE (2026-09-17) is a NEW, deliberate
+  // exception to that: a dedicated shared credential for scripts/agents (Claude Code, cron jobs,
+  // etc.) that has no Netlify Identity session to authenticate with. Same "admin" tier as the old
+  // house passcode (tenant-agnostic — CST-side automation, not a client), same header. Kept as its
+  // own env var, not a reuse of PORTAL_HOUSE_PASSCODE, so it can be rotated independently of any
+  // human-facing credential and so a leak is scoped to "agent access" specifically.
   const provided = (header(event, "x-portal-passcode") || "").toString();
   if (!provided) return { ok: false, status: 401, error: "Missing passcode (x-portal-passcode header)" };
 
@@ -65,7 +71,9 @@ export function requireWriteAuth(event, tenant = "", context = null) {
   const genericAdmin = process.env.PORTAL_ADMIN_PASSCODE;
   const tenantKey = tenant ? `PORTAL_ADMIN_PASSCODE_${tenant.toUpperCase().replace(/-/g, "_")}` : null;
   const tenantAdmin = tenantKey ? process.env[tenantKey] : null;
+  const agentGate = process.env.AGENT_GATE_PASSCODE;
 
+  if (agentGate && provided === agentGate) return { ok: true, role: "admin" };
   if (house && provided === house) return { ok: true, role: "admin" };
   if (tenantAdmin && provided === tenantAdmin) return { ok: true, role: "client-admin" };
   if (genericAdmin && provided === genericAdmin) return { ok: true, role: "client-admin" };
@@ -94,8 +102,8 @@ export function requireReadAuth(event, tenant = "", context = null) {
     return { ok: false, status: 403, error: "Signed in, but this account can't read here" };
   }
 
-  // Legacy passcode path — kept as a fallback, harmless no-op now that the passcode env vars are
-  // deleted (2026-08-17).
+  // Legacy passcode path — the PORTAL_* ones are dead (see requireWriteAuth() above);
+  // AGENT_GATE_PASSCODE (2026-09-17) is the live exception, same rationale as there.
   const provided = (header(event, "x-portal-passcode") || "").toString();
   if (!provided) return { ok: false, status: 401, error: "Missing passcode (x-portal-passcode header)" };
 
@@ -104,7 +112,9 @@ export function requireReadAuth(event, tenant = "", context = null) {
   const tenantKey = tenant ? `PORTAL_ADMIN_PASSCODE_${tenant.toUpperCase().replace(/-/g, "_")}` : null;
   const tenantAdmin = tenantKey ? process.env[tenantKey] : null;
   const client = process.env.PORTAL_PASSCODE; // base tier — reads only, mirrors gate.js
+  const agentGate = process.env.AGENT_GATE_PASSCODE;
 
+  if (agentGate && provided === agentGate) return { ok: true, role: "admin" };
   if (house && provided === house) return { ok: true, role: "admin" };
   if (tenantAdmin && provided === tenantAdmin) return { ok: true, role: "client-admin" };
   if (genericAdmin && provided === genericAdmin) return { ok: true, role: "client-admin" };
