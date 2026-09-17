@@ -97,6 +97,16 @@ Two separate problems, two separate fixes:
    since been fixed (compliant now), the rest haven't. Recommend folding this audit's 11 into a
    refreshed version of that request rather than starting a separate list.
 
+   **Update, later the same day:** searched Rick's local `PRODUCTS`/`PRODUCTS-2`/`PRODUCTS-3` photo
+   drop folders and found real, already-shot, compliant wrapped/labeled 7oz photos for **6 of the
+   11** — uploaded via the signed Media Hub pipeline and linked: `04211` (Alpeggio), `04182`
+   (Vezzena), `03044` (Asiago Aged PDO), `03073` (Aged Asiago Vecchio, was missing), `40184`
+   (Pecorino Romano, was missing), `04165` (Lagorai — source file misfiled under a nonexistent code
+   `04210`, matched by name + exact 7oz net weight on the label). **Still needs real photography —
+   no usable file found locally:** `01190` (Provolone Mild), `01174` (Naturally Smoked Provolone),
+   `05091` (Grana Padano), `40086` (Montasio), `05600` (Parmigiano Reggiano 18mo). 5 SKUs, not 11,
+   remain on the reshoot list.
+
 **Update, later the same day:** #1 shipped. Rick approved the remediation and the new
 `AGENT_GATE_PASSCODE` credential (`docs/` — see `_write-guard.js`) made a scriptable write
 possible: all 8 assets (7 SKUs + both of 01174's photos) were unlinked via `media-update.js` (the
