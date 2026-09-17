@@ -35,6 +35,31 @@ const extFromPublicId = (publicId) => (/\.([a-z0-9]+)$/i.exec(publicId || "")?.[
 /** A PDF, however it's stored — image-type carries format:"pdf"; raw-type only has the extension. */
 const isPdf = (r) => (r.format || "").toLowerCase() === "pdf" || extFromPublicId(r.public_id) === "pdf";
 
+/**
+ * Which KIND of document this is, for the Media Hub's Documents views (Rick, 2026-09-17: spec
+ * sheets / presentations / sales sheets & quotes / email campaign docs). Derived here rather than
+ * in the browser because the client only ever receives `usage` — tags are filtered to USAGE_IDS
+ * before they leave this function, so the `spec-sheet` marker never reaches it.
+ *
+ * An explicit tag always wins; the public_id patterns are the fallback for the documents already
+ * in the library that predate any doc-type tagging. Order is specificity, not alphabet: the ACE
+ * sell sheet carries an `email-campaign` usage tag AND "sell-sheet" in its name, and it is a sales
+ * sheet that happens to be emailed — not the other way round.
+ */
+const DOC_TYPES = ["spec-sheet", "presentation", "sales-sheet", "email-campaign"];
+
+function docTypeOf(r) {
+  const tags = r.tags || [];
+  const id = (r.public_id || "").toLowerCase();
+  const explicit = DOC_TYPES.find((t) => tags.includes(t));
+  if (explicit) return explicit;
+  if (/spec[-_]?sheet|scheda/.test(id)) return "spec-sheet";
+  if (/sell[-_]?sheet|sales[-_]?sheet|quote|proposal/.test(id)) return "sales-sheet";
+  if (/\/presentations?\//.test(id) || /\bdeck\b/.test(id)) return "presentation";
+  if (tags.includes("email-campaign")) return "email-campaign";
+  return "other";
+}
+
 function mapResource(r, resourceType = "image") {
   const segs = r.public_id.split("/");
   // Assets sitting at the tenant root (no products/brand/raw subfolder) default to
@@ -66,6 +91,8 @@ function mapResource(r, resourceType = "image") {
     // the endpoint -- otherwise an image-type PDF returns kind:"image" and lands in a product's
     // photo strip as a broken tile.
     kind: resourceType === "raw" || isPdf(r) ? "document" : "image",
+    // Only meaningful for documents; harmless (and ignored) on a photo.
+    docType: resourceType === "raw" || isPdf(r) ? docTypeOf(r) : undefined,
     // Cloudinary returns no `format` for a raw resource, which left tiles reading "FILE" and the
     // catalog's Format row empty. A raw public_id carries its own extension -- use that.
     format: r.format || (resourceType === "raw" ? extFromPublicId(r.public_id) : undefined),

@@ -74,6 +74,8 @@ function gatedCode(rawCode, tags, approvalState) {
 // actually background-removed; carried into the manifest so lib/cloudinary.js can skip the
 // forced white pad for that asset. See `npm run validate:images` for a compliance report.
 const BG_REMOVED_TAG = "bg-removed";
+// Document sub-types for the Media Hub Documents views. Mirrors media-list.js's DOC_TYPES.
+const DOC_TYPES = ["spec-sheet", "presentation", "sales-sheet", "email-campaign"];
 
 // Title-case a slug leaf as a fallback display title.
 const titleFromId = (publicId) => {
@@ -175,6 +177,18 @@ if (!LIVE) {
       usage: tags.filter((t) => USAGE_IDS.includes(t)),
       bgRemoved: tags.includes(BG_REMOVED_TAG),
       kind: r._kind || "image",
+      // Mirrors media-list.js's docTypeOf() — an explicit tag wins, public_id patterns cover the
+      // documents that predate doc-type tagging. Kept in sync by hand: --live mode takes whatever
+      // media-list already resolved, so a divergence would only show in Admin-API mode.
+      docType: (r._kind === "document" || r.docType)
+        ? (r.docType
+          || DOC_TYPES.find((t) => tags.includes(t))
+          || (/spec[-_]?sheet|scheda/i.test(r.public_id) ? "spec-sheet"
+            : /sell[-_]?sheet|sales[-_]?sheet|quote|proposal/i.test(r.public_id) ? "sales-sheet"
+            : /\/presentations?\//i.test(r.public_id) || /\bdeck\b/i.test(r.public_id) ? "presentation"
+            : tags.includes("email-campaign") ? "email-campaign"
+            : "other"))
+        : undefined,
       width: r.width,
       height: r.height,
       bytes: r.bytes,
@@ -234,6 +248,7 @@ if (!LIVE) {
       usage: tags,
       bgRemoved: !!a.bgRemoved, // media-list.js surfaces this as its own boolean, not in usage[]
       kind: a.kind || "image",
+      docType: a.docType,
       width: a.width,
       height: a.height,
       bytes: a.bytes,

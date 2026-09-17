@@ -23,10 +23,24 @@ export function MediaHub({ resolved }) {
   // Tabs MIRROR the usage tags (Asset Library model): every tab is a saved view filtered by tag,
   // not a storage folder. Special tabs: "items" (the item records — source of truth for product
   // identity, description cards, pricing), "recent" (your latest uploads), and "all" (everything).
-  // "documents" is the one view that filters on `kind` rather than a usage tag: spec sheets are
-  // raw (PDF) assets, so they carry no usage vocabulary of their own and would otherwise only be
-  // findable one item at a time. See HANDOFF_2026-09-17_media-roles-and-spec-sheets.md (Gap 3).
-  const TABS = [{ id: "items", label: "Items" }, { id: "recent", label: "Recent" }, { id: "all", label: "All" }, { id: "documents", label: "Spec Sheets" }, ...USAGE.map((u) => ({ id: u.id, label: u.label }))];
+  // "documents" and its children filter on `kind`/`docType` rather than a usage tag: a PDF carries
+  // no usage vocabulary of its own and would otherwise only be findable one item at a time. Usage
+  // tags say where an asset may be USED; kind/docType say what the file IS — deliberately separate
+  // vocabularies. See HANDOFF_2026-09-17_media-roles-and-spec-sheets.md (Gap 3).
+  const DOC_VIEWS = [
+    { id: "doc:spec-sheet", label: "Spec sheets" },
+    { id: "doc:presentation", label: "Presentations" },
+    { id: "doc:sales-sheet", label: "Sales sheets & quotes" },
+    { id: "doc:email-campaign", label: "Email campaign docs" },
+  ];
+  const TABS = [
+    { id: "items", label: "Items" },
+    { id: "recent", label: "Recent" },
+    { id: "all", label: "All" },
+    { id: "documents", label: "Documents" },
+    ...DOC_VIEWS.map((d) => ({ ...d, child: true })),
+    ...USAGE.map((u) => ({ id: u.id, label: u.label })),
+  ];
   const [tab, setTab] = useState("all");
   // Grid sort. "default" keeps the manifest/fetch order the hub has always shown; "category"
   // groups by the buyer-facing pack-format category (catalog-categories.js), which is how Rick
@@ -116,9 +130,13 @@ export function MediaHub({ resolved }) {
   // The pool = persisted recent uploads merged over the fetched set, de-duped by publicId.
   const merged = assets ? [...recent, ...assets].filter((a, i, arr) => arr.findIndex((x) => x.publicId === a.publicId) === i) : null;
   // What the grid shows for the active tab.
+  const isDocs = (a) => a.kind === "document";
+  const isDocView = tab === "documents" || tab.startsWith("doc:");
   const display = tab === "recent" ? recent
     : tab === "all" ? merged
-    : tab === "documents" ? (merged ? merged.filter((a) => a.kind === "document") : null)
+    : tab === "documents" ? (merged ? merged.filter(isDocs) : null)
+    : tab.startsWith("doc:")
+      ? (merged ? merged.filter((a) => isDocs(a) && (a.docType || "other") === tab.slice(4)) : null)
     : merged ? merged.filter((a) => (a.usage || []).includes(tab)) : null;
 
   // Query narrows whatever the current tab shows — title / SKU / alt text / description.
@@ -152,6 +170,9 @@ export function MediaHub({ resolved }) {
     if (!merged) return null;
     if (id === "all") return merged.length;
     if (id === "documents") return merged.filter((a) => a.kind === "document").length;
+    if (id.startsWith("doc:")) {
+      return merged.filter((a) => a.kind === "document" && (a.docType || "other") === id.slice(4)).length;
+    }
     return merged.filter((a) => (a.usage || []).includes(id)).length;
   };
 
@@ -238,13 +259,18 @@ export function MediaHub({ resolved }) {
             {TABS.map((t, i) => {
               const on = t.id === tab;
               const count = countFor(t.id);
+              // Dividers bracket the special views: after "Recent", and again after the Documents
+              // group (its children included) where the usage tabs begin. Index-based, so it moves
+              // whenever a special view is added — hence computing it from the data, not a literal.
+              const prev = TABS[i - 1];
+              const divider = i === 1 || (prev && (prev.id === "documents" || prev.child) && !t.child);
               return (
                 <li key={t.id}>
-                  {(i === 1 || i === 4) && <div className="my-1.5 border-t border-border" />}
+                  {divider && <div className="my-1.5 border-t border-border" />}
                   <button
                     onClick={() => setTab(t.id)}
                     aria-current={on ? "true" : undefined}
-                    className={"flex w-full items-center justify-between rounded-base px-3 py-1.5 text-left text-sm transition-colors " + (on ? "bg-surface font-medium text-fg" : "text-fg-muted hover:bg-surface hover:text-fg")}
+                    className={"flex w-full items-center justify-between rounded-base py-1.5 text-left text-sm transition-colors " + (t.child ? "pl-6 pr-3 " : "px-3 ") + (on ? "bg-surface font-medium text-fg" : "text-fg-muted hover:bg-surface hover:text-fg")}
                   >
                     <span className="truncate">{t.label}</span>
                     {count != null && <span className="ml-2 text-xs text-fg-muted">{count}</span>}
@@ -296,18 +322,18 @@ export function MediaHub({ resolved }) {
             </div>
           ) : sortedDisplay.length === 0 ? (
             <EmptyState
-              icon={q ? Search : tab === "documents" ? FileText : ImageIcon}
+              icon={q ? Search : isDocView ? FileText : ImageIcon}
               title={q ? "No matches"
                 : tab === "recent" ? "No recent uploads yet"
                 : tab === "all" ? "Nothing here yet"
-                : tab === "documents" ? "No spec sheets yet"
+                : isDocView ? `No ${(TABS.find((t) => t.id === tab)?.label || "documents").toLowerCase()} yet`
                 : `Nothing tagged “${TABS.find((t) => t.id === tab)?.label}” yet`}
               description={q
                 ? "Try a different search term or clear it to see everything in this view."
                 : tab === "recent"
                 ? "Images you upload (with their name and usage tags) show up here, newest first — so you can find what you just tagged."
-                : tab === "documents"
-                ? "Spec sheets are PDFs uploaded against an item number. Upload one with the item's code and it files itself here."
+                : isDocView
+                ? "Documents are PDFs. Upload one tagged with its type (spec-sheet, presentation, sales-sheet, email-campaign) — and with an item number if it belongs to a product — and it files itself here."
                 : "Upload an image and check this usage in the Asset details step to file it here. One image can carry several usages."}
             />
           ) : (
