@@ -5591,6 +5591,23 @@
    "format": "jpg",
    "category": "Products",
    "title": "Alpeggio Cheese 7oz Wedge",
+   "code": null,
+   "sku": null,
+   "orig": null,
+   "approvalState": "approved-for-press",
+   "usage": [],
+   "bgRemoved": false,
+   "width": 2000,
+   "height": 2000,
+   "bytes": 1024077,
+   "modified": "2026-09-17"
+  },
+  {
+   "publicId": "monti-trentini/products/kotlzw50nucukigwypob",
+   "version": 1789673074,
+   "format": "png",
+   "category": "Products",
+   "title": "Alpeggio Cheese 7oz Wedge",
    "code": "04211",
    "sku": "04211",
    "orig": null,
@@ -5598,10 +5615,10 @@
    "usage": [
     "product-catalog"
    ],
-   "bgRemoved": false,
+   "bgRemoved": true,
    "width": 2000,
    "height": 2000,
-   "bytes": 1024077,
+   "bytes": 2264445,
    "modified": "2026-09-17"
   },
   {
