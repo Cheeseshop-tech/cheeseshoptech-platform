@@ -13,6 +13,7 @@ import { loadEdits, applyEdits } from "@/lib/catalog-edits.js";
 import { loadItems, listItems, specLine } from "@/lib/items.js";
 import { useAuth } from "@/lib/auth-context.jsx";
 import { rolesOf } from "@/lib/auth.js";
+import { CATEGORY_ORDER, categoryForItem } from "@/lib/catalog-categories.js";
 
 // Buyer-facing PRODUCT CATALOG — ITEM-DRIVEN (Rick, 2026-07-04): the catalog MIRRORS the item
 // numbers on the price list / item data (the Media Hub item-truth doc in Cloudinary,
@@ -78,14 +79,17 @@ function BuyerCatalog({ data, brandName, tenantId, itemsFolder }) {
   const [active, setActive] = useState(null);   // active item number (sku)
   const [heroIdx, setHeroIdx] = useState(0);    // selected photo inside the lightbox
 
-  const NO_PHOTO = "No photo yet";
-  const categoryOf = (r) => r.imgs[0]?.category || NO_PHOTO;
+  // Category = the item's pack format (7 oz wedge, whole wheel, ...), not the photo's Cloudinary
+  // folder — see lib/catalog-categories.js for why. Tab order is CATEGORY_ORDER, fixed, not
+  // sorted by count, so "Cut & Wrap" always leads; a category with zero items in this
+  // tenant's catalog just doesn't get a tab.
+  const categoryOf = (r) => categoryForItem(r.it);
 
   const categories = useMemo(() => {
     if (!rows) return [];
     const counts = {};
     rows.forEach((r) => { const c = categoryOf(r); counts[c] = (counts[c] || 0) + 1; });
-    const names = Object.keys(counts).sort((a, b) => (a === NO_PHOTO) - (b === NO_PHOTO) || counts[b] - counts[a]);
+    const names = CATEGORY_ORDER.filter((c) => counts[c]);
     return ["All", ...names].map((c) => ({ name: c, count: c === "All" ? rows.length : counts[c] }));
   }, [rows]);
 
@@ -220,7 +224,7 @@ function BuyerCatalog({ data, brandName, tenantId, itemsFolder }) {
                   <Badge variant="muted" className="shrink-0 font-mono text-[10px]">{it.sku}</Badge>
                 </div>
                 <p className="mt-0.5 truncate text-xs text-fg-muted">
-                  {specLine(it) || it.shortDescription || categoryOf({ imgs })}
+                  {specLine(it) || it.shortDescription || categoryForItem(it)}
                 </p>
                 {imgs.length > 1 && (
                   <p className="mt-0.5 text-[10px] text-fg-muted">{imgs.length} photos</p>
@@ -305,7 +309,7 @@ function BuyerCatalog({ data, brandName, tenantId, itemsFolder }) {
                 )}
               </div>
               <div className="max-h-[78vh] overflow-y-auto p-6">
-                {hero?.category && <Badge variant="muted">{hero.category}</Badge>}
+                <Badge variant="muted">{categoryForItem(activeRow.it)}</Badge>
                 <h2 className="mt-2 font-heading text-2xl text-fg">{activeRow.it.name || activeRow.it.sku}</h2>
                 {specLine(activeRow.it) && (
                   <p className="mt-1 text-sm text-fg-muted">{specLine(activeRow.it)}</p>
