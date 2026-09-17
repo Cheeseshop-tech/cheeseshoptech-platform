@@ -5841,6 +5841,25 @@
    "modified": "2026-09-14"
   },
   {
+   "publicId": "monti-trentini/products/tx8fd2vk0rdba4dismts",
+   "version": 1789658795,
+   "format": "png",
+   "category": "Products",
+   "title": "Naturally Smoked Provolone 7oz",
+   "code": "01174",
+   "sku": "01174",
+   "orig": null,
+   "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
+   "bgRemoved": false,
+   "width": 1500,
+   "height": 1000,
+   "bytes": 1082794,
+   "modified": "2026-09-17"
+  },
+  {
    "publicId": "monti-trentini/products/ekjdoxbemg6z0kjwnkth",
    "version": 1789645591,
    "format": "png",
