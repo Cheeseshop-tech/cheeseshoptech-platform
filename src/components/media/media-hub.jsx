@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useMemo } from "react";
-import { Upload, Copy, Image as ImageIcon, Pencil, Trash2, Download, Share2, ChevronDown, ChevronUp, Search } from "lucide-react";
+import { Upload, Copy, Image as ImageIcon, Pencil, Trash2, Unlink, Download, Share2, ChevronDown, ChevronUp, Search } from "lucide-react";
 import { Card } from "@/components/ui/card.jsx";
 import { Button } from "@/components/ui/button.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
@@ -335,6 +335,55 @@ export function MediaHub({ resolved }) {
             return false;
           }
         }}
+        onReplace={async (file) => {
+          const old = active;
+          try {
+            // Step 1: upload the new file (today's unsigned path — same one the top-bar Upload
+            // button uses; it can't overwrite old.publicId in place, so this lands as a new asset).
+            const uploaded = await uploadAsset({
+              file, tenantFolder: resolved.cloudinaryFolder, subfolder: old.folder || "library",
+              displayName: old.title, usage: old.usage || [],
+            });
+            // Step 2: carry the old asset's real metadata onto the new one via the authenticated,
+            // logged write path (media-update.js) — uploadAsset only sets draft + usage + caption.
+            const patch = await updateAsset({
+              publicId: uploaded.publicId, tenantId: resolved.id,
+              displayName: old.title, usage: old.usage || [], sku: old.sku || "",
+              alt: old.alt || "", description: old.description || "",
+              approvalState: old.approvalState || "draft",
+            });
+            const next = { ...uploaded, ...patch };
+            // Step 3: unlink (not delete) the superseded file — same soft action as "Delete
+            // image" — so the old file survives in Cloudinary/Media Hub for anyone who wants it.
+            const oldWasLinked = !!old.sku || (old.usage || []).includes(PRODUCT_USAGE_ID);
+            if (oldWasLinked) {
+              await updateAsset({
+                publicId: old.publicId, tenantId: resolved.id,
+                displayName: old.title, usage: (old.usage || []).filter((u) => u !== PRODUCT_USAGE_ID),
+                sku: "", alt: old.alt || "", description: old.description || "",
+                approvalState: old.approvalState || "draft",
+              });
+            }
+            const oldPatched = { ...old, sku: oldWasLinked ? "" : old.sku, usage: oldWasLinked ? (old.usage || []).filter((u) => u !== PRODUCT_USAGE_ID) : old.usage };
+            setAssets((list) => [next, ...(list || []).map((x) => (x.publicId === old.publicId ? oldPatched : x))]);
+            setRecent((prev) => {
+              const nextList = [next, ...prev.map((x) => (x.publicId === old.publicId ? oldPatched : x))].slice(0, 60);
+              try { localStorage.setItem(RECENT_KEY, JSON.stringify(nextList)); } catch { /* ignore quota */ }
+              return nextList;
+            });
+            setActive(next);
+            toast({
+              title: "Image replaced", tone: "success",
+              description: oldWasLinked
+                ? "New file uploaded and linked; the old file was unlinked from the Catalog (still in Cloudinary)."
+                : "New file uploaded and linked.",
+            });
+            return true;
+          } catch (err) {
+            toast({ title: "Replace failed", description: String(err?.message || err), tone: "error" });
+            return false;
+          }
+        }}
         canDelete={canDeleteMedia(user)}
         onDelete={async () => {
           const id = active.publicId;
@@ -477,19 +526,58 @@ function UploadDetailsDialog({ files, uploading, onCancel, onConfirm }) {
 // usage, link a SKU, add alt text, and set approval — persisted via media-update. When a SKU is
 // linked, the ITEM RECORD fields (weight, pack size, short/long description) are edited right
 // here too — but they write through to the shared items doc (one truth, same as the Items tab).
-function AssetDialog({ asset, onClose, canManage, canDelete, onCopy, onSave, onDelete, itemsDoc, canManageItem, onSaveItem }) {
+function AssetDialog({ asset, onClose, canManage, canDelete, onCopy, onSave, onDelete, onReplace, itemsDoc, canManageItem, onSaveItem }) {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState(null);
   const [itemForm, setItemForm] = useState(null); // weight/packSize/milk/age/short/long — item-record slice
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [unlinking, setUnlinking] = useState(false);
+  const [replacing, setReplacing] = useState(false);
+  const replaceRef = useRef(null);
   const [showLong, setShowLong] = useState(false); // long-description reveal in view mode
   useEffect(() => { setEditing(false); setForm(null); setItemForm(null); setShowLong(false); }, [asset?.publicId]);
+  // "Delete image" — unlink from the Catalog (clear sku + drop the product-catalog usage tag)
+  // without touching the underlying Cloudinary file. Distinct from "Delete file" below, which is
+  // the irreversible Cloudinary delete. Rick, 2026-09-17: "there is already an edit asset option
+  // so this makes image management complete" — a soft remove-from-catalog next to the hard delete.
+  const unlink = async () => {
+    if (!window.confirm(
+      `Remove "${asset.title}" from the Catalog?\n\nThis clears its SKU link (${asset.sku || "—"}) and the Product Catalog tag, so it stops showing on that item. The file itself stays in Cloudinary/Media Hub and can be relinked later.`
+    )) return;
+    setUnlinking(true);
+    await onSave({
+      displayName: asset.title || "",
+      usage: (asset.usage || []).filter((u) => u !== PRODUCT_USAGE_ID),
+      sku: "",
+      alt: asset.alt || "",
+      description: asset.description || "",
+      approvalState: asset.approvalState || "draft",
+    });
+    setUnlinking(false);
+  };
   const remove = async () => {
-    if (!window.confirm(`Permanently delete "${asset.title}"?\n\nThis removes it from Cloudinary and cannot be undone.`)) return;
+    if (!window.confirm(`Permanently delete the file "${asset.title}"?\n\nThis removes it from Cloudinary entirely and cannot be undone.`)) return;
     setDeleting(true);
     await onDelete();
     setDeleting(false);
+  };
+  // "Replace image" — upload a new file to stand in for this asset. Uploads as a separate
+  // Cloudinary asset (today's unsigned upload path can't overwrite in place), then carries this
+  // asset's SKU/usage/approval/description onto the new one and unlinks (not deletes) the old
+  // file, same soft action as "Delete image" above — nothing is destroyed without a separate,
+  // explicit "Delete file". Rick, 2026-09-17.
+  const pickReplace = () => replaceRef.current?.click();
+  const onReplaceFile = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (!window.confirm(
+      `Replace the image for "${asset.title}" with "${file.name}"?\n\nThe new file becomes this item's photo. The current file is unlinked from the Catalog (not deleted) so it stays findable in Cloudinary/Media Hub, or can be permanently deleted separately.`
+    )) return;
+    setReplacing(true);
+    await onReplace(file);
+    setReplacing(false);
   };
   if (!asset) return null;
   const heroUrl = cldUrl(asset.publicId, "hero");
@@ -632,14 +720,28 @@ function AssetDialog({ asset, onClose, canManage, canDelete, onCopy, onSave, onD
             {/* Viewer tiers (sales rep / broker / external) get a CLEAN dialog — no edit
                 affordances, no lock notice, no footer Close (the X handles it). Rick, 2026-07-06. */}
             {canManage && (
-              <div className="mt-4 flex items-center justify-between gap-3 border-t border-border pt-4">
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
                 <Button size="sm" variant="outline" onClick={startEdit}><Pencil className="h-4 w-4" /> Edit asset</Button>
-                {canDelete && (
-                  <Button size="sm" variant="outline" onClick={remove} disabled={deleting}
-                    className="border-red-300 text-red-600 hover:bg-red-50 hover:text-red-700">
-                    <Trash2 className="h-4 w-4" /> {deleting ? "Deleting…" : "Delete"}
+                <div className="flex flex-wrap items-center gap-2">
+                  <input ref={replaceRef} type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml,image/gif,.png,.jpg,.jpeg,.webp,.svg,.gif" hidden onChange={onReplaceFile} />
+                  <Button size="sm" variant="outline" onClick={pickReplace} disabled={replacing}>
+                    <Upload className="h-4 w-4" /> {replacing ? "Replacing…" : "Replace image"}
                   </Button>
-                )}
+                  {isProductView && (
+                    <Button size="sm" variant="outline" onClick={unlink} disabled={unlinking}
+                      title="Unlink from the Catalog — keeps the file in Cloudinary/Media Hub"
+                      className="border-amber-300 text-amber-700 hover:bg-amber-50 hover:text-amber-800">
+                      <Unlink className="h-4 w-4" /> {unlinking ? "Removing…" : "Delete image"}
+                    </Button>
+                  )}
+                  {canDelete && (
+                    <Button size="sm" variant="outline" onClick={remove} disabled={deleting}
+                      title="Permanently delete this file from Cloudinary"
+                      className="border-red-300 text-red-600 hover:bg-red-50 hover:text-red-700">
+                      <Trash2 className="h-4 w-4" /> {deleting ? "Deleting…" : "Delete file"}
+                    </Button>
+                  )}
+                </div>
               </div>
             )}
           </>
