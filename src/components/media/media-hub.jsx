@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog.jsx";
 import { useToast } from "@/components/ui/toast.jsx";
 import { useAuth } from "@/lib/auth-context.jsx";
-import { cldUrl, uploadAsset, UPLOAD_PRESET, CLOUD_NAME } from "@/lib/cloudinary.js";
+import { cldUrl, uploadAsset, CLOUD_NAME } from "@/lib/cloudinary.js";
 import { listAssetsPage, updateAsset, deleteAsset, APPROVAL, USAGE, usageLabel, canUpload, canManageMedia, canDeleteMedia, PRODUCT_USAGE_ID, IS_MOCK_MODE, MOCK_MODE_MSG } from "@/lib/media.js";
 import { loadItems, emptyDoc, canManageItems, emptyItem, upsertItem, saveItems, getItem, specLine } from "@/lib/items.js";
 import { ItemsPanel } from "@/components/media/items-panel.jsx";
@@ -132,14 +132,6 @@ export function MediaHub({ resolved }) {
   };
 
   function onUpload() {
-    if (!UPLOAD_PRESET) {
-      toast({
-        title: "Upload not configured",
-        description: "Set a Cloudinary unsigned upload preset (VITE_CLOUDINARY_UPLOAD_PRESET) to enable uploads.",
-        tone: "warning",
-      });
-      return;
-    }
     fileRef.current?.click();
   }
 
@@ -159,7 +151,7 @@ export function MediaHub({ resolved }) {
       for (const it of items) {
         const asset = await uploadAsset({
           file: it.file, tenantFolder: resolved.cloudinaryFolder, subfolder: "library",
-          displayName: it.name, usage,
+          displayName: it.name, usage, tenantId: resolved.id,
         });
         uploaded.push(asset);
       }
@@ -342,7 +334,7 @@ export function MediaHub({ resolved }) {
             // button uses; it can't overwrite old.publicId in place, so this lands as a new asset).
             const uploaded = await uploadAsset({
               file, tenantFolder: resolved.cloudinaryFolder, subfolder: old.folder || "library",
-              displayName: old.title, usage: old.usage || [],
+              displayName: old.title, usage: old.usage || [], tenantId: resolved.id,
             });
             // Step 2: carry the old asset's real metadata onto the new one via the authenticated,
             // logged write path (media-update.js) — uploadAsset only sets draft + usage + caption.

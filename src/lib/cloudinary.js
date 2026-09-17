@@ -2,6 +2,9 @@
 // URL — never by re-uploading resized copies. The codebase references NAMED presets, not raw
 // params. Cloud name is account-global (one Cloudinary account); clients differ by FOLDER.
 
+import { authHeaders } from "./auth-context.jsx";
+import { RELOGIN_MSG } from "./media.js";
+
 // Dev defaults to Cloudinary's public "demo" cloud so sample images actually render.
 // Production sets VITE_CLOUDINARY_CLOUD to the CheeseShop TECH cloud name.
 export const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD || "demo";
@@ -178,33 +181,51 @@ export async function downscaleForUpload(
 }
 
 /**
- * Upload a file straight to Cloudinary via the unsigned preset. Places it under the tenant's
- * folder/<subfolder>, tags it `draft` (new assets start unapproved) PLUS any usage tags, and
- * stores the display name as caption. Returns the new asset mapped to the media.js shape.
- * No secret involved.
+ * Upload a file to Cloudinary via a SIGNED upload (2026-09-17 — replaces the old unsigned-preset
+ * flow, which had no server-side auth at all, only a client-side role check). A server signature
+ * (media-upload-sign.js, admin/client-admin only via _write-guard.js) authorizes the upload; the
+ * file bytes still go straight from the browser to Cloudinary, never through our server, so
+ * there's no function payload-size limit. Places it under the tenant's folder/<subfolder>, tags
+ * it `draft` (new assets start unapproved) PLUS any usage tags, and stores the display name as
+ * caption. Returns the new asset mapped to the media.js shape.
  *
  * @param {string} [o.displayName]  Human name for the asset (caption); defaults to the filename.
  * @param {string[]} [o.usage]      Usage tag ids (e.g. ["product-catalog","hero"]) — the asset's
  *                                  allowed purposes. The Product Catalog only pulls "product-catalog".
+ * @param {string} [o.tenantId]     Tenant id/subdomain (e.g. "montitrentini", "" for house) — sent
+ *                                  to media-upload-sign.js for the per-tenant admin passcode check.
  */
-export async function uploadAsset({ file, tenantFolder, subfolder = "raw", cloud = CLOUD_NAME, displayName, usage = [] }) {
-  if (!UPLOAD_PRESET) throw new Error("No upload preset configured");
+export async function uploadAsset({ file, tenantFolder, subfolder = "raw", cloud = CLOUD_NAME, displayName, usage = [], tenantId = "" }) {
   const folder = `${tenantFolder}/${subfolder}`;
-  // Only intervenes if the file would not upload at all (unsigned ~10MB cap). Everything under
-  // that ceiling is stored at FULL resolution — Cloudinary is the hi-res master and previews are
-  // compressed at delivery via TRANSFORMS.
+  // Only intervenes if the file would not upload at all (unsigned ~10MB cap still applies on
+  // Cloudinary's side for a free-tier upload). Everything under that ceiling is stored at FULL
+  // resolution — Cloudinary is the hi-res master and previews are compressed at delivery via
+  // TRANSFORMS.
   const uploadFile = await downscaleForUpload(file);
   const title = (displayName || "").trim() || file.name;
-  // draft (approval) + usage tags travel with the asset in Cloudinary.
-  const tags = ["draft", ...usage].join(",");
+
+  const signRes = await fetch("/.netlify/functions/media-upload-sign", {
+    method: "POST",
+    headers: { "content-type": "application/json", ...(await authHeaders()) },
+    body: JSON.stringify({ tenant: tenantId, folder, usage, displayName: title }),
+  });
+  if (!signRes.ok) {
+    if (signRes.status === 401) throw new Error(RELOGIN_MSG);
+    const msg = await signRes.text().catch(() => "");
+    throw new Error(`Upload not authorized (${signRes.status}) ${msg}`);
+  }
+  const sign = await signRes.json();
+
   const form = new FormData();
   form.append("file", uploadFile);
-  form.append("upload_preset", UPLOAD_PRESET);
-  form.append("folder", folder);
-  form.append("tags", tags);
-  form.append("context", `caption=${title}`);
+  form.append("api_key", sign.apiKey);
+  form.append("timestamp", sign.timestamp);
+  form.append("signature", sign.signature);
+  form.append("folder", sign.folder);
+  form.append("tags", sign.tags);
+  form.append("context", sign.context);
 
-  const res = await fetch(`https://api.cloudinary.com/${"v1_1"}/${cloud}/image/upload`, {
+  const res = await fetch(`https://api.cloudinary.com/v1_1/${sign.cloud}/image/upload`, {
     method: "POST",
     body: form,
   });

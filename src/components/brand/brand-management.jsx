@@ -9,7 +9,7 @@ import { useToast } from "@/components/ui/toast.jsx";
 import { listClients } from "@/lib/clientConfig.js";
 import { getBrandKit, AUDIENCES } from "@/lib/brandKit.js";
 import { workingKit, saveKitEdits, clearKitEdits, setPath, exportKit, parseKitFile, loadKitEdits } from "@/lib/brand-kit-edits.js";
-import { cldUrl, uploadAsset, UPLOAD_PRESET } from "@/lib/cloudinary.js";
+import { cldUrl, uploadAsset } from "@/lib/cloudinary.js";
 
 // Brand Management (house admin) — CheeseShop TECH's single-source brand kit per client, with an
 // edit-mode WORKSHEET (text, colors, lists, story blocks, image upload). Edits persist per-tenant
@@ -330,9 +330,8 @@ function ImageSlot({ path, label, publicId, editing, tenantId, onSet, toast }) {
   async function onFile(e) {
     const f = e.target.files?.[0]; e.target.value = "";
     if (!f) return;
-    if (!UPLOAD_PRESET) { toast({ title: "Upload not configured", description: "Set VITE_CLOUDINARY_UPLOAD_PRESET to enable uploads.", tone: "warning" }); return; }
     setBusy(true);
-    try { const a = await uploadAsset({ file: f, tenantFolder: `${tenantId}/brand`, subfolder: "brand" }); onSet(path, a.publicId); toast({ title: `${label} uploaded`, tone: "success" }); }
+    try { const a = await uploadAsset({ file: f, tenantFolder: `${tenantId}/brand`, subfolder: "brand", tenantId }); onSet(path, a.publicId); toast({ title: `${label} uploaded`, tone: "success" }); }
     catch (err) { toast({ title: "Upload failed", description: String(err?.message || err), tone: "error" }); }
     finally { setBusy(false); }
   }
