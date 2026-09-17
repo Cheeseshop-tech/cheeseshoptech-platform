@@ -22,7 +22,15 @@ import { requireReadAuth, jsonUnauthorized } from "./_write-guard.js";
 import { withMonitoring } from "./_sentry.js";
 // Map one Cloudinary Admin API resource to the shape src/lib/media.js expects. Shared by both
 // the legacy (fetch-everything) path and the paged path below so they can never drift.
-function mapResource(r) {
+// items.json (per-tenant item records, src/lib/items.js) lives as a raw asset at
+// `${folder}/copy/items.json` -- it is app state, not a spec sheet, so the new raw-resource
+// fetch below must not surface it as a "document" tile in the Media Hub grid or the manifest.
+// (2026-09-17, media-roles-and-spec-sheets Gap 3 follow-up.)
+function isInternalRawDoc(publicId) {
+  return /\/copy\/items\.json$/.test(publicId);
+}
+
+function mapResource(r, resourceType = "image") {
   const segs = r.public_id.split("/");
   // Assets sitting at the tenant root (no products/brand/raw subfolder) default to
   // "products" so they show on the Media Hub's default tab.
@@ -42,6 +50,11 @@ function mapResource(r) {
     usage: tags.filter((t) => USAGE_IDS.includes(t)),
     approvalState,
     bgRemoved: tags.includes(BG_REMOVED_TAG),
+    // 2026-09-17 (media-roles-and-spec-sheets Gap 3): PDFs/documents are fetched from Cloudinary's
+    // separate `resources/raw` endpoint (see fetchPage below) -- flag them here so every consumer
+    // (Media Hub tile, Buyer Catalog lightbox) can render a document affordance instead of an
+    // <img> tag, which 404s against a raw-type asset.
+    kind: resourceType === "raw" ? "document" : "image",
     format: r.format,
     width: r.width,
     height: r.height,
@@ -102,9 +115,9 @@ const rawHandler = async (event, context) => {
 
   const auth = Buffer.from(`${key}:${secret}`).toString("base64");
 
-  async function fetchPage(prefix, cursor, maxResults) {
+  async function fetchPage(prefix, cursor, maxResults, resourceType = "image") {
     const base =
-      `https://api.cloudinary.com/v1_1/${cloud}/resources/image` +
+      `https://api.cloudinary.com/v1_1/${cloud}/resources/${resourceType}` +
       `?type=upload&prefix=${encodeURIComponent(prefix)}&max_results=${maxResults}&tags=true&context=true`;
     const res = await fetch(cursor ? `${base}&next_cursor=${encodeURIComponent(cursor)}` : base, {
       headers: { Authorization: `Basic ${auth}` },
@@ -122,35 +135,56 @@ const rawHandler = async (event, context) => {
   // `cursor` walks: "main:<raw|>" → once main is exhausted, "legacy:<index>:<raw|>" → null.
   if (event.queryStringParameters?.paged) {
     const maxResults = Math.min(Number(event.queryStringParameters?.max_results) || 60, 100);
-    const rawCursorParam = event.queryStringParameters?.cursor || `main:`;
-    const [source, idxOrCursor, maybeCursor] = rawCursorParam.split(":");
+    // Cursor states (2026-09-17, media-roles-and-spec-sheets Gap 3 -- raw/document pagination
+    // added alongside the original image pagination): "main:image:<cur>" -> "main:raw:<cur>" ->
+    // "legacy:<idx>:image:<cur>" -> "legacy:<idx>:raw:<cur>" -> next legacy idx's image stage,
+    // -> null. Each folder's images are exhausted before its documents are fetched, so a client
+    // that only ever paged through images (pre-this-change) still sees them first.
+    const rawCursorParam = event.queryStringParameters?.cursor || `main:image:`;
+    const parts = rawCursorParam.split(":");
+    const stage = parts[0];
 
     try {
-      if (source === "main") {
-        const rawCursor = idxOrCursor || null;
-        const data = await fetchPage(folderPrefix, rawCursor, maxResults);
-        const assets = (data.resources || []).map(mapResource);
-        const nextCursor = data.next_cursor
-          ? `main:${data.next_cursor}`
-          : legacyFolders.length ? `legacy:0:` : null;
+      if (stage === "main") {
+        const resourceType = parts[1] === "raw" ? "raw" : "image";
+        const rawCursor = parts[2] || null;
+        const data = await fetchPage(folderPrefix, rawCursor, maxResults, resourceType);
+        const assets = (data.resources || [])
+          .filter((r) => resourceType !== "raw" || !isInternalRawDoc(r.public_id))
+          .map((r) => mapResource(r, resourceType));
+        let nextCursor;
+        if (data.next_cursor) {
+          nextCursor = `main:${resourceType}:${data.next_cursor}`;
+        } else if (resourceType === "image") {
+          nextCursor = `main:raw:`;
+        } else {
+          nextCursor = legacyFolders.length ? `legacy:0:image:` : null;
+        }
         return json(200, { assets, nextCursor });
       }
 
-      // source === "legacy" — idxOrCursor is the legacy-folder INDEX, maybeCursor its raw cursor.
-      const idx = Number(idxOrCursor) || 0;
+      // stage === "legacy" -- parts: legacy, <index>, <image|raw>, <cursor?>
+      const idx = Number(parts[1]) || 0;
+      const resourceType = parts[2] === "raw" ? "raw" : "image";
       const legacy = legacyFolders[idx];
       if (!legacy) return json(200, { assets: [], nextCursor: null });
-      const rawCursor = maybeCursor || null;
-      const data = await fetchPage(legacy, rawCursor, maxResults);
+      const rawCursor = parts[3] || null;
+      const data = await fetchPage(legacy, rawCursor, maxResults, resourceType);
       const assets = (data.resources || [])
         // Admin-API `prefix` is a STRING match (`monti` also matches `monti-trentini/…`) — keep
         // only assets exactly inside this legacy folder.
         .filter((r) => r.public_id.startsWith(`${legacy}/`))
+        .filter((r) => resourceType !== "raw" || !isInternalRawDoc(r.public_id))
         .map((r) => withLegacySku(r, legacy))
-        .map(mapResource);
-      const nextCursor = data.next_cursor
-        ? `legacy:${idx}:${data.next_cursor}`
-        : legacyFolders[idx + 1] ? `legacy:${idx + 1}:` : null;
+        .map((r) => mapResource(r, resourceType));
+      let nextCursor;
+      if (data.next_cursor) {
+        nextCursor = `legacy:${idx}:${resourceType}:${data.next_cursor}`;
+      } else if (resourceType === "image") {
+        nextCursor = `legacy:${idx}:raw:`;
+      } else {
+        nextCursor = legacyFolders[idx + 1] ? `legacy:${idx + 1}:image:` : null;
+      }
       return json(200, { assets, nextCursor });
     } catch (err) {
       return json(502, { error: String(err?.message || err) });
@@ -158,12 +192,12 @@ const rawHandler = async (event, context) => {
   }
 
   // ---- FULL MODE (unchanged) — everything in one response, bare array ----------------------
-  async function listPrefix(prefix) {
+  async function listPrefix(prefix, resourceType = "image") {
     // Page through next_cursor (cap at ~500 assets / 5 pages per prefix) so we don't truncate.
     let resources = [];
     let cursor = null;
     for (let page = 0; page < 5; page++) {
-      const data = await fetchPage(prefix, cursor, 100);
+      const data = await fetchPage(prefix, cursor, 100, resourceType);
       resources = resources.concat(data.resources || []);
       cursor = data.next_cursor;
       if (!cursor) break;
@@ -172,20 +206,25 @@ const rawHandler = async (event, context) => {
   }
 
   try {
-    const resources = await listPrefix(folderPrefix);
-    const seen = new Set(resources.map((r) => r.public_id));
+    // 2026-09-17 (media-roles-and-spec-sheets Gap 3): a second pass per prefix at
+    // resource_type=raw picks up PDFs/documents (spec sheets) -- tagged with resourceType so
+    // mapResource can flag kind:"document". Images are unaffected; this is purely additive.
+    const resources = (await listPrefix(folderPrefix)).map((r) => ({ r, resourceType: "image" }))
+      .concat((await listPrefix(folderPrefix, "raw")).filter((r) => !isInternalRawDoc(r.public_id)).map((r) => ({ r, resourceType: "raw" })));
+    const seen = new Set(resources.map(({ r }) => r.public_id));
     for (const legacy of legacyFolders) {
-      const extra = await listPrefix(legacy);
-      for (const r of extra) {
+      const extraImage = (await listPrefix(legacy)).map((r) => ({ r, resourceType: "image" }));
+      const extraRaw = (await listPrefix(legacy, "raw")).filter((r) => !isInternalRawDoc(r.public_id)).map((r) => ({ r, resourceType: "raw" }));
+      for (const { r, resourceType } of [...extraImage, ...extraRaw]) {
         // Admin-API `prefix` is a STRING match (`monti` also matches `monti-trentini/…`) —
         // keep only assets exactly inside the legacy folder, and never duplicate.
         if (!r.public_id.startsWith(`${legacy}/`) || seen.has(r.public_id)) continue;
         seen.add(r.public_id);
-        resources.push(withLegacySku(r, legacy));
+        resources.push({ r: withLegacySku(r, legacy), resourceType });
       }
     }
 
-    return json(200, resources.map(mapResource));
+    return json(200, resources.map(({ r, resourceType }) => mapResource(r, resourceType)));
   } catch (err) {
     return json(502, { error: String(err?.message || err) });
   }

@@ -92,6 +92,51 @@ Hub and the Buyer Catalog until this gap is closed** — worth knowing before as
 Cloudinary with the right tags" means "Rick can see it somewhere in the app," which is true for
 photos but not yet true for documents.
 
+**Update, later same day — CODE COMPLETE, pushed:** built and regenerated the manifest. What
+actually landed, for the next person reading this instead of re-deriving it:
+
+- `netlify/functions/media-list.js`: `fetchPage()`/`listPrefix()` now take a `resourceType`
+  param (`"image"` default); PAGED mode's cursor walks `main:image:` → `main:raw:` →
+  `legacy:<idx>:image:` → `legacy:<idx>:raw:` → next legacy idx, so an existing client that only
+  ever paged through images still sees them first. FULL mode does an extra raw pass per prefix and
+  merges it in. `mapResource(r, resourceType)` now stamps `kind: resourceType === "raw" ?
+  "document" : "image"`.
+- `scripts/sync-images.mjs` (Admin API mode): same `resourceType` param on its own `listPrefix()`,
+  same double pass (main + each legacy folder), `kind` carried onto each manifest record. LIVE mode
+  (`--live`) just passes through whatever `kind` media-list.js already resolved.
+- **Gotcha found the hard way:** the tenant's own item-records file lives as a *raw* Cloudinary
+  asset at `monti-trentini/copy/items.json` (see `src/lib/items.js`) — the very definition of "not
+  a spec sheet." The naive raw-resource pass picked it straight up as a stray "document" tile with
+  no SKU/format, both in the manifest and in Media Hub's asset grid. Fixed with an explicit
+  `isInternalRawDoc()` guard (matches `/copy/items.json` at the end of the public_id) in both
+  `media-list.js` and `sync-images.mjs`, so it's excluded before it ever becomes an asset record.
+  Worth remembering if another internal raw-JSON store gets added later — same guard, same reason.
+- `src/lib/catalog.js`: `getBuyerCatalog()` passes `kind` through; new `cldDocDownload(cloud, im)`
+  helper builds a raw-delivery download URL (`.../raw/upload/fl_attachment/<publicId>.<ext>`) since
+  `cldImage()`'s transform strings only ever target `image/upload` and 404 against a raw asset.
+- `buyer-catalog.jsx`: `imagesByCode` now excludes `kind:"document"` (so a PDF can never land in
+  `imgs[0]` and get treated as a photo); a parallel `docsByCode` feeds a `docs` array alongside
+  `imgs` on every row. Grid card and list row both show a small "N spec sheets" line when present;
+  the lightbox detail pane gets a "Spec sheet(s)" section with a plain download link per PDF.
+- `media-hub.jsx`: `AssetTile` and `AssetDialog` both check `asset.kind === "document"` and render
+  a file icon / "Open <FORMAT>" link instead of an `<img>` (which 404s against a raw asset — same
+  root cause as the Buyer Catalog problem). The PNG-download button is hidden for documents; a
+  plain "Download <FORMAT>" button replaces it. `deleteAsset()` now gets `resourceType: "raw"` for
+  a document so "Delete file" actually targets the right Cloudinary resource type instead of
+  silently missing (default was always `"image"`).
+- Manifest regenerated: 346 images, 86 with a gated `code` — 13 of the 15 spec sheets came in
+  gated (already tagged `product-catalog` + `approved-for-press`); `01114` and `20482` are still
+  `draft`/ungated on purpose (see below).
+
+**Still open — needs Rick, not code:** `01114` and `20482` are spec sheets for item numbers that
+don't exist in the active catalog (same situation as `01286` from the photo batch). This session
+hit a safety gate on further *direct* Cloudinary writes (tag/approval changes, editing the shared
+`items.json`), so promoting these two — and adding `01286` — to a real, catalog-visible item is
+Rick's to finish, and the RIGHT place to do it is exactly where the standing rule says: Media
+Hub → open the asset → set usage to include Product Catalog + approval to Approved for Press, and
+add the corresponding row on the Items tab (name + specs) for `01114`, `20482`, and `01286`. A few
+clicks each; no code or manifest regen needed afterward beyond a normal Media Hub save.
+
 **Fix (bigger, do this last):**
 1. `sync-images.mjs`: add a second `listPrefix()` pass with `resource_type=raw` over the same
    folder(s) (`monti-trentini` + the legacy `monti` folder from `cloudinaryLegacyFolders`), gated by

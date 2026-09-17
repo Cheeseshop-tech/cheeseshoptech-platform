@@ -4,7 +4,7 @@
  "cloud": "sofcvmwa",
  "folder": "monti-trentini",
  "generatedAt": "2026-09-17",
- "generatedFrom": "media-list Netlify function, no local secrets (scripts/sync-images.mjs --live)",
+ "generatedFrom": "Cloudinary Admin API (scripts/sync-images.mjs)",
  "images": [
   {
    "publicId": "monti/01021",
@@ -20,6 +20,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1200,
    "height": 1200,
    "bytes": 33311,
@@ -37,6 +38,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 800,
    "height": 800,
    "bytes": 40572,
@@ -54,9 +56,25 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 3200,
    "height": 3200,
    "bytes": 3048603,
+   "modified": "2026-09-17"
+  },
+  {
+   "publicId": "monti/01114-specsheet.pdf",
+   "version": 1789676282,
+   "category": "01114 Specsheet.Pdf",
+   "title": "Unlisted item 01114 - Spec Sheet (rev1, 2026-08-19)",
+   "code": null,
+   "sku": null,
+   "orig": null,
+   "approvalState": "draft",
+   "usage": [],
+   "bgRemoved": false,
+   "kind": "document",
+   "bytes": 335871,
    "modified": "2026-09-17"
   },
   {
@@ -64,7 +82,7 @@
    "version": 1789637679,
    "format": "jpg",
    "category": "01155",
-   "title": "01155",
+   "title": "Naturally Smoked Provolone Fiaschetto",
    "code": "01155",
    "sku": "01155",
    "orig": null,
@@ -73,6 +91,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2000,
    "height": 1981,
    "bytes": 174516,
@@ -90,9 +109,27 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1500,
    "height": 1000,
    "bytes": 1082794,
+   "modified": "2026-09-17"
+  },
+  {
+   "publicId": "monti/01174-specsheet.pdf",
+   "version": 1789676268,
+   "category": "01174 Specsheet.Pdf",
+   "title": "Naturally Smoked Provolone - Spec Sheet (rev2, 2026-08-21)",
+   "code": "01174",
+   "sku": "01174",
+   "orig": null,
+   "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
+   "bgRemoved": false,
+   "kind": "document",
+   "bytes": 290839,
    "modified": "2026-09-17"
   },
   {
@@ -107,6 +144,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6508,
    "height": 6508,
    "bytes": 706647,
@@ -117,13 +155,14 @@
    "version": 1789637723,
    "format": "png",
    "category": "01286 Cubes Bag",
-   "title": "01286-cubes-bag",
+   "title": "Provola Dolce Cubetti 1kg - Retail Bag",
    "code": null,
    "sku": null,
    "orig": null,
    "approvalState": "draft",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1160,
    "height": 1160,
    "bytes": 686706,
@@ -134,13 +173,14 @@
    "version": 1789637722,
    "format": "png",
    "category": "01286 Cubes Board",
-   "title": "01286-cubes-board",
+   "title": "Provola Dolce Cubetti 1kg - Styled",
    "code": null,
    "sku": null,
    "orig": null,
    "approvalState": "draft",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1116,
    "height": 1116,
    "bytes": 375505,
@@ -160,6 +200,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1200,
    "height": 1200,
    "bytes": 95045,
@@ -179,10 +220,28 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1200,
    "height": 800,
    "bytes": 80089,
    "modified": "2026-06-03"
+  },
+  {
+   "publicId": "monti/02091-specsheet.pdf",
+   "version": 1789676269,
+   "category": "02091 Specsheet.Pdf",
+   "title": "Asiago Fresco DOP - Spec Sheet (rev1, 2026-08-21)",
+   "code": "02091",
+   "sku": "02091",
+   "orig": null,
+   "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
+   "bgRemoved": false,
+   "kind": "document",
+   "bytes": 496823,
+   "modified": "2026-09-17"
   },
   {
    "publicId": "monti/02206",
@@ -198,6 +257,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1200,
    "height": 1200,
    "bytes": 99937,
@@ -217,6 +277,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1200,
    "height": 1200,
    "bytes": 94085,
@@ -236,6 +297,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1200,
    "height": 974,
    "bytes": 51306,
@@ -253,6 +315,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1800,
    "height": 1461,
    "bytes": 968945,
@@ -270,10 +333,45 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1200,
    "height": 1200,
    "bytes": 86256,
    "modified": "2026-06-03"
+  },
+  {
+   "publicId": "monti/03044-specsheet-rev2-0821.pdf",
+   "version": 1789676271,
+   "category": "03044 Specsheet Rev2 0821.Pdf",
+   "title": "Asiago Stagionato DOP - Spec Sheet (rev2, 2026-08-21, earlier save)",
+   "code": "03044",
+   "sku": "03044",
+   "orig": null,
+   "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
+   "bgRemoved": false,
+   "kind": "document",
+   "bytes": 1511243,
+   "modified": "2026-09-17"
+  },
+  {
+   "publicId": "monti/03044-specsheet-rev2-0827.pdf",
+   "version": 1789676270,
+   "category": "03044 Specsheet Rev2 0827.Pdf",
+   "title": "Asiago Stagionato DOP - Spec Sheet (rev2, 2026-08-27)",
+   "code": "03044",
+   "sku": "03044",
+   "orig": null,
+   "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
+   "bgRemoved": false,
+   "kind": "document",
+   "bytes": 276614,
+   "modified": "2026-09-17"
   },
   {
    "publicId": "monti/03044",
@@ -287,6 +385,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6732,
    "height": 6732,
    "bytes": 1715874,
@@ -306,9 +405,27 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1200,
    "height": 1200,
    "bytes": 86256,
+   "modified": "2026-09-17"
+  },
+  {
+   "publicId": "monti/03073-specsheet.pdf",
+   "version": 1789676272,
+   "category": "03073 Specsheet.Pdf",
+   "title": "Asiago Vecchio DOP - Spec Sheet (rev0, 2026-08-25)",
+   "code": "03073",
+   "sku": "03073",
+   "orig": null,
+   "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
+   "bgRemoved": false,
+   "kind": "document",
+   "bytes": 719054,
    "modified": "2026-09-17"
   },
   {
@@ -325,6 +442,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1200,
    "height": 1200,
    "bytes": 62776,
@@ -344,6 +462,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1200,
    "height": 800,
    "bytes": 77057,
@@ -363,6 +482,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1200,
    "height": 1200,
    "bytes": 97633,
@@ -382,6 +502,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1200,
    "height": 1200,
    "bytes": 97970,
@@ -399,10 +520,28 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6732,
    "height": 6732,
    "bytes": 2363019,
    "modified": "2026-07-31"
+  },
+  {
+   "publicId": "monti/04182-specsheet.pdf",
+   "version": 1789676273,
+   "category": "04182 Specsheet.Pdf",
+   "title": "Vezzena Cheese - Spec Sheet (rev2, 2026-08-24)",
+   "code": "04182",
+   "sku": "04182",
+   "orig": null,
+   "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
+   "bgRemoved": false,
+   "kind": "document",
+   "bytes": 1940750,
+   "modified": "2026-09-17"
   },
   {
    "publicId": "monti/04182",
@@ -416,6 +555,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 5708,
    "height": 5708,
    "bytes": 2153843,
@@ -433,6 +573,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 3000,
    "height": 2814,
    "bytes": 7285630,
@@ -452,6 +593,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1200,
    "height": 1200,
    "bytes": 170571,
@@ -471,6 +613,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1200,
    "height": 1200,
    "bytes": 99384,
@@ -490,6 +633,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1125,
    "height": 1125,
    "bytes": 111310,
@@ -509,6 +653,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6045,
    "height": 6045,
    "bytes": 1122437,
@@ -528,6 +673,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6045,
    "height": 6045,
    "bytes": 1122437,
@@ -547,6 +693,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1200,
    "height": 1200,
    "bytes": 102330,
@@ -566,6 +713,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1200,
    "height": 1200,
    "bytes": 48890,
@@ -585,6 +733,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1200,
    "height": 1200,
    "bytes": 46523,
@@ -604,6 +753,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1200,
    "height": 1200,
    "bytes": 40096,
@@ -623,6 +773,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1200,
    "height": 1200,
    "bytes": 40314,
@@ -642,6 +793,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1200,
    "height": 1200,
    "bytes": 38948,
@@ -652,7 +804,7 @@
    "version": 1789428186,
    "format": "jpg",
    "category": "20163",
-   "title": "20163",
+   "title": "CACIOTTA RUSTEGA WITH TRUFFLE 6 LBS",
    "code": "20163",
    "sku": "20163",
    "orig": null,
@@ -661,6 +813,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6732,
    "height": 6732,
    "bytes": 708186,
@@ -680,6 +833,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1200,
    "height": 1200,
    "bytes": 42873,
@@ -697,10 +851,77 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 800,
    "height": 800,
    "bytes": 50691,
    "modified": "2026-06-03"
+  },
+  {
+   "publicId": "monti/20424-specsheet.pdf",
+   "version": 1789676276,
+   "category": "20424 Specsheet.Pdf",
+   "title": "Caciotta Chili Red Pepper - Spec Sheet (rev2, 2026-08-24)",
+   "code": "20424",
+   "sku": "20424",
+   "orig": null,
+   "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
+   "bgRemoved": false,
+   "kind": "document",
+   "bytes": 1061855,
+   "modified": "2026-09-17"
+  },
+  {
+   "publicId": "monti/20480-specsheet.pdf",
+   "version": 1789676277,
+   "category": "20480 Specsheet.Pdf",
+   "title": "Caciotta Mnt Herbs - Spec Sheet (rev2, 2026-08-21)",
+   "code": "20480",
+   "sku": "20480",
+   "orig": null,
+   "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
+   "bgRemoved": false,
+   "kind": "document",
+   "bytes": 1064346,
+   "modified": "2026-09-17"
+  },
+  {
+   "publicId": "monti/20481-specsheet.pdf",
+   "version": 1789676278,
+   "category": "20481 Specsheet.Pdf",
+   "title": "Caciotta Pepato - Spec Sheet (rev1, 2026-08-24)",
+   "code": "20481",
+   "sku": "20481",
+   "orig": null,
+   "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
+   "bgRemoved": false,
+   "kind": "document",
+   "bytes": 435994,
+   "modified": "2026-09-17"
+  },
+  {
+   "publicId": "monti/20482-specsheet.pdf",
+   "version": 1789676283,
+   "category": "20482 Specsheet.Pdf",
+   "title": "Unlisted item 20482 - Spec Sheet (rev1, 2026-08-19)",
+   "code": null,
+   "sku": null,
+   "orig": null,
+   "approvalState": "draft",
+   "usage": [],
+   "bgRemoved": false,
+   "kind": "document",
+   "bytes": 242990,
+   "modified": "2026-09-17"
   },
   {
    "publicId": "monti/20533",
@@ -714,6 +935,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 800,
    "height": 800,
    "bytes": 57631,
@@ -724,7 +946,7 @@
    "version": 1789428191,
    "format": "png",
    "category": "30014 Back",
-   "title": "30014-back",
+   "title": "APERICHEESE YELLOW (back)",
    "code": "30014-back",
    "sku": "30014-back",
    "orig": null,
@@ -733,10 +955,28 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1200,
    "height": 1600,
    "bytes": 1291514,
    "modified": "2026-09-14"
+  },
+  {
+   "publicId": "monti/30014-specsheet.pdf",
+   "version": 1789676279,
+   "category": "30014 Specsheet.Pdf",
+   "title": "Apericheese Yellow - Spec Sheet (rev0, 2026-08-11)",
+   "code": "30014",
+   "sku": "30014",
+   "orig": null,
+   "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
+   "bgRemoved": false,
+   "kind": "document",
+   "bytes": 803709,
+   "modified": "2026-09-17"
   },
   {
    "publicId": "monti/30014",
@@ -750,6 +990,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2126,
    "height": 1350,
    "bytes": 1590648,
@@ -760,7 +1001,7 @@
    "version": 1789428194,
    "format": "png",
    "category": "30015 Back",
-   "title": "30015-back",
+   "title": "APERICHEESE RED (back)",
    "code": "30015-back",
    "sku": "30015-back",
    "orig": null,
@@ -769,10 +1010,28 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1200,
    "height": 1600,
    "bytes": 1312736,
    "modified": "2026-09-14"
+  },
+  {
+   "publicId": "monti/30015-specsheet.pdf",
+   "version": 1789676280,
+   "category": "30015 Specsheet.Pdf",
+   "title": "Apericheese Red - Spec Sheet (rev0, 2026-08-11)",
+   "code": "30015",
+   "sku": "30015",
+   "orig": null,
+   "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
+   "bgRemoved": false,
+   "kind": "document",
+   "bytes": 820323,
+   "modified": "2026-09-17"
   },
   {
    "publicId": "monti/30015",
@@ -786,10 +1045,28 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 4500,
    "height": 2857,
    "bytes": 6604712,
    "modified": "2026-09-14"
+  },
+  {
+   "publicId": "monti/30016-specsheet.pdf",
+   "version": 1789676281,
+   "category": "30016 Specsheet.Pdf",
+   "title": "Apericheese Orange - Spec Sheet (rev0, 2026-08-11)",
+   "code": "30016",
+   "sku": "30016",
+   "orig": null,
+   "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
+   "bgRemoved": false,
+   "kind": "document",
+   "bytes": 577940,
+   "modified": "2026-09-17"
   },
   {
    "publicId": "monti/30016",
@@ -803,10 +1080,28 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1125,
    "height": 1125,
    "bytes": 932962,
    "modified": "2026-07-31"
+  },
+  {
+   "publicId": "monti/30017-specsheet.pdf",
+   "version": 1789676282,
+   "category": "30017 Specsheet.Pdf",
+   "title": "Apericheese White - Spec Sheet (rev0, 2026-08-11)",
+   "code": "30017",
+   "sku": "30017",
+   "orig": null,
+   "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
+   "bgRemoved": false,
+   "kind": "document",
+   "bytes": 313054,
+   "modified": "2026-09-17"
   },
   {
    "publicId": "monti/30017",
@@ -820,6 +1115,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1125,
    "height": 1125,
    "bytes": 849240,
@@ -837,6 +1133,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 800,
    "height": 800,
    "bytes": 61462,
@@ -856,6 +1153,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1200,
    "height": 988,
    "bytes": 152805,
@@ -875,6 +1173,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1125,
    "height": 1125,
    "bytes": 932962,
@@ -892,6 +1191,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1125,
    "height": 1125,
    "bytes": 849240,
@@ -914,6 +1214,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 3000,
    "height": 2814,
    "bytes": 7285630,
@@ -931,6 +1232,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6732,
    "height": 6732,
    "bytes": 2114967,
@@ -948,6 +1250,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6417,
    "height": 6417,
    "bytes": 1734699,
@@ -965,6 +1268,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6732,
    "height": 6732,
    "bytes": 1998472,
@@ -982,6 +1286,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6732,
    "height": 6732,
    "bytes": 1971582,
@@ -1001,6 +1306,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6732,
    "height": 6732,
    "bytes": 1717288,
@@ -1025,6 +1331,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6732,
    "height": 6732,
    "bytes": 1791843,
@@ -1046,6 +1353,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2500,
    "height": 1667,
    "bytes": 541438,
@@ -1070,6 +1378,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6732,
    "height": 6732,
    "bytes": 2014015,
@@ -1089,6 +1398,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2196,
    "height": 2204,
    "bytes": 1426681,
@@ -1112,6 +1422,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6732,
    "height": 6732,
    "bytes": 1715874,
@@ -1129,6 +1440,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1800,
    "height": 1461,
    "bytes": 968945,
@@ -1152,6 +1464,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6732,
    "height": 6732,
    "bytes": 1698207,
@@ -1169,6 +1482,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6732,
    "height": 6732,
    "bytes": 1820661,
@@ -1186,6 +1500,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6000,
    "height": 4000,
    "bytes": 6454359,
@@ -1203,6 +1518,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 5897,
    "height": 5897,
    "bytes": 1889376,
@@ -1222,6 +1538,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 5897,
    "height": 5897,
    "bytes": 525118,
@@ -1239,6 +1556,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 5897,
    "height": 5897,
    "bytes": 733435,
@@ -1258,6 +1576,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 5897,
    "height": 5897,
    "bytes": 623521,
@@ -1277,6 +1596,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 5897,
    "height": 5897,
    "bytes": 579296,
@@ -1294,6 +1614,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6340,
    "height": 6340,
    "bytes": 815876,
@@ -1313,6 +1634,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6732,
    "height": 6732,
    "bytes": 708186,
@@ -1332,6 +1654,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6732,
    "height": 6732,
    "bytes": 685962,
@@ -1351,6 +1674,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 5897,
    "height": 5897,
    "bytes": 603606,
@@ -1368,6 +1692,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 5897,
    "height": 5897,
    "bytes": 649499,
@@ -1387,6 +1712,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 5897,
    "height": 5897,
    "bytes": 595956,
@@ -1404,6 +1730,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 5160,
    "height": 5160,
    "bytes": 724655,
@@ -1421,6 +1748,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 5708,
    "height": 5708,
    "bytes": 1045723,
@@ -1438,6 +1766,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 5897,
    "height": 5897,
    "bytes": 634455,
@@ -1457,6 +1786,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 5897,
    "height": 5897,
    "bytes": 502058,
@@ -1476,6 +1806,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 5897,
    "height": 5897,
    "bytes": 506630,
@@ -1493,6 +1824,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6732,
    "height": 6732,
    "bytes": 985124,
@@ -1512,6 +1844,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 5897,
    "height": 5897,
    "bytes": 731572,
@@ -1529,6 +1862,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 5897,
    "height": 5897,
    "bytes": 403485,
@@ -1548,6 +1882,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2688,
    "height": 2408,
    "bytes": 3744269,
@@ -1558,13 +1893,14 @@
    "version": 1788491106,
    "format": "png",
    "category": "Campaign Refs",
-   "title": "asiago_della_montagna_poster_ref",
+   "title": "Asiago Della Montagna Poster Ref",
    "code": null,
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 896,
    "height": 1200,
    "bytes": 1700471,
@@ -1582,6 +1918,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6732,
    "height": 6732,
    "bytes": 2331878,
@@ -1599,6 +1936,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 5420,
    "height": 5420,
    "bytes": 753423,
@@ -1616,6 +1954,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 5897,
    "height": 5897,
    "bytes": 1738213,
@@ -1633,6 +1972,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6153,
    "height": 6153,
    "bytes": 1962864,
@@ -1650,6 +1990,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6279,
    "height": 6279,
    "bytes": 707091,
@@ -1667,6 +2008,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6732,
    "height": 6732,
    "bytes": 1282008,
@@ -1684,6 +2026,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6732,
    "height": 6732,
    "bytes": 796515,
@@ -1701,6 +2044,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 5708,
    "height": 5708,
    "bytes": 2025391,
@@ -1718,6 +2062,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2000,
    "height": 2000,
    "bytes": 1045489,
@@ -1735,6 +2080,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6732,
    "height": 6732,
    "bytes": 875891,
@@ -1754,6 +2100,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 5897,
    "height": 5897,
    "bytes": 1012468,
@@ -1773,6 +2120,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6565,
    "height": 6565,
    "bytes": 2183964,
@@ -1792,6 +2140,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6732,
    "height": 6732,
    "bytes": 1657460,
@@ -1811,6 +2160,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1125,
    "height": 1125,
    "bytes": 111310,
@@ -1830,6 +2180,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6576,
    "height": 6576,
    "bytes": 1605328,
@@ -1847,6 +2198,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 3000,
    "height": 3000,
    "bytes": 751994,
@@ -1864,6 +2216,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1772,
    "height": 1772,
    "bytes": 3952523,
@@ -1883,6 +2236,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 704,
    "height": 898,
    "bytes": 178171,
@@ -1900,6 +2254,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6384,
    "height": 6384,
    "bytes": 1951132,
@@ -1917,6 +2272,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6045,
    "height": 6045,
    "bytes": 1122437,
@@ -1934,6 +2290,7 @@
    "approvalState": "draft",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2500,
    "height": 2501,
    "bytes": 3125911,
@@ -1955,6 +2312,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2048,
    "height": 2560,
    "bytes": 789296,
@@ -1974,6 +2332,7 @@
     "social"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1080,
    "height": 1920,
    "bytes": 1475881,
@@ -1993,6 +2352,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2126,
    "height": 1350,
    "bytes": 1590648,
@@ -2012,6 +2372,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 4200,
    "height": 2666,
    "bytes": 7719204,
@@ -2031,6 +2392,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2126,
    "height": 1350,
    "bytes": 1440462,
@@ -2050,6 +2412,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2126,
    "height": 1350,
    "bytes": 1527175,
@@ -2074,6 +2437,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2250,
    "height": 1435,
    "bytes": 685222,
@@ -2095,6 +2459,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1670,
    "height": 870,
    "bytes": 390758,
@@ -2114,6 +2479,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1125,
    "height": 1125,
    "bytes": 124452,
@@ -2133,6 +2499,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1125,
    "height": 1125,
    "bytes": 48388,
@@ -2152,6 +2519,7 @@
     "food-styling"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2560,
    "height": 1440,
    "bytes": 1692129,
@@ -2171,6 +2539,7 @@
     "brand-asset"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 144,
    "height": 18,
    "bytes": 15314,
@@ -2190,6 +2559,7 @@
     "brand-asset"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 106,
    "height": 19,
    "bytes": 11337,
@@ -2211,6 +2581,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1235,
    "height": 1829,
    "bytes": 534967,
@@ -2230,6 +2601,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1125,
    "height": 1125,
    "bytes": 277822,
@@ -2252,6 +2624,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2048,
    "height": 2560,
    "bytes": 481278,
@@ -2272,6 +2645,7 @@
     "production"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2048,
    "height": 2560,
    "bytes": 212482,
@@ -2291,6 +2665,7 @@
     "food-styling"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2048,
    "height": 2560,
    "bytes": 358614,
@@ -2313,6 +2688,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2048,
    "height": 2560,
    "bytes": 659497,
@@ -2335,6 +2711,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2048,
    "height": 2560,
    "bytes": 813970,
@@ -2356,6 +2733,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2048,
    "height": 2560,
    "bytes": 779006,
@@ -2377,6 +2755,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2048,
    "height": 2560,
    "bytes": 601214,
@@ -2398,6 +2777,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2048,
    "height": 2560,
    "bytes": 768142,
@@ -2419,6 +2799,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2048,
    "height": 2560,
    "bytes": 767209,
@@ -2440,6 +2821,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2048,
    "height": 2560,
    "bytes": 717411,
@@ -2462,6 +2844,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2048,
    "height": 2560,
    "bytes": 529048,
@@ -2486,6 +2869,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2048,
    "height": 2560,
    "bytes": 1107763,
@@ -2503,6 +2887,7 @@
    "approvalState": "draft",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2048,
    "height": 2560,
    "bytes": 648063,
@@ -2522,6 +2907,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6274,
    "height": 7843,
    "bytes": 7722910,
@@ -2539,6 +2925,7 @@
    "approvalState": "draft",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2048,
    "height": 2560,
    "bytes": 1104381,
@@ -2561,6 +2948,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2048,
    "height": 2560,
    "bytes": 1484224,
@@ -2578,6 +2966,7 @@
    "approvalState": "draft",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2048,
    "height": 2560,
    "bytes": 1195141,
@@ -2600,6 +2989,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2048,
    "height": 2560,
    "bytes": 1050808,
@@ -2622,6 +3012,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2048,
    "height": 2560,
    "bytes": 1283401,
@@ -2644,6 +3035,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2048,
    "height": 2560,
    "bytes": 1229744,
@@ -2666,6 +3058,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2048,
    "height": 2560,
    "bytes": 554497,
@@ -2688,6 +3081,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2048,
    "height": 2560,
    "bytes": 576356,
@@ -2710,6 +3104,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2048,
    "height": 2560,
    "bytes": 815096,
@@ -2732,6 +3127,7 @@
     "social"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1183,
    "height": 2560,
    "bytes": 628483,
@@ -2754,6 +3150,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2048,
    "height": 2560,
    "bytes": 439232,
@@ -2775,6 +3172,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2048,
    "height": 2560,
    "bytes": 693629,
@@ -2794,6 +3192,7 @@
     "food-styling"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2048,
    "height": 2560,
    "bytes": 304279,
@@ -2817,6 +3216,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2048,
    "height": 2560,
    "bytes": 364106,
@@ -2841,6 +3241,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2048,
    "height": 2560,
    "bytes": 478967,
@@ -2860,6 +3261,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2560,
    "height": 2560,
    "bytes": 1459314,
@@ -2880,6 +3282,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2560,
    "height": 2560,
    "bytes": 1252211,
@@ -2902,6 +3305,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2048,
    "height": 2560,
    "bytes": 490923,
@@ -2921,6 +3325,7 @@
     "production"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2048,
    "height": 2560,
    "bytes": 548198,
@@ -2945,6 +3350,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1670,
    "height": 870,
    "bytes": 124482,
@@ -2967,6 +3373,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2250,
    "height": 1435,
    "bytes": 4869550,
@@ -2989,6 +3396,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2048,
    "height": 2560,
    "bytes": 1211860,
@@ -3006,6 +3414,7 @@
    "approvalState": "draft",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1920,
    "height": 1083,
    "bytes": 2606591,
@@ -3029,6 +3438,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1200,
    "height": 1600,
    "bytes": 233597,
@@ -3048,6 +3458,7 @@
     "brand-asset"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 430,
    "height": 225,
    "bytes": 9802,
@@ -3067,6 +3478,7 @@
     "brand-asset"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 455,
    "height": 225,
    "bytes": 6310,
@@ -3088,6 +3500,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1125,
    "height": 1125,
    "bytes": 154812,
@@ -3110,6 +3523,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1148,
    "height": 1444,
    "bytes": 2623081,
@@ -3129,6 +3543,7 @@
     "production"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1706,
    "height": 2560,
    "bytes": 699788,
@@ -3148,6 +3563,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1125,
    "height": 1125,
    "bytes": 99622,
@@ -3167,6 +3583,7 @@
     "food-styling"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1024,
    "height": 1024,
    "bytes": 1667008,
@@ -3189,6 +3606,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2932,
    "height": 1544,
    "bytes": 4367519,
@@ -3208,6 +3626,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1125,
    "height": 1125,
    "bytes": 349298,
@@ -3227,6 +3646,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6000,
    "height": 4000,
    "bytes": 6455853,
@@ -3244,6 +3664,7 @@
    "approvalState": "draft",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6000,
    "height": 4000,
    "bytes": 4901908,
@@ -3265,6 +3686,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6000,
    "height": 4000,
    "bytes": 8485875,
@@ -3285,6 +3707,7 @@
     "hero"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2250,
    "height": 2000,
    "bytes": 304004,
@@ -3302,6 +3725,7 @@
    "approvalState": "draft",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2560,
    "height": 1705,
    "bytes": 1279256,
@@ -3321,6 +3745,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2048,
    "height": 2560,
    "bytes": 983868,
@@ -3343,6 +3768,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2048,
    "height": 2560,
    "bytes": 1036844,
@@ -3362,6 +3788,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2048,
    "height": 2560,
    "bytes": 948367,
@@ -3384,6 +3811,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2048,
    "height": 2560,
    "bytes": 418128,
@@ -3401,6 +3829,7 @@
    "approvalState": "draft",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 640,
    "height": 2505,
    "bytes": 543132,
@@ -3418,6 +3847,7 @@
    "approvalState": "draft",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1200,
    "height": 1552,
    "bytes": 863646,
@@ -3442,6 +3872,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 500,
    "height": 249,
    "bytes": 71020,
@@ -3464,6 +3895,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2247,
    "height": 1474,
    "bytes": 7043086,
@@ -3483,6 +3915,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1125,
    "height": 1125,
    "bytes": 26136,
@@ -3505,6 +3938,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1707,
    "height": 2560,
    "bytes": 1212463,
@@ -3527,6 +3961,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2560,
    "height": 1707,
    "bytes": 422540,
@@ -3548,6 +3983,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1692,
    "height": 2560,
    "bytes": 518758,
@@ -3567,6 +4003,7 @@
     "social"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2196,
    "height": 2560,
    "bytes": 683885,
@@ -3586,6 +4023,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1125,
    "height": 1125,
    "bytes": 40014,
@@ -3608,6 +4046,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1829,
    "height": 1256,
    "bytes": 926420,
@@ -3625,6 +4064,7 @@
    "approvalState": "draft",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1080,
    "height": 1830,
    "bytes": 432660,
@@ -3647,6 +4087,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1598,
    "height": 1602,
    "bytes": 4842488,
@@ -3669,6 +4110,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1286,
    "height": 1604,
    "bytes": 2832392,
@@ -3688,6 +4130,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1280,
    "height": 1594,
    "bytes": 3308182,
@@ -3710,6 +4153,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2196,
    "height": 1460,
    "bytes": 5298917,
@@ -3732,6 +4176,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2190,
    "height": 1464,
    "bytes": 5456565,
@@ -3754,6 +4199,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2196,
    "height": 1462,
    "bytes": 5798705,
@@ -3773,6 +4219,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 681,
    "height": 850,
    "bytes": 1282687,
@@ -3793,6 +4240,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1000,
    "height": 865,
    "bytes": 1623652,
@@ -3815,6 +4263,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 658,
    "height": 878,
    "bytes": 708721,
@@ -3834,6 +4283,7 @@
     "production"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 634,
    "height": 790,
    "bytes": 781610,
@@ -3854,6 +4304,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 634,
    "height": 788,
    "bytes": 773702,
@@ -3875,6 +4326,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1586,
    "height": 1190,
    "bytes": 2393614,
@@ -3899,6 +4351,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1214,
    "height": 1574,
    "bytes": 2376643,
@@ -3923,6 +4376,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1218,
    "height": 1558,
    "bytes": 2012068,
@@ -3947,6 +4401,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1264,
    "height": 1578,
    "bytes": 2322323,
@@ -3972,6 +4427,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1416,
    "height": 1064,
    "bytes": 2481663,
@@ -3996,6 +4452,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1296,
    "height": 1062,
    "bytes": 2364750,
@@ -4018,6 +4475,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1286,
    "height": 1606,
    "bytes": 3813440,
@@ -4040,6 +4498,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 545,
    "height": 681,
    "bytes": 758018,
@@ -4062,6 +4521,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1160,
    "height": 1456,
    "bytes": 2709774,
@@ -4084,6 +4544,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 934,
    "height": 1460,
    "bytes": 1956775,
@@ -4106,6 +4567,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1178,
    "height": 1460,
    "bytes": 3307668,
@@ -4128,6 +4590,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1174,
    "height": 1458,
    "bytes": 2890528,
@@ -4150,6 +4613,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1086,
    "height": 1454,
    "bytes": 2162056,
@@ -4170,6 +4634,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2250,
    "height": 1435,
    "bytes": 342839,
@@ -4189,6 +4654,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1125,
    "height": 1125,
    "bytes": 140522,
@@ -4211,6 +4677,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2560,
    "height": 1706,
    "bytes": 937147,
@@ -4234,6 +4701,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1706,
    "height": 2560,
    "bytes": 669085,
@@ -4257,6 +4725,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1706,
    "height": 2560,
    "bytes": 819020,
@@ -4280,6 +4749,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1706,
    "height": 2560,
    "bytes": 856678,
@@ -4303,6 +4773,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2560,
    "height": 1706,
    "bytes": 879068,
@@ -4326,6 +4797,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2560,
    "height": 1706,
    "bytes": 963965,
@@ -4348,6 +4820,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2560,
    "height": 1706,
    "bytes": 789667,
@@ -4371,6 +4844,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1706,
    "height": 2560,
    "bytes": 809848,
@@ -4394,6 +4868,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2560,
    "height": 1706,
    "bytes": 930202,
@@ -4418,6 +4893,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1706,
    "height": 2560,
    "bytes": 778621,
@@ -4441,6 +4917,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2560,
    "height": 1706,
    "bytes": 884259,
@@ -4463,6 +4940,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2560,
    "height": 1706,
    "bytes": 900847,
@@ -4485,6 +4963,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1706,
    "height": 2560,
    "bytes": 797767,
@@ -4508,6 +4987,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2560,
    "height": 1706,
    "bytes": 887165,
@@ -4531,6 +5011,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1706,
    "height": 2560,
    "bytes": 811726,
@@ -4554,6 +5035,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2560,
    "height": 1706,
    "bytes": 809393,
@@ -4577,6 +5059,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1706,
    "height": 2560,
    "bytes": 710073,
@@ -4600,6 +5083,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2560,
    "height": 1706,
    "bytes": 1102905,
@@ -4623,6 +5107,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1706,
    "height": 2560,
    "bytes": 711063,
@@ -4645,6 +5130,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1706,
    "height": 2560,
    "bytes": 745410,
@@ -4667,6 +5153,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1706,
    "height": 2560,
    "bytes": 757708,
@@ -4690,6 +5177,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1706,
    "height": 2560,
    "bytes": 707370,
@@ -4712,6 +5200,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1706,
    "height": 2560,
    "bytes": 767218,
@@ -4735,6 +5224,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1706,
    "height": 2560,
    "bytes": 774616,
@@ -4758,6 +5248,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1706,
    "height": 2560,
    "bytes": 617663,
@@ -4781,6 +5272,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1706,
    "height": 2560,
    "bytes": 804940,
@@ -4804,6 +5296,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1706,
    "height": 2560,
    "bytes": 795992,
@@ -4827,6 +5320,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2560,
    "height": 1706,
    "bytes": 768473,
@@ -4850,6 +5344,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1706,
    "height": 2560,
    "bytes": 763373,
@@ -4872,6 +5367,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2560,
    "height": 1706,
    "bytes": 906768,
@@ -4894,6 +5390,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1706,
    "height": 2560,
    "bytes": 1173153,
@@ -4916,6 +5413,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1706,
    "height": 2560,
    "bytes": 836540,
@@ -4938,6 +5436,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1706,
    "height": 2560,
    "bytes": 953333,
@@ -4960,6 +5459,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1706,
    "height": 2560,
    "bytes": 948161,
@@ -4982,6 +5482,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1706,
    "height": 2560,
    "bytes": 951354,
@@ -5004,6 +5505,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1706,
    "height": 2560,
    "bytes": 712252,
@@ -5027,6 +5529,7 @@
     "web-marketing"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1706,
    "height": 2560,
    "bytes": 725788,
@@ -5046,6 +5549,7 @@
     "brand-asset"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 880,
    "height": 481,
    "bytes": 67230,
@@ -5065,6 +5569,7 @@
     "brand-asset"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1306,
    "height": 378,
    "bytes": 154484,
@@ -5084,6 +5589,7 @@
     "brand-asset"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1909,
    "height": 1121,
    "bytes": 522623,
@@ -5106,6 +5612,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1024,
    "height": 1024,
    "bytes": 1998007,
@@ -5123,6 +5630,7 @@
    "approvalState": "draft",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1080,
    "height": 1080,
    "bytes": 1398900,
@@ -5144,6 +5652,7 @@
     "story-block"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1707,
    "height": 2560,
    "bytes": 8906448,
@@ -5161,6 +5670,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 401,
    "height": 308,
    "bytes": 30879,
@@ -5178,6 +5688,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 143,
    "height": 142,
    "bytes": 22006,
@@ -5188,13 +5699,14 @@
    "version": 1787799160,
    "format": "webp",
    "category": "Mt Asiago Product Source",
-   "title": "mt-asiago-product-source",
+   "title": "Mt Asiago Product",
    "code": null,
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1125,
    "height": 1125,
    "bytes": 97372,
@@ -5212,6 +5724,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1125,
    "height": 1125,
    "bytes": 121346,
@@ -5229,6 +5742,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 3000,
    "height": 3000,
    "bytes": 281682,
@@ -5248,6 +5762,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1714,
    "height": 1411,
    "bytes": 522654,
@@ -5265,6 +5780,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6513,
    "height": 6513,
    "bytes": 530372,
@@ -5282,6 +5798,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6513,
    "height": 6513,
    "bytes": 478819,
@@ -5299,6 +5816,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6513,
    "height": 6513,
    "bytes": 333246,
@@ -5318,6 +5836,7 @@
     "production"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6513,
    "height": 6513,
    "bytes": 575802,
@@ -5337,6 +5856,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6010,
    "height": 6010,
    "bytes": 929051,
@@ -5356,6 +5876,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 5897,
    "height": 5897,
    "bytes": 501760,
@@ -5373,6 +5894,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6207,
    "height": 6207,
    "bytes": 615024,
@@ -5392,6 +5914,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6508,
    "height": 6508,
    "bytes": 706647,
@@ -5411,6 +5934,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6214,
    "height": 6214,
    "bytes": 448677,
@@ -5430,6 +5954,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6513,
    "height": 6513,
    "bytes": 515862,
@@ -5440,13 +5965,14 @@
    "version": 1781647916,
    "format": "pdf",
    "category": "Presentations",
-   "title": "cpycqcml25ftfdfanyuq",
+   "title": "Cpycqcml25ftfdfanyuq",
    "code": null,
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 959,
    "height": 540,
    "bytes": 3636076,
@@ -5457,13 +5983,14 @@
    "version": 1781577725,
    "format": "pdf",
    "category": "Presentations",
-   "title": "mudvmfj4zaruykxmzkkm",
+   "title": "Mudvmfj4zaruykxmzkkm",
    "code": null,
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 959,
    "height": 540,
    "bytes": 3636076,
@@ -5483,6 +6010,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2480,
    "height": 2480,
    "bytes": 1630198,
@@ -5502,6 +6030,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1024,
    "height": 1024,
    "bytes": 486404,
@@ -5521,6 +6050,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2500,
    "height": 1667,
    "bytes": 1509053,
@@ -5540,6 +6070,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2400,
    "height": 2400,
    "bytes": 2139951,
@@ -5559,6 +6090,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 4976,
    "height": 4496,
    "bytes": 1855756,
@@ -5580,6 +6112,7 @@
     "print"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 384,
    "height": 480,
    "bytes": 146223,
@@ -5597,6 +6130,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2000,
    "height": 2000,
    "bytes": 1024077,
@@ -5616,6 +6150,7 @@
     "product-catalog"
    ],
    "bgRemoved": true,
+   "kind": "image",
    "width": 2000,
    "height": 2000,
    "bytes": 2264445,
@@ -5635,6 +6170,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2126,
    "height": 1350,
    "bytes": 1440462,
@@ -5654,6 +6190,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6000,
    "height": 3809,
    "bytes": 9756860,
@@ -5673,6 +6210,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2126,
    "height": 1350,
    "bytes": 1527175,
@@ -5692,6 +6230,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2126,
    "height": 1350,
    "bytes": 1590648,
@@ -5711,6 +6250,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 4976,
    "height": 4496,
    "bytes": 1467917,
@@ -5732,6 +6272,7 @@
     "print"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 384,
    "height": 480,
    "bytes": 137221,
@@ -5753,6 +6294,7 @@
     "print"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 384,
    "height": 480,
    "bytes": 139021,
@@ -5774,6 +6316,7 @@
     "print"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 384,
    "height": 480,
    "bytes": 120395,
@@ -5791,6 +6334,7 @@
    "approvalState": "draft",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1179,
    "height": 1584,
    "bytes": 1519002,
@@ -5810,6 +6354,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 4305,
    "height": 4305,
    "bytes": 3378852,
@@ -5831,6 +6376,7 @@
     "print"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 384,
    "height": 480,
    "bytes": 149213,
@@ -5852,6 +6398,7 @@
     "print"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 384,
    "height": 480,
    "bytes": 116492,
@@ -5871,6 +6418,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1500,
    "height": 1000,
    "bytes": 1082794,
@@ -5890,6 +6438,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 4000,
    "height": 4000,
    "bytes": 2679692,
@@ -5910,6 +6459,7 @@
     "print"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 612,
    "height": 792,
    "bytes": 5929015,
@@ -5929,6 +6479,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2480,
    "height": 2480,
    "bytes": 3130880,
@@ -5946,6 +6497,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 5976,
    "height": 5976,
    "bytes": 803307,
@@ -5963,6 +6515,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6513,
    "height": 6513,
    "bytes": 589421,
@@ -5980,6 +6533,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 4032,
    "height": 3024,
    "bytes": 1607913,
@@ -5990,13 +6544,14 @@
    "version": 1788821271,
    "format": "png",
    "category": "Raw",
-   "title": "asiago-di-alpeggio-1bvaaz_v6s4mc",
+   "title": "Asiago Di Alpeggio 1bvaaz V6s4mc",
    "code": null,
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1400,
    "height": 1313,
    "bytes": 594431,
@@ -6007,13 +6562,14 @@
    "version": 1788821270,
    "format": "jpg",
    "category": "Raw",
-   "title": "asiago-fresco-dop-1awu-z_jy8o8c",
+   "title": "Asiago Fresco Dop 1awu Z Jy8o8c",
    "code": null,
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1400,
    "height": 1400,
    "bytes": 83833,
@@ -6024,13 +6580,14 @@
    "version": 1788821271,
    "format": "jpg",
    "category": "Raw",
-   "title": "asiago-stagionato-dop-1yjo6f_li3spz",
+   "title": "Asiago Stagionato Dop 1yjo6f Li3spz",
    "code": null,
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1400,
    "height": 1400,
    "bytes": 127225,
@@ -6041,13 +6598,14 @@
    "version": 1788822010,
    "format": "jpg",
    "category": "Raw",
-   "title": "asiago-vecchio-stravecchio-1p7rbd_pvuq9v",
+   "title": "Asiago Vecchio Stravecchio 1p7rbd Pvuq9v",
    "code": null,
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1400,
    "height": 1400,
    "bytes": 101040,
@@ -6058,13 +6616,14 @@
    "version": 1788821272,
    "format": "jpg",
    "category": "Raw",
-   "title": "library_asiago-dop-famiglia_rklwke",
+   "title": "Library Asiago Dop Famiglia Rklwke",
    "code": null,
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1400,
    "height": 1400,
    "bytes": 131817,
@@ -6082,6 +6641,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 5708,
    "height": 5708,
    "bytes": 673935,
@@ -6099,6 +6659,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 5708,
    "height": 5708,
    "bytes": 1446264,
@@ -6116,6 +6677,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2000,
    "height": 2000,
    "bytes": 1966469,
@@ -6135,6 +6697,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 5708,
    "height": 5708,
    "bytes": 1008901,
@@ -6154,6 +6717,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6000,
    "height": 4000,
    "bytes": 1139749,
@@ -6173,6 +6737,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6732,
    "height": 6732,
    "bytes": 2363019,
@@ -6190,6 +6755,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6732,
    "height": 6732,
    "bytes": 2148596,
@@ -6209,6 +6775,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 5708,
    "height": 5708,
    "bytes": 2153843,
@@ -6228,6 +6795,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 1000,
    "height": 1000,
    "bytes": 296540,
@@ -6247,6 +6815,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2500,
    "height": 1667,
    "bytes": 1340333,
@@ -6264,6 +6833,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6732,
    "height": 6732,
    "bytes": 2707575,
@@ -6281,6 +6851,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 4000,
    "height": 3752,
    "bytes": 6266054,
@@ -6298,6 +6869,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 5708,
    "height": 5708,
    "bytes": 1922467,
@@ -6315,6 +6887,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6732,
    "height": 6732,
    "bytes": 2268256,
@@ -6332,6 +6905,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 5897,
    "height": 5897,
    "bytes": 856426,
@@ -6351,6 +6925,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 652,
    "height": 832,
    "bytes": 77948,
@@ -6370,6 +6945,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 672,
    "height": 884,
    "bytes": 83717,
@@ -6387,6 +6963,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 2000,
    "height": 2000,
    "bytes": 1060804,
@@ -6404,6 +6981,7 @@
    "approvalState": "approved-for-press",
    "usage": [],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6000,
    "height": 4000,
    "bytes": 6454359,
@@ -6423,6 +7001,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 6000,
    "height": 4216,
    "bytes": 999763,
@@ -6442,6 +7021,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 5304,
    "height": 4000,
    "bytes": 931136,
@@ -6461,6 +7041,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 5112,
    "height": 3544,
    "bytes": 950178,
@@ -6480,6 +7061,7 @@
     "product-catalog"
    ],
    "bgRemoved": false,
+   "kind": "image",
    "width": 3000,
    "height": 2169,
    "bytes": 215662,

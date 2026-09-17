@@ -33,6 +33,7 @@ export function getBuyerCatalog(resolved) {
       cl_h: im.height,
       bgRemoved: !!im.bgRemoved, // 2026-07-18: threaded through so the Catalog skips white-pad too
       usage: im.usage || [], // 2026-09-17: alternate-photo labels (hero, back-shot, unwrapped, ...)
+      kind: im.kind || "image", // 2026-09-17 (Gap 3): "document" = spec-sheet PDF, not a photo
     })),
   };
 }
@@ -61,6 +62,13 @@ const slugify = (s) =>
 
 export const cldDownload = (cloud, im) =>
   cldImage({ cloud, publicId: im.cl_id, version: im.cl_v, format: im.cl_fmt, preset: "original", attachmentName: slugify(im.title) });
+
+// Documents (spec-sheet PDFs) are stored as resource_type:raw -- cldImage()/cldImage's transform
+// strings only ever build image/upload URLs, which 404 against a raw asset. Raw delivery needs
+// no transform, just the extension; fl_attachment forces a download instead of an inline open.
+// (2026-09-17, media-roles-and-spec-sheets Gap 3.)
+export const cldDocDownload = (cloud, im) =>
+  `https://res.cloudinary.com/${cloud}/raw/upload/fl_attachment/${im.cl_id}.${im.ext || "pdf"}`;
 
 export const fmtSize = (b) =>
   b < 1024 ? `${b} B` : b < 1048576 ? `${(b / 1024).toFixed(0)} KB` : `${(b / 1048576).toFixed(1)} MB`;

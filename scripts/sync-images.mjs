@@ -95,9 +95,17 @@ if (!LIVE) {
   // ---- Mode 1: Cloudinary Admin API directly (full fidelity) -----------------------------
   const auth = Buffer.from(`${key}:${secret}`).toString("base64");
 
-  async function listPrefix(prefix) {
+  // items.json (per-tenant item records, src/lib/items.js) lives as a raw asset at
+  // `${folder}/copy/items.json` -- it is app state, not a spec sheet, so the raw-resource pass
+  // below must not surface it in the manifest. (2026-09-17, media-roles-and-spec-sheets Gap 3
+  // follow-up.)
+  function isInternalRawDoc(publicId) {
+    return /\/copy\/items\.json$/.test(publicId);
+  }
+
+  async function listPrefix(prefix, resourceType = "image") {
     const base =
-      `https://api.cloudinary.com/v1_1/${cloud}/resources/image` +
+      `https://api.cloudinary.com/v1_1/${cloud}/resources/${resourceType}` +
       `?type=upload&prefix=${encodeURIComponent(prefix)}&max_results=500&tags=true&context=true`;
     const resources = [];
     let cursor = null;
@@ -107,19 +115,23 @@ if (!LIVE) {
       });
       if (!res.ok) { console.error(`Cloudinary ${res.status}: ${await res.text()}`); process.exit(1); }
       const data = await res.json();
-      resources.push(...(data.resources || []));
+      resources.push(...(data.resources || [])
+        .filter((r) => resourceType !== "raw" || !isInternalRawDoc(r.public_id))
+        .map((r) => ({ ...r, _kind: resourceType === "raw" ? "document" : "image" })));
       cursor = data.next_cursor;
     } while (cursor);
     return resources;
   }
 
-  const resources = await listPrefix(folder);
+  // 2026-09-17 (media-roles-and-spec-sheets Gap 3): a second pass at resource_type=raw picks up
+  // PDFs/documents (spec sheets) alongside the existing image pass -- same folders, same gating.
+  const resources = [...(await listPrefix(folder)), ...(await listPrefix(folder, "raw"))];
   const seen = new Set(resources.map((r) => r.public_id));
   // Legacy folders (2026-07-18 fix — previously only media-list.js's OWN full-mode loop knew
   // about these; this script's Admin API mode never did, so `node scripts/sync-images.mjs`
   // (no --live) silently skipped the entire legacy-folder photo set every time it ran).
   for (const legacy of legacyFolders) {
-    const extra = await listPrefix(legacy);
+    const extra = [...(await listPrefix(legacy)), ...(await listPrefix(legacy, "raw"))];
     for (const r of extra) {
       if (!r.public_id.startsWith(`${legacy}/`) || seen.has(r.public_id)) continue;
       seen.add(r.public_id);
@@ -151,6 +163,7 @@ if (!LIVE) {
       approvalState,
       usage: tags.filter((t) => USAGE_IDS.includes(t)),
       bgRemoved: tags.includes(BG_REMOVED_TAG),
+      kind: r._kind || "image",
       width: r.width,
       height: r.height,
       bytes: r.bytes,
@@ -209,6 +222,7 @@ if (!LIVE) {
       approvalState,
       usage: tags,
       bgRemoved: !!a.bgRemoved, // media-list.js surfaces this as its own boolean, not in usage[]
+      kind: a.kind || "image",
       width: a.width,
       height: a.height,
       bytes: a.bytes,

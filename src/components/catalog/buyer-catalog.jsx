@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Search, LayoutGrid, List, ExternalLink, Download, Link as LinkIcon, ImageOff, Share2 } from "lucide-react";
+import { Search, LayoutGrid, List, ExternalLink, Download, Link as LinkIcon, ImageOff, Share2, FileText } from "lucide-react";
 import { Card } from "@/components/ui/card.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
 import { Stat } from "@/components/ui/stat.jsx";
@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input.jsx";
 import { EmptyState } from "@/components/ui/empty-state.jsx";
 import { Dialog, DialogContent } from "@/components/ui/dialog.jsx";
 import { useToast } from "@/components/ui/toast.jsx";
-import { getBuyerCatalog, cldThumb, cldBig, cldView, cldDownload, fmtSize } from "@/lib/catalog.js";
+import { getBuyerCatalog, cldThumb, cldBig, cldView, cldDownload, cldDocDownload, fmtSize } from "@/lib/catalog.js";
 import { loadEdits, applyEdits } from "@/lib/catalog-edits.js";
 import { loadItems, listItems, specLine } from "@/lib/items.js";
 import { usageLabel } from "@/lib/media.js";
@@ -70,7 +70,10 @@ function BuyerCatalog({ data, brandName, tenantId, itemsFolder }) {
   const images = useMemo(() => applyEdits(data?.images || [], edits), [data, edits]);
   const imagesByCode = useMemo(() => {
     const map = {};
-    images.forEach((im) => { if (im.code) (map[im.code] ||= []).push(im); });
+    // 2026-09-17 (Gap 3): documents (spec-sheet PDFs) are excluded here -- they'd otherwise land
+    // in imgs[0] and every photo-shaped call site (grid thumbnail, lightbox hero/strip) would
+    // try to render a PDF as an <img>. See docsByCode below for where they actually go.
+    images.forEach((im) => { if (im.code && im.kind !== "document") (map[im.code] ||= []).push(im); });
     // Hero-first ordering (2026-09-17, media-roles-and-spec-sheets Gap 1): an item's `hero`-
     // tagged photo becomes the card thumbnail + lightbox default, regardless of Cloudinary
     // listing order. Purely additive — a code with no `hero` tag keeps today's first-listed-wins
@@ -81,10 +84,19 @@ function BuyerCatalog({ data, brandName, tenantId, itemsFolder }) {
     return map;
   }, [images]);
 
+  // Spec sheets / documents (2026-09-17, Gap 3) -- kept separate from imagesByCode so the photo
+  // grid/lightbox never has to guard against a PDF landing in imgs[0]. Rendered as a small
+  // download list in the lightbox detail pane instead.
+  const docsByCode = useMemo(() => {
+    const map = {};
+    images.forEach((im) => { if (im.code && im.kind === "document") (map[im.code] ||= []).push(im); });
+    return map;
+  }, [images]);
+
   // ROWS = the item list (mirrors the price list / item data). One row per item number.
   const rows = useMemo(() => {
     if (!itemsDoc) return null; // loading
-    const mapped = listItems(itemsDoc).map((it) => ({ it, imgs: imagesByCode[it.sku] || [] }));
+    const mapped = listItems(itemsDoc).map((it) => ({ it, imgs: imagesByCode[it.sku] || [], docs: docsByCode[it.sku] || [] }));
     // Product Catalog loads alphabetically by product NAME (2026-07-18, Rick asked for this) —
     // deliberately separate from listItems()'s own order (by item number/SKU), which the Media
     // Hub's Items tab still uses so it keeps mirroring the price sheet's row order.
@@ -215,7 +227,7 @@ function BuyerCatalog({ data, brandName, tenantId, itemsFolder }) {
         <EmptyState icon={Search} title="No matches" description="Try a different search term or clear the filter." />
       ) : view === "grid" ? (
         <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
-          {visible.map(({ it, imgs }) => (
+          {visible.map(({ it, imgs, docs }) => (
             <Card
               key={it.sku}
               onClick={() => openItem(it.sku)}
@@ -249,13 +261,18 @@ function BuyerCatalog({ data, brandName, tenantId, itemsFolder }) {
                 {imgs.length > 1 && (
                   <p className="mt-0.5 text-[10px] text-fg-muted">{imgs.length} photos</p>
                 )}
+                {docs.length > 0 && (
+                  <p className="mt-0.5 flex items-center gap-1 text-[10px] text-fg-muted">
+                    <FileText className="h-3 w-3" /> {docs.length} spec sheet{docs.length > 1 ? "s" : ""}
+                  </p>
+                )}
               </div>
             </Card>
           ))}
         </div>
       ) : (
         <div className="overflow-hidden rounded-base border border-border">
-          {visible.map(({ it, imgs }, i) => (
+          {visible.map(({ it, imgs, docs }, i) => (
             <button
               key={it.sku}
               onClick={() => openItem(it.sku)}
@@ -276,6 +293,7 @@ function BuyerCatalog({ data, brandName, tenantId, itemsFolder }) {
                 <p className="truncate text-xs text-fg-muted">
                   {specLine(it) || it.shortDescription || "—"}
                   {imgs.length ? ` · ${imgs.length} photo${imgs.length === 1 ? "" : "s"}` : " · no photo"}
+                  {docs.length ? ` · ${docs.length} spec sheet${docs.length === 1 ? "" : "s"}` : ""}
                 </p>
               </div>
               <Badge variant="muted" className="font-mono text-[10px]">{it.sku}</Badge>
@@ -362,6 +380,26 @@ function BuyerCatalog({ data, brandName, tenantId, itemsFolder }) {
                     </>
                   )}
                 </dl>
+                {activeRow.docs?.length > 0 && (
+                  <div className="mt-4 border-t border-border pt-4">
+                    <p className="mb-2 text-xs font-medium uppercase tracking-wide text-fg-muted">
+                      Spec sheet{activeRow.docs.length > 1 ? "s" : ""}
+                    </p>
+                    <ul className="space-y-1.5">
+                      {activeRow.docs.map((doc) => (
+                        <li key={doc.id}>
+                          <a
+                            href={cldDocDownload(cloud, doc)}
+                            className="flex items-center gap-2 text-sm text-brand-primary underline"
+                          >
+                            <FileText className="h-4 w-4 shrink-0" />
+                            {doc.title || "Spec sheet PDF"}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
                 {canManage && (
                   <p className="mt-4 text-xs text-fg-muted">
                     Identity + copy live in Media Hub → Items (<span className="font-mono">{activeRow.it.sku}</span>).

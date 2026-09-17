@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useMemo } from "react";
-import { Upload, Copy, Image as ImageIcon, Pencil, Trash2, Unlink, Download, Share2, ChevronDown, ChevronUp, Search } from "lucide-react";
+import { Upload, Copy, Image as ImageIcon, Pencil, Trash2, Unlink, Download, Share2, ChevronDown, ChevronUp, Search, FileText } from "lucide-react";
 import { Card } from "@/components/ui/card.jsx";
 import { Button } from "@/components/ui/button.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
@@ -380,7 +380,7 @@ export function MediaHub({ resolved }) {
         onDelete={async () => {
           const id = active.publicId;
           try {
-            await deleteAsset({ publicId: id, tenantId: resolved.id });
+            await deleteAsset({ publicId: id, resourceType: active.kind === "document" ? "raw" : "image", tenantId: resolved.id });
             const drop = (list) => (list || []).filter((x) => x.publicId !== id);
             setAssets(drop);
             setRecent((prev) => {
@@ -416,15 +416,26 @@ function AssetTile({ asset, item, onOpen }) {
   // Approved-for-press is the norm for finished packshots — don't badge it (keeps the grid clean).
   // Only flag exceptions worth attention: drafts and influencer-only assets.
   const showBadge = asset.approvalState !== "approved-for-press";
+  // 2026-09-17 (media-roles-and-spec-sheets Gap 3): documents (spec-sheet PDFs, uploaded as
+  // resource_type:raw) have no image derivative -- an <img src=cldUrl(...)> 404s against them.
+  // Show a plain file tile instead.
+  const isDoc = asset.kind === "document";
   return (
     <button onClick={onOpen} className="group text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand rounded-base">
       <Card className="overflow-hidden">
-        <img
-          src={cldUrl(asset.publicId, "card")}
-          alt={asset.title}
-          loading="lazy"
-          className="aspect-square w-full bg-white object-cover transition-opacity group-hover:opacity-90"
-        />
+        {isDoc ? (
+          <div className="flex aspect-square w-full flex-col items-center justify-center gap-1.5 bg-surface text-fg-muted">
+            <FileText className="h-9 w-9" />
+            <span className="text-[10px] font-medium uppercase tracking-wide">{asset.format || "file"}</span>
+          </div>
+        ) : (
+          <img
+            src={cldUrl(asset.publicId, "card")}
+            alt={asset.title}
+            loading="lazy"
+            className="aspect-square w-full bg-white object-cover transition-opacity group-hover:opacity-90"
+          />
+        )}
         <div className="p-3">
           <p className="truncate text-sm font-medium text-fg">{asset.title}</p>
           <div className="mt-1.5 flex items-center justify-between gap-2">
@@ -572,8 +583,13 @@ function AssetDialog({ asset, onClose, canManage, canDelete, onCopy, onSave, onD
     setReplacing(false);
   };
   if (!asset) return null;
-  const heroUrl = cldUrl(asset.publicId, "hero");
-  const deliveryUrl = cldUrl(asset.publicId, "original");
+  const isDoc = asset.kind === "document";
+  // Documents live at resource_type:raw -- cldUrl()/cldImage() only ever build image/upload
+  // URLs, which 404 against a raw asset. Raw delivery needs no transform string at all.
+  const heroUrl = isDoc ? "" : cldUrl(asset.publicId, "hero");
+  const deliveryUrl = isDoc
+    ? `https://res.cloudinary.com/${CLOUD_NAME}/raw/upload/${asset.publicId}.${asset.format || "pdf"}`
+    : cldUrl(asset.publicId, "original");
 
   // Item record linked to this asset (by SKU) — display in view mode, edit via itemForm.
   const linkedItem = getItem(itemsDoc, editing ? (form?.sku || "").trim() : asset?.sku);
@@ -639,24 +655,44 @@ function AssetDialog({ asset, onClose, canManage, canDelete, onCopy, onSave, onD
           </DialogDescription>
         </DialogHeader>
 
-        <img src={heroUrl} alt={asset.alt || asset.title} className={`${editing ? "max-h-[26vh]" : "max-h-[45vh]"} w-full rounded-base bg-white object-contain`} />
+        {isDoc ? (
+          <div className={`${editing ? "max-h-[26vh]" : "max-h-[45vh]"} flex w-full flex-col items-center justify-center gap-2 rounded-base bg-surface py-10 text-fg-muted`}>
+            <FileText className="h-12 w-12" />
+            <a href={deliveryUrl} target="_blank" rel="noreferrer" className="text-sm font-medium text-brand-primary underline">
+              Open {(asset.format || "file").toUpperCase()}
+            </a>
+          </div>
+        ) : (
+          <img src={heroUrl} alt={asset.alt || asset.title} className={`${editing ? "max-h-[26vh]" : "max-h-[45vh]"} w-full rounded-base bg-white object-contain`} />
+        )}
 
         {!editing ? (
           <>
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
               <Badge variant={APPROVAL[asset.approvalState].tone}>{APPROVAL[asset.approvalState].label}</Badge>
               <div className="flex flex-wrap items-center gap-2">
-                <Button size="sm" variant="outline" onClick={() => {
-                  // fl_attachment forces a download; f_png guarantees PNG regardless of f_auto.
-                  // c_limit,w_2400 caps the PNG re-encode: Cloudinary Free rejects any derived image >10MB,
-                  // and bulk-loaded masters (up to 6732px) blow past that as PNG. c_limit is a no-op under 2400px.
-                  const name = (asset.title || asset.publicId).replace(/[^a-zA-Z0-9_-]+/g, "-");
-                  const a = document.createElement("a");
-                  a.href = `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/fl_attachment:${name},c_limit,w_2400,f_png/${asset.publicId}.png`;
-                  a.click();
-                }}>
-                  <Download className="h-4 w-4" /> PNG
-                </Button>
+                {!isDoc && (
+                  <Button size="sm" variant="outline" onClick={() => {
+                    // fl_attachment forces a download; f_png guarantees PNG regardless of f_auto.
+                    // c_limit,w_2400 caps the PNG re-encode: Cloudinary Free rejects any derived image >10MB,
+                    // and bulk-loaded masters (up to 6732px) blow past that as PNG. c_limit is a no-op under 2400px.
+                    const name = (asset.title || asset.publicId).replace(/[^a-zA-Z0-9_-]+/g, "-");
+                    const a = document.createElement("a");
+                    a.href = `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/fl_attachment:${name},c_limit,w_2400,f_png/${asset.publicId}.png`;
+                    a.click();
+                  }}>
+                    <Download className="h-4 w-4" /> PNG
+                  </Button>
+                )}
+                {isDoc && (
+                  <Button size="sm" variant="outline" onClick={() => {
+                    const a = document.createElement("a");
+                    a.href = `https://res.cloudinary.com/${CLOUD_NAME}/raw/upload/fl_attachment/${asset.publicId}.${asset.format || "pdf"}`;
+                    a.click();
+                  }}>
+                    <Download className="h-4 w-4" /> Download {(asset.format || "file").toUpperCase()}
+                  </Button>
+                )}
                 <Button size="sm" variant="outline" onClick={async () => {
                   // Native share sheet where available (mobile/Safari); clipboard fallback elsewhere.
                   if (navigator.share) {
