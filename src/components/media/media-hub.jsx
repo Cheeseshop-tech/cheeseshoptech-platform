@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useMemo } from "react";
+import { useEffect, useState, useRef, useMemo, Fragment } from "react";
 import { Upload, Copy, Image as ImageIcon, Pencil, Trash2, Unlink, Download, Share2, ChevronDown, ChevronUp, Search, FileText } from "lucide-react";
 import { Card } from "@/components/ui/card.jsx";
 import { Button } from "@/components/ui/button.jsx";
@@ -15,6 +15,7 @@ import { cldUrl, uploadAsset, CLOUD_NAME } from "@/lib/cloudinary.js";
 import { listAssetsPage, updateAsset, deleteAsset, APPROVAL, USAGE, usageLabel, canUpload, canManageMedia, canDeleteMedia, PRODUCT_USAGE_ID, IS_MOCK_MODE, MOCK_MODE_MSG } from "@/lib/media.js";
 import { loadItems, emptyDoc, canManageItems, emptyItem, upsertItem, saveItems, getItem, specLine } from "@/lib/items.js";
 import { ItemsPanel } from "@/components/media/items-panel.jsx";
+import { categoryForItem, CATEGORY_ORDER } from "@/lib/catalog-categories.js";
 
 export function MediaHub({ resolved }) {
   const { user } = useAuth();
@@ -22,8 +23,15 @@ export function MediaHub({ resolved }) {
   // Tabs MIRROR the usage tags (Asset Library model): every tab is a saved view filtered by tag,
   // not a storage folder. Special tabs: "items" (the item records — source of truth for product
   // identity, description cards, pricing), "recent" (your latest uploads), and "all" (everything).
-  const TABS = [{ id: "items", label: "Items" }, { id: "recent", label: "Recent" }, { id: "all", label: "All" }, ...USAGE.map((u) => ({ id: u.id, label: u.label }))];
+  // "documents" is the one view that filters on `kind` rather than a usage tag: spec sheets are
+  // raw (PDF) assets, so they carry no usage vocabulary of their own and would otherwise only be
+  // findable one item at a time. See HANDOFF_2026-09-17_media-roles-and-spec-sheets.md (Gap 3).
+  const TABS = [{ id: "items", label: "Items" }, { id: "recent", label: "Recent" }, { id: "all", label: "All" }, { id: "documents", label: "Spec Sheets" }, ...USAGE.map((u) => ({ id: u.id, label: u.label }))];
   const [tab, setTab] = useState("all");
+  // Grid sort. "default" keeps the manifest/fetch order the hub has always shown; "category"
+  // groups by the buyer-facing pack-format category (catalog-categories.js), which is how Rick
+  // asks for spec sheets ("all the Cut & Wrap sheets"), not by Cloudinary folder.
+  const [sort, setSort] = useState("default");
   const [assets, setAssets] = useState(null);
   const [active, setActive] = useState(null);
   const [uploading, setUploading] = useState(false);
@@ -93,7 +101,7 @@ export function MediaHub({ resolved }) {
     return () => { alive = false; };
   }, [resolved.cloudinaryFolder, user]);
 
-  useEffect(() => { setShown(INITIAL_PAGE); }, [tab, query]);
+  useEffect(() => { setShown(INITIAL_PAGE); }, [tab, query, sort]);
 
   // Load the items document once per tenant. Failure degrades to an empty doc (UI still works).
   useEffect(() => {
@@ -110,6 +118,7 @@ export function MediaHub({ resolved }) {
   // What the grid shows for the active tab.
   const display = tab === "recent" ? recent
     : tab === "all" ? merged
+    : tab === "documents" ? (merged ? merged.filter((a) => a.kind === "document") : null)
     : merged ? merged.filter((a) => (a.usage || []).includes(tab)) : null;
 
   // Query narrows whatever the current tab shows — title / SKU / alt text / description.
@@ -121,6 +130,20 @@ export function MediaHub({ resolved }) {
       [a.title, a.sku, a.alt, a.description].some((f) => (f || "").toLowerCase().includes(q)));
   }, [display, q]);
 
+  // Category sort = a FLAT list ordered by CATEGORY_ORDER (then item number), not nested groups —
+  // the grid still pages through one array exactly as before, and the render emits a header
+  // whenever the category changes. Keeps "Load more" working unchanged.
+  const sortedDisplay = useMemo(() => {
+    if (!filteredDisplay || sort !== "category") return filteredDisplay;
+    const rank = (a) => {
+      const i = CATEGORY_ORDER.indexOf(categoryOf(a));
+      return i === -1 ? CATEGORY_ORDER.length : i; // Uncategorized sorts last
+    };
+    return [...filteredDisplay].sort((a, b) =>
+      rank(a) - rank(b) || String(a.sku || "").localeCompare(String(b.sku || "")) ||
+      String(a.title || "").localeCompare(String(b.title || "")));
+  }, [filteredDisplay, sort, itemsDoc]);
+
   // Per-view count for the left rail. null while the set is still loading (except Recent, which
   // is local). Recent counts persisted uploads; usage views count the merged pool by tag.
   const countFor = (id) => {
@@ -128,7 +151,16 @@ export function MediaHub({ resolved }) {
     if (id === "recent") return recent.length;
     if (!merged) return null;
     if (id === "all") return merged.length;
+    if (id === "documents") return merged.filter((a) => a.kind === "document").length;
     return merged.filter((a) => (a.usage || []).includes(id)).length;
+  };
+
+  // Category for one asset, via its linked item record — "Uncategorized" covers both an asset
+  // with no SKU (brand/lifestyle art) and a SKU with no item record yet, so nothing vanishes
+  // from the grid when grouped.
+  const categoryOf = (a) => {
+    const it = a.sku ? getItem(itemsDoc, a.sku) : null;
+    return it ? categoryForItem(it) : "Uncategorized";
   };
 
   function onUpload() {
@@ -234,45 +266,76 @@ export function MediaHub({ resolved }) {
           />
         ) : (
         <div className="min-w-0 flex-1">{/* Grid */}
-          <div className="mb-4 relative max-w-sm">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-fg-muted" />
-            <Input
-              className="pl-9"
-              placeholder="Search by name, item number, alt text…"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              aria-label="Search assets"
-            />
+          <div className="mb-4 flex flex-wrap items-center gap-3">
+            <div className="relative min-w-0 flex-1 max-w-sm">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-fg-muted" />
+              <Input
+                className="pl-9"
+                placeholder="Search by name, item number, alt text…"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                aria-label="Search assets"
+              />
+            </div>
+            <label className="flex items-center gap-2 text-sm text-fg-muted">
+              Sort
+              <select
+                id="asset-sort"
+                value={sort}
+                onChange={(e) => setSort(e.target.value)}
+                className="rounded-base border border-border bg-bg px-2 py-1.5 text-sm text-fg"
+              >
+                <option value="default">Default order</option>
+                <option value="category">Category</option>
+              </select>
+            </label>
           </div>
-          {filteredDisplay === null ? (
+          {sortedDisplay === null ? (
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
               {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="aspect-[4/5] w-full" />)}
             </div>
-          ) : filteredDisplay.length === 0 ? (
+          ) : sortedDisplay.length === 0 ? (
             <EmptyState
-              icon={q ? Search : ImageIcon}
-              title={q ? "No matches" : tab === "recent" ? "No recent uploads yet" : tab === "all" ? "Nothing here yet" : `Nothing tagged “${TABS.find((t) => t.id === tab)?.label}” yet`}
+              icon={q ? Search : tab === "documents" ? FileText : ImageIcon}
+              title={q ? "No matches"
+                : tab === "recent" ? "No recent uploads yet"
+                : tab === "all" ? "Nothing here yet"
+                : tab === "documents" ? "No spec sheets yet"
+                : `Nothing tagged “${TABS.find((t) => t.id === tab)?.label}” yet`}
               description={q
                 ? "Try a different search term or clear it to see everything in this view."
                 : tab === "recent"
                 ? "Images you upload (with their name and usage tags) show up here, newest first — so you can find what you just tagged."
+                : tab === "documents"
+                ? "Spec sheets are PDFs uploaded against an item number. Upload one with the item's code and it files itself here."
                 : "Upload an image and check this usage in the Asset details step to file it here. One image can carry several usages."}
             />
           ) : (
             <>
               <p className="mb-3 text-sm text-fg-muted">
-                {q && display ? `${filteredDisplay.length} of ${display.length} shown` : `${filteredDisplay.length} shown`}
+                {q && display ? `${sortedDisplay.length} of ${display.length} shown` : `${sortedDisplay.length} shown`}
                 {loadingMore && " · loading more from Cloudinary…"}
               </p>
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-                {filteredDisplay.slice(0, shown).map((a) => (
-                  <AssetTile key={a.publicId} asset={a} item={getItem(itemsDoc, a.sku)} onOpen={() => setActive(a)} />
-                ))}
+                {sortedDisplay.slice(0, shown).map((a, i, arr) => {
+                  const cat = sort === "category" ? categoryOf(a) : null;
+                  const newGroup = cat && (i === 0 || categoryOf(arr[i - 1]) !== cat);
+                  return (
+                    <Fragment key={a.publicId}>
+                      {newGroup && (
+                        <h3 className="col-span-full mt-2 border-b border-border pb-1.5 text-sm font-medium text-fg">
+                          {cat}
+                        </h3>
+                      )}
+                      <AssetTile asset={a} item={getItem(itemsDoc, a.sku)} onOpen={() => setActive(a)} />
+                    </Fragment>
+                  );
+                })}
               </div>
-              {shown < filteredDisplay.length && (
+              {shown < sortedDisplay.length && (
                 <div className="mt-6 flex justify-center">
                   <Button variant="outline" onClick={() => setShown((n) => n + PAGE)}>
-                    Load more ({filteredDisplay.length - shown} left)
+                    Load more ({sortedDisplay.length - shown} left)
                   </Button>
                 </div>
               )}

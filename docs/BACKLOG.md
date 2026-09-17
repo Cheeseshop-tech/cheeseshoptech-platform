@@ -12,6 +12,12 @@ See `docs/CONTINUAL_IMPROVEMENT.md` for the loop. Updated 2026-06-18.
   exact-weight "firm" in the on-screen proforma; carry proforma → weighed → final-invoice states.
 
 ## Next
+- [high/med] **Buyer Onboarding Kit** — a reference packet for an account that's already signed
+  on (not a pitch): deeper per-item content (long description, pairing notes, training video
+  links, alternate photos, spec sheets once unblocked), shared via an email-gated link. Forks the
+  existing Proposal engine rather than a new system; needs the buyer-email gate built first (see
+  `PROPOSAL_BUYER_EMAIL_GATE_SPEC.md`, which this also unblocks). Full plan:
+  `docs/ONBOARDING_KIT_SPEC.md`.
 - [high/med] **Photo series per SKU (typed, ordered)** — move off one-image-per-code
   (`imageForCode` takes the first match) to the pack shot / beauty / styled series CLAUDE.md commits
   to. Do it expand → adapter → contract so Catalog, Proposals, Pricing, and Studio Director migrate
@@ -40,14 +46,11 @@ See `docs/CONTINUAL_IMPROVEMENT.md` for the loop. Updated 2026-06-18.
 ## Blocked
 - [high/low] **Class-of-trade margin alignment** — reshape tiers to importer +15% / retail distrib +20–30% /
   food-service +25–35%. BLOCKED on Sales Management's real numbers. (On the next client data request.)
-- [med/med] **Spec sheet documents in Media Hub (Gap 3)** — let a PDF spec sheet live alongside a
-  SKU's photos via Cloudinary `resource_type=raw`, surfaced as a download link in the Buyer Catalog
-  lightbox. Needs a new fetch path in both `sync-images.mjs` and `media-list.js`, a `kind` manifest
-  field, and a UI slot — scoped in `docs/HANDOFF_2026-09-17_media-roles-and-spec-sheets.md`
-  (its Gaps 1-2 — hero ordering, usage-tag labels on alternates — already shipped 2026-09-17).
-  BLOCKED on Rick gathering the actual PDF files first (2026-09-17). Lighter-weight than the
-  **Product Compliance Documents** item above — that one is revision-controlled compliance data
-  across three layers; this is just "the file lives next to the photo."
+- [low/low] **Promote 3 orphan assets to real catalog items** — `01114` and `20482` (spec sheets)
+  and `01286` (photo) are for item numbers not in the active catalog, so they sit `draft`/ungated.
+  Needs Rick in Media Hub, not code: set usage to include Product Catalog + approval to Approved
+  for Press, and add the matching row on the Items tab. A few clicks each; no manifest regen
+  beyond a normal save. (Left over from the 2026-09-17 spec-sheet work — see Done log.)
 
 ## Later
 - [med/high] **Forecasting dashboards** — monthly/yearly projections once the history store has accrued data.
@@ -56,6 +59,12 @@ See `docs/CONTINUAL_IMPROVEMENT.md` for the loop. Updated 2026-06-18.
   live availability + shelf life.
 
 ## Done (log)
+- ✅ 2026-09-17 Spec sheet documents in Media Hub + Buyer Catalog (Gap 3) — `resource_type=raw`
+  fetch path in both `media-list.js` and `sync-images.mjs`, `kind:"document"` manifest field,
+  document tiles in Media Hub and a "Spec sheet(s)" download section in the Buyer Catalog
+  lightbox. 15 real PDFs live, 13 gated to active SKUs. Details:
+  `docs/HANDOFF_2026-09-17_media-roles-and-spec-sheets.md`. (Gaps 1–2 — hero ordering, usage-tag
+  labels on alternates — shipped the same day.)
 - ✅ 2026-08-14 Error tracking + performance monitoring (Sentry, env-gated) — React error boundary +
   Web Vitals in the browser, all 25 Netlify Functions wrapped with exception + slow-response
   capture. Closes the "no monitoring" gap from `docs/APP_HEALTH_AND_ROADMAP_2026-08-14.md`. Inert
