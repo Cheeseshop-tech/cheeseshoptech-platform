@@ -123,6 +123,20 @@ function BuyerCatalog({ data, brandName, tenantId, itemsFolder }) {
   const markPageFailed = (doc, page) =>
     setFailedPages((prev) => new Set(prev).add(`${doc.id}#${page}`));
 
+  // Deep link INTO one item's window (?item=<sku>) — what "Back to item" on the onboarding
+  // page returns to, so the viewer lands on the item they were reading rather than the top of an
+  // unfiltered grid. Runs once rows exist; the param is then cleared so a later close/reopen or a
+  // refresh doesn't keep forcing the same item back open.
+  useEffect(() => {
+    if (!rows) return;
+    const wanted = new URLSearchParams(window.location.search).get("item");
+    if (!wanted) return;
+    if (rows.some((r) => r.it.sku === wanted)) openItem(wanted);
+    const url = new URL(window.location.href);
+    url.searchParams.delete("item");
+    window.history.replaceState({}, "", url.toString());
+  }, [rows]);
+
   // Category = the item's pack format (7 oz wedge, whole wheel, ...), not the photo's Cloudinary
   // folder — see lib/catalog-categories.js for why. Tab order is CATEGORY_ORDER, fixed, not
   // sorted by count, so "Cut & Wrap" always leads; a category with zero items in this

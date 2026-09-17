@@ -14,7 +14,7 @@
 // guide) belongs to the fuller Onboarding Kit (docs/ONBOARDING_KIT_SPEC.md); none of it is needed
 // to get an item into a partner's system, and none of it has content yet.
 import { useEffect, useMemo, useState } from "react";
-import { Download, ExternalLink, Link as LinkIcon, FileText } from "lucide-react";
+import { ArrowLeft, Download, ExternalLink, Link as LinkIcon, Share2, FileText } from "lucide-react";
 import { Card } from "@/components/ui/card.jsx";
 import { Button } from "@/components/ui/button.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
@@ -138,6 +138,30 @@ export function OnboardingDocsPage({ resolved }) {
     }
   };
 
+  // Native share sheet where the browser has one (phones, Safari); the link is copied either way
+  // so it always rides along for paste-anywhere hand-off — same pattern as the Buyer Catalog.
+  const shareLink = async () => {
+    const url = onboardingUrl(code);
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: `${name} — onboarding docs`, text: `Item #${code}`, url });
+        return;
+      } catch { /* cancelled — fall through to copying */ }
+    }
+    copyLink();
+  };
+
+  // Back to this item in the Product Catalog, with its window already open (?item=<code>),
+  // rather than dumping the viewer at the top of an unfiltered grid.
+  const backToItem = () => {
+    const url = new URL(window.location.href);
+    url.hash = "";
+    url.searchParams.set("page", "catalog");
+    url.searchParams.delete("code");
+    url.searchParams.set("item", code);
+    window.location.assign(url.toString());
+  };
+
   return (
     <div className="mx-auto max-w-5xl">
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -146,7 +170,11 @@ export function OnboardingDocsPage({ resolved }) {
           <h1 className="cs-display mt-1 text-2xl text-brand-primary">{name}</h1>
           <p className="mt-1 font-mono text-sm text-fg-muted">Item #{code}</p>
         </div>
-        <Button variant="outline" onClick={copyLink}><LinkIcon className="h-4 w-4" /> Copy link</Button>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="ghost" onClick={backToItem}><ArrowLeft className="h-4 w-4" /> Back to item</Button>
+          <Button variant="outline" onClick={shareLink}><Share2 className="h-4 w-4" /> Share</Button>
+          <Button variant="outline" onClick={copyLink}><LinkIcon className="h-4 w-4" /> Copy link</Button>
+        </div>
       </div>
 
       <div className="mt-6 grid gap-6 md:grid-cols-2">
