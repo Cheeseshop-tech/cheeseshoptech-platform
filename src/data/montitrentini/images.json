@@ -31,13 +31,11 @@
    "format": "jpg",
    "category": "01032",
    "title": "01032",
-   "code": "01032",
-   "sku": "01032",
+   "code": null,
+   "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
-   "usage": [
-    "product-catalog"
-   ],
+   "usage": [],
    "bgRemoved": false,
    "width": 800,
    "height": 800,
@@ -50,13 +48,11 @@
    "format": "png",
    "category": "01101",
    "title": "01101",
-   "code": "01101",
-   "sku": "01101",
+   "code": null,
+   "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
-   "usage": [
-    "product-catalog"
-   ],
+   "usage": [],
    "bgRemoved": false,
    "width": 3200,
    "height": 3200,
@@ -115,25 +111,6 @@
    "height": 6508,
    "bytes": 706647,
    "modified": "2026-07-31"
-  },
-  {
-   "publicId": "monti/01269",
-   "version": 1780499684,
-   "format": "jpg",
-   "category": "01269",
-   "title": "01269",
-   "code": "01269",
-   "sku": "01269",
-   "orig": null,
-   "approvalState": "approved-for-press",
-   "usage": [
-    "product-catalog"
-   ],
-   "bgRemoved": false,
-   "width": 800,
-   "height": 800,
-   "bytes": 39698,
-   "modified": "2026-06-03"
   },
   {
    "publicId": "monti/01286-cubes-bag",
@@ -231,7 +208,7 @@
    "version": 1780499686,
    "format": "jpg",
    "category": "03003",
-   "title": "03003",
+   "title": "03003 Asiago Vecchio DOP whole wheel",
    "code": "03003",
    "sku": "03003",
    "orig": null,
@@ -270,13 +247,11 @@
    "format": "png",
    "category": "03014",
    "title": "03014",
-   "code": "03014",
-   "sku": "03014",
+   "code": null,
+   "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
-   "usage": [
-    "product-catalog"
-   ],
+   "usage": [],
    "bgRemoved": false,
    "width": 1800,
    "height": 1461,
@@ -1920,7 +1895,9 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
-   "usage": [],
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "width": 704,
    "height": 898,
@@ -5416,6 +5393,63 @@
    "modified": "2026-06-16"
   },
   {
+   "publicId": "monti-trentini/products/hrakn24y9kl7dlthmxob",
+   "version": 1789647123,
+   "format": "png",
+   "category": "Products",
+   "title": "01101",
+   "code": "01101",
+   "sku": "01101",
+   "orig": null,
+   "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
+   "bgRemoved": false,
+   "width": 2480,
+   "height": 2480,
+   "bytes": 1630198,
+   "modified": "2026-09-17"
+  },
+  {
+   "publicId": "monti-trentini/products/bhyb7slcahl2pvpdydj4",
+   "version": 1789648142,
+   "format": "png",
+   "category": "Products",
+   "title": "01269",
+   "code": "01269",
+   "sku": "01269",
+   "orig": null,
+   "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
+   "bgRemoved": false,
+   "width": 1024,
+   "height": 1024,
+   "bytes": 486404,
+   "modified": "2026-09-17"
+  },
+  {
+   "publicId": "monti-trentini/products/umj1iafjdmredymnucdw",
+   "version": 1789646351,
+   "format": "jpg",
+   "category": "Products",
+   "title": "03014",
+   "code": "03014",
+   "sku": "03014",
+   "orig": null,
+   "approvalState": "approved-for-press",
+   "usage": [
+    "product-catalog"
+   ],
+   "bgRemoved": false,
+   "width": 2500,
+   "height": 1667,
+   "bytes": 1509053,
+   "modified": "2026-09-17"
+  },
+  {
    "publicId": "monti-trentini/products/yn2ljjyw0iytv5mdtd1m",
    "version": 1789645589,
    "format": "jpg",
@@ -5977,7 +6011,7 @@
    "version": 1779691536,
    "format": "jpg",
    "category": "Stagionati",
-   "title": "Le Malghe di Vezzena 300g ATM USA (04108) — Monti Trentini",
+   "title": "Le Malghe di Vezzena 70z ATM USA (04108) — Monti Trentini",
    "code": "04108",
    "sku": "04108",
    "orig": null,
@@ -6156,13 +6190,11 @@
    "format": "jpg",
    "category": "Tbd",
    "title": "tbd",
-   "code": "tbd",
-   "sku": "tbd",
+   "code": null,
+   "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
-   "usage": [
-    "product-catalog"
-   ],
+   "usage": [],
    "bgRemoved": false,
    "width": 6000,
    "height": 4000,
