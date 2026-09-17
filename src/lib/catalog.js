@@ -63,12 +63,33 @@ const slugify = (s) =>
 export const cldDownload = (cloud, im) =>
   cldImage({ cloud, publicId: im.cl_id, version: im.cl_v, format: im.cl_fmt, preset: "original", attachmentName: slugify(im.title) });
 
-// Documents (spec-sheet PDFs) are stored as resource_type:raw -- cldImage()/cldImage's transform
-// strings only ever build image/upload URLs, which 404 against a raw asset. Raw delivery needs
-// no transform, just the extension; fl_attachment forces a download instead of an inline open.
-// (2026-09-17, media-roles-and-spec-sheets Gap 3.)
+// Spec-sheet PDFs. Two storage shapes exist and the URL differs for each:
+//   image-type (current) — Cloudinary can rasterize a page, so these get a real thumbnail and an
+//                          inline view. The public_id has NO extension; `ext` carries "pdf".
+//   raw-type   (legacy)  — bytes handed back untouched, no transform possible. The public_id
+//                          ALREADY ends in ".pdf" and Cloudinary reports no format, so appending
+//                          one built a dead "…-specsheet.pdf.pdf" URL — that 404 was the original
+//                          "no downloadable file" bug (2026-09-17).
+const docHasExt = (im) => /\.[a-z0-9]+$/i.test(im.cl_id || "");
+const docPath = (im) => (docHasExt(im) ? im.cl_id : `${im.cl_id}.${im.ext || "pdf"}`);
+const isRawDoc = (im) => docHasExt(im); // only a raw public_id carries its own extension
+const docBase = (cloud, im) => `https://res.cloudinary.com/${cloud}/${isRawDoc(im) ? "raw" : "image"}/upload`;
+const docVer = (im) => (im.cl_v ? `v${im.cl_v}/` : "");
+
+/** Open the document inline (the browser's own PDF viewer). */
+export const cldDocUrl = (cloud, im) => `${docBase(cloud, im)}/${docVer(im)}${docPath(im)}`;
+
+/** Force a download instead of an inline open. */
 export const cldDocDownload = (cloud, im) =>
-  `https://res.cloudinary.com/${cloud}/raw/upload/fl_attachment/${im.cl_id}.${im.ext || "pdf"}`;
+  `${docBase(cloud, im)}/fl_attachment/${docVer(im)}${docPath(im)}`;
+
+/**
+ * Page-1 raster of a document, for a thumbnail or preview. Only possible for an image-type asset —
+ * a raw asset silently returns the untouched PDF from a transform URL, so callers must treat ""
+ * as "no preview available" rather than feeding it to an <img>.
+ */
+export const cldDocThumb = (cloud, im, { page = 1, width = 400 } = {}) =>
+  isRawDoc(im) ? "" : `${docBase(cloud, im)}/pg_${page},c_limit,w_${width},f_jpg,q_auto:good/${docVer(im)}${im.cl_id}.jpg`;
 
 export const fmtSize = (b) =>
   b < 1024 ? `${b} B` : b < 1048576 ? `${(b / 1024).toFixed(0)} KB` : `${(b / 1048576).toFixed(1)} MB`;

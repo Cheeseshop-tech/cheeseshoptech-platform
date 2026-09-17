@@ -117,7 +117,18 @@ if (!LIVE) {
       const data = await res.json();
       resources.push(...(data.resources || [])
         .filter((r) => resourceType !== "raw" || !isInternalRawDoc(r.public_id))
-        .map((r) => ({ ...r, _kind: resourceType === "raw" ? "document" : "image" })));
+        // A PDF is a document whichever endpoint it came from: raw stores untransformable bytes,
+        // image-type lets Cloudinary rasterize page 1 into a thumbnail. Must match media-list.js's
+        // mapResource(), or --live and Admin-API mode would classify the same asset differently.
+        .map((r) => {
+          const ext = (/\.([a-z0-9]+)$/i.exec(r.public_id || "")?.[1] || "").toLowerCase();
+          const isPdf = (r.format || "").toLowerCase() === "pdf" || ext === "pdf";
+          return {
+            ...r,
+            format: r.format || (resourceType === "raw" ? ext : undefined),
+            _kind: resourceType === "raw" || isPdf ? "document" : "image",
+          };
+        }));
       cursor = data.next_cursor;
     } while (cursor);
     return resources;

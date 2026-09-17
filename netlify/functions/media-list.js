@@ -30,6 +30,11 @@ function isInternalRawDoc(publicId) {
   return /\/copy\/items\.json$/.test(publicId);
 }
 
+const extFromPublicId = (publicId) => (/\.([a-z0-9]+)$/i.exec(publicId || "")?.[1] || "").toLowerCase();
+
+/** A PDF, however it's stored — image-type carries format:"pdf"; raw-type only has the extension. */
+const isPdf = (r) => (r.format || "").toLowerCase() === "pdf" || extFromPublicId(r.public_id) === "pdf";
+
 function mapResource(r, resourceType = "image") {
   const segs = r.public_id.split("/");
   // Assets sitting at the tenant root (no products/brand/raw subfolder) default to
@@ -54,8 +59,16 @@ function mapResource(r, resourceType = "image") {
     // separate `resources/raw` endpoint (see fetchPage below) -- flag them here so every consumer
     // (Media Hub tile, Buyer Catalog lightbox) can render a document affordance instead of an
     // <img> tag, which 404s against a raw-type asset.
-    kind: resourceType === "raw" ? "document" : "image",
-    format: r.format,
+    //
+    // A PDF can arrive EITHER way and is a document both times: raw/upload stores untransformable
+    // bytes, while image/upload lets Cloudinary rasterize a page (pg_1) into a real thumbnail. The
+    // spec sheets moved to image-type for exactly that reason, so classify on the FILE as well as
+    // the endpoint -- otherwise an image-type PDF returns kind:"image" and lands in a product's
+    // photo strip as a broken tile.
+    kind: resourceType === "raw" || isPdf(r) ? "document" : "image",
+    // Cloudinary returns no `format` for a raw resource, which left tiles reading "FILE" and the
+    // catalog's Format row empty. A raw public_id carries its own extension -- use that.
+    format: r.format || (resourceType === "raw" ? extFromPublicId(r.public_id) : undefined),
     width: r.width,
     height: r.height,
     // Added so this ONE live endpoint can also feed the canonical images.json manifest

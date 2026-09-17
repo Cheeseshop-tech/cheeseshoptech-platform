@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog.jsx";
 import { useToast } from "@/components/ui/toast.jsx";
 import { useAuth } from "@/lib/auth-context.jsx";
-import { cldUrl, uploadAsset, CLOUD_NAME } from "@/lib/cloudinary.js";
+import { cldUrl, uploadAsset, pdfThumbUrl, CLOUD_NAME } from "@/lib/cloudinary.js";
 import { listAssetsPage, updateAsset, deleteAsset, APPROVAL, USAGE, usageLabel, canUpload, canManageMedia, canDeleteMedia, PRODUCT_USAGE_ID, IS_MOCK_MODE, MOCK_MODE_MSG } from "@/lib/media.js";
 import { loadItems, emptyDoc, canManageItems, emptyItem, upsertItem, saveItems, getItem, specLine } from "@/lib/items.js";
 import { ItemsPanel } from "@/components/media/items-panel.jsx";
@@ -240,7 +240,7 @@ export function MediaHub({ resolved }) {
               const count = countFor(t.id);
               return (
                 <li key={t.id}>
-                  {(i === 1 || i === 3) && <div className="my-1.5 border-t border-border" />}
+                  {(i === 1 || i === 4) && <div className="my-1.5 border-t border-border" />}
                   <button
                     onClick={() => setTab(t.id)}
                     aria-current={on ? "true" : undefined}
@@ -483,14 +483,33 @@ function AssetTile({ asset, item, onOpen }) {
   // resource_type:raw) have no image derivative -- an <img src=cldUrl(...)> 404s against them.
   // Show a plain file tile instead.
   const isDoc = asset.kind === "document";
+  // An image-type PDF can be rasterized by Cloudinary (pg_1), so it gets a real page-1 thumbnail.
+  // A raw-type one cannot be transformed at all — that still falls back to the file-icon tile.
+  const docThumb = isDoc && !/\.[a-z0-9]+$/i.test(asset.publicId || "")
+    ? pdfThumbUrl(asset.publicId, { width: 400 })
+    : "";
   return (
     <button onClick={onOpen} className="group text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand rounded-base">
       <Card className="overflow-hidden">
         {isDoc ? (
-          <div className="flex aspect-square w-full flex-col items-center justify-center gap-1.5 bg-surface text-fg-muted">
-            <FileText className="h-9 w-9" />
-            <span className="text-[10px] font-medium uppercase tracking-wide">{asset.format || "file"}</span>
-          </div>
+          docThumb ? (
+            <div className="relative">
+              <img
+                src={docThumb}
+                alt={asset.title}
+                loading="lazy"
+                className="aspect-square w-full bg-white object-contain transition-opacity group-hover:opacity-90"
+              />
+              <span className="absolute bottom-1.5 right-1.5 rounded-base bg-fg/75 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-bg">
+                {asset.format || "pdf"}
+              </span>
+            </div>
+          ) : (
+            <div className="flex aspect-square w-full flex-col items-center justify-center gap-1.5 bg-surface text-fg-muted">
+              <FileText className="h-9 w-9" />
+              <span className="text-[10px] font-medium uppercase tracking-wide">{asset.format || "file"}</span>
+            </div>
+          )
         ) : (
           <img
             src={cldUrl(asset.publicId, "card")}
@@ -647,12 +666,17 @@ function AssetDialog({ asset, onClose, canManage, canDelete, onCopy, onSave, onD
   };
   if (!asset) return null;
   const isDoc = asset.kind === "document";
-  // Documents live at resource_type:raw -- cldUrl()/cldImage() only ever build image/upload
-  // URLs, which 404 against a raw asset. Raw delivery needs no transform string at all.
-  const heroUrl = isDoc ? "" : cldUrl(asset.publicId, "hero");
-  const deliveryUrl = isDoc
-    ? `https://res.cloudinary.com/${CLOUD_NAME}/raw/upload/${asset.publicId}.${asset.format || "pdf"}`
-    : cldUrl(asset.publicId, "original");
+  // A raw-type public_id already ends in its extension; an image-type one doesn't. Appending
+  // blindly produced "…-specsheet.pdf.pdf", which 404s — that was the dead download link.
+  const docIsRaw = isDoc && /\.[a-z0-9]+$/i.test(asset.publicId || "");
+  const docPath = docIsRaw ? asset.publicId : `${asset.publicId}.${asset.format || "pdf"}`;
+  const docRoot = `https://res.cloudinary.com/${CLOUD_NAME}/${docIsRaw ? "raw" : "image"}/upload`;
+  // Image-type PDFs rasterize (pg_1); raw ones can't be transformed, so no preview for those.
+  const heroUrl = isDoc
+    ? (docIsRaw ? "" : pdfThumbUrl(asset.publicId, { width: 900 }))
+    : cldUrl(asset.publicId, "hero");
+  const deliveryUrl = isDoc ? `${docRoot}/${docPath}` : cldUrl(asset.publicId, "original");
+  const docDownloadUrl = isDoc ? `${docRoot}/fl_attachment/${docPath}` : "";
 
   // Item record linked to this asset (by SKU) — display in view mode, edit via itemForm.
   const linkedItem = getItem(itemsDoc, editing ? (form?.sku || "").trim() : asset?.sku);
@@ -719,8 +743,20 @@ function AssetDialog({ asset, onClose, canManage, canDelete, onCopy, onSave, onD
         </DialogHeader>
 
         {isDoc ? (
-          <div className={`${editing ? "max-h-[26vh]" : "max-h-[45vh]"} flex w-full flex-col items-center justify-center gap-2 rounded-base bg-surface py-10 text-fg-muted`}>
-            <FileText className="h-12 w-12" />
+          <div className="flex w-full flex-col items-center gap-2">
+            {heroUrl ? (
+              <a href={deliveryUrl} target="_blank" rel="noreferrer" className="block w-full">
+                <img
+                  src={heroUrl}
+                  alt={asset.alt || asset.title}
+                  className={`${editing ? "max-h-[26vh]" : "max-h-[45vh]"} w-full rounded-base border border-border bg-white object-contain`}
+                />
+              </a>
+            ) : (
+              <div className={`${editing ? "max-h-[26vh]" : "max-h-[45vh]"} flex w-full flex-col items-center justify-center gap-2 rounded-base bg-surface py-10 text-fg-muted`}>
+                <FileText className="h-12 w-12" />
+              </div>
+            )}
             <a href={deliveryUrl} target="_blank" rel="noreferrer" className="text-sm font-medium text-brand-primary underline">
               Open {(asset.format || "file").toUpperCase()}
             </a>
@@ -750,7 +786,7 @@ function AssetDialog({ asset, onClose, canManage, canDelete, onCopy, onSave, onD
                 {isDoc && (
                   <Button size="sm" variant="outline" onClick={() => {
                     const a = document.createElement("a");
-                    a.href = `https://res.cloudinary.com/${CLOUD_NAME}/raw/upload/fl_attachment/${asset.publicId}.${asset.format || "pdf"}`;
+                    a.href = docDownloadUrl;
                     a.click();
                   }}>
                     <Download className="h-4 w-4" /> Download {(asset.format || "file").toUpperCase()}
