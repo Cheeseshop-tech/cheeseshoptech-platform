@@ -74,6 +74,24 @@ API mode only calls `resources/image` (`scripts/sync-images.mjs`, the `listPrefi
 tagged with the same `code` today is invisible to the manifest entirely, gated or not. There's also no
 UI slot for "here's the spec sheet PDF for this item" anywhere near the Buyer Catalog's item lightbox.
 
+**Update, same day, confirmed in code:** this gap is bigger than first scoped — it's not just the
+Buyer Catalog. `netlify/functions/media-list.js` (Media Hub's own read path) *also* only calls
+`resources/image` (single `grep` for `resource_type` in that file turns up nothing else). So a raw
+PDF is currently invisible to Media Hub too, not only to the manifest/Buyer Catalog. That matters
+now specifically: Rick handed off 14 "Precut EW" spec sheet PDFs this same session (from a newly
+connected `Precut EW Spec` Downloads folder), covering item codes `01174, 02091, 03044 (two dated
+saves, both rev2 — 08-27 and 08-21, kept as separate assets pending Rick's call on which supersedes),
+03073, 04182, 20424, 20480, 20481, 30014, 30015, 30016, 30017`, plus two codes not in the current
+active catalog at all (`01114`, `20482` — same "unlisted SKU" situation as `01286` from the photo
+batch earlier tonight, tagged `draft` + `new-sku-pending` instead of `product-catalog`+approved).
+All 15 were uploaded straight to Cloudinary as `resource_type: raw` under `monti/<code>-specsheet`
+(public raw-upload URL pattern: `https://res.cloudinary.com/sofcvmwa/raw/upload/<version>/monti/
+<code>-specsheet`), tagged `spec-sheet` plus the standard `product-catalog`/approval tags for the
+12 known-active codes. **They are correctly stored and tagged, but genuinely invisible in both Media
+Hub and the Buyer Catalog until this gap is closed** — worth knowing before assuming "it's in
+Cloudinary with the right tags" means "Rick can see it somewhere in the app," which is true for
+photos but not yet true for documents.
+
 **Fix (bigger, do this last):**
 1. `sync-images.mjs`: add a second `listPrefix()` pass with `resource_type=raw` over the same
    folder(s) (`monti-trentini` + the legacy `monti` folder from `cloudinaryLegacyFolders`), gated by
