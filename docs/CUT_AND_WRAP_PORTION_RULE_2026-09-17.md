@@ -1,7 +1,8 @@
 # Cut & Wrap / 7 oz Pre-Cut — portion-reality rule + compliance audit
 
-**Written:** 2026-09-17 · **Status:** 🔴 RULE ESTABLISHED, AUDIT DONE, FIX NOT YET SHIPPED (needs Rick's
-go-ahead on remediation — see "Proposed fix" below).
+**Written:** 2026-09-17 · **Status:** ✅ RULE ESTABLISHED, AUDIT DONE, REMEDIATION #1 SHIPPED — the
+7 non-compliant SKUs' images were unlinked from the Catalog the same day (see "Proposed fix" §1,
+now done). Remediation #2 (real replacement photography for all 11 affected SKUs) is still open.
 
 ## The rule (Rick, 2026-09-17)
 
@@ -96,6 +97,12 @@ Two separate problems, two separate fixes:
    since been fixed (compliant now), the rest haven't. Recommend folding this audit's 11 into a
    refreshed version of that request rather than starting a separate list.
 
-Neither of these two actions has been executed yet — this document records the rule and the audit
-only. Flagging both here (rather than silently fixing #1) per the standing convention that direct
-edits to what's "approved" need to be visible, not just done quietly.
+**Update, later the same day:** #1 shipped. Rick approved the remediation and the new
+`AGENT_GATE_PASSCODE` credential (`docs/` — see `_write-guard.js`) made a scriptable write
+possible: all 8 assets (7 SKUs + both of 01174's photos) were unlinked via `media-update.js` (the
+same soft action as Media Hub's "Delete image" button — sku cleared, `product-catalog` tag
+dropped, files untouched in Cloudinary), then `sync-images.mjs --live` re-ran to rebuild the
+manifest. Confirmed: manifest's code count went 78 → 70, matching the 8 assets touched. #2 (real
+replacement photography for all 11 affected SKUs) is still open — see
+`docs/MARKETING_IMAGE_REQUEST_2026-07-13.md` for the existing request-list convention to fold this
+into.

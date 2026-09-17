@@ -74,9 +74,18 @@ a Cut & Wrap 7 oz SKU's packshot must show a **wrapped, labeled cut piece** — 
 unit — never a whole wheel, even with an unwrapped wedge propped next to it (that wedge isn't what
 ships). Reference for "compliant": `monti/01101`. First audit against this rule (2026-09-17) found
 8 of 19 compliant, 7 non-compliant (whole-wheel or unwrapped shots — 01190, 03044, 04165, 04182,
-04211, 05091, 01174), 4 missing entirely (40086, 40184, 03073, 05600). Fix proposed but **not yet
-shipped** — needs Rick's go-ahead since it changes what the live Buyer Catalog shows. Full findings
-and the proposed remediation: `docs/CUT_AND_WRAP_PORTION_RULE_2026-09-17.md`.
+04211, 05091, 01174), 4 missing entirely (40086, 40184, 03073, 05600). **Shipped same day:** all 7
+non-compliant SKUs' images unlinked from the Catalog (sku cleared, `product-catalog` tag dropped —
+files untouched in Cloudinary). Real replacement photography for all 11 affected SKUs is still
+open. Full findings: `docs/CUT_AND_WRAP_PORTION_RULE_2026-09-17.md`.
+
+**2026-09-17 — `AGENT_GATE_PASSCODE`: a dedicated write/read credential for automation.** The old
+shared `PORTAL_*` passcodes are retired (env vars deleted 2026-08-17; the live login screen is now
+Identity email/password only) — but that left scripts/agents (no browser, no Identity session) with
+zero way to authenticate to any function. `_write-guard.js`'s `requireWriteAuth()`/
+`requireReadAuth()` now also accept `AGENT_GATE_PASSCODE` (own env var, tenant-agnostic "admin"
+tier, works across every tenant since one shared guard covers the whole platform). Value lives only
+in Netlify's env vars — never commit it.
 
 **2026-07-19 — Luxury DTC design research ported in; this is where the template architecture
 came from.** A separate, non-CST Claude Project has been doing competitive design research for
