@@ -68,6 +68,16 @@ writes take the **same admin passcode gate** as CRM writes · strategy docs are 
 (one source of truth in the client project folder).
 Detail, seeded campaigns, and known limits: `docs/HANDOFF_2026-08-03_campaign-pill-nav-and-email-lifecycle.md`.
 
+**2026-09-17 — Cut & Wrap / 7 oz Pre-Cut: a whole wheel is never a compliant packshot.**
+Sharpens the general portion-reality rule above into an explicit, checkable one for this category:
+a Cut & Wrap 7 oz SKU's packshot must show a **wrapped, labeled cut piece** — the actual retail
+unit — never a whole wheel, even with an unwrapped wedge propped next to it (that wedge isn't what
+ships). Reference for "compliant": `monti/01101`. First audit against this rule (2026-09-17) found
+8 of 19 compliant, 7 non-compliant (whole-wheel or unwrapped shots — 01190, 03044, 04165, 04182,
+04211, 05091, 01174), 4 missing entirely (40086, 40184, 03073, 05600). Fix proposed but **not yet
+shipped** — needs Rick's go-ahead since it changes what the live Buyer Catalog shows. Full findings
+and the proposed remediation: `docs/CUT_AND_WRAP_PORTION_RULE_2026-09-17.md`.
+
 **2026-07-19 — Luxury DTC design research ported in; this is where the template architecture
 came from.** A separate, non-CST Claude Project has been doing competitive design research for
 a luxury DTC cheese brand concept ("Posada & Co." / "the Super Site" — blog + test kitchen +
@@ -94,5 +104,6 @@ image, breathable info rail, accordion sections, no parallax). Detail:
 - Status / definition of done: `docs/PROJECT_STATUS.md` · backlog: `docs/BACKLOG.md`
 - Open client data to retrieve: `docs/CLIENT_DATA_REQUESTS_2026-07-09.md`
 - Marketing photo request: `docs/MARKETING_IMAGE_REQUEST_2026-07-13.md` (+ `.csv`)
+- Cut & Wrap 7oz portion-reality rule + compliance audit (2026-09-17): `docs/CUT_AND_WRAP_PORTION_RULE_2026-09-17.md`
 - Luxury DTC design research, external/not-a-tenant: `docs/HANDOFF_2026-07-19_luxury-dtc-design-research.md`
 - Campaign pill-nav + campaign lifecycle dashboard (built 2026-08-03): `docs/HANDOFF_2026-08-03_campaign-pill-nav-and-email-lifecycle.md`
