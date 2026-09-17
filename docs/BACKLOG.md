@@ -12,6 +12,15 @@ See `docs/CONTINUAL_IMPROVEMENT.md` for the loop. Updated 2026-06-18.
   exact-weight "firm" in the on-screen proforma; carry proforma → weighed → final-invoice states.
 
 ## Next
+- [med/high] **Product copy & provenance research project** (Rick, 2026-09-17 — its own project,
+  not a feature ticket) — write the long descriptions (`longDescription` is filled on **0 of 123**
+  item records today; `shortDescription` on 106) and source/produce the regional provenance maps
+  (the `map-reference` usage tag exists, **0 assets** carry it). Research + writing work, not
+  platform work: the slots are already built and render the moment content exists (per-item
+  onboarding page, Buyer Catalog lightbox). Two standing constraints: product copy is marketing
+  content and may be researched and written, but nutrition/allergen/compliance values are NEVER
+  composed — those come only from Monti's own Schede; and researched copy must be written
+  originally, not lifted from producer or competitor sites.
 - [high/med] **Buyer Onboarding Kit** — a reference packet for an account that's already signed
   on (not a pitch): deeper per-item content (long description, pairing notes, training video
   links, alternate photos, spec sheets once unblocked), shared via an email-gated link. Forks the
