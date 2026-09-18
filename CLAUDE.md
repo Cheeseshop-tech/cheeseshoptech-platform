@@ -108,11 +108,18 @@ image, breathable info rail, accordion sections, no parallax). Detail:
   availability), Traffic (inbound/outbound shipments). Canonical: `docs/CLIENT_DATA_ROLES.md`.
 - Image spec: 2000 px min short edge, white/transparent bg, one image per item number, tagged with
   the item code. Cloudinary hosts hi-res only. Detail: `docs/IMAGE_HEALTH_2026-07-09.md`.
+- Product ID + image resolution: `catalog.json`'s active SKU list is the item-number source of
+  truth today; a Cloudinary asset's `code`/`sku` context field is the join key for photos AND
+  spec sheets; `kind` (`"image"` vs `"document"`) comes from Cloudinary's resource type, never a
+  tag, and only `imageForCode()`/`codeImageUrl()` (`src/lib/images.js`) should ever resolve "the
+  photo for this SKU." Full rule + the 2026-09-18 spec-sheets-as-product-photos bug + fix:
+  `docs/PRODUCT_ID_AND_IMAGE_TRUTH_2026-09-18.md`.
 
 ## Key docs index
 - Status / definition of done: `docs/PROJECT_STATUS.md` · backlog: `docs/BACKLOG.md`
 - Open client data to retrieve: `docs/CLIENT_DATA_REQUESTS_2026-07-09.md`
 - Marketing photo request: `docs/MARKETING_IMAGE_REQUEST_2026-07-13.md` (+ `.csv`)
 - Cut & Wrap 7oz portion-reality rule + compliance audit (2026-09-17): `docs/CUT_AND_WRAP_PORTION_RULE_2026-09-17.md`
+- Product ID truth + spec-sheet/product-photo mix-up, root cause + fix (2026-09-18): `docs/PRODUCT_ID_AND_IMAGE_TRUTH_2026-09-18.md`
 - Luxury DTC design research, external/not-a-tenant: `docs/HANDOFF_2026-07-19_luxury-dtc-design-research.md`
 - Campaign pill-nav + campaign lifecycle dashboard (built 2026-08-03): `docs/HANDOFF_2026-08-03_campaign-pill-nav-and-email-lifecycle.md`

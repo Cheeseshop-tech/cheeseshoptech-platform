@@ -34,11 +34,21 @@ export function imageList(resolved) {
   return getImages(resolved)?.images || [];
 }
 
-/** The image record for a SKU/product code, or null. */
+/** The image record for a SKU/product code, or null. NEVER returns a document (kind:
+ *  "document" -- a spec-sheet PDF, not a photo): Pricing, Proposals, Quote Builder and the
+ *  Price List Creator all resolve a SKU's photo through this one function, so this is the single
+ *  choke point that has to get the image/document distinction right -- see
+ *  docs/PRODUCT_ID_AND_IMAGE_TRUTH_2026-09-18.md. Root-caused 2026-09-18: the 2026-09-17
+ *  migration of spec sheets to image-type Cloudinary storage (so they'd get real thumbnails) put
+ *  their manifest records in the same `images[]` array as real photos, ahead of the real photo
+ *  for 12 SKUs -- this function's old unfiltered `.find()` picked whichever came first, so those
+ *  12 SKUs showed their spec sheet's page-1 raster as the "product photo" everywhere this
+ *  function is used. A SKU with only a document on file (no real photo yet) correctly resolves to
+ *  null here, same as having no image at all -- never falls back to showing the document. */
 export function imageForCode(resolved, code) {
   if (!code) return null;
   const m = getImages(resolved);
-  return m?.images.find((i) => i.code === code || i.sku === code) || null;
+  return m?.images.find((i) => (i.code === code || i.sku === code) && i.kind !== "document") || null;
 }
 
 /* ---- Low-res reference placeholders (INTERNAL SURFACES ONLY) --------------------------------

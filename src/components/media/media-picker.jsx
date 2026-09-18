@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Image as ImageIcon, Check, X } from "lucide-react";
 import { useAuth } from "@/lib/auth-context.jsx";
-import { listAssetsPage, USAGE, IS_MOCK_MODE, MOCK_MODE_MSG } from "@/lib/media.js";
+import { listAssetsPage, USAGE, IS_MOCK_MODE, MOCK_MODE_MSG, photoAssets } from "@/lib/media.js";
 import { cldUrl } from "@/lib/cloudinary.js";
 
 // Tag-driven Media Hub picker (the "design element that reads the Media Hub tags").
@@ -58,7 +58,12 @@ export function MediaPicker({ resolved, value, onChange, defaultTag = "", label 
       listAssetsPage({ tenantFolder: resolved.cloudinaryFolder, legacyFolders: resolved.cloudinaryLegacyFolders, user, cursor, tenantId: resolved.id })
         .then(({ assets: page, nextCursor }) => {
           if (!mountedRef.current || cancelled) return;
-          setAssets((prev) => [...prev, ...(page || [])]);
+          // 2026-09-18: this picker is used for proposal image zones and slide-deck art -- a
+          // photo slot, never a document slot -- so spec-sheet PDFs (kind: "document", stored as
+          // image-type Cloudinary assets since 2026-09-17 so they get real thumbnails) must never
+          // show up here as if they were a pickable product photo. See
+          // docs/PRODUCT_ID_AND_IMAGE_TRUTH_2026-09-18.md.
+          setAssets((prev) => [...prev, ...photoAssets(page)]);
           setLoading(false); // first page in -- picker is usable even if more is still coming
           if (nextCursor) loadPage(nextCursor); // keep streaming the rest quietly in the background
         })

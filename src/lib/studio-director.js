@@ -15,7 +15,7 @@
 
 import { getBrandKit } from "./brandKit.js";
 import { getPricingData } from "./pricing.js";
-import { listAssets } from "./media.js";
+import { listAssets, photoAssets } from "./media.js";
 import { loadItems, getItem } from "./items.js";
 import { getSlideTemplate } from "./slide-templates.js";
 
@@ -126,6 +126,11 @@ export async function directDraft({ resolved, user, opportunity } = {}) {
     assets = await listAssets({ tenantFolder: resolved.cloudinaryFolder, legacyFolders: resolved.cloudinaryLegacyFolders, user, tenantId: resolved.id });
   } catch { assets = []; }
   assets = assets.filter((a) => (a.format ? !["mp4", "mov"].includes(a.format) : true));
+  // 2026-09-18: auto-draft picks slide art via pickAsset() below, which scores by tag/approval/SKU
+  // match and has no idea a "candidate" might be a spec-sheet PDF page-1 raster rather than a real
+  // photo (kind: "document") -- exclude documents here so a spec sheet can never win a slide slot.
+  // See docs/PRODUCT_ID_AND_IMAGE_TRUTH_2026-09-18.md.
+  assets = photoAssets(assets);
 
   // Canonical item copy (Media Hub items.js) — see pickProducts() below for how this joins
   // with catalog.json by SKU. Never throws: an empty/missing doc just falls back to catalog names.

@@ -39,6 +39,17 @@ export const USAGE = [
 export const PRODUCT_USAGE_ID = "product-catalog";
 export const usageLabel = (id) => USAGE.find((u) => u.id === id)?.label || id;
 
+// kind: "document" (2026-09-17, Gap 3) marks a spec-sheet PDF -- stored as an image-type
+// Cloudinary asset so it can get a page-1 thumbnail, so it is otherwise indistinguishable from a
+// real photo to anything that doesn't check `kind`. Single helper so every picker/list that means
+// "photos only" filters the same way instead of each component re-deriving its own check (that
+// drift is exactly how a spec sheet ended up wired into the Price List as a product image --
+// see docs/PRODUCT_ID_AND_IMAGE_TRUTH_2026-09-18.md).
+export const isDocumentAsset = (a) => a?.kind === "document";
+/** `list` filtered down to real photos -- drops spec sheets/documents. Use this (not a hand-rolled
+ *  `.filter(a => a.kind !== "document")`) anywhere assets are offered as pickable IMAGES. */
+export const photoAssets = (list) => (list || []).filter((a) => !isDocumentAsset(a));
+
 // Which approval states each role may see (least privilege).
 const ROLE_VISIBILITY = {
   admin: ["draft", "approved-for-press", "approved-for-influencers"],

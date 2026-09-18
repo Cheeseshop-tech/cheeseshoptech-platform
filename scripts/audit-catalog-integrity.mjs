@@ -70,11 +70,20 @@ for (const product of catalog?.products || []) {
 
 // ---- Build lookups ---------------------------------------------------------------------------
 const itemSkus = Object.keys(items);
-const imagesByCode = new Map(); // code -> [publicId, ...]
+// 2026-09-18: a spec-sheet PDF (kind: "document") is stored as an image-type Cloudinary asset
+// (2026-09-17 migration, for real thumbnails) and carries the same `code` context a real photo
+// does -- so it is NOT proof a SKU has a photo. Track photo-kind and document-kind links
+// separately; conflating them is exactly how 12 SKUs' spec sheets ended up rendering as their
+// "product photo" in Pricing/Proposals/Quote Builder (imageForCode() had the same conflation --
+// fixed 2026-09-18, see src/lib/images.js -- this script needs the same fix so it can catch a
+// repeat). See docs/PRODUCT_ID_AND_IMAGE_TRUTH_2026-09-18.md.
+const imagesByCode = new Map(); // code -> [publicId, ...] (photos only, kind !== "document")
+const docsByCode = new Map(); // code -> [publicId, ...] (documents only, e.g. spec sheets)
 for (const im of images) {
   if (!im.code) continue;
-  if (!imagesByCode.has(im.code)) imagesByCode.set(im.code, []);
-  imagesByCode.get(im.code).push(im.publicId);
+  const bucket = im.kind === "document" ? docsByCode : imagesByCode;
+  if (!bucket.has(im.code)) bucket.set(im.code, []);
+  bucket.get(im.code).push(im.publicId);
 }
 
 // ---- Checks -----------------------------------------------------------------------------------
@@ -91,7 +100,12 @@ for (const sku of itemSkus) {
     continue; // don't also flag "no photo" — a placeholder shouldn't be judged on photo coverage
   }
   if (!imagesByCode.has(sku)) {
-    high.push(`No photo linked for item "${sku}" — "${name}".`);
+    if (docsByCode.has(sku)) {
+      high.push(`Item "${sku}" — "${name}" has a spec sheet/document on file but no real photo — ` +
+        `Pricing/Proposals/Quote Builder will show no image (correct, not the document) until a real photo is linked.`);
+    } else {
+      high.push(`No photo linked for item "${sku}" — "${name}".`);
+    }
   }
 }
 
