@@ -131,7 +131,10 @@ for (const sku of Object.keys(items)) {
 }
 
 // ---- Check 3 (MEDIUM): spec-line format on the precut line ----------------------------------
-const scope = ALL ? Object.keys(items) : [...PRECUT].filter((c) => items[c]);
+// Do NOT pre-filter to codes that have a record: the whole point is to catch a price-list item
+// with NO item record, which renders no spec line at all. (Bug found 2026-09-18 on the first
+// live run -- the filter made the "has no item record" branch below unreachable.)
+const scope = ALL ? Object.keys(items) : [...PRECUT];
 for (const sku of scope.sort()) {
   const it = items[sku];
   if (!it) { medium.push(`${sku} is on the price list but has no item record — no spec line can render.`); continue; }
