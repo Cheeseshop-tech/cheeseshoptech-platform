@@ -72,7 +72,9 @@
    "sku": null,
    "orig": null,
    "approvalState": "draft",
-   "usage": [],
+   "usage": [
+    "product-catalog"
+   ],
    "bgRemoved": false,
    "kind": "document",
    "docType": "spec-sheet",
@@ -1958,7 +1960,11 @@
    "sku": null,
    "orig": null,
    "approvalState": "approved-for-press",
-   "usage": [],
+   "usage": [
+    "email-campaign",
+    "social",
+    "web-marketing"
+   ],
    "bgRemoved": false,
    "kind": "image",
    "width": 896,

@@ -36,7 +36,7 @@ All are actively sold off the current price list and have no Scheda on file.
 
 | Item | Issue | What's needed |
 |---|---|---|
-| **03073** | The sheet sent describes a **whole wheel** — 1 per carton, no "7 OZ EW" in the title, 360-day shelf life, and EAN part number `2003003`, which is the 03003 whole wheel. The price list sells 03073 as the 12-count 7 oz Cut & Wrap wedge. | The 7 oz EW sheet: 12/case, 150-day shelf life, UPC 857594000158. |
+| **03073** | The sheet sent describes a **whole wheel** — 1 per carton, no "7 OZ EW" in the title, 360-day shelf life, and EAN part number `2003003`, which is the 03003 whole wheel. The price list sells 03073 as the 12-count 7 oz Cut & Wrap wedge. **Nothing is wrong with the document** — it was filed against the wrong item on our side, and has been re-homed to 03003 (2026-09-18), which now holds the first whole-wheel Scheda on file. | Still need the **7 oz EW** sheet for 03073: 12/case, 150-day shelf life, UPC 857594000158. Not a replacement — an addition. |
 | **03044** | Two files, both marked rev 2, dated 08-21 and 08-27. Content identical except the product photo. | Confirm 08-27 supersedes so we can retire the 08-21 file. |
 | **30014 / 30015 / 30016 / 30017** | All four Apericheese Schede carry the **same** EAN part number `857594000936`. The price list has four distinct UPCs (…936, …943, …905, …929). | Corrected sheets with the right UPC on each. |
 | **01174** | One sheet covers "Smoked Provolone 7 OZ" generically, but the price list sells a **Wedge and a Disc** under this one number at different prices. | A second sheet once the Disc has its own number — see §3. |
