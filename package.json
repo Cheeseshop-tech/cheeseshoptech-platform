@@ -6,6 +6,8 @@
   "description": "Multi-tenant white-label client portal platform for specialty & perishable food brands. Platform core = CheeseShop TECH (owned IP); clients are tenants.",
   "scripts": {
     "dev": "vite",
+    "lint": "eslint .",
+    "prebuild": "npm run lint",
     "build": "vite build",
     "preview": "vite preview",
     "validate:clients": "node scripts/validate-clients.mjs",
@@ -44,6 +46,9 @@
     "@vitejs/plugin-react": "^4.3.4",
     "ajv": "^8.17.1",
     "autoprefixer": "^10.4.20",
+    "eslint": "^9.39.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.12.0",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.17",
     "vite": "^5.4.11"

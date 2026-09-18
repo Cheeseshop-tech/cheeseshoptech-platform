@@ -4,10 +4,14 @@ One list. Add items here (or tell Claude). Format: `- [impact/effort] descriptio
 See `docs/CONTINUAL_IMPROVEMENT.md` for the loop. Updated 2026-06-18.
 
 ## Now (next batch)
-- [high/low] **Flip Sentry on** — code shipped 2026-08-14 (error boundary + Web Vitals on the
-  browser, all 25 Netlify Functions wrapped), inert until a Sentry account exists. Rick: create the
-  free account, set `VITE_SENTRY_DSN` + `SENTRY_DSN` in Netlify, redeploy. Steps in
-  `docs/APP_HEALTH_AND_ROADMAP_2026-08-14.md`.
+- [high/low] **Check Sentry for the 2026-09-18 Buyer Catalog crash, then wire up alerting** —
+  this item used to read "Flip Sentry on," assuming no DSN existed. That was wrong: confirmed
+  2026-09-18 that `VITE_SENTRY_DSN` is live in the production bundle, so the crash almost
+  certainly already sits in the Sentry dashboard, unread, because the docs said monitoring
+  didn't exist. Rick: (1) log into sentry.io and check the project's Issues for 2026-09-18, (2)
+  add an alert rule (email/Slack) for new issues so a future crash surfaces without someone
+  opening the broken page first, (3) separately confirm `SENTRY_DSN` (the functions half) is
+  also set — that one is still unconfirmed. See `docs/POSTMORTEM_2026-09-18_buyer-catalog-crash.md`.
 - [med/med] **Catch vs exact weight in the UI + invoice states** — mark catch-weight lines "estimate" and
   exact-weight "firm" in the on-screen proforma; carry proforma → weighed → final-invoice states.
 

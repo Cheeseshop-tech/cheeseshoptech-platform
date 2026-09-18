@@ -47,7 +47,7 @@ These are read by `netlify/functions/*`. They never reach the browser.
 | `SHOPIFY_ADMIN_TOKEN` | Admin API (orders) | `store-orders.js` | Storefront tool |
 | `INVENTORY_PUBLISH_SECRET` | Guards the inventory publish endpoint | `inventory-publish.js` | Used by the sync script |
 | `MAKE_CAMPAIGNS_WEBHOOK_URL` | Make webhook for campaigns | `campaigns.js` | Campaigns |
-| `SENTRY_DSN` | Error capture + slow-response signal for all 25 functions | `_sentry.js`, every function via `withMonitoring()` | **Not yet set** — code shipped 2026-08-14, inert until a Sentry account exists. See `docs/APP_HEALTH_AND_ROADMAP_2026-08-14.md` §setup |
+| `SENTRY_DSN` | Error capture + slow-response signal for all 25 functions | `_sentry.js`, every function via `withMonitoring()` | **Status unconfirmed as of 2026-09-18** — this row said "not yet set" for a month while the browser half (`VITE_SENTRY_DSN`, below) was actually live in production the whole time; that stale row is part of why nobody checked Sentry during the 2026-09-18 Buyer Catalog crash. Verify directly in the Netlify dashboard rather than trusting this row. See `docs/POSTMORTEM_2026-09-18_buyer-catalog-crash.md`. |
 
 > **Status caveat:** "Live" for everything except `ANTHROPIC_API_KEY` is *inferred* from the
 > corresponding feature working in production, not from reading the Netlify dashboard. Only the
@@ -72,7 +72,7 @@ Set in Netlify build environment or `netlify.toml`. Changing any of these **requ
 | `VITE_GOTRUE_URL` | Netlify Identity endpoint |
 | `VITE_DEV_BYPASS_AUTH` | Local dev only — **must never be set in production** |
 | `VITE_HOUSE_PASSCODE`, `VITE_PORTAL_ADMIN_PASSCODE`, `VITE_PORTAL_PASSCODE` | Client-side passcode gate values — see the warning below |
-| `VITE_SENTRY_DSN` | Browser error boundary + Core Web Vitals (`lib/monitoring.js`) — SDK is dynamically imported, so unset means it's never even downloaded. **Not yet set.** |
+| `VITE_SENTRY_DSN` | Browser error boundary + Core Web Vitals (`lib/monitoring.js`) — SDK is dynamically imported, so unset means it's never even downloaded. **Confirmed live 2026-09-18** — the real DSN and the Sentry chunk are both present in the deployed production bundle (this row previously said "not yet set," incorrectly). |
 
 ### ⚠️ The `VITE_*_PASSCODE` variables are not secrets
 
