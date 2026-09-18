@@ -283,7 +283,10 @@ const lines = [
   `## LOW (${low.length}) — descriptors in the wrong field`,
   ...(low.length ? low.map((l) => `- ${l}`) : ["- none"]), "",
 ];
-const out = path.join(__dirname, `../docs/ITEM_STANDARDS_VALIDATION_${today}.md`);
+// Mode goes in the FILENAME. Both runs used to write the same file, so whichever ran last
+// clobbered the other -- and an offline run silently overwriting a live one loses the only
+// result that can see Media-Hub-only records. (Found 2026-09-18, after exactly that.)
+const out = path.join(__dirname, `../docs/ITEM_STANDARDS_VALIDATION_${today}_${LIVE ? "live" : "offline"}.md`);
 fs.writeFileSync(out, lines.join("\n"));
 console.log(`Wrote ${out}`);
 console.log(`Mode: ${mode}`);
