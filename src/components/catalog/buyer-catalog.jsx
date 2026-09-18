@@ -12,6 +12,7 @@ import { getBuyerCatalog, cldThumb, cldBig, cldView, cldDownload, cldDocUrl, cld
 import { onboardingUrl } from "@/components/catalog/onboarding-docs-page.jsx";
 import { loadEdits, applyEdits } from "@/lib/catalog-edits.js";
 import { loadItems, listItems, specLine } from "@/lib/items.js";
+import { getPricingData } from "@/lib/pricing.js";
 import { usageLabel } from "@/lib/media.js";
 import { useAuth } from "@/lib/auth-context.jsx";
 import { rolesOf } from "@/lib/auth.js";
@@ -94,17 +95,41 @@ function BuyerCatalog({ data, brandName, tenantId, itemsFolder }) {
     return map;
   }, [images]);
 
+  // The real SKU list, straight off the price list (catalog.json via pricing.js). This is the
+  // gate: a code is real only if it is here.
+  const realSkus = useMemo(() => {
+    const set = new Set();
+    for (const p of getPricingData(resolved)?.catalog?.products || [])
+      for (const s of p.skus || []) if (s.code) set.add(String(s.code));
+    return set;
+  }, [resolved]);
+
   // ROWS = the item list (mirrors the price list / item data). One row per item number.
   const rows = useMemo(() => {
     if (!itemsDoc) return null; // loading
-    const mapped = listItems(itemsDoc).map((it) => ({ it, imgs: imagesByCode[it.sku] || [], docs: docsByCode[it.sku] || [] }));
+    // 2026-09-18: a card used to render for ANY item record, whether or not its code was a real
+    // SKU. That is how "04108" reached buyers -- an automated Cloudinary pass parsed that number
+    // out of the filename `le-malghe-di-vezzena-300g-atm-usa-04108-13aj1e`, and nothing downstream
+    // asked whether it was an item number at all. It is not: the photo is a 300 g ATM pack and the
+    // code exists in no price list. An item that is not on the price list cannot be quoted or
+    // ordered, so showing it to a buyer can only mislead. Gate it here, at the last point before
+    // it becomes customer-visible. `npm run validate:items` reports these so they get fixed at
+    // the source rather than silently hidden -- see docs/PRODUCT_NAMING_STANDARD_2026-09-18.md.
+    const all = listItems(itemsDoc);
+    const live = realSkus.size ? all.filter((it) => realSkus.has(String(it.sku))) : all;
+    if (import.meta.env.DEV && live.length !== all.length) {
+      const dropped = all.filter((it) => !realSkus.has(String(it.sku))).map((it) => it.sku);
+      console.warn(`[catalog] hid ${dropped.length} item(s) with no price-list SKU: ${dropped.join(", ")}. ` +
+        `Run: npm run validate:items`);
+    }
+    const mapped = live.map((it) => ({ it, imgs: imagesByCode[it.sku] || [], docs: docsByCode[it.sku] || [] }));
     // Product Catalog loads alphabetically by product NAME (2026-07-18, Rick asked for this) —
     // deliberately separate from listItems()'s own order (by item number/SKU), which the Media
     // Hub's Items tab still uses so it keeps mirroring the price sheet's row order.
     return mapped.sort((a, b) =>
       (a.it.name || "").localeCompare(b.it.name || "", undefined, { sensitivity: "base" })
     );
-  }, [itemsDoc, imagesByCode]);
+  }, [itemsDoc, imagesByCode, realSkus]);
 
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All");

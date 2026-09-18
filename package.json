@@ -16,7 +16,8 @@
     "media:refresh": "node scripts/sync-images.mjs && node scripts/prewarm-cloudinary.mjs",
     "inventory:promote": "node scripts/sync-inventory.mjs --promote",
     "inventory:check": "node scripts/sync-inventory.mjs --check",
-    "inventory:publish": "node scripts/publish-inventory.mjs"
+    "inventory:publish": "node scripts/publish-inventory.mjs",
+    "validate:items": "node scripts/validate-item-standards.mjs"
   },
   "dependencies": {
     "@netlify/blobs": "^8.2.0",

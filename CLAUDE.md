@@ -120,6 +120,8 @@ image, breathable info rail, accordion sections, no parallax). Detail:
 - Open client data to retrieve: `docs/CLIENT_DATA_REQUESTS_2026-07-09.md`
 - Marketing photo request: `docs/MARKETING_IMAGE_REQUEST_2026-07-13.md` (+ `.csv`)
 - Cut & Wrap 7oz portion-reality rule + compliance audit (2026-09-17): `docs/CUT_AND_WRAP_PORTION_RULE_2026-09-17.md`
+- Product naming standard — names vs descriptors (2026-09-18): `docs/PRODUCT_NAMING_STANDARD_2026-09-18.md`
+- Live price list = canonical product source; gap lists + Monti spec sheet request (2026-09-18): `docs/GAP_LISTS_2026-09-18.md`, `docs/CLIENT_DATA_REQUEST_2026-09-18_spec-sheets.md`
 - Product ID truth + spec-sheet/product-photo mix-up, root cause + fix (2026-09-18): `docs/PRODUCT_ID_AND_IMAGE_TRUTH_2026-09-18.md`
 - Luxury DTC design research, external/not-a-tenant: `docs/HANDOFF_2026-07-19_luxury-dtc-design-research.md`
 - Campaign pill-nav + campaign lifecycle dashboard (built 2026-08-03): `docs/HANDOFF_2026-08-03_campaign-pill-nav-and-email-lifecycle.md`
