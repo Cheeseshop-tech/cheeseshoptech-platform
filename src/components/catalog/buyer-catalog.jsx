@@ -40,17 +40,35 @@ function altPhotoLabel(usage) {
 export function CatalogPage({ resolved }) {
   const data = getBuyerCatalog(resolved);
 
+  // The real SKU list, straight off the price list (catalog.json via pricing.js). This is the
+  // gate: a code is real only if it is here.
+  //
+  // It is computed HERE, not inside BuyerCatalog. `resolved` is this page's prop; BuyerCatalog
+  // deliberately takes flat props and never sees the tenant object. Putting this useMemo in
+  // BuyerCatalog (2026-09-18) referenced `resolved` out of scope and threw
+  // "ReferenceError: resolved is not defined" on every render -- the whole catalog page went to
+  // the error boundary. It is passed down as a plain Set instead.
+  const realSkus = useMemo(() => {
+    const set = new Set();
+    for (const p of getPricingData(resolved)?.catalog?.products || [])
+      for (const s of p.skus || []) if (s.code) set.add(String(s.code));
+    return set;
+  }, [resolved]);
+
   return (
     <BuyerCatalog
       data={data}
       brandName={resolved.brand.name}
       tenantId={resolved.id}
       itemsFolder={resolved.cloudinaryFolder}
+      realSkus={realSkus}
     />
   );
 }
 
-function BuyerCatalog({ data, brandName, tenantId, itemsFolder }) {
+// realSkus defaults to an empty Set so a caller that omits it degrades to "show everything"
+// rather than throwing on .size -- the gate is a safety net, never a reason to blank the page.
+function BuyerCatalog({ data, brandName, tenantId, itemsFolder, realSkus = new Set() }) {
   const cloud = data?.cloud;
   const { toast } = useToast();
   const { user } = useAuth();
@@ -94,15 +112,6 @@ function BuyerCatalog({ data, brandName, tenantId, itemsFolder }) {
     images.forEach((im) => { if (im.code && im.kind === "document") (map[im.code] ||= []).push(im); });
     return map;
   }, [images]);
-
-  // The real SKU list, straight off the price list (catalog.json via pricing.js). This is the
-  // gate: a code is real only if it is here.
-  const realSkus = useMemo(() => {
-    const set = new Set();
-    for (const p of getPricingData(resolved)?.catalog?.products || [])
-      for (const s of p.skus || []) if (s.code) set.add(String(s.code));
-    return set;
-  }, [resolved]);
 
   // ROWS = the item list (mirrors the price list / item data). One row per item number.
   const rows = useMemo(() => {
