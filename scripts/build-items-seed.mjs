@@ -111,11 +111,36 @@ try {
   }
 } catch { /* C&W spec optional */ }
 
+// ---- pricelist-2026-03-live.json (CANONICAL, Rick 2026-09-18) -------------------------------
+// The live price list customers actually order against (Alma, Cow Brand, Di Palo, AT, Dekalb).
+// Rick's call 2026-09-18: it outranks every other source on item number, name, pack and UPC.
+// So unlike the C&W spec above (which only fills blanks), this pass OVERRIDES a disagreeing UPC
+// and logs it -- a UPC that disagrees with the list customers are buying from is wrong by
+// definition. It only ever touches codes the live list actually names.
+// See docs/PRODUCT_ID_AND_IMAGE_TRUTH_2026-09-18.md and docs/GAP_LISTS_2026-09-18.md.
+let liveUpc = 0, liveOverride = 0;
+try {
+  const live = JSON.parse(readFileSync(join(root, "src/data/montitrentini/source/pricelist-2026-03-live.json"), "utf8"));
+  const rows = [...(live.cutAndWrap?.items || []), ...(live.apericheese?.items || [])];
+  for (const row of rows) {
+    // "tbd" is the unnumbered Aged Black Truffle line -- never seed a placeholder SKU.
+    if (!row.code || row.code === "tbd" || !row.upc) continue;
+    const it = items[row.code];
+    if (!it) continue; // the live list never invents an item record; catalog.json owns that
+    const digits = (s) => String(s || "").replace(/\D/g, "");
+    if (!it.upc) { it.upc = row.upc; liveUpc++; }
+    else if (digits(it.upc) !== digits(row.upc)) {
+      console.log(`  UPC override ${row.code}: "${it.upc}" -> "${row.upc}" (live price list wins)`);
+      it.upc = row.upc; liveOverride++;
+    }
+  }
+} catch { /* live price list optional */ }
+
 function titleCase(s) {
   return s.toLowerCase().replace(/\b([a-z])/g, (c) => c.toUpperCase())
     .replace(/\b(Dop|Pdo|Igp|Pgi|Bio|Usa|Atm|Sv|Pf|Pdm|Ew|Ww)\b/g, (w) => w.toUpperCase());
 }
 
-const out = { version: 2, generatedAt: new Date().toISOString(), source: "catalog.json + item-reference.json + cut-and-wrap-spec.json", items };
+const out = { version: 2, generatedAt: new Date().toISOString(), source: "catalog.json + item-reference.json + cut-and-wrap-spec.json + pricelist-2026-03-live.json (canonical)", items };
 writeFileSync(join(root, "src/data/montitrentini/items-seed.json"), JSON.stringify(out, null, 2) + "\n");
-console.log(`items-seed.json: ${count} SKUs from catalog (${catalog.products?.length || 0} products) + ${refCount} identity-only from item-reference + ${cwFilled} enriched / ${cwNew} new from cut-and-wrap-spec`);
+console.log(`items-seed.json: ${count} SKUs from catalog (${catalog.products?.length || 0} products) + ${refCount} identity-only from item-reference + ${cwFilled} enriched / ${cwNew} new from cut-and-wrap-spec + ${liveUpc} UPCs filled / ${liveOverride} overridden from the canonical live price list`);

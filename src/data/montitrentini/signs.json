@@ -324,9 +324,10 @@
       "designation": null,
       "family": "caciotta",
       "skus": [
-        "20533"
+        "20533",
+        "20579"
       ],
-      "formats": "2 kg wheel (vac-packed, 4/case)",
+      "formats": "2 kg wheel (vac-packed, 4/case) · 7 oz wedge",
       "milk": {
         "type": "Cow's milk",
         "detail": "Full-fat, 100% Italian",

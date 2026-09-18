@@ -2,7 +2,7 @@
 
 Sources checked: item store (local items-seed.json snapshot, possibly stale), image manifest (src/data/montitrentini/images.json), pricing (src/data/montitrentini/catalog.json).
 
-**123 items · 346 images (57 distinct codes) · 107 priced SKUs.**
+**123 items · 346 images (57 distinct codes) · 108 priced SKUs.**
 
 Structural checks only — a script can tell you a link is missing or a SKU is a placeholder, not whether a linked photo is actually the right portion/format. For that, see docs/CUT_AND_WRAP_PORTION_RULE_2026-09-17.md's approach: look at the photos.
 
@@ -27,6 +27,7 @@ Structural checks only — a script can tell you a link is missing or a SKU is a
 - No photo linked for item "20533" — "Fioretto Stagionato with Truffle".
 - No photo linked for item "20567" — "Castelmagno DOP".
 - No photo linked for item "20569" — "Bianco Duro d'Italia".
+- No photo linked for item "20579" — "Aged Black Truffle 7 Oz EW".
 - No photo linked for item "20584" — "Stelvio Cheese DOP".
 - No photo linked for item "20586" — "Lagrein".
 - No photo linked for item "20700" — "Pecorino Siciliano Primosale".
@@ -75,14 +76,13 @@ Structural checks only — a script can tell you a link is missing or a SKU is a
 - No photo linked for item "04208" — "Drunken Aged Cheese (Imbriago) 1/4 Wheel".
 - No photo linked for item "05417" — "Grana Padano PDO 1/8 Wheel 16 Months".
 - No photo linked for item "05422" — "Grana Padano Aged 20 Mesi".
-- Placeholder SKU "tbd" is live in the buyer-facing Items store — "Aged Black Truffle 7 Oz EW". Give it a real item number (Media Hub → Items → New item, then re-link its photo and delete this one) before it's customer-visible.
 
 ## Medium (3) — inconsistent, worth a look
 - Photo(s) tagged for item "30014-back" but no matching item record exists: monti/30014-back. Either the item was deleted and the photo was never unlinked, or the code was mistyped when tagging.
 - Photo(s) tagged for item "30015-back" but no matching item record exists: monti/30015-back. Either the item was deleted and the photo was never unlinked, or the code was mistyped when tagging.
 - Photo(s) tagged for item "04108" but no matching item record exists: monti-trentini/stagionati/le-malghe-di-vezzena-300g-atm-usa-04108-13aj1e. Either the item was deleted and the photo was never unlinked, or the code was mistyped when tagging.
 
-## Info (18) — asymmetries that may be intentional
+## Info (17) — asymmetries that may be intentional
 - SKU "20277" is on the price list (catalog.json) but has no item record (name/description/photo) yet.
 - Item "20163" has a record but isn't on the price list (catalog.json) — may be intentional (discontinued, sample-only, etc.).
 - Item "20282" has a record but isn't on the price list (catalog.json) — may be intentional (discontinued, sample-only, etc.).
@@ -94,7 +94,6 @@ Structural checks only — a script can tell you a link is missing or a SKU is a
 - Item "40167" has a record but isn't on the price list (catalog.json) — may be intentional (discontinued, sample-only, etc.).
 - Item "40169" has a record but isn't on the price list (catalog.json) — may be intentional (discontinued, sample-only, etc.).
 - Item "10390000" has a record but isn't on the price list (catalog.json) — may be intentional (discontinued, sample-only, etc.).
-- Item "05018" has a record but isn't on the price list (catalog.json) — may be intentional (discontinued, sample-only, etc.).
 - Item "0001" has a record but isn't on the price list (catalog.json) — may be intentional (discontinued, sample-only, etc.).
 - Item "01034" has a record but isn't on the price list (catalog.json) — may be intentional (discontinued, sample-only, etc.).
 - Item "01299" has a record but isn't on the price list (catalog.json) — may be intentional (discontinued, sample-only, etc.).
