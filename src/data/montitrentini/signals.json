@@ -102,5 +102,31 @@
     "skus": ["asiago-fresco-dop", "grana-padano"],
     "source": "news-trade",
     "freshness": "2026-09-19"
+  },
+  {
+    "id": "sig-italian-import-recall-ca",
+    "scope": "market",
+    "audience": ["retail", "distributor"],
+    "type": "competitive",
+    "title": "Imported Italian-style cheese recalled for contamination (Canada)",
+    "insight": "Yotvata brand Caciotta Peperoncino, a semi-soft Italian-style cheese, was recalled in Ontario on staph contamination — a reminder that buyers in this category are actively weighing supply-chain trust, not just price, right now.",
+    "suggestedAngle": "When a competing import gets recalled, the pitch is traceability: a certified DOP chain from a named dairy at altitude, not an anonymous import.",
+    "storyHints": ["supply-chain-quality", "origin-provenance"],
+    "skus": ["caciotta-basket-rind"],
+    "source": "google-alert",
+    "freshness": "2026-09-19"
+  },
+  {
+    "id": "sig-usda-import-forecast-fy26",
+    "scope": "market",
+    "audience": ["distributor"],
+    "type": "category-trend",
+    "title": "USDA raises FY2026 US dairy import forecast to $5.5bn",
+    "insight": "USDA FAS raised its fiscal 2026 US dairy import forecast by $200M from the August estimate, to $5.5bn — the category is being sized up, not down, going into the back half of the year.",
+    "suggestedAngle": "Macro tailwind to open a distributor conversation about committing more shelf/menu space to imported specialty lines now rather than waiting.",
+    "storyHints": ["origin-provenance"],
+    "skus": [],
+    "source": "usda-fas",
+    "freshness": "2026-09-19"
   }
 ]
