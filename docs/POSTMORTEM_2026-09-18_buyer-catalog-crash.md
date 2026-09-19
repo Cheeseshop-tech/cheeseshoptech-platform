@@ -138,9 +138,15 @@ Checked directly against the live production bundle at `montitrentini.cheeseshop
   payload. This means the browser-side monitoring half described in
   `docs/APP_HEALTH_AND_ROADMAP_2026-08-14.md` has been live for some time, contrary to
   `docs/ENV_VARS.md` and `docs/BACKLOG.md`, both corrected today.
-- `SENTRY_DSN` (the Netlify Functions half, `_sentry.js`) — **not verified**. No tool available in
-  this session reads Netlify environment variable values. This still needs a human check in the
-  Netlify dashboard.
+- `SENTRY_DSN` (the Netlify Functions half, `_sentry.js`) — **was set, but to a value that didn't
+  match** the project's current DSN on Sentry's Client Keys page. This means the 25 Netlify
+  Functions have been running `withMonitoring()` in a silently-broken state — not "unconfigured"
+  (which no-ops cleanly) but pointed at the wrong place, so function-side errors and
+  slow-response signals were not reaching Sentry, with no indication anything was wrong. A third
+  contributing gap in the same monitoring system this incident already exposed. Rick edited the
+  value in Netlify; a local test script (`_archive/one-time-scripts/test-sentry-functions-dsn.mjs`)
+  then rejected the pasted value as "invalid DSN," and it's unclear whether what's saved now is
+  the fix or a re-paste of the original — **not resolved**, dropped for now at Rick's call.
 - No ESLint existed in this repo before today (`devDependencies` had none, no `.eslintrc*` /
   `eslint.config.js`, no `.github/workflows`). Confirmed by direct inspection, not inference.
 
@@ -152,7 +158,7 @@ Checked directly against the live production bundle at `montitrentini.cheeseshop
 | Correct the stale "Sentry not configured" claims in `ENV_VARS.md` and `BACKLOG.md` | Claude Code | P0 | **Done 2026-09-18** |
 | Check the Sentry dashboard (sentry.io) for this crash and confirm what it recorded | Rick | P0 | **Done 2026-09-18** — `ReferenceError: resolved is not defined` was there, 13 events, first seen ~21:09 UTC, last seen ~21:23 UTC — 3 minutes before the `a0615a8` fix went live at 21:26:28 UTC, and nothing since. Confirms Sentry recorded it correctly and the fix fully stopped it. Marked Resolved in Sentry (along with an unrelated pre-existing `ReferenceError: Cannot access 'T' before initialization` from 2026-09-17, also resolved while there). |
 | Add a Sentry alert rule (email/Slack) for new production issues | Rick | P0 | **Done 2026-09-18** — email notifications turned on for new issues |
-| Confirm `SENTRY_DSN` (functions half) is actually set in Netlify | Rick | P1 | **Open** |
+| Confirm `SENTRY_DSN` (functions half) is actually set in Netlify | Rick | P1 | **Open, attempted** — found it was set to a value that didn't match the project's current DSN; Rick edited it, but a local format-check script then rejected the pasted value as "invalid DSN," and whether the currently-saved value is fixed or reverted is unclear. Dropped for now at Rick's call — functions read `process.env.SENTRY_DSN` at invocation time (not build time), so whenever it is actually corrected it takes effect without a redeploy. |
 | Add a real post-deploy smoke check (a headless-browser hit against key routes, checking the error-boundary text is absent) rather than relying on `vite build` succeeding | Claude Code (proposed, not built) | P1 | **Open** — this needs a new dependency (e.g. Playwright) and a decision on where it runs; flagging rather than adding unasked |
 | When a commit changes render/business logic, say so in the message even if bundled with unrelated work | Rick (process norm) | P2 | **Open** — no code change, just a habit |
 | Audit `.command` buttons for the tee-to-`_archive/logs/` pattern the redirect button adopted today | Claude Code | P2 | **Partly done** — quick pass: of 8 root `.command` files, only today's `COMMIT HANDOFF DOC.command` tees to a log file; the rest (`DEPLOY TO STAGING`, `PUSH TO DEPLOY`, `REVIEW PORTAL`, `FIX GIT LOCK AND PUSH`, `VALIDATE ITEMS LIVE`, and the two spec-sheet commit buttons) print explicit error messages on each `git`/step failure but don't persist a log. Full remediation of all 7 needs its own pass — not done here to keep this session scoped to the crash. |

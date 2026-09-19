@@ -47,7 +47,7 @@ These are read by `netlify/functions/*`. They never reach the browser.
 | `SHOPIFY_ADMIN_TOKEN` | Admin API (orders) | `store-orders.js` | Storefront tool |
 | `INVENTORY_PUBLISH_SECRET` | Guards the inventory publish endpoint | `inventory-publish.js` | Used by the sync script |
 | `MAKE_CAMPAIGNS_WEBHOOK_URL` | Make webhook for campaigns | `campaigns.js` | Campaigns |
-| `SENTRY_DSN` | Error capture + slow-response signal for all 25 functions | `_sentry.js`, every function via `withMonitoring()` | **Status unconfirmed as of 2026-09-18** — this row said "not yet set" for a month while the browser half (`VITE_SENTRY_DSN`, below) was actually live in production the whole time; that stale row is part of why nobody checked Sentry during the 2026-09-18 Buyer Catalog crash. Verify directly in the Netlify dashboard rather than trusting this row. See `docs/POSTMORTEM_2026-09-18_buyer-catalog-crash.md`. |
+| `SENTRY_DSN` | Error capture + slow-response signal for all 25 functions | `_sentry.js`, every function via `withMonitoring()` | **Status uncertain as of 2026-09-18** — was actually set already (this row previously and incorrectly said "not yet set"), but to a value that didn't match the project's current DSN. Rick edited it in Netlify; a local test of the pasted value then failed with "invalid DSN" format, and it's unclear whether the value now saved is the corrected one or a re-paste of the original. Re-verify in the Netlify dashboard before trusting this row. See `docs/POSTMORTEM_2026-09-18_buyer-catalog-crash.md`. |
 
 > **Status caveat:** "Live" for everything except `ANTHROPIC_API_KEY` is *inferred* from the
 > corresponding feature working in production, not from reading the Netlify dashboard. Only the

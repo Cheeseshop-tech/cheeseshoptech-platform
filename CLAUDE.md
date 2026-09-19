@@ -115,13 +115,21 @@ image, breathable info rail, accordion sections, no parallax). Detail:
   photo for this SKU." Full rule + the 2026-09-18 spec-sheets-as-product-photos bug + fix:
   `docs/PRODUCT_ID_AND_IMAGE_TRUTH_2026-09-18.md`.
 
-## Key docs index
-- Status / definition of done: `docs/PROJECT_STATUS.md` · backlog: `docs/BACKLOG.md`
-- Open client data to retrieve: `docs/CLIENT_DATA_REQUESTS_2026-07-09.md`
-- Marketing photo request: `docs/MARKETING_IMAGE_REQUEST_2026-07-13.md` (+ `.csv`)
-- Cut & Wrap 7oz portion-reality rule + compliance audit (2026-09-17): `docs/CUT_AND_WRAP_PORTION_RULE_2026-09-17.md`
-- Product naming standard — names vs descriptors (2026-09-18): `docs/PRODUCT_NAMING_STANDARD_2026-09-18.md`
-- Live price list = canonical product source; gap lists + Monti spec sheet request (2026-09-18): `docs/GAP_LISTS_2026-09-18.md`, `docs/CLIENT_DATA_REQUEST_2026-09-18_spec-sheets.md`
-- Product ID truth + spec-sheet/product-photo mix-up, root cause + fix (2026-09-18): `docs/PRODUCT_ID_AND_IMAGE_TRUTH_2026-09-18.md`
-- Luxury DTC design research, external/not-a-tenant: `docs/HANDOFF_2026-07-19_luxury-dtc-design-research.md`
-- Campaign pill-nav + campaign lifecycle dashboard (built 2026-08-03): `docs/HANDOFF_2026-08-03_campaign-pill-nav-and-email-lifecycle.md`
+## Task routing
+
+However you got here — a fresh session, a different one of Rick's parallel sessions, or a cold
+read of this file — match the task to a row, then read its docs *before* touching code. Replaces
+the old flat "Key docs index"; nothing below was dropped, it's just triaged now.
+
+| Task type | Trigger | Start here |
+|---|---|---|
+| **Incident / crash response** | crash, down, "something went wrong", error boundary | Newest `docs/POSTMORTEM_*.md` / `docs/INCIDENT_*.md` · `eslint.config.js` is the `prebuild` lint gate (added 2026-09-18, catches the free-variable class of bug that caused the last one) · Sentry: browser confirmed live 2026-09-18, functions `SENTRY_DSN` — re-verify, it drifted once already |
+| **Product identity / catalog integrity** | SKU, item number, catalog, naming, "is this a real code" | `docs/PRODUCT_ID_AND_IMAGE_TRUTH_2026-09-18.md`, `docs/PRODUCT_NAMING_STANDARD_2026-09-18.md`, `docs/GAP_LISTS_2026-09-18.md` — run `npm run validate:items` before creating any code, tag, or item record anywhere |
+| **Media Hub / packshot & spec-sheet work** | photo, image, packshot, spec sheet, Cloudinary | `docs/MEDIA_HUB.md`, `docs/ASSET_LIBRARY_SPEC.md`, `docs/IMAGE_PIPELINE_SPEC.md`, `docs/CUT_AND_WRAP_PORTION_RULE_2026-09-17.md` — write path is the Media Hub UI only, never a direct Cloudinary API/MCP call |
+| **Client data request (Monti / Stefano)** | ask Monti, need from client, spec sheets | Newest `docs/CLIENT_DATA_REQUEST_*.md` · roles: `docs/CLIENT_DATA_ROLES.md` · open asks: `docs/CLIENT_DATA_REQUESTS_2026-07-09.md`, `docs/MARKETING_IMAGE_REQUEST_2026-07-13.md` |
+| **Campaigns** | campaign, pill-nav, email lifecycle, enrichment | `docs/HANDOFF_2026-08-03_campaign-pill-nav-and-email-lifecycle.md`, `src/lib/campaigns.js` |
+| **Picking up prior work** | continue, pick up, resume, "where did we leave off" | Newest `docs/HANDOFF_*.md` by date, then `docs/PROJECT_STATUS.md` + `docs/BACKLOG.md` |
+| **Shipping a change** | ship, deploy, commit | Root `COMMIT <FEATURE>.command` — every change gets one · `npm run build` is now lint-gated |
+
+Reference, not a routing target — external and not a committed tenant:
+`docs/HANDOFF_2026-07-19_luxury-dtc-design-research.md`.
