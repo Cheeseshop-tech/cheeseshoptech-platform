@@ -1040,7 +1040,7 @@ function BoothActivityPanel({ clients }) {
       <CardHeader className="flex flex-row items-center gap-3">
         <PanelIcon icon={UserPlus} />
         <div>
-          <CardTitle>Booth → HubSpot activity</CardTitle>
+          <CardTitle>Greet to Meet → HubSpot activity</CardTitle>
           <CardDescription>
             Contact cards synced from the booth capture tool in the last {BOOTH_WINDOW_DAYS} days. Captures not yet
             synced live on the rep's own device until they tap Sync — this only sees what's already landed in HubSpot.

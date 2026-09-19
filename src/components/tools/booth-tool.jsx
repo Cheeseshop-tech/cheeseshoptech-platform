@@ -1121,9 +1121,9 @@ export function BoothTool({ resolved }) {
 
       <div className="hdr">
         <div>
-          <h1>{resolved.brand.name} — Booth to Meeting</h1>
+          <h1>{resolved.brand.name} — Greet to Meet</h1>
           <div className="sub">
-            Capture the conversation, agree the next step before they walk away.
+            Turn the greeting into a meeting — capture it, agree the next step before they walk away.
             {repDisplayName && <> · Signed in as <strong>{repDisplayName}</strong></>}
           </div>
         </div>

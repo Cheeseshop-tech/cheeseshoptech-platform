@@ -312,7 +312,7 @@ export function CrmPage({ resolved, onNavigate }) {
         {/* Doorway to the field tool. Purely a shortcut — Booth already reads this same account
             book through getCrmData(); the difference is that it snapshots it for offline use. */}
         {onNavigate && (
-          <button className="btn ghost" onClick={() => onNavigate("tool:booth")}>Booth to Meeting →</button>
+          <button className="btn ghost" onClick={() => onNavigate("tool:booth")}>Greet to Meet →</button>
         )}
       </div>
 
