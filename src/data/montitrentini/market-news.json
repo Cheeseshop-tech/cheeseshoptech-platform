@@ -1,5 +1,45 @@
 [
   {
+    "id": "news-2026-09-18-04",
+    "category": "trade",
+    "headline": "Save Mart expands Instacart curbside pickup across all NorCal banners",
+    "summary": "Curbside is now live at Save Mart, Lucky and FoodMaxx stores — another sign grocers are leaning on third-party delivery infrastructure for perishables like cheese.",
+    "url": "https://retailslop.substack.com/p/retail-around-the-world-18-september-cdb",
+    "source": "Retail Around The World (Howard Lake)",
+    "date": "2026-09-18",
+    "tags": ["curbside", "instacart", "grocery-ops"]
+  },
+  {
+    "id": "news-2026-09-18-02",
+    "category": "trade",
+    "headline": "CME cash cheese holds mostly steady as blocks edge down to $1.4225/lb",
+    "summary": "Barrels flat at $1.4525/lb, blocks off a cent — a near-term signal for cost planning on block cheddar.",
+    "url": "https://www.ams.usda.gov/mnreports/dywweeklyreport.pdf",
+    "source": "USDA AMS Dairy Market News",
+    "date": "2026-09-17",
+    "tags": ["pricing", "cme", "cheddar"]
+  },
+  {
+    "id": "news-2026-09-18-03",
+    "category": "trade",
+    "headline": "Grocery unit sales slump in August as cyclospora scare hits produce",
+    "summary": "Produce unit sales fell 6.7% after a cyclospora outbreak spooked shoppers — a reminder that food-safety scares can drag down adjacent perishable categories like cheese and deli.",
+    "url": "https://www.grocerydive.com/news/august-tough-month-grocery-unit-sales-perishables/830644/",
+    "source": "Grocery Dive",
+    "date": "2026-09-17",
+    "tags": ["grocery-sales", "food-safety", "perishables"]
+  },
+  {
+    "id": "news-2026-09-18-01",
+    "category": "trade",
+    "headline": "Global Dairy Trade index slips 1.1% as Cheddar prices jump 16.5%",
+    "summary": "Cheddar led gains in the mid-September GDT auction while mozzarella and butter softened — worth watching for input costs on cheddar-heavy lines.",
+    "url": "https://cheesereporter.com/news/global-trade-tariffs/2026/09/16/global-dairy-trade-price-index-falls-1-1-cheddar-price-jumps-16-5/",
+    "source": "Cheese Reporter",
+    "date": "2026-09-16",
+    "tags": ["pricing", "cheddar", "global-trade"]
+  },
+  {
     "id": "news-2026-09-01-01",
     "category": "trade",
     "headline": "Canada adds cheese to retaliatory tariffs on US goods",
@@ -7,11 +47,7 @@
     "url": "https://cheesereporter.com/column/2026/08/28/cheese-prominent-in-canadian-trade-dispute/",
     "source": "Cheese Reporter",
     "date": "2026-08-28",
-    "tags": [
-      "tariffs",
-      "canada",
-      "trade-dispute"
-    ]
+    "tags": ["tariffs", "canada", "trade-dispute"]
   },
   {
     "id": "news-2026-08-21-05",
@@ -21,11 +57,7 @@
     "url": "https://tastewise.io/blog/snack-trends",
     "source": "Tastewise",
     "date": "2026-08-21",
-    "tags": [
-      "boards",
-      "grazing",
-      "foodservice"
-    ]
+    "tags": ["boards", "grazing", "foodservice"]
   },
   {
     "id": "news-2026-08-21-06",
@@ -35,11 +67,7 @@
     "url": "https://www.fb101.com/tillamooks-jill-allen-shares-2026-cheese-trends-bold-flavors-premium-textures-and-wellness-snacking/",
     "source": "Food & Beverage Magazine",
     "date": "2026-08-21",
-    "tags": [
-      "texture",
-      "aged",
-      "premiumization"
-    ]
+    "tags": ["texture", "aged", "premiumization"]
   },
   {
     "id": "news-2026-08-21-02",
@@ -49,10 +77,7 @@
     "url": "https://cheesereporter.com/news/consumer-retail/2026/08/19/retail-cheese-sales-grow-as-consumers-embrace-convenience-flavor-exploration/",
     "source": "Cheese Reporter",
     "date": "2026-08-19",
-    "tags": [
-      "retail",
-      "flavor-exploration"
-    ]
+    "tags": ["retail", "flavor-exploration"]
   },
   {
     "id": "news-2026-08-21-03",
@@ -62,10 +87,7 @@
     "url": "https://www.dairyreporter.com/Article/2026/08/19/global-specialty-cheese-market-set-to-reach-40bn-by-2031/",
     "source": "DairyReporter",
     "date": "2026-08-19",
-    "tags": [
-      "specialty",
-      "category-growth"
-    ]
+    "tags": ["specialty", "category-growth"]
   },
   {
     "id": "news-2026-09-01-02",
@@ -75,79 +97,6 @@
     "url": "https://www.dairyreporter.com/Article/2026/08/19/more-uk-milk-diverted-to-cheese-and-yogurt-as-liquid-consumption-continues-to-fall/",
     "source": "DairyReporter",
     "date": "2026-08-19",
-    "tags": [
-      "supply",
-      "uk",
-      "milk-diversion"
-    ]
-  },
-  {
-    "id": "news-2026-09-01-03",
-    "category": "trade",
-    "headline": "USDA awards cheese, yogurt and milk contracts — gets zero qualifying butter bids",
-    "summary": "A live demand signal from government purchasing: cheese and yogurt suppliers stepped up, butter suppliers didn't bid at current terms.",
-    "url": "https://cheesereporter.com/news/production-supply-chain/2026/08/14/usda-awards-contracts-for-cheese-yogurt-milk-products-gets-no-butter-offers/",
-    "source": "Cheese Reporter",
-    "date": "2026-08-14",
-    "tags": [
-      "usda",
-      "government-purchasing",
-      "demand-signal"
-    ]
-  },
-  {
-    "id": "news-2026-09-01-05",
-    "category": "trade",
-    "headline": "Schnucks rolls out AI shopping assistant and digital coupon clipping",
-    "summary": "Another regional grocer investing in AI-driven personalization and meal planning — a category-management conversation starter for account calls.",
-    "url": "https://www.grocerydive.com/news/schnucks-new-digital-tools-shoppers-artificial-intelligence/827758/",
-    "source": "Grocery Dive",
-    "date": "2026-08-13",
-    "tags": [
-      "retail-tech",
-      "ai",
-      "schnucks"
-    ]
-  },
-  {
-    "id": "news-2026-09-01-04",
-    "category": "trade",
-    "headline": "Senate hearing puts grocers on notice over AI \"surveillance pricing\"",
-    "summary": "Regulatory scrutiny is building on AI-driven dynamic pricing at retail — relevant if working with chains using personalized pricing tech.",
-    "url": "https://www.grocerydive.com/news/the-friday-checkout-senate-hearing-artificial-intelligence-surveillance-pr/827315/",
-    "source": "Grocery Dive",
-    "date": "2026-08-07",
-    "tags": [
-      "regulation",
-      "pricing",
-      "ai"
-    ]
-  },
-  {
-    "id": "news-2026-08-21-01",
-    "category": "trade",
-    "headline": "US cheese imports up 17% in June — Italy still the #1 source",
-    "summary": "Dairy imports rose 20% overall; Italy led H1 cheese imports at 45.0M lbs, ahead of France (30.3M) and the Netherlands (16.0M). Import-program volume is growing, not contracting.",
-    "url": "https://cheesereporter.com/news/production-supply-chain/2026/08/06/us-dairy-imports-rose-20-in-june-cheese-imports-increased-17/",
-    "source": "Cheese Reporter",
-    "date": "2026-08-06",
-    "tags": [
-      "imports",
-      "italy",
-      "volume"
-    ]
-  },
-  {
-    "id": "news-2026-08-21-04",
-    "category": "consumer",
-    "headline": "Cheese snack launches accelerate — Cheez-It, McVitie's, Cabot and more",
-    "summary": "The majors are pushing hard into cheese snacking formats. Relevant as competitive context: the volume play is crowded, the provenance play is not.",
-    "url": "https://www.bakeryandsnacks.com/Article/2026/08/04/cheese-snack-launches-2026-cheez-it-mcvities-cabot-and-more/",
-    "source": "BakeryAndSnacks",
-    "date": "2026-08-04",
-    "tags": [
-      "snacking",
-      "competitive"
-    ]
+    "tags": ["supply", "uk", "milk-diversion"]
   }
 ]
