@@ -5,12 +5,12 @@
     "audience": ["retail", "foodservice"],
     "type": "seasonal",
     "title": "Fall entertaining ramps — cheese-board season",
-    "insight": "Sept–Nov is peak board & grazing demand for specialty grocers and chef menus; buyers set fall assortments now.",
+    "insight": "Sept–Nov is peak board & grazing demand for specialty grocers and chef menus; shareable-board menu engagement is up 33% year over year, and buyers set fall assortments now.",
     "suggestedAngle": "Lead with the alpine-origin story and the Asiago DOP range; the provenance is the board's centerpiece.",
     "storyHints": ["origin-provenance", "why-trentino"],
     "skus": ["asiago-fresco-dop", "asiago-stagionato-dop"],
     "source": "seasonal-calendar",
-    "freshness": "2026-07-01"
+    "freshness": "2026-09-19"
   },
   {
     "id": "sig-q4-gifting",
@@ -18,38 +18,12 @@
     "audience": ["retail"],
     "type": "seasonal",
     "title": "Holiday gifting build for Q4",
-    "insight": "Grocers lock gift & DTC box programs in summer for Q4; a heritage story sells the gift, not the spec sheet.",
+    "insight": "Grocers lock gift & DTC box programs in late summer/early fall for Q4; a heritage story sells the gift, not the spec sheet.",
     "suggestedAngle": "Frame the 100-year family story — a gift with a place and a name behind it.",
     "storyHints": ["origin-provenance", "sustainability"],
     "skus": ["asiago-vecchio-dop", "grana-padano"],
     "source": "seasonal-calendar",
-    "freshness": "2026-07-01"
-  },
-  {
-    "id": "sig-provenance-trend",
-    "scope": "market",
-    "audience": ["retail", "foodservice", "distributor"],
-    "type": "category-trend",
-    "title": "Provenance & local-sourcing demand rising",
-    "insight": "Consumers and buyers increasingly reward single-origin, traceable specialty cheese over generic 'Made in Italy'.",
-    "suggestedAngle": "Made at altitude, milk from within 90 km — the mountain origin is the product, not a marketing line.",
-    "storyHints": ["origin-provenance", "supply-chain-quality"],
-    "skus": ["asiago-fresco-dop", "montasio-cheese-dop"],
-    "source": "category-trend",
-    "freshness": "2026-06-28"
-  },
-  {
-    "id": "sig-grating-menus",
-    "scope": "segment",
-    "audience": ["foodservice"],
-    "type": "category-trend",
-    "title": "Fall menu refresh — grating cheese for pasta programs",
-    "insight": "Chefs refresh pasta and risotto menus into fall; hard grating cheeses with a real DOP story upsell the plate.",
-    "suggestedAngle": "Everything made at home — one hand, start to finish; the grating cheese a chef can name on the menu.",
-    "storyHints": ["supply-chain-quality", "foodservice-chef"],
-    "skus": ["grana-padano", "parmigiano-reggiano-pdo"],
-    "source": "category-trend",
-    "freshness": "2026-06-25"
+    "freshness": "2026-09-19"
   },
   {
     "id": "sig-distributor-reset",
@@ -62,33 +36,7 @@
     "storyHints": ["supply-chain-quality", "origin-provenance"],
     "skus": ["asiago-stagionato-dop", "asiago-vecchio-dop"],
     "source": "seasonal-calendar",
-    "freshness": "2026-06-30"
-  },
-  {
-    "id": "sig-dop-authenticity",
-    "scope": "market",
-    "audience": ["retail", "distributor"],
-    "type": "category-trend",
-    "title": "DOP / PDO authenticity scrutiny",
-    "insight": "Retail and trade attention on genuine PDO labeling favors certified DOP producers over imitators.",
-    "suggestedAngle": "Certified DOP, made and aged in our own Alpine plants — the certification and the place both check out.",
-    "storyHints": ["supply-chain-quality", "why-trentino"],
-    "skus": ["asiago-fresco-dop", "grana-padano"],
-    "source": "category-trend",
-    "freshness": "2026-06-20"
-  },
-  {
-    "id": "sig-alpine-whitespace",
-    "scope": "market",
-    "audience": ["foodservice", "retail"],
-    "type": "competitive",
-    "title": "Alpine / mountain cheeses trending on specialty menus",
-    "insight": "Mountain and Alpine cheeses are gaining menu and case space; few importers own a credible altitude story.",
-    "suggestedAngle": "Why Trentino — cows graze in the Dolomites' shade; a story competitors on the shelf can't claim.",
-    "storyHints": ["why-trentino", "sustainability"],
-    "skus": ["vezzena-cheese", "alpeggio-cheese"],
-    "source": "category-trend",
-    "freshness": "2026-06-18"
+    "freshness": "2026-09-19"
   },
   {
     "id": "sig-deli-reset",
@@ -101,6 +49,58 @@
     "storyHints": ["retail-partnership", "origin-provenance"],
     "skus": ["mild-provolone", "caciotta-basket-rind"],
     "source": "seasonal-calendar",
-    "freshness": "2026-06-15"
+    "freshness": "2026-09-19"
+  },
+  {
+    "id": "sig-cheddar-price-surge",
+    "scope": "market",
+    "audience": ["distributor", "retail"],
+    "type": "category-trend",
+    "title": "Cheddar price surge widens the DOP-stability contrast",
+    "insight": "Global Dairy Trade cheddar prices jumped 16.5% in the mid-September auction even as the broader index slipped — commodity cheddar is getting more volatile just as buyers are locking fall/Q4 assortments.",
+    "suggestedAngle": "A DOP-certified range on stable, direct sourcing is the steadier bet next to swinging commodity cheddar pricing.",
+    "storyHints": ["supply-chain-quality"],
+    "skus": ["grana-padano", "asiago-stagionato-dop"],
+    "source": "news-trade",
+    "freshness": "2026-09-19"
+  },
+  {
+    "id": "sig-flavor-exploration-retail",
+    "scope": "market",
+    "audience": ["retail"],
+    "type": "category-trend",
+    "title": "Retail shoppers trading up into flavor exploration, not down on price",
+    "insight": "Cheese Reporter: retail cheese sales are growing on convenience and flavor exploration — shoppers are trading into new varieties rather than trading down, meaning discovery is doing the work price promotions used to.",
+    "suggestedAngle": "A named-origin SKU with a real story is exactly what a flavor-exploring shopper is reaching for right now.",
+    "storyHints": ["origin-provenance", "why-trentino"],
+    "skus": ["vezzena-cheese", "alpeggio-cheese"],
+    "source": "news-trade",
+    "freshness": "2026-09-19"
+  },
+  {
+    "id": "sig-aged-texture-premium",
+    "scope": "market",
+    "audience": ["retail", "foodservice"],
+    "type": "category-trend",
+    "title": "Texture, not just flavor, is now the purchase driver",
+    "insight": "Buyers are increasingly choosing cheese on how it performs — crystalline bite, melt, the cheese pull — not just on flavor; aged, crystalline paste is a texture story that photographs well for merchandising.",
+    "suggestedAngle": "The Asiago Stagionato/Vecchio crystalline bite is the texture story itself — built for a cut-wedge packshot and a counter demo.",
+    "storyHints": ["supply-chain-quality"],
+    "skus": ["asiago-stagionato-dop", "asiago-vecchio-dop"],
+    "source": "news-trade",
+    "freshness": "2026-09-19"
+  },
+  {
+    "id": "sig-specialty-market-growth",
+    "scope": "market",
+    "audience": ["distributor"],
+    "type": "category-trend",
+    "title": "Specialty cheese category headroom: $40bn by 2031",
+    "insight": "DairyReporter: the global specialty cheese market is projected to reach $40bn by 2031 at roughly 5% annual growth, with premium imported varieties leading — useful framing for a distributor conversation about where the category is heading.",
+    "suggestedAngle": "Lead a distributor pitch with the category tailwind, then land on why a certified-DOP, single-source range captures more of that growth than an anonymous import line.",
+    "storyHints": ["origin-provenance", "supply-chain-quality"],
+    "skus": ["asiago-fresco-dop", "grana-padano"],
+    "source": "news-trade",
+    "freshness": "2026-09-19"
   }
 ]
