@@ -4,7 +4,8 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card.j
 import { Button } from "@/components/ui/button.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
 import { Skeleton } from "@/components/ui/skeleton.jsx";
-import { getCrmData, hasCrm, money, PIPELINE_STAGES, crmIsSample } from "@/lib/crm.js";
+import { getCrmData, getOutreach, hasCrm, money, PIPELINE_STAGES, crmIsSample } from "@/lib/crm.js";
+import { readinessMap } from "@/lib/readiness.js";
 import {
   getCampaigns, getCampaignState, mergeCampaign, readinessOf, isLive,
   CHANNELS, STATUS_TONE, STATUS_LABEL, campaignsAreSample,
@@ -43,14 +44,18 @@ export function CommandCenter({ resolved, onNavigate }) {
     if (signalsVersion === 0) setData(undefined); // keep the strip stable on re-rank
     // Campaign definitions AND their state overlay — the same merge the Campaigns tab does, so
     // the hub can never disagree with it about what's launched or how close a campaign is.
-    Promise.all([getCrmData(resolved), getCampaigns(resolved), getSignals(resolved), getCampaignState(resolved)])
-      .then(([crm, defs, signalsRes, state]) => {
+    Promise.all([getCrmData(resolved), getCampaigns(resolved), getSignals(resolved), getCampaignState(resolved), getOutreach(resolved)])
+      .then(([crm, defs, signalsRes, state, outreach]) => {
         if (!alive) return;
         const signals = signalsRes?.items || [];
         setSignalsIsSample(signalsRes?.isSample ?? true);
         const brandKit = getBrandKit(resolved);
         const catalog = getPricingData(resolved)?.catalog;
-        const opportunities = rankOpportunities({ crm, signals, brandKit, catalog });
+        // outreach is null on a failed read (crm.js's null-not-{} guard) — readinessMap(null)
+        // degrades to {}, so a bad read just falls back to the legacy accountValue proxy instead
+        // of throwing here.
+        const readiness = readinessMap(outreach?.entries);
+        const opportunities = rankOpportunities({ crm, signals, brandKit, catalog, readiness });
         // CRM-05 follow-up: getCampaignState() now resolves null on a failed read — guard the
         // whole chain, not just .entries, or a failed read throws here instead of degrading.
         const campaigns = (defs || []).map((d) => mergeCampaign(d, state?.entries?.[d.id] || {}));

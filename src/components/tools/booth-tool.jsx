@@ -300,10 +300,11 @@ export function BoothTool({ resolved }) {
   const repOf = (companyId) => outreach[companyId]?.rep || "";
 
   /** Debounced, optimistic save — same 900ms coalesce as the CRM console's note field, so a rep
-   *  typing a name doesn't fire a request per keystroke. */
-  function scheduleRep(companyId, rep) {
+   *  typing a name doesn't fire a request per keystroke. Merges `patch` into companyId's overlay
+   *  entry so callers (rep field, readiness sync below) can each patch just their own fields. */
+  function scheduleOutreachPatch(companyId, patch) {
     if (!loadOkRef.current) { setRepSaveState("load-failed"); return; } // refuse to save over an unloaded overlay
-    const next = { ...outreachRef.current, [companyId]: { ...outreachRef.current[companyId], rep, updatedAt: new Date().toISOString() } };
+    const next = { ...outreachRef.current, [companyId]: { ...outreachRef.current[companyId], ...patch, updatedAt: new Date().toISOString() } };
     setOutreach(next);
     setRepSaveState("dirty");
     if (repTimer.current) clearTimeout(repTimer.current);
@@ -312,6 +313,21 @@ export function BoothTool({ resolved }) {
       const res = await saveOutreach(resolved, outreachRef.current);
       setRepSaveState(res.ok ? "saved" : res.status === 401 ? "denied" : "failed");
     }, 900);
+  }
+  function scheduleRep(companyId, rep) { scheduleOutreachPatch(companyId, { rep }); }
+
+  // ---- Readiness sync (roadmap item 7, Step A0, 2026-09-19) ------------------------------------
+  // booth.js already computes temperature + commitment weight per capture, but they lived only in
+  // this device's localStorage — invisible to the Opportunity Engine running on any other
+  // session. Mirrors both into the same per-tenant outreach overlay `rep` already rides, the
+  // instant a capture with a known account is saved. Skipped for captures with no companyId (a
+  // brand-new prospect not yet in the CRM) — nothing to attach a readiness score to yet.
+  function syncReadiness(capture) {
+    if (!capture?.companyId) return;
+    scheduleOutreachPatch(capture.companyId, {
+      temperature: capture.temperature || null,
+      nextStepMode: capture.nextStepMode || null,
+    });
   }
 
   // ---- Rep check-in (HANDOFF_2026-09-01, prompt c) ---------------------------------------------
@@ -855,6 +871,7 @@ export function BoothTool({ resolved }) {
   function saveSheet(capture) {
     const exists = captures.some((c) => c.id === capture.id);
     persist(exists ? updateCapture(tenantId, capture.id, capture) : addCapture(tenantId, capture));
+    syncReadiness(capture);
     setSheet(null);
   }
 

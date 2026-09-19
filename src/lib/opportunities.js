@@ -68,11 +68,15 @@ function skuCodesFor(signal, catalog) {
 
 /**
  * Rank opportunities across accounts × signals.
- * @param {{crm?:object, signals?:Array, brandKit?:object, catalog?:object}} input
+ * @param {{crm?:object, signals?:Array, brandKit?:object, catalog?:object, readiness?:object}} input
+ *   `readiness` (2026-09-19, roadmap item 7 Step B): optional {companyId: 0..1} map from
+ *   readiness.js — real booth-temperature/outreach-stage signal, sharper than the accountValue
+ *   proxy below. Accounts with no booth/outreach history yet (most of the CRM, still) fall back
+ *   to the old proxy untouched.
  * @returns {Array} sorted best-first; each: { id, accountId, who, audience, whyNow, angle,
  *          headline, intro, storyKeys, signalKeys, skuCodes, score, factors }
  */
-export function rankOpportunities({ crm, signals, brandKit, catalog } = {}) {
+export function rankOpportunities({ crm, signals, brandKit, catalog, readiness } = {}) {
   const sigs = signals || [];
   if (sigs.length === 0) return [];
 
@@ -97,7 +101,7 @@ export function rankOpportunities({ crm, signals, brandKit, catalog } = {}) {
     for (const sig of sigs) {
       if (!(sig.audience || []).includes(audience)) continue;
       const matched = (sig.storyHints || []).filter((k) => audBlockKeys.has(k));
-      const scored = score({ sig, account, matchedCount: matched.length });
+      const scored = score({ sig, account, matchedCount: matched.length, readiness: readiness?.[account.id] });
       if (!best || scored.score > best.score) best = { sig, matched, ...scored };
     }
     if (!best) continue;
@@ -126,16 +130,21 @@ export function rankOpportunities({ crm, signals, brandKit, catalog } = {}) {
 }
 
 /** Transparent weighting: brand-fit is a first-class factor, not an afterthought. */
-function score({ sig, account, matchedCount }) {
+function score({ sig, account, matchedCount, readiness }) {
   const brandFit = Math.min(matchedCount / 2, 1); // 2 matched story hints = full fit
   const timeliness = TYPE_TIMELINESS[sig.type] ?? 0.5;
-  const accountValue = account?.segment
+  const legacyValue = account?.segment
     ? 0.4
     : account?.activity
       ? 1
       : account?.value
         ? Math.min(account.value / 10000, 1)
         : 0.3;
+  // Real readiness (booth temperature + commitment + outreach stage, readiness.js) replaces the
+  // activity/value proxy once we actually have it for this account — a sharper "ready to move
+  // now" read than "there's a HubSpot activity row" or "$X of order history." Falls back to the
+  // legacy proxy for the (still-most) accounts with no booth/outreach history yet.
+  const accountValue = typeof readiness === "number" ? readiness : legacyValue;
   const raw = 0.45 * brandFit + 0.3 * timeliness + 0.25 * accountValue;
   return {
     score: Math.round(raw * 100),

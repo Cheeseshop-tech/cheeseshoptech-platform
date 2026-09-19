@@ -6,11 +6,18 @@
 //
 // GET  ?tenant=<id>                 → { entries, updatedAt }   (any valid passcode tier)
 // POST { tenant, entries }          → { ok, updatedAt }        (house/client-admin passcode)
-//   entries = { [companyId]: { status, note, rep, updatedAt } } — the FULL document each save
-//   (last-writer-wins; fine at this team size, same trade-off as items-save.js).
+//   entries = { [companyId]: { status, note, rep, temperature, nextStepMode, updatedAt } } —
+//   the FULL document each save (last-writer-wins; fine at this team size, same trade-off as
+//   items-save.js).
 //   `rep` (2026-09-01): free-text "who covers this account", platform-native — not a HubSpot
 //   property, no rep entity elsewhere in the app. Booth's territory drill-down is the primary
 //   writer (see booth-tool.jsx); the CRM console can edit it too, same field either way.
+//   `temperature`/`nextStepMode` (2026-09-19, roadmap item 7 Step A0): booth.js already computes
+//   both per capture (TEMPERATURES, NEXT_STEP_MODES) but they used to die in the capturing
+//   device's localStorage — invisible to every other device/session. booth-tool.jsx's
+//   saveSheet() now mirrors them here, the same overlay `rep` already rides, so
+//   src/lib/readiness.js can compute a cross-device readiness score for the Opportunity Engine
+//   instead of the capture's temperature being stuck on whichever phone shot the card.
 //
 // HubSpot stays the CRM of record for accounts/contacts; this store is the thin outreach
 // overlay the platform owns. No per-client code — tenant is data.
@@ -22,6 +29,11 @@ import { logWrite } from "./_write-log.js";
 import { withMonitoring } from "./_sentry.js";
 const MAX_BYTES = 400_000; // plenty for thousands of {status,note} rows; guards runaway payloads
 const STAGES = ["New", "Emailed", "Replied", "Meeting", "Won", "Lost", "Not a fit"];
+// Mirrors booth.js's TEMPERATURES / NEXT_STEP_MODES — duplicated, not imported: this function
+// bundles separately from src/lib, same reason STAGES above is a local copy of crm.js's
+// OUTREACH_STAGES rather than an import.
+const TEMPERATURES = ["hot", "warm", "cold"];
+const NEXT_STEP_MODES = ["time", "window", "request"];
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -83,9 +95,12 @@ const rawHandler = async (event, context) => {
     const status = STAGES.includes(e.status) ? e.status : null;
     const note = typeof e.note === "string" ? e.note.slice(0, 500) : "";
     const rep = typeof e.rep === "string" ? e.rep.slice(0, 80) : "";
-    if (!status && !note && !rep) continue; // nothing worth storing
+    const temperature = TEMPERATURES.includes(e.temperature) ? e.temperature : null;
+    const nextStepMode = NEXT_STEP_MODES.includes(e.nextStepMode) ? e.nextStepMode : null;
+    if (!status && !note && !rep && !temperature && !nextStepMode) continue; // nothing worth storing
     clean[id] = {
       ...(status ? { status } : {}), ...(note ? { note } : {}), ...(rep ? { rep } : {}),
+      ...(temperature ? { temperature } : {}), ...(nextStepMode ? { nextStepMode } : {}),
       updatedAt: e.updatedAt || new Date().toISOString(),
     };
   }
