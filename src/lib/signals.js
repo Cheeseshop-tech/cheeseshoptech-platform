@@ -1,9 +1,18 @@
 // Market-signal data layer — the "market" nerve ending (docs/MARKET_INTELLIGENCE_SPEC.md §2a,
 // Tier 2). A signal is a distilled market opportunity: a trend + the audience it fits + the SKUs
-// and brand-story hints that capitalize on it. House-authored (part of the CST orchestration
-// value). Mock now; the getSignals() seam swaps to a real feed later (scheduled brief, Apify,
-// Ahrefs, ZoomInfo) behind VITE_SIGNALS_BACKEND — same additive pattern as CRM/Campaigns/Media.
+// and brand-story hints that capitalize on it.
+//
+// Wired live 2026-09-19: the weekly mt-seed-topics-scan automation distills signals from its own
+// web research, recent Market News trade items, Google Alerts, Owler company alerts, and a
+// quarterly USDA FAS dairy-trade snapshot — then publishes through
+// /.netlify/functions/signals-publish (Netlify Blobs), read back here through
+// /.netlify/functions/signals-list — same no-rebuild path attention/market-news use. Gated by
+// VITE_SIGNALS_BACKEND=mock|function. The bundled JSON stays as the offline/error fallback, and
+// "is this sample data?" is decided per fetch (like attention/market-news), not just by the build
+// flag — a fetch failure or an empty/unprovisioned store falls back to the bundled sample rather
+// than showing an empty Opportunities card.
 
+import { authHeaders } from "@/lib/auth-context.jsx";
 import mtSignals from "@/data/montitrentini/signals.json";
 import tplSignals from "@/data/_template/signals.json";
 
@@ -12,13 +21,12 @@ const BUNDLES = {
   demo: tplSignals,
 };
 
-const USE_MOCK = (import.meta.env.VITE_SIGNALS_BACKEND || "mock") === "mock";
-// True while signals are sample (no live feed). UI marks signal-backed sections "Sample".
-export const signalsAreSample = USE_MOCK;
+const SIGNALS_BACKEND = import.meta.env.VITE_SIGNALS_BACKEND || "mock";
 
 // Locally-promoted signals (the Tier 1 → Tier 2 bridge, spec §2a): a house click on a Market News
 // row distills it into a signal. Persisted per-tenant in localStorage — the same overlay model as
-// the brand kit and the Content Library catalog — and merged over the authored bundle.
+// the brand kit and the Content Library catalog — and merged over whatever the seam returns below,
+// mock or live.
 const LOCAL_KEY = (tenantId) => `cs-signals-local-${tenantId}`;
 
 export function loadLocalSignals(tenantId) {
@@ -39,10 +47,31 @@ export function removeLocalSignal(tenantId, id) {
   return next;
 }
 
-/** Market signals for a tenant (most timely first is the engine's job, not this seam's). */
+/**
+ * Market signals for a tenant (most timely first is the engine's job, not this seam's), plus
+ * whether the non-local portion is still sample data. The local (promoted-from-news) overlay is
+ * always real regardless of backend, so it's merged on top either way and never affects isSample.
+ *
+ * @returns {Promise<{items: Array, isSample: boolean, updatedAt: string|null}>}
+ */
 export async function getSignals(resolved) {
   const local = loadLocalSignals(resolved?.id);
-  if (USE_MOCK) return [...local, ...(BUNDLES[resolved?.id] || [])];
-  const res = await fetch(`/.netlify/functions/signals?tenant=${encodeURIComponent(resolved.id)}`);
-  return res.ok ? [...local, ...(await res.json())] : local;
+  const bundled = BUNDLES[resolved?.id] || [];
+
+  if (SIGNALS_BACKEND === "mock") return { items: [...local, ...bundled], isSample: true, updatedAt: null };
+
+  try {
+    const res = await fetch(`/.netlify/functions/signals-list?tenant=${encodeURIComponent(resolved.id)}`,
+      { headers: { Accept: "application/json", ...(await authHeaders()) } });
+    if (!res.ok) return { items: [...local, ...bundled], isSample: true, updatedAt: null };
+    const data = await res.json();
+    if (!Array.isArray(data?.items) || data.items.length === 0) {
+      // No live watch list published yet (or a transient Blobs error) — fall back to bundled
+      // sample rather than showing a near-empty Opportunities card.
+      return { items: [...local, ...bundled], isSample: true, updatedAt: null };
+    }
+    return { items: [...local, ...data.items], isSample: false, updatedAt: data.updatedAt || null };
+  } catch {
+    return { items: [...local, ...bundled], isSample: true, updatedAt: null };
+  }
 }

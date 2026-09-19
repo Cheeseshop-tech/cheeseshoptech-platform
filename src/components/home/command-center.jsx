@@ -9,7 +9,7 @@ import {
   getCampaigns, getCampaignState, mergeCampaign, readinessOf, isLive,
   CHANNELS, STATUS_TONE, STATUS_LABEL, campaignsAreSample,
 } from "@/lib/campaigns.js";
-import { getSignals, signalsAreSample } from "@/lib/signals.js";
+import { getSignals } from "@/lib/signals.js";
 import { rankOpportunities } from "@/lib/opportunities.js";
 import { getBrandKit } from "@/lib/brandKit.js";
 import { getPricingData } from "@/lib/pricing.js";
@@ -34,6 +34,9 @@ export function CommandCenter({ resolved, onNavigate }) {
   const [data, setData] = useState(undefined);
   // Bumped when Market News promotes a headline to a signal, so the Opportunities lane re-ranks.
   const [signalsVersion, setSignalsVersion] = useState(0);
+  // Runtime fact, not a build flag (mirrors attention/market-news) — set from getSignals()'s
+  // per-fetch result, not the old static signalsAreSample import.
+  const [signalsIsSample, setSignalsIsSample] = useState(true);
 
   useEffect(() => {
     let alive = true;
@@ -41,8 +44,10 @@ export function CommandCenter({ resolved, onNavigate }) {
     // Campaign definitions AND their state overlay — the same merge the Campaigns tab does, so
     // the hub can never disagree with it about what's launched or how close a campaign is.
     Promise.all([getCrmData(resolved), getCampaigns(resolved), getSignals(resolved), getCampaignState(resolved)])
-      .then(([crm, defs, signals, state]) => {
+      .then(([crm, defs, signalsRes, state]) => {
         if (!alive) return;
+        const signals = signalsRes?.items || [];
+        setSignalsIsSample(signalsRes?.isSample ?? true);
         const brandKit = getBrandKit(resolved);
         const catalog = getPricingData(resolved)?.catalog;
         const opportunities = rankOpportunities({ crm, signals, brandKit, catalog });
@@ -97,7 +102,7 @@ export function CommandCenter({ resolved, onNavigate }) {
             <CardTitle className="flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-brand-primary" />
               Opportunities
-              <SampleTag show={signalsAreSample || crmIsSample} />
+              <SampleTag show={signalsIsSample || crmIsSample} />
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
