@@ -1,0 +1,41 @@
+{
+  "weekOf": "2026-09-18",
+  "shippedSummary": "Full spec-sheet/document pipeline for Media Hub + Buyer Catalog landed 2026-09-17 (14+ PDFs uploaded, font-embedded, viewable with thumbnails/inline/download, typed doc views, manifest resync) plus a new per-item onboarding docs page shareable by link. Today's inventory auto-sync failed validation and was not promoted.",
+  "shelfLife": {
+    "expired": 5,
+    "urgent": 19,
+    "watch": 32,
+    "atRiskCases": 490,
+    "topLots": [
+      { "code": "20438", "name": "PROVOLONE CYLINDER CHEESE", "lot": "1206510", "exp": "2026-01-15", "cases": 38, "dleft": -246 },
+      { "code": "20438", "name": "PROVOLONE CYLINDER CHEESE", "lot": "1206511", "exp": "2026-01-15", "cases": 72, "dleft": -246 },
+      { "code": "03023", "name": "ASIAGO AGED WHOLE WHEEL", "lot": "1268920", "exp": "2026-08-30", "cases": 21, "dleft": -19 }
+    ]
+  },
+  "dataFreshnessNote": "Shelf-life numbers are from the last promoted sync (source availability_2026-09-16.csv, as of 2026-09-14) — the 2026-09-18 auto-sync attempt failed validation and was not promoted. The two Provolone lots (110 cases, ~8 months past expiry) look like a write-off/data-hygiene issue rather than live risk; worth confirming with Traffic/Inventory Manager.",
+  "backlogNow": [
+    "[high/low] Flip Sentry on — code shipped, waiting on Rick to create the account, set env vars, redeploy",
+    "[med/med] Catch vs exact weight in UI + invoice states"
+  ],
+  "backlogNext": [
+    "[med/high] Product copy & provenance research project",
+    "[high/med] Buyer Onboarding Kit",
+    "[high/med] Photo series per SKU (typed, ordered)",
+    "[high/high] Product Compliance Documents",
+    "[med/med] Create a campaign from the UI",
+    "[med/med] Campaign results from the ESP",
+    "[med/high] Forecasting view",
+    "[med/low] Shelf-life to action"
+  ],
+  "recommendation": {
+    "title": "Buyer Onboarding Kit",
+    "why": "Forks the Proposal engine and directly extends what just shipped (the per-item onboarding docs page went live 2026-09-17) — momentum is already there, and it's high-impact/medium-effort. Needs the buyer-email gate as a prerequisite, which this batch would build. Runner-up: Photo series per SKU, since Rick's Cloudinary tagging pass can start now ahead of any code change."
+  },
+  "blocked": [
+    { "item": "Class-of-trade margin alignment", "blocker": "Stefano / Sales Management's real margin numbers" },
+    { "item": "Promote 3 orphan Media Hub assets (01114, 20482, 01286) to catalog items", "blocker": "Rick — a few clicks in Media Hub, not code" }
+  ],
+  "openRisks": [
+    "Real replacement photography still open for the 11 SKUs flagged in the 2026-09-17 Cut & Wrap portion-rule audit (7 non-compliant, 4 missing)"
+  ]
+}

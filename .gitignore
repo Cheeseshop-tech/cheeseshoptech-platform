@@ -4,6 +4,7 @@
 !.env.example
 scripts/.inventory-publish.json
 scripts/.market-news-publish.json
+scripts/.improvement-review-publish.json
 
 # Dependencies
 node_modules/

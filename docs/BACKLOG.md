@@ -4,6 +4,11 @@ One list. Add items here (or tell Claude). Format: `- [impact/effort] descriptio
 See `docs/CONTINUAL_IMPROVEMENT.md` for the loop. Updated 2026-06-18.
 
 ## Now (next batch)
+- [low/low] **Wire up improvement-review publishing** — code shipped 2026-09-18 (Netlify function +
+  Command Center panel + publish script), inert until Rick creates
+  `scripts/.improvement-review-publish.json` with the `AGENT_GATE_PASSCODE` value and the
+  `weekly-improvement-review` scheduled task's final step is updated to run it. Steps in
+  `docs/WEEKLY_IMPROVEMENT_REVIEW_AUTOMATION.md`.
 - [high/low] **Check Sentry for the 2026-09-18 Buyer Catalog crash, then wire up alerting** —
   this item used to read "Flip Sentry on," assuming no DSN existed. That was wrong: confirmed
   2026-09-18 that `VITE_SENTRY_DSN` is live in the production bundle, so the crash almost
@@ -55,6 +60,16 @@ See `docs/CONTINUAL_IMPROVEMENT.md` for the loop. Updated 2026-06-18.
 - [med/low] **Shelf-life → action** — from the Shelf Life tab, one-click "build a clear-out list / draft"
   for a chosen customer group (path to the per-customer sales sheet).
 - [low/low] **Weekly shelf-life email** — auto-draft the <4mo list each week (extends monti-inventory-watch).
+- [low/low] **Consolidate publish auth to `AGENT_GATE_PASSCODE`** — `inventory-publish.js` and
+  `market-news-publish.js` still use their own per-feature secrets (`INVENTORY_PUBLISH_SECRET`,
+  `MARKETNEWS_PUBLISH_SECRET` via `x-publish-secret`), predating the unified
+  `requireWriteAuth()`/`AGENT_GATE_PASSCODE` gate that `campaign-state.js` and
+  `improvement-review.js` already use. Small, mechanical, low-risk — do it the next time either
+  file is touched for an unrelated reason. See `docs/DASHBOARD_AUTO_UPDATE_ARCHITECTURE.md` §5.
+- [low/low] **Extract a shared `_blob-doc.js` helper** for the read/degrade/sanitize/write
+  boilerplate duplicated across inventory.js, market-news.js, campaign-state.js, and
+  improvement-review.js — worth doing once a fifth Blobs-backed dashboard needs it, not before.
+  `docs/DASHBOARD_AUTO_UPDATE_ARCHITECTURE.md` §5.
 
 ## Blocked
 - [high/low] **Class-of-trade margin alignment** — reshape tiers to importer +15% / retail distrib +20–30% /
@@ -72,6 +87,11 @@ See `docs/CONTINUAL_IMPROVEMENT.md` for the loop. Updated 2026-06-18.
   live availability + shelf life.
 
 ## Done (log)
+- ✅ 2026-09-18 Weekly improvement review now publishes to the house Command Center — new
+  `improvement-review.js` function (Blobs, house-admin only, reuses `AGENT_GATE_PASSCODE`),
+  `scripts/publish-improvement-review.mjs`, and an Agency Console panel with a history view. Self-
+  updating once Rick sets up the local publish credentials (see the Now item above). Details:
+  `docs/WEEKLY_IMPROVEMENT_REVIEW_AUTOMATION.md`.
 - ✅ 2026-09-17 Spec sheet documents in Media Hub + Buyer Catalog (Gap 3) — `resource_type=raw`
   fetch path in both `media-list.js` and `sync-images.mjs`, `kind:"document"` manifest field,
   document tiles in Media Hub and a "Spec sheet(s)" download section in the Buyer Catalog

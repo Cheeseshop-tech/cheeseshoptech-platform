@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Users, PlugZap, Database, ExternalLink, RefreshCw, CheckCircle2, AlertTriangle, CircleDashed, ShieldCheck, Maximize2, ListChecks, UserPlus } from "lucide-react";
+import { Users, PlugZap, Database, ExternalLink, RefreshCw, CheckCircle2, AlertTriangle, CircleDashed, ShieldCheck, Maximize2, ListChecks, UserPlus, ClipboardList } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
 import { Button } from "@/components/ui/button.jsx";
@@ -27,6 +27,7 @@ export function AgencyConsole({ onNavigate }) {
       </p>
       <div className="space-y-5">
         <ProjectStatusPanel />
+        <ImprovementReviewPanel />
         <CrmSnapshotPanel />
         <TenantPanel clients={clients} onNavigate={onNavigate} />
         <IntegrationPanel clients={clients} />
@@ -88,6 +89,196 @@ function ProjectStatusPanel() {
         </p>
       </CardContent>
     </Card>
+  );
+}
+
+/* ---------------- Weekly improvement review (CST build-ops reporting, self-updating) ----------------
+   Reads netlify/functions/improvement-review.js — house-admin only, same tier as the login/write
+   logs above. The "weekly-improvement-review" scheduled task computes the shelf-life snapshot +
+   backlog triage every week and publishes it here via scripts/publish-improvement-review.mjs, so
+   this panel updates on its own with no rebuild — see docs/WEEKLY_IMPROVEMENT_REVIEW_AUTOMATION.md.
+   Rick, 2026-09-18: "weekly improvement updates live in the command center ... automate this
+   also. so it updates on its own." */
+
+const SHELF_LIFE_TILES = [
+  { key: "expired", label: "Expired" },
+  { key: "urgent", label: "Under 4 months" },
+  { key: "watch", label: "4–6 month watch" },
+  { key: "atRiskCases", label: "Net cases at risk" },
+];
+
+function ImprovementReviewPanel() {
+  const [state, setState] = useState("loading"); // "loading" | "error" | "forbidden" | { latest, history }
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [expanded, setExpanded] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    setRefreshing(true);
+    authHeaders()
+      .then((headers) => fetch("/.netlify/functions/improvement-review", { headers }))
+      .then((r) => {
+        if (r.status === 403) return Promise.reject("forbidden");
+        if (!r.ok) return Promise.reject("error");
+        return r.json();
+      })
+      .then((d) => { if (alive) { setState(d?.ok ? d : "error"); setRefreshing(false); } })
+      .catch((e) => { if (alive) { setState(e === "forbidden" ? "forbidden" : "error"); setRefreshing(false); } });
+    return () => { alive = false; };
+  }, [refreshKey]);
+
+  const ok = state && typeof state === "object";
+  const latest = ok ? state.latest : null;
+  const history = ok ? state.history || [] : [];
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center gap-3">
+        <PanelIcon icon={ClipboardList} />
+        <div>
+          <CardTitle>Weekly improvement review</CardTitle>
+          <CardDescription>
+            {latest ? `Week of ${latest.weekOf} · shelf-life + backlog triage, published automatically` : "Shelf-life + backlog triage, published automatically each week"}
+          </CardDescription>
+        </div>
+        <div className="ml-auto flex items-center gap-2">
+          {history.length > 1 && (
+            <Button size="sm" variant="outline" onClick={() => setExpanded(true)}>
+              <Maximize2 className="h-3.5 w-3.5" /> History ({history.length})
+            </Button>
+          )}
+          <Button size="sm" variant="outline" onClick={() => setRefreshKey((k) => k + 1)} disabled={refreshing}>
+            <RefreshCw className={cn("h-3.5 w-3.5", refreshing && "animate-spin")} /> Refresh
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {state === "loading" && <p className="text-sm text-fg-muted">Loading…</p>}
+        {state === "error" && <p className="text-sm text-fg-muted">Unavailable — check you're signed in as house admin.</p>}
+        {state === "forbidden" && <p className="text-sm text-fg-muted">Sign in with a house admin account to see this.</p>}
+        {ok && !latest && (
+          <p className="text-sm text-fg-muted">
+            No review published yet. Runs weekly via the "weekly-improvement-review" scheduled task once the
+            publish credentials are set up — see <code className="font-mono text-xs">docs/WEEKLY_IMPROVEMENT_REVIEW_AUTOMATION.md</code>.
+          </p>
+        )}
+        {ok && latest && <ImprovementReviewBody review={latest} />}
+      </CardContent>
+
+      <Dialog open={expanded} onOpenChange={setExpanded}>
+        <DialogContent className="flex h-[85vh] w-[90vw] max-w-[90vw] flex-col">
+          <DialogHeader>
+            <DialogTitle>Improvement review — history</DialogTitle>
+            <DialogDescription>Newest first, {history.length} kept.</DialogDescription>
+          </DialogHeader>
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <Table>
+              <TableHeader className="sticky top-0 z-10 bg-bg">
+                <TableRow>
+                  <TableHead>Week of</TableHead>
+                  <TableHead>Shipped</TableHead>
+                  <TableHead>Recommended next</TableHead>
+                  <TableHead>Cases at risk</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {history.map((r, i) => (
+                  <TableRow key={i}>
+                    <TableCell className="whitespace-nowrap text-xs font-medium">{r.weekOf}</TableCell>
+                    <TableCell className="max-w-md text-xs text-fg-muted">{r.shippedSummary}</TableCell>
+                    <TableCell className="text-xs">{r.recommendation?.title || "—"}</TableCell>
+                    <TableCell className="text-xs">{r.shelfLife?.atRiskCases ?? "—"}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </Card>
+  );
+}
+
+// Body of the latest review — split out so the compact card and (if ever needed) an expanded
+// single-review view can share it without drifting apart, same reasoning as LoginLogTable above.
+function ImprovementReviewBody({ review }) {
+  const sl = review.shelfLife || {};
+  return (
+    <div className="space-y-4">
+      {review.shippedSummary && <p className="text-sm text-fg">{review.shippedSummary}</p>}
+
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {SHELF_LIFE_TILES.map((t) => (
+          <div key={t.key} className="rounded-base border border-border bg-bg p-3 text-center">
+            <div className={cn("font-heading text-2xl", t.key === "expired" || t.key === "atRiskCases" ? "text-error" : "text-brand-primary")}>
+              {sl[t.key] ?? "—"}
+            </div>
+            <div className="mt-1 text-xs uppercase tracking-wide text-fg-muted">{t.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {sl.topLots?.length > 0 && (
+        <p className="text-xs text-fg-muted">
+          <span className="font-medium text-fg">Soonest-expiring: </span>
+          {sl.topLots.map((l, i) => (
+            <span key={i}>
+              {i > 0 && "; "}
+              {l.code} {l.name} (lot {l.lot}, exp {l.exp}, {l.cases} cases)
+            </span>
+          ))}
+        </p>
+      )}
+
+      {review.dataFreshnessNote && (
+        <p className="rounded-base border border-dashed border-border p-3 text-xs text-fg-muted">{review.dataFreshnessNote}</p>
+      )}
+
+      {review.recommendation?.title && (
+        <div className="rounded-base border border-brand-primary/30 bg-bg p-4">
+          <p className="text-sm font-medium text-fg">Recommended next batch: {review.recommendation.title}</p>
+          {review.recommendation.why && <p className="mt-1 text-sm text-fg-muted">{review.recommendation.why}</p>}
+        </div>
+      )}
+
+      <div className="grid gap-4 md:grid-cols-2">
+        {review.backlogNow?.length > 0 && (
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wide text-fg-muted">Backlog — Now</p>
+            <ul className="mt-1.5 space-y-1 text-sm text-fg-muted">
+              {review.backlogNow.map((item, i) => <li key={i}>· {item}</li>)}
+            </ul>
+          </div>
+        )}
+        {review.backlogNext?.length > 0 && (
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wide text-fg-muted">Backlog — Next</p>
+            <ul className="mt-1.5 space-y-1 text-sm text-fg-muted">
+              {review.backlogNext.map((item, i) => <li key={i}>· {item}</li>)}
+            </ul>
+          </div>
+        )}
+      </div>
+
+      {review.blocked?.length > 0 && (
+        <div>
+          <p className="text-xs font-medium uppercase tracking-wide text-fg-muted">Blocked</p>
+          <ul className="mt-1.5 space-y-1 text-sm text-fg-muted">
+            {review.blocked.map((b, i) => <li key={i}>· {b.item} — <span className="italic">{b.blocker}</span></li>)}
+          </ul>
+        </div>
+      )}
+
+      {review.openRisks?.length > 0 && (
+        <div>
+          <p className="text-xs font-medium uppercase tracking-wide text-fg-muted">Open risks</p>
+          <ul className="mt-1.5 space-y-1 text-sm text-fg-muted">
+            {review.openRisks.map((item, i) => <li key={i}>· {item}</li>)}
+          </ul>
+        </div>
+      )}
+    </div>
   );
 }
 

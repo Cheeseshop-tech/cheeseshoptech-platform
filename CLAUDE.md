@@ -79,6 +79,16 @@ non-compliant SKUs' images unlinked from the Catalog (sku cleared, `product-cata
 files untouched in Cloudinary). Real replacement photography for all 11 affected SKUs is still
 open. Full findings: `docs/CUT_AND_WRAP_PORTION_RULE_2026-09-17.md`.
 
+**2026-09-18 — Weekly improvement review publishes to the house Command Center on its own.**
+The `weekly-improvement-review` scheduled task used to only ever produce a chat transcript —
+useful once, gone a week later. It now also writes `src/data/cst/improvement-review.json` and
+runs `scripts/publish-improvement-review.mjs`, which POSTs it (via `AGENT_GATE_PASSCODE`, same
+credential as every other unattended write) to the new `improvement-review.js` function → Netlify
+Blobs → the Agency Console's "Weekly improvement review" panel, same no-rebuild pattern as
+market-news/inventory. Code shipped 2026-09-18; inert until Rick creates
+`scripts/.improvement-review-publish.json` (gitignored, one-time). Full wiring:
+`docs/WEEKLY_IMPROVEMENT_REVIEW_AUTOMATION.md`.
+
 **2026-09-17 — `AGENT_GATE_PASSCODE`: a dedicated write/read credential for automation.** The old
 shared `PORTAL_*` passcodes are retired (env vars deleted 2026-08-17; the live login screen is now
 Identity email/password only) — but that left scripts/agents (no browser, no Identity session) with
