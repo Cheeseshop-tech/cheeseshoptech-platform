@@ -62,7 +62,7 @@ export async function getSignals(resolved) {
 
   try {
     const res = await fetch(`/.netlify/functions/signals-list?tenant=${encodeURIComponent(resolved.id)}`,
-      { headers: { Accept: "application/json", ...(await authHeaders()) } });
+      { cache: "no-store", headers: { Accept: "application/json", ...(await authHeaders()) } });
     if (!res.ok) return { items: [...local, ...bundled], isSample: true, updatedAt: null };
     const data = await res.json();
     if (!Array.isArray(data?.items) || data.items.length === 0) {
