@@ -1,29 +1,38 @@
 [
   {
-    "id": "att-email-1",
+    "id": "att-email-expense-1",
     "kind": "email",
     "urgency": "urgent",
-    "who": "Zuercher & Co. (distributor)",
-    "what": "Asiago pricing question on the open PO — buyer is holding the order for your reply.",
-    "due": "2026-07-02",
+    "who": "Stefano — Monti Trentini",
+    "what": "Expense reimbursement (8/31–9/16, ACE meeting + Fall Show) — asked for Friday payout, no reply since. Deadline passed.",
+    "due": "2026-09-18",
     "action": "Reply"
   },
   {
-    "id": "att-email-2",
+    "id": "att-email-truffle-image",
+    "kind": "email",
+    "urgency": "urgent",
+    "who": "Tess McNamara — Eataly",
+    "what": "Aged Truffle 7oz image/spec still missing — her Eataly x Prime Line quote review is blocked on it.",
+    "due": "2026-09-19",
+    "action": "Reply"
+  },
+  {
+    "id": "att-email-specs-1",
+    "kind": "email",
+    "urgency": "high",
+    "who": "Nico — Monti Trentini",
+    "what": "Sent the wrong (whole-wheel) Asiago Vecchio spec by mistake; asked for the full precut specs folder — no reply yet.",
+    "due": "",
+    "action": "Reply"
+  },
+  {
+    "id": "att-email-precuts-1",
     "kind": "email",
     "urgency": "high",
     "who": "Stefano — Monti Trentini",
-    "what": "SEAFRIGO freight confirmation arrived; needs your OK before it goes into the price list.",
-    "due": "2026-07-02",
+    "what": "Asked for accurate precut info + high-res images for ACE and new customers — no reply.",
+    "due": "",
     "action": "Reply"
-  },
-  {
-    "id": "att-task-1",
-    "kind": "task",
-    "urgency": "high",
-    "who": "Sample follow-up",
-    "what": "Formaggeria Chicago — Asiago samples delivered 6 days ago, feedback call is due today.",
-    "due": "2026-07-02",
-    "action": "Call"
   }
 ]

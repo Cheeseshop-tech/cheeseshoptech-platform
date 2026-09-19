@@ -2,20 +2,27 @@ import { useEffect, useState } from "react";
 import { AlertTriangle, Mail, ListTodo, Handshake } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
-import { getAttention, attentionIsSample, ATTENTION_KINDS } from "@/lib/attention.js";
+import { getAttention, ATTENTION_KINDS } from "@/lib/attention.js";
 
 const KIND_ICON = { email: Mail, task: ListTodo, commitment: Handshake };
 
 // "Priority — response needed" — the get-the-day-started window at the top of the dashboard.
 // Surfaces ONLY what must be handled today (urgent emails awaiting a reply, tasks at deadline);
-// everything else stays down in "At a glance". Data via the getAttention() seam (mock now; a
-// mailbox-reading function later — see lib/attention.js). Renders nothing when the desk is clear.
+// everything else stays down in "At a glance". Data via the getAttention() seam — live-published
+// by a Gmail-driven priority-response routine when VITE_ATTENTION_BACKEND=function, bundled
+// sample otherwise (see lib/attention.js). Renders nothing when the desk is genuinely clear
+// (a live-published empty list), same as before.
 export function PriorityCard({ resolved }) {
   const [items, setItems] = useState(undefined);
+  const [isSample, setIsSample] = useState(true);
 
   useEffect(() => {
     let alive = true;
-    getAttention(resolved).then((list) => { if (alive) setItems(list); });
+    getAttention(resolved).then((res) => {
+      if (!alive) return;
+      setItems(res.items);
+      setIsSample(res.isSample);
+    });
     return () => { alive = false; };
   }, [resolved]);
 
@@ -28,7 +35,7 @@ export function PriorityCard({ resolved }) {
           <AlertTriangle className="h-4 w-4" style={{ color: "#B42318" }} />
           Priority — response needed
           <Badge variant="error" className="uppercase tracking-wide">Urgent</Badge>
-          {attentionIsSample && (
+          {isSample && (
             <Badge variant="muted" className="ml-1 text-[10px] uppercase tracking-wide" title="Sample data — not yet connected to the live mailbox">
               Sample
             </Badge>
