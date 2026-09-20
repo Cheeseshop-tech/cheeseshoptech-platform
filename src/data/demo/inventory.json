@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "1.2",
+  "clientId": "alpine-rind",
+  "lastUpdated": "2026-09-19",
+  "lastUpdatedSource": "CST showroom seed",
+  "source": "CST showroom catalog — fictional demo brand",
+  "generatedAt": "2026-09-19T00:00:00.000Z",
+  "generatedBy": "CST onboarding walkthrough",
+  "skus": {
+    "10010": { "code": "10010", "name": "RIDGELINE RESERVE WHOLE WHEEL 16 LBS", "casesAvail": 18, "casesInTransit": 6, "comment": "", "commentEn": "", "lots": [] },
+    "10011": { "code": "10011", "name": "RIDGELINE RESERVE 8OZ WEDGES", "casesAvail": 42, "casesInTransit": 0, "comment": "", "commentEn": "", "lots": [] },
+    "10020": { "code": "10020", "name": "CELLAR DOOR TOMME WHOLE WHEEL 6 LBS", "casesAvail": 30, "casesInTransit": 0, "comment": "", "commentEn": "", "lots": [] },
+    "10021": { "code": "10021", "name": "CELLAR DOOR TOMME 6OZ WEDGES", "casesAvail": 58, "casesInTransit": 0, "comment": "", "commentEn": "", "lots": [] },
+    "10030": { "code": "10030", "name": "DRIFT ALPINE WHOLE WHEEL 9 LBS", "casesAvail": 22, "casesInTransit": 0, "comment": "", "commentEn": "", "lots": [] },
+    "10031": { "code": "10031", "name": "DRIFT ALPINE 7OZ WEDGES", "casesAvail": 37, "casesInTransit": 0, "comment": "", "commentEn": "", "lots": [] },
+    "10040": { "code": "10040", "name": "BARNYARD RACLETTE-STYLE HALF WHEEL 5 LBS", "casesAvail": 14, "casesInTransit": 0, "comment": "low — winter demand ramping", "commentEn": "", "lots": [] },
+    "10041": { "code": "10041", "name": "BARNYARD RACLETTE-STYLE 8OZ WEDGES", "casesAvail": 26, "casesInTransit": 0, "comment": "", "commentEn": "", "lots": [] },
+    "10050": { "code": "10050", "name": "MEADOW GRUYERE-STYLE WHOLE WHEEL 18 LBS", "casesAvail": 16, "casesInTransit": 0, "comment": "", "commentEn": "", "lots": [] },
+    "10051": { "code": "10051", "name": "MEADOW GRUYERE-STYLE 7OZ WEDGES", "casesAvail": 33, "casesInTransit": 0, "comment": "", "commentEn": "", "lots": [] },
+    "10060": { "code": "10060", "name": "AMBER RIND RESERVE WHOLE WHEEL 15 LBS", "casesAvail": 9, "casesInTransit": 4, "comment": "flagship — allocate before promising volume", "commentEn": "", "lots": [] },
+    "10061": { "code": "10061", "name": "AMBER RIND RESERVE 6OZ WEDGES", "casesAvail": 19, "casesInTransit": 0, "comment": "", "commentEn": "", "lots": [] }
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "1.2",
+  "clientId": "alpine-rind",
+
+  "brand": {
+    "name": "Alpine Rind Co.",
+    "tagline": "Alpine Technique · Vermont Pasture · Est. 2016",
+    "accent": "#C97A2B",
+    "logo": "",
+    "_contactNote": "Showroom tenant — fictional sales contact for CST's own demo purposes. Same pattern as montitrentini's canonical footer contact block.",
+    "contact": {
+      "ordersEmail": "wholesale@alpinerindco.example",
+      "name": "Elena Voss",
+      "title": "Wholesale Director",
+      "phone": "(802) 555-0142",
+      "company": "Alpine Rind Co.",
+      "city": "Waitsfield, VT"
+    }
+  },
+
+  "currency": "USD",
+
+  "images": { "provider": "cloudinary", "cloud": "sofcvmwa", "folder": "clients/alpine-rind", "_note": "Folder provisioned, no shoot uploaded yet — see brand-kit.json imagery note." },
+
+  "pricing": {
+    "costBasis": "FOB Waitsfield, VT",
+    "defaultTier": "distributor",
+    "_paymentTermsNote": "Standing payment terms printed on every buyer-facing quote — same canonical pattern as montitrentini's client.config.json.",
+    "paymentTerms": "Net 30",
+    "_note": "Showroom pricing — set by CST for demo purposes, following the same tier framework every tenant uses. Class-of-trade only applies to DIRECT sales; distributor sales = base FOB + delivery/minimum/fees.",
+
+    "tiers": [
+      { "id": "distributor",     "label": "Wholesale / Distributor (price list)", "adjustPct": 0,  "public": false,
+        "_note": "Base FOB price — no class-of-trade markup; the distributor adds their own margin downstream." },
+      { "id": "direct-retail",   "label": "Direct to Retail",   "adjustPct": 15, "public": true,
+        "_note": "Alpine Rind selling direct to a retailer — absorbs distributor margin, holds market value at +15%." },
+      { "id": "direct-consumer", "label": "Direct to Consumer", "adjustPct": 35, "public": true,
+        "_note": "DTC e-comm — +35% over the e-comm baseline, market value protected." }
+    ],
+
+    "volumeBreaks": [
+      { "id": "under500",  "label": "Under 500 lb",  "maxLb": 500,        "adjustPct": 0   },
+      { "id": "over500",   "label": "500 lb +",      "minLb": 500,        "adjustPct": -5  },
+      { "id": "pallet",    "label": "Full pallet",   "unit": "pallet",    "adjustPct": -8  }
+    ],
+
+    "freight": {
+      "thresholdLb": 500,
+      "_note": "Freight/handling are separate line items on the proforma — never folded into $/lb, added at proforma time. Pickup (EXW Waitsfield) = no freight lines.",
+      "delivered": {
+        "truckingPerLb": 0.34,
+        "truckingMinLocal": 200,
+        "processingFlat": 95,
+        "processingBelowThresholdOnly": true,
+        "_note": "Trucking = $0.34/lb, floored at a $200 New England regional minimum; rep overrides for distance. Processing fee = $95 on delivered orders under the 500 lb threshold."
+      }
+    },
+
+    "fees": [
+      { "id": "trucking",   "label": "Trucking",       "scope": "order", "default": 0, "perLb": false,
+        "_note": "Auto-suggested from freight rules above; rep overrides with the real distance rate." },
+      { "id": "processing", "label": "Processing fee", "scope": "order", "default": 0, "perLb": false }
+    ]
+  }
+}

@@ -12,12 +12,12 @@
 // codeImageUrl() below, which uses it to skip the white pad at delivery time.
 
 import mtImages from "@/data/montitrentini/images.json";
-import tplImages from "@/data/_template/images.json";
+import demoImages from "@/data/demo/images.json";
 import { cldImage } from "./cloudinary.js";
 
 const BUNDLES = {
   montitrentini: mtImages,
-  demo: tplImages,
+  demo: demoImages,
 };
 
 const USE_MOCK = (import.meta.env.VITE_IMAGES_BACKEND || "mock") === "mock";

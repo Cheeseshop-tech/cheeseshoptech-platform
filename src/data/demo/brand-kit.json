@@ -1,0 +1,117 @@
+{
+  "schemaVersion": "1.0",
+  "tenant": "demo",
+  "brandName": "Alpine Rind Co.",
+  "_provenanceNote": "Showroom tenant — CST's own reference build. Populated 2026-09-19 per the discovery/onboarding framework (claude/discovery-and-onboarding-framework.md, claude/discovery-conversation-flow.md) so the demo tenant proves the onboarding output live instead of showing the empty template. Alpine Rind Co. is a fictional Vermont alpine-style creamery, invented as CST's standing showroom brand — no real company of this name is implied or intended.",
+  "attribution": "from Alpine Rind Co.",
+  "managedBy": "CheeseShop TECH",
+  "updatedAt": "2026-09-19",
+  "source": "CST onboarding-discovery walkthrough (simulated) — see claude/discovery-conversation-flow.md",
+  "identity": {
+    "logo": { "primary": "", "wordmark": "", "favicon": "", "seal": "" },
+    "colors": {
+      "primary": { "name": "Slate Rock", "hex": "#3A4A4A", "role": "Primary headline + key surfaces" },
+      "accent": { "name": "Amber Rind", "hex": "#C97A2B", "role": "Secondary accent — the aged-rind gold" },
+      "secondary": [
+        { "name": "Meadow Moss", "hex": "#7A8C6B", "role": "Mid-tone accent, hover states, callouts" },
+        { "name": "Cellar Stone", "hex": "#A8ADA3", "role": "Soft backgrounds, decorative shapes" }
+      ],
+      "neutrals": [
+        { "name": "Birch Cream", "hex": "#F6F3EC", "role": "Primary page background" },
+        { "name": "Barn Board", "hex": "#EDE7DA", "role": "Secondary canvas, cards" },
+        { "name": "Stone Gray", "hex": "#6E6A61", "role": "Secondary text, captions" },
+        { "name": "Cellar Charcoal", "hex": "#2B2926", "role": "Body copy, fine detail" }
+      ],
+      "sparingAccent": { "name": "Cider Red", "hex": "#A13D2E", "role": "Rare highlight only — sold-out badges, urgent flags" },
+      "useRatios": { "Birch Cream": "50%", "Slate Rock": "25%", "Cellar Charcoal": "10%", "Amber Rind": "8%", "Meadow Moss": "5%", "Cider Red": "2%" },
+      "harmony": "Cool stone/green neutrals (Slate Rock, Meadow Moss) grounded by a warm amber accent that reads as aged rind, not corporate gold. Birch Cream keeps the canvas soft and unbleached."
+    },
+    "type": {
+      "display": {
+        "family": "Fraunces",
+        "cssStack": "\"Fraunces\", Georgia, serif",
+        "role": "Editorial display + body",
+        "usage": "Hero copy, section titles, story blocks, big editorial CTA labels",
+        "doNotUseFor": "Buttons and navigation labels (use the UI family)"
+      },
+      "ui": {
+        "family": "Inter",
+        "cssStack": "\"Inter\", system-ui, sans-serif",
+        "role": "UI / buttons / forms / nav",
+        "usage": "Buttons, primary nav, CTAs, form inputs",
+        "doNotUseFor": "Editorial body copy (use the display family)"
+      }
+    },
+    "radius": "md"
+  },
+  "imagery": {
+    "hero": "",
+    "lifestyle": [],
+    "patterns": [],
+    "seal": "",
+    "_note": "No photography shoot has happened for this fictional showroom brand — cards fall back to the brand-palette gradients set per product in catalog.json, the same graceful pattern used for any real tenant before its first shoot. Nothing is broken by the empty refs; nothing renders until real assets are uploaded and scripts/sync-images.mjs is run."
+  },
+  "voice": {
+    "positioningHook": "Alpine technique, Vermont pasture — cheese aged with the same patience the mountains taught us.",
+    "motto": "Aged with patience.",
+    "mantra": "Good rind takes time — so do we.",
+    "heritage": "Founded 2016 in the Mad River Valley by cheesemakers trained in Swiss and French alpine technique, working milk from five neighboring Vermont dairy farms.",
+    "mission": "Bring true alpine-style aging technique to Vermont pasture-raised milk — small batches, long cellar time, real farm partnerships — building a cheese program a buyer can plan a shelf or a menu around.",
+    "coreValues": ["Craft & technique", "Farm partnership", "Transparency"],
+    "attributes": ["Precise", "Grounded", "Ambitious", "Unfussy"],
+    "avoid": ["Overclaiming heritage we don't have — we're a young creamery, not a century-old one", "Generic 'farm to table' language without specifics", "Corporate or cold tone", "Naming ourselves against Old World DOP cheeses directly"],
+    "readyPhrases": [
+      "Alpine technique, Vermont pasture.",
+      "Aged in our own cellar in the Mad River Valley.",
+      "Milk from five family farms within 25 miles of the creamery.",
+      "Small batches, long aging — real cellar time, not a shortcut.",
+      "Founded 2016 by alpine-trained cheesemakers.",
+      "Good rind takes time."
+    ]
+  },
+  "storyBlocks": [
+    {
+      "key": "origin-provenance",
+      "title": "A newer name, an old technique",
+      "audience": ["retail", "foodservice", "distributor"],
+      "body": "Alpine Rind Co. isn't a hundred-year story — it's ten, and counting. Founded in 2016 in Vermont's Mad River Valley by cheesemakers trained in Swiss and French alpine technique, the creamery set out to prove that real alpine-style aging doesn't require the Alps — it requires patience, the right cellar, and milk worth waiting on."
+    },
+    {
+      "key": "supply-chain-quality",
+      "title": "Five farms, one creamery",
+      "audience": ["distributor", "foodservice"],
+      "body": "Every wheel starts with milk from five neighboring dairy farms, all within 25 miles of the creamery — a co-op relationship, not a spot-market buy. That proximity means the milk reaches the vat within hours, and the same five herds show up in every batch, season after season. Traceable by design, not by claim."
+    },
+    {
+      "key": "why-vermont",
+      "title": "Why the Mad River Valley matters",
+      "audience": ["retail", "foodservice"],
+      "body": "The Green Mountains don't make Alpine cheese by accident — cool nights, real pasture rotation, and a short, intense grazing season concentrate flavor the way altitude does anywhere else in the world. Alpine technique applied to Vermont pasture isn't an imitation of the Old World; it's the same principle, worked honestly on new ground."
+    },
+    {
+      "key": "farm-partnership",
+      "title": "A creamery built on five handshakes",
+      "audience": ["retail", "distributor"],
+      "body": "Every one of the five founding dairy farms is still shipping milk to Alpine Rind Co. today. That's the actual sustainability story — not a certification, a decade of the same farm families staying in business because the creamery pays a fair, predictable price for milk of a quality they can build a herd around."
+    },
+    {
+      "key": "retail-partnership",
+      "title": "A young range built for a real shelf set",
+      "audience": ["retail"],
+      "body": "Six wheels, one clear range: an entry tomme, three core alpine styles, and a flagship reserve with real cellar time. Built to fill a set, not to overwhelm a buyer's plan-o-gram with a hundred SKUs nobody asked for. A growing brand a shelf can grow with."
+    },
+    {
+      "key": "foodservice-chef",
+      "title": "For a menu that wants a story, not just a wheel",
+      "audience": ["foodservice"],
+      "body": "Alpine Rind's range gives a chef real range of its own — from Cellar Door Tomme's approachable melt to Amber Rind Reserve's crystalline, 18-month bite. Every wheel comes with the five-farm story attached, ready for a menu description that does more than list a milk type."
+    }
+  ],
+  "storyTopics": [
+    { "key": "alpine-technique-vermont-pasture", "title": "Alpine technique, Vermont pasture", "line": "Real alpine-style aging, worked honestly on Vermont ground instead of imitated from a distance." },
+    { "key": "five-farms", "title": "Five farms, one creamery", "line": "Milk from five neighboring dairy farms within 25 miles — the same herds, batch after batch." },
+    { "key": "founded-2016", "title": "Founded 2016", "line": "A young creamery in the Mad River Valley, built by cheesemakers trained in Swiss and French alpine technique." },
+    { "key": "cellar-time", "title": "Real cellar time", "line": "Small batches, long aging — up to 18 months for the flagship reserve. No shortcuts on time." },
+    { "key": "good-rind-takes-time", "title": "Good rind takes time", "line": "The motto and the method are the same thing — patience is the actual ingredient." }
+  ]
+}

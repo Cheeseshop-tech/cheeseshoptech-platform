@@ -1,0 +1,52 @@
+[
+  {
+    "id": "news-demo-2026-09-18-02",
+    "category": "trade",
+    "headline": "CME cash cheese holds mostly steady as blocks edge down to $1.4225/lb",
+    "summary": "Barrels flat at $1.4525/lb, blocks off a cent — a near-term signal for cost planning on block cheddar.",
+    "url": "https://www.ams.usda.gov/mnreports/dywweeklyreport.pdf",
+    "source": "USDA AMS Dairy Market News",
+    "date": "2026-09-17",
+    "tags": ["pricing", "cme", "cheddar"]
+  },
+  {
+    "id": "news-demo-2026-09-18-01",
+    "category": "trade",
+    "headline": "Global Dairy Trade index slips 1.1% as Cheddar prices jump 16.5%",
+    "summary": "Cheddar led gains in the mid-September GDT auction while mozzarella and butter softened — worth watching for input costs on cheddar-adjacent alpine styles.",
+    "url": "https://cheesereporter.com/news/global-trade-tariffs/2026/09/16/global-dairy-trade-price-index-falls-1-1-cheddar-price-jumps-16-5/",
+    "source": "Cheese Reporter",
+    "date": "2026-09-16",
+    "tags": ["pricing", "cheddar", "global-trade"]
+  },
+  {
+    "id": "news-demo-2026-08-21-05",
+    "category": "consumer",
+    "headline": "Shareable snack-board engagement up 33% year over year",
+    "summary": "One in five small-group dining menus now offers a customizable platter. Board culture is still compounding — the single most direct demand signal for a wedge-and-portion range.",
+    "url": "https://tastewise.io/blog/snack-trends",
+    "source": "Tastewise",
+    "date": "2026-08-21",
+    "tags": ["boards", "grazing", "foodservice"]
+  },
+  {
+    "id": "news-demo-2026-08-21-06",
+    "category": "consumer",
+    "headline": "Texture becomes the purchase driver: crystalline bite, melt, the cheese pull",
+    "summary": "Buyers are choosing on how a cheese performs, not just flavor. Aged, crystalline paste is a texture story — and it photographs, which is why the cut-wedge packshot matters.",
+    "url": "https://www.fb101.com/tillamooks-jill-allen-shares-2026-cheese-trends-bold-flavors-premium-textures-and-wellness-snacking/",
+    "source": "Food & Beverage Magazine",
+    "date": "2026-08-21",
+    "tags": ["texture", "aged", "premiumization"]
+  },
+  {
+    "id": "news-demo-2026-08-21-03",
+    "category": "trade",
+    "headline": "Global specialty cheese market projected to reach $40bn by 2031",
+    "summary": "Roughly 5% annual growth, with premium and craft-domestic varieties both gaining share. Useful framing for a distributor conversation about where the category is heading.",
+    "url": "https://www.dairyreporter.com/Article/2026/08/19/global-specialty-cheese-market-set-to-reach-40bn-by-2031/",
+    "source": "DairyReporter",
+    "date": "2026-08-19",
+    "tags": ["specialty", "category-growth"]
+  }
+]

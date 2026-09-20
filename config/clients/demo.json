@@ -3,11 +3,11 @@
   "id": "demo",
   "subdomain": "demo",
   "brand": {
-    "name": "Demo Client",
+    "name": "Alpine Rind Co.",
     "logo": "",
     "colors": {
-      "primary": "#1F2937",
-      "accent": "#6B7280"
+      "primary": "#3A4A4A",
+      "accent": "#C97A2B"
     },
     "fonts": {
       "heading": "Fraunces",
@@ -15,8 +15,8 @@
     },
     "radius": "md"
   },
-  "cloudinaryFolder": "clients/demo",
-  "crm": "none",
+  "cloudinaryFolder": "clients/alpine-rind",
+  "crm": "sample",
   "modules": [
     "catalog",
     "orders",
@@ -24,17 +24,17 @@
     "campaigns"
   ],
   "home": {
-    "eyebrow": "CheeseShop TECH · template tenant",
+    "eyebrow": "Alpine Rind Co. \u00b7 Alpine technique, Vermont pasture \u00b7 Est. 2016",
     "title": "Operations Portal",
-    "tagline": "One source of truth — catalog, inventory, pricing and commitments — feeding every tool. This is the content-free clone every new client starts from.",
-    "footer": "Empty by design — onboarding fills it."
+    "tagline": "One source of truth \u2014 catalog, inventory, pricing and commitments \u2014 feeding every tool. This is CST's own showroom tenant, built the way a real client's onboarding output looks.",
+    "footer": "Alpine Rind Co. \u2014 a CheeseShop TECH showroom brand."
   },
   "presentations": [],
   "tools": [
     {
       "key": "price-list",
       "label": "Pricing & Inventory",
-      "description": "Wholesale quoting, movement planning, and commitments — on the canonical data layer.",
+      "description": "Wholesale quoting, movement planning, and commitments \u2014 on the canonical data layer.",
       "icon": "calculator",
       "type": "internal",
       "route": "pricing",
@@ -45,7 +45,7 @@
     {
       "key": "crm",
       "label": "CRM",
-      "description": "Contacts, companies and pipeline — read-only from the client's CRM.",
+      "description": "Contacts, companies and pipeline \u2014 sample data for this showroom tenant.",
       "icon": "contact",
       "type": "internal",
       "route": "crm",
@@ -55,7 +55,7 @@
     {
       "key": "trade-portal",
       "label": "Trade Portal",
-      "description": "The buyer presentation — brand story, range, and trade program.",
+      "description": "The buyer presentation \u2014 brand story, range, and trade program.",
       "icon": "presentation",
       "type": "internal",
       "route": "presentations",
@@ -65,7 +65,7 @@
     {
       "key": "campaigns",
       "label": "Campaigns",
-      "description": "Email, social and enrichment campaigns — launch readiness, audience and results.",
+      "description": "Email, social and enrichment campaigns \u2014 launch readiness, audience and results.",
       "icon": "megaphone",
       "type": "internal",
       "route": "campaigns",
@@ -75,7 +75,7 @@
     {
       "key": "buyer-catalog",
       "label": "Product catalog",
-      "description": "Buyer-facing product image library — search, preview, download, share.",
+      "description": "Buyer-facing product image library \u2014 search, preview, download, share.",
       "icon": "images",
       "type": "internal",
       "route": "catalog",
@@ -86,7 +86,7 @@
     {
       "key": "storefront",
       "label": "Storefront",
-      "description": "The client's online store — browse the live shop or open it full-screen.",
+      "description": "The client's online store \u2014 browse the live shop or open it full-screen.",
       "icon": "store",
       "type": "external",
       "url": "",

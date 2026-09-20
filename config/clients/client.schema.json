@@ -123,8 +123,10 @@
       "type": "string",
       "enum": [
         "hubspot",
+        "sample",
         "none"
       ],
+      "_sampleNote": "sample = always render CST's own bundled mock CRM data for this tenant (src/lib/crm.js MOCK[id]), regardless of the global VITE_CRM_BACKEND build flag. For showroom/demo tenants only — never for a real client with a live HubSpot portal, and never falls through to a live HubSpot read.",
       "default": "none"
     },
     "modules": {

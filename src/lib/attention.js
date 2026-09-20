@@ -12,11 +12,11 @@
 
 import { authHeaders } from "@/lib/auth-context.jsx";
 import mtAttention from "@/data/montitrentini/attention.json";
-import tplAttention from "@/data/_template/attention.json";
+import demoAttention from "@/data/demo/attention.json";
 
 const BUNDLES = {
   montitrentini: mtAttention,
-  demo: tplAttention,
+  demo: demoAttention,
 };
 
 const ATTENTION_BACKEND = import.meta.env.VITE_ATTENTION_BACKEND || "mock";

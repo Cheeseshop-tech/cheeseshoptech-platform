@@ -10,11 +10,11 @@
 
 import { authHeaders } from "@/lib/auth-context.jsx";
 import mtNews from "@/data/montitrentini/market-news.json";
-import tplNews from "@/data/_template/market-news.json";
+import demoNews from "@/data/demo/market-news.json";
 
 const BUNDLES = {
   montitrentini: mtNews,
-  demo: tplNews,
+  demo: demoNews,
 };
 
 // "mock" (default) = bundled sample only. "function" = pull the live overnight brief at runtime,

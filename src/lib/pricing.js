@@ -7,15 +7,15 @@ import mtConfig from "@/data/montitrentini/client.config.json";
 import mtCatalog from "@/data/montitrentini/catalog.json";
 import mtInventory from "@/data/montitrentini/inventory.json";
 import mtCommitments from "@/data/montitrentini/commitments.json";
-import tplConfig from "@/data/_template/client.config.json";
-import tplCatalog from "@/data/_template/catalog.json";
-import tplInventory from "@/data/_template/inventory.json";
-import tplCommitments from "@/data/_template/commitments.json";
+import demoConfig from "@/data/demo/client.config.json";
+import demoCatalog from "@/data/demo/catalog.json";
+import demoInventory from "@/data/demo/inventory.json";
+import demoCommitments from "@/data/demo/commitments.json";
 
 const BUNDLES = {
   montitrentini: { config: mtConfig, catalog: mtCatalog, inventory: mtInventory, commitments: mtCommitments },
-  // The content-free clone (config/clients/demo.json) — renders every app's empty state.
-  demo: { config: tplConfig, catalog: tplCatalog, inventory: tplInventory, commitments: tplCommitments },
+  // Alpine Rind Co. — CST's own showroom tenant (config/clients/demo.json), populated via the onboarding-discovery walkthrough instead of the content-free _template clone.
+  demo: { config: demoConfig, catalog: demoCatalog, inventory: demoInventory, commitments: demoCommitments },
 };
 
 // Backend switch. "mock" (default) = use the bundled JSON only. "function" = also pull LIVE

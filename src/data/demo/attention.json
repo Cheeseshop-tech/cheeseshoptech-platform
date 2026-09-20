@@ -1,0 +1,38 @@
+[
+  {
+    "id": "att-invoice-overdue-cascade",
+    "kind": "commitment",
+    "urgency": "urgent",
+    "who": "Cascade Fine Foods",
+    "what": "INV-407 ($6,200) went past due 2026-09-08 — no payment or reply since. Standing monthly plan for Drift Alpine is still active; flag before the next shipment goes out.",
+    "due": "2026-09-08",
+    "action": "Follow up"
+  },
+  {
+    "id": "att-email-spec-sheet-cascade",
+    "kind": "email",
+    "urgency": "high",
+    "who": "Cascade Fine Foods",
+    "what": "Requested an updated spec sheet ahead of their Q4 line review — blocks their internal sign-off.",
+    "due": "2026-09-22",
+    "action": "Reply"
+  },
+  {
+    "id": "att-email-po-confirm-greentable",
+    "kind": "email",
+    "urgency": "high",
+    "who": "Green Table Markets",
+    "what": "PO received for the Amber Rind Reserve reorder — needs confirmation back before their warehouse cutoff.",
+    "due": "2026-09-20",
+    "action": "Reply"
+  },
+  {
+    "id": "att-task-allocate-flagship",
+    "kind": "task",
+    "urgency": "high",
+    "who": "Internal — production",
+    "what": "Amber Rind Reserve whole-wheel stock is down to 9 cases with 4 in transit — allocate before promising volume on new distributor conversations.",
+    "due": "",
+    "action": "Review"
+  }
+]

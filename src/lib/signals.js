@@ -14,11 +14,11 @@
 
 import { authHeaders } from "@/lib/auth-context.jsx";
 import mtSignals from "@/data/montitrentini/signals.json";
-import tplSignals from "@/data/_template/signals.json";
+import demoSignals from "@/data/demo/signals.json";
 
 const BUNDLES = {
   montitrentini: mtSignals,
-  demo: tplSignals,
+  demo: demoSignals,
 };
 
 const SIGNALS_BACKEND = import.meta.env.VITE_SIGNALS_BACKEND || "mock";

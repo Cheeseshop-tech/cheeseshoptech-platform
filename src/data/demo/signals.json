@@ -1,0 +1,67 @@
+[
+  {
+    "id": "sig-fall-boards-ar",
+    "scope": "market",
+    "audience": ["retail", "foodservice"],
+    "type": "seasonal",
+    "title": "Fall entertaining ramps — cheese-board season",
+    "insight": "Sept–Nov is peak board & grazing demand for specialty grocers and chef menus; shareable-board menu engagement is up 33% year over year, and buyers set fall assortments now.",
+    "suggestedAngle": "Lead with the five-farm story and Amber Rind Reserve's crystalline bite — a young brand's provenance is still the board's centerpiece.",
+    "storyHints": ["origin-provenance", "supply-chain-quality"],
+    "skus": ["amber-rind-reserve", "meadow-gruyere-style"],
+    "source": "seasonal-calendar",
+    "freshness": "2026-09-19"
+  },
+  {
+    "id": "sig-distributor-reset-ar",
+    "scope": "segment",
+    "audience": ["distributor"],
+    "type": "intent",
+    "title": "Distributor fall line-review / reset window",
+    "insight": "Distributors run fall line reviews now; a tight, coherent range with a real farm-sourcing story wins slots against anonymous imports.",
+    "suggestedAngle": "Five farms, one creamery — traceable by design, not by claim. Fits a line review looking for a supply-chain-trust story.",
+    "storyHints": ["supply-chain-quality", "farm-partnership"],
+    "skus": ["drift-alpine", "ridgeline-reserve"],
+    "source": "seasonal-calendar",
+    "freshness": "2026-09-19"
+  },
+  {
+    "id": "sig-young-brand-story-ar",
+    "scope": "market",
+    "audience": ["retail", "distributor"],
+    "type": "category-trend",
+    "title": "Buyers are making room for younger domestic makers, not just legacy imports",
+    "insight": "Specialty buyers are actively looking to diversify sets beyond long-established import lines — a founding story that's honest about being young (2016, not 1925) reads as credible rather than thin, if the technique claim holds up.",
+    "suggestedAngle": "Don't borrow Old World heritage language — lean into 'alpine technique, Vermont pasture' as its own credible claim.",
+    "storyHints": ["origin-provenance", "why-vermont"],
+    "skus": ["ridgeline-reserve", "amber-rind-reserve"],
+    "source": "news-trade",
+    "freshness": "2026-09-19"
+  },
+  {
+    "id": "sig-aged-texture-premium-ar",
+    "scope": "market",
+    "audience": ["retail", "foodservice"],
+    "type": "category-trend",
+    "title": "Texture, not just flavor, is now the purchase driver",
+    "insight": "Buyers are increasingly choosing cheese on how it performs — crystalline bite, melt, the cheese pull — not just on flavor. Aged, crystalline paste photographs well for merchandising.",
+    "suggestedAngle": "Amber Rind Reserve's 18-month crystalline bite is the texture story itself — built for a cut-wedge packshot and a counter demo.",
+    "storyHints": ["origin-provenance"],
+    "skus": ["amber-rind-reserve"],
+    "source": "news-trade",
+    "freshness": "2026-09-19"
+  },
+  {
+    "id": "sig-winter-melter-ar",
+    "scope": "market",
+    "audience": ["retail", "foodservice"],
+    "type": "seasonal",
+    "title": "Melter-category demand builds into winter",
+    "insight": "Raclette- and fondue-style demand ramps as temperatures drop — a counter-demo-friendly SKU category that grocers and restaurants both plan for by late fall.",
+    "suggestedAngle": "Barnyard Raclette-Style is built for exactly this window — lead foodservice conversations with it starting in October.",
+    "storyHints": ["foodservice-chef"],
+    "skus": ["barnyard-raclette-style"],
+    "source": "seasonal-calendar",
+    "freshness": "2026-09-19"
+  }
+]

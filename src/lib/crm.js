@@ -194,6 +194,37 @@ const MOCK = {
       { who: "Carbone", what: "Payment received (INV-875)", when: "3d ago" },
     ],
   },
+  // Alpine Rind Co. — CST's own showroom tenant. Always force-mocked (see getCrmData below /
+  // config/clients/demo.json crm:"sample") so this fictional brand can never fall through to a
+  // live HubSpot read, whatever the global VITE_CRM_BACKEND is set to in production.
+  demo: {
+    contacts: 21,
+    pipeline: [
+      { stage: "Lead", count: 8, value: 22000 },
+      { stage: "Qualified", count: 5, value: 31000 },
+      { stage: "Sample sent", count: 4, value: 28000 },
+      { stage: "Negotiation", count: 2, value: 19000 },
+      { stage: "Won", count: 3, value: 34000 },
+    ],
+    orders: [
+      { id: "SO-2031", account: "Cascade Fine Foods", channel: "distributor", total: 6200, status: "Open", date: "2026-09-10" },
+      { id: "SO-2029", account: "Green Table Markets", channel: "grocer", total: 9800, status: "Open", date: "2026-09-05" },
+      { id: "SO-2026", account: "Northeast Creamery Collective", channel: "distributor", total: 3100, status: "Shipped", date: "2026-08-28" },
+      { id: "SO-2022", account: "Overlook Wholesale", channel: "distributor", total: 4400, status: "Delivered", date: "2026-08-20" },
+      { id: "SO-2019", account: "Sugarhouse Kitchen", channel: "restaurant", total: 780, status: "Delivered", date: "2026-08-14" },
+    ],
+    invoices: [
+      { id: "INV-410", account: "Green Table Markets", amount: 9800, status: "Sent", due: "2026-09-25" },
+      { id: "INV-407", account: "Cascade Fine Foods", amount: 6200, status: "Overdue", due: "2026-09-08" },
+      { id: "INV-402", account: "Overlook Wholesale", amount: 4400, status: "Paid", due: "2026-08-30" },
+    ],
+    activity: [
+      { who: "Green Table Markets", what: "PO received — Amber Rind Reserve reorder", when: "3h ago" },
+      { who: "Cascade Fine Foods", what: "Requested updated spec sheet for Q4 line review", when: "1d ago" },
+      { who: "Northeast Creamery Collective", what: "Sample feedback: strong on Drift Alpine", when: "2d ago" },
+      { who: "Overlook Wholesale", what: "Payment received (INV-402)", when: "4d ago" },
+    ],
+  },
 };
 
 // "mock" (bundled sample) | anything else = "hubspot" (direct read-only, companies+contacts
@@ -228,7 +259,10 @@ export function invalidateCrmCache(tenantId) {
 /** Fetch the CRM dataset for a tenant. Returns null if no CRM configured. */
 export async function getCrmData(resolved, { force = false } = {}) {
   if (!hasCrm(resolved)) return null;
-  if (USE_MOCK) return MOCK[resolved.id] || emptyDataset();
+  // "sample" (config/clients/demo.json) always forces mock, regardless of the global
+  // VITE_CRM_BACKEND switch — a fictional showroom tenant must never fall through to a live
+  // HubSpot read (crm-hubspot.js does no tenant/portal filtering — see CRM-05 note above).
+  if (USE_MOCK || resolved?.crm === "sample") return MOCK[resolved.id] || emptyDataset();
 
   const key = resolved.id;
   const hit = crmCache.get(key);

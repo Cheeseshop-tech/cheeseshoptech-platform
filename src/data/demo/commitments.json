@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "1.2",
+  "clientId": "alpine-rind",
+  "generatedFrom": "CST showroom seed — fictional distributor/supermarket standing plans",
+  "commitments": [
+    {
+      "skuCode": "10061",
+      "note": "Green Table Markets monthly reorder plan — flagship reserve, all NE stores",
+      "noteEn": "",
+      "_source": "CST showroom seed",
+      "id": "10061-greentable-monthly",
+      "kind": "standing_plan",
+      "status": "active",
+      "customer": "Green Table Markets",
+      "cadence": "monthly",
+      "casesPerPeriod": 20,
+      "alsoBuy": ["Cascade Fine Foods"],
+      "reorderBelowCases": 10
+    },
+    {
+      "skuCode": "10031",
+      "note": "Cascade Fine Foods standing distributor plan — Drift Alpine, both formats",
+      "noteEn": "",
+      "_source": "CST showroom seed",
+      "id": "10031-cascade-monthly",
+      "kind": "standing_plan",
+      "status": "active",
+      "customer": "Cascade Fine Foods",
+      "cadence": "monthly",
+      "casesPerPeriod": 15,
+      "alsoBuy": [],
+      "reorderBelowCases": 8
+    },
+    {
+      "skuCode": "10011",
+      "note": "Northeast Creamery Collective — Ridgeline Reserve wedges, quarterly container",
+      "noteEn": "",
+      "_source": "CST showroom seed",
+      "id": "10011-necc-quarterly",
+      "kind": "standing_plan",
+      "status": "active",
+      "customer": "Northeast Creamery Collective",
+      "cadence": "quarterly",
+      "casesPerPeriod": 24,
+      "alsoBuy": [],
+      "reorderBelowCases": null
+    },
+    {
+      "skuCode": "10041",
+      "note": "Overlook Wholesale — Barnyard Raclette-Style, ramps in Q4 for winter menus",
+      "noteEn": "",
+      "_source": "CST showroom seed",
+      "id": "10041-overlook-monthly",
+      "kind": "standing_plan",
+      "status": "active",
+      "customer": "Overlook Wholesale",
+      "cadence": "monthly",
+      "casesPerPeriod": 10,
+      "alsoBuy": [],
+      "reorderBelowCases": 5
+    },
+    {
+      "skuCode": "10021",
+      "note": "Sugarhouse Kitchen (restaurant) — occasional, no standing plan yet",
+      "noteEn": "",
+      "_source": "CST showroom seed",
+      "id": "10021-sugarhouse-occasional",
+      "kind": "watch",
+      "status": "active",
+      "customer": "Sugarhouse Kitchen",
+      "cadence": "occasional",
+      "casesPerPeriod": null,
+      "alsoBuy": [],
+      "reorderBelowCases": null
+    }
+  ],
+  "_needsReview": []
+}
