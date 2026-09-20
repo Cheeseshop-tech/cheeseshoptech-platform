@@ -15,7 +15,7 @@
     "age": "aged 60 days",
     "milk": "Cow milk, pasteurized",
     "featured": false,
-    "grad": "linear-gradient(145deg, #F6F3EC, #7A8C6B)"
+    "grad": "linear-gradient(145deg, #FAF6F0, #8C9B5E)"
    },
    "skus": [
     { "code": "10020", "packing": "Whole Wheel, 6 lbs", "image": "10020", "unit": "lb", "cost": { "fob": 6.10 }, "list": { "retail": null, "wholesale": null }, "pack": { "piecesPerCase": 1, "netLb": 6.0, "grossLb": 6.6, "palletTiHi": "8 x 8", "casesPerPallet": 64, "shelfDays": 180 }, "availability": "in_stock" },
@@ -33,7 +33,7 @@
     "age": "aged 8 months",
     "milk": "Cow milk",
     "featured": true,
-    "grad": "linear-gradient(145deg, #F6F3EC, #3A4A4A)"
+    "grad": "linear-gradient(145deg, #FAF6F0, #5F6B2E)"
    },
    "skus": [
     { "code": "10030", "packing": "Whole Wheel, 9 lbs", "image": "10030", "unit": "lb", "cost": { "fob": 8.40 }, "list": { "retail": null, "wholesale": null }, "pack": { "piecesPerCase": 1, "netLb": 9.0, "grossLb": 9.8, "palletTiHi": "8 x 8", "casesPerPallet": 64, "shelfDays": 210 }, "availability": "in_stock" },
@@ -51,7 +51,7 @@
     "age": "aged 4 months",
     "milk": "Cow milk",
     "featured": true,
-    "grad": "linear-gradient(145deg, #F6F3EC, #C97A2B)"
+    "grad": "linear-gradient(145deg, #FAF6F0, #9A3B1B)"
    },
    "skus": [
     { "code": "10040", "packing": "Half Wheel, 5 lbs", "image": "10040", "unit": "lb", "cost": { "fob": 7.60 }, "list": { "retail": null, "wholesale": null }, "pack": { "piecesPerCase": 1, "netLb": 5.0, "grossLb": 5.6, "palletTiHi": "10 x 8", "casesPerPallet": 80, "shelfDays": 150 }, "availability": "in_stock" },
@@ -69,7 +69,7 @@
     "age": "aged 14 months",
     "milk": "Cow milk, raw",
     "featured": true,
-    "grad": "linear-gradient(145deg, #EDE7DA, #3A4A4A)"
+    "grad": "linear-gradient(145deg, #E6DBCB, #5F6B2E)"
    },
    "skus": [
     { "code": "10010", "packing": "Whole Wheel, 16 lbs", "image": "10010", "unit": "lb", "cost": { "fob": 9.25 }, "list": { "retail": null, "wholesale": null }, "pack": { "piecesPerCase": 1, "netLb": 16.0, "grossLb": 17.0, "palletTiHi": "6 x 10", "casesPerPallet": 60, "shelfDays": 270 }, "availability": "in_stock" },
@@ -87,7 +87,7 @@
     "age": "aged 12 months",
     "milk": "Cow milk",
     "featured": false,
-    "grad": "linear-gradient(145deg, #F6F3EC, #A8ADA3)"
+    "grad": "linear-gradient(145deg, #FAF6F0, #D6C6AE)"
    },
    "skus": [
     { "code": "10050", "packing": "Whole Wheel, 18 lbs", "image": "10050", "unit": "lb", "cost": { "fob": 8.95 }, "list": { "retail": null, "wholesale": null }, "pack": { "piecesPerCase": 1, "netLb": 18.0, "grossLb": 19.0, "palletTiHi": "6 x 10", "casesPerPallet": 60, "shelfDays": 240 }, "availability": "in_stock" },
@@ -105,7 +105,7 @@
     "age": "aged 18 months",
     "milk": "Cow milk, raw",
     "featured": true,
-    "grad": "linear-gradient(145deg, #EDE7DA, #C97A2B)"
+    "grad": "linear-gradient(145deg, #E6DBCB, #9A3B1B)"
    },
    "skus": [
     { "code": "10060", "packing": "Whole Wheel, 15 lbs", "image": "10060", "unit": "lb", "cost": { "fob": 11.50 }, "list": { "retail": null, "wholesale": null }, "pack": { "piecesPerCase": 1, "netLb": 15.0, "grossLb": 16.0, "palletTiHi": "6 x 10", "casesPerPallet": 60, "shelfDays": 300 }, "availability": "in_stock" },

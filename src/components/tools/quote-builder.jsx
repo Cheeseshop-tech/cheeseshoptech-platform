@@ -418,15 +418,24 @@ export function QuoteBuilder({ data, brand, resolved, itemsDoc }) {
        Kit-first with the client-config fallbacks a tenant without a full kit still has; nothing
        about Monti is hardcoded. */
     const c = kit?.identity?.colors || {};
-    const neutral = (name, fallback) => (c.neutrals || []).find((n) => n.name === name)?.hex || fallback;
-    const secondary = (name, fallback) => (c.secondary || []).find((s) => s.name === name)?.hex || fallback;
+    /* Design-system audit fix (2026-09-19): these used to match by Monti's own proper names
+       ("Heritage Cream", "Casa Paper", ...) — which only exist in montitrentini/brand-kit.json.
+       Every other tenant's kit uses its own descriptive names for the same ROLE, so the old
+       lookup silently fell through to Monti's hardcoded hex for any other tenant despite the
+       comment above claiming nothing here is Monti-specific. Now matches by role first (present
+       on every neutral/secondary entry per _brand-kit-template.json), then by array position,
+       and only falls back to the passed default for a tenant with no kit at all. */
+    const byRoleOrIndex = (list, role, index) =>
+      (list || []).find((n) => n.role === role)?.hex || (list || [])[index]?.hex;
+    const neutral = (role, index, fallback) => byRoleOrIndex(c.neutrals, role, index) || fallback;
+    const secondaryColor = (role, index, fallback) => byRoleOrIndex(c.secondary, role, index) || fallback;
     const primary = c.primary?.hex || brand?.colors?.primary || config.brand?.accent || "#064E22";
     const accent = c.accent?.hex || config.brand?.accent || primary;
-    const cream = neutral("Heritage Cream", (c.neutrals || [])[0]?.hex || "#FFFBDC");
-    const paper = neutral("Casa Paper", "#FAF9F5");
-    const ink = neutral("Mountain Ink", "#141413");
-    const muted = neutral("Stone Charcoal", "#716A6A");
-    const mint = secondary("Alpine Mint", "#C8E2C5");
+    const cream = neutral("Primary page background", 0, "#FFFBDC");
+    const paper = neutral("Secondary canvas, cards", 1, "#FAF9F5");
+    const ink = neutral("Body copy, fine detail", 3, "#141413");
+    const muted = neutral("Secondary text, captions", 2, "#716A6A");
+    const mint = secondaryColor("Soft backgrounds, decorative shapes", 1, "#C8E2C5");
     /* Two warm tones the reference uses that are NOT brand-kit tokens: the hairline rules between
        table rows, and the non-PDO ("Mountain") badge. Sampled at #E3DEC7 / #EFE8D1 fill with
        #796A2E text — a khaki + bronze pair that reads as "not a protected designation" without

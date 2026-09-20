@@ -7,24 +7,25 @@
   "managedBy": "CheeseShop TECH",
   "updatedAt": "2026-09-19",
   "source": "CST onboarding-discovery walkthrough (simulated) — see claude/discovery-conversation-flow.md",
+  "_designSystemNote": "Corrected 2026-09-19 (Rick): the demo tenant IS the template that holds CST's own design system, so its colors and type must be the actual documented house tokens from docs/DESIGN_SYSTEM.md Part A \u2014 not an invented one-off palette. This is deliberate: a brand-new client on day one, before they've picked a custom brand color, looks exactly like this \u2014 the house default, working correctly, not a placeholder.",
   "identity": {
     "logo": { "primary": "", "wordmark": "", "favicon": "", "seal": "" },
     "colors": {
-      "primary": { "name": "Slate Rock", "hex": "#3A4A4A", "role": "Primary headline + key surfaces" },
-      "accent": { "name": "Amber Rind", "hex": "#C97A2B", "role": "Secondary accent — the aged-rind gold" },
+      "primary": { "name": "Terracotta", "hex": "#9A3B1B", "role": "Primary headline + key surfaces", "_source": "docs/DESIGN_SYSTEM.md A2 \u2014 house brand primary" },
+      "accent": { "name": "Cellar Olive", "hex": "#5F6B2E", "role": "Secondary accent", "_source": "docs/DESIGN_SYSTEM.md A2 \u2014 house brand accent" },
       "secondary": [
-        { "name": "Meadow Moss", "hex": "#7A8C6B", "role": "Mid-tone accent, hover states, callouts" },
-        { "name": "Cellar Stone", "hex": "#A8ADA3", "role": "Soft backgrounds, decorative shapes" }
+        { "name": "Olive Mist", "hex": "#8C9B5E", "role": "Mid-tone accent, hover states, callouts", "_source": "Lighter tint of the house Cellar Olive accent" },
+        { "name": "Stone 200", "hex": "#E6DBCB", "role": "Soft backgrounds, decorative shapes", "_source": "docs/DESIGN_SYSTEM.md A4 \u2014 warm neutral (stone) scale, step 200" }
       ],
       "neutrals": [
-        { "name": "Birch Cream", "hex": "#F6F3EC", "role": "Primary page background" },
-        { "name": "Barn Board", "hex": "#EDE7DA", "role": "Secondary canvas, cards" },
-        { "name": "Stone Gray", "hex": "#6E6A61", "role": "Secondary text, captions" },
-        { "name": "Cellar Charcoal", "hex": "#2B2926", "role": "Body copy, fine detail" }
+        { "name": "Paper", "hex": "#FAF6F0", "role": "Primary page background", "_source": "docs/DESIGN_SYSTEM.md A2 \u2014 house bg / --cs-color-bg" },
+        { "name": "Surface", "hex": "#FFFFFF", "role": "Secondary canvas, cards", "_source": "docs/DESIGN_SYSTEM.md A2 \u2014 house surface / --cs-color-surface" },
+        { "name": "Muted Espresso", "hex": "#6E5E48", "role": "Secondary text, captions", "_source": "docs/DESIGN_SYSTEM.md A2 \u2014 house muted text / --cs-color-fg-muted" },
+        { "name": "Espresso", "hex": "#221C14", "role": "Body copy, fine detail", "_source": "docs/DESIGN_SYSTEM.md A2 \u2014 house text / --cs-color-fg" }
       ],
-      "sparingAccent": { "name": "Cider Red", "hex": "#A13D2E", "role": "Rare highlight only — sold-out badges, urgent flags" },
-      "useRatios": { "Birch Cream": "50%", "Slate Rock": "25%", "Cellar Charcoal": "10%", "Amber Rind": "8%", "Meadow Moss": "5%", "Cider Red": "2%" },
-      "harmony": "Cool stone/green neutrals (Slate Rock, Meadow Moss) grounded by a warm amber accent that reads as aged rind, not corporate gold. Birch Cream keeps the canvas soft and unbleached."
+      "sparingAccent": null,
+      "useRatios": { "Paper": "50%", "Terracotta": "22%", "Espresso": "12%", "Cellar Olive": "10%", "Olive Mist": "4%", "Stone 200": "2%" },
+      "harmony": "Exactly the house palette (docs/DESIGN_SYSTEM.md Part A2): warm Terracotta primary + Cellar Olive accent on warm-stone neutrals. No client-specific override \u2014 this tenant deliberately runs the system's own tokens, unmodified."
     },
     "type": {
       "display": {
@@ -32,24 +33,26 @@
         "cssStack": "\"Fraunces\", Georgia, serif",
         "role": "Editorial display + body",
         "usage": "Hero copy, section titles, story blocks, big editorial CTA labels",
-        "doNotUseFor": "Buttons and navigation labels (use the UI family)"
+        "doNotUseFor": "Buttons and navigation labels (use the UI family)",
+        "_source": "docs/DESIGN_SYSTEM.md A3 \u2014 house heading font"
       },
       "ui": {
         "family": "Inter",
         "cssStack": "\"Inter\", system-ui, sans-serif",
         "role": "UI / buttons / forms / nav",
         "usage": "Buttons, primary nav, CTAs, form inputs",
-        "doNotUseFor": "Editorial body copy (use the display family)"
+        "doNotUseFor": "Editorial body copy (use the display family)",
+        "_source": "docs/DESIGN_SYSTEM.md A3 \u2014 house body/UI font"
       }
     },
     "radius": "md"
   },
   "imagery": {
-    "hero": "",
+    "hero": "clients/alpine-rind/alpine-rind-cellar-hero",
     "lifestyle": [],
     "patterns": [],
     "seal": "",
-    "_note": "No photography shoot has happened for this fictional showroom brand — cards fall back to the brand-palette gradients set per product in catalog.json, the same graceful pattern used for any real tenant before its first shoot. Nothing is broken by the empty refs; nothing renders until real assets are uploaded and scripts/sync-images.mjs is run."
+    "_note": "Hero image generated for this showroom brand (see images.json). Additional lifestyle shots would come from a real shoot; the empty refs there render nothing rather than break, same graceful pattern any tenant gets before a full shoot."
   },
   "voice": {
     "positioningHook": "Alpine technique, Vermont pasture — cheese aged with the same patience the mountains taught us.",
