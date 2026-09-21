@@ -11,6 +11,7 @@
 // an empty live store still falls back to bundled sample rather than showing a blank card.
 
 import { authHeaders } from "@/lib/auth-context.jsx";
+import { readAuthedJson, writeAuthedJson } from "@/lib/authed-fetch.js";
 import mtAttention from "@/data/montitrentini/attention.json";
 import demoAttention from "@/data/demo/attention.json";
 
@@ -64,4 +65,58 @@ export async function getAttention(resolved) {
   } catch {
     return sample;
   }
+}
+
+// ---- Manual resolutions ("resolved on a call, log it") --------------------------------------
+// Separate seam from getAttention()/publish above on purpose: those are the Gmail-driven
+// automation's view of what's outstanding, refreshed wholesale every Monday. This is Rick's own
+// manual override for the gap that automation can't see — a phone call, a hallway conversation —
+// so an item can be cleared off the live card by hand, with a note, without waiting for (or
+// depending on) next Monday's refresh. See netlify/functions/attention-resolutions.js.
+
+export const RESOLUTION_METHODS = [
+  { value: "phone", label: "Phone call" },
+  { value: "email", label: "Email" },
+  { value: "in-person", label: "In person" },
+  { value: "other", label: "Other" },
+];
+
+const EMPTY_RESOLUTIONS = { resolved: {}, log: [], updatedAt: null };
+
+/** Current resolved-suppress map + the full resolution log for a tenant. Never throws. */
+export async function getAttentionResolutions(resolved) {
+  const data = await readAuthedJson(
+    `/.netlify/functions/attention-resolutions?tenant=${encodeURIComponent(resolved.id)}`,
+    { onFail: null }
+  );
+  if (!data || typeof data !== "object") return EMPTY_RESOLUTIONS;
+  return { resolved: data.resolved || {}, log: data.log || [], updatedAt: data.updatedAt || null };
+}
+
+/**
+ * Mark one attention item resolved outside the automation (a call, in person, etc.), with an
+ * optional note. Clears it off the live card immediately (caller should drop it from local state
+ * on success) and appends one entry to the resolution log for later lookback.
+ * @returns {Promise<{ok:boolean,status:number}>}
+ */
+export async function resolveAttentionItem(resolved, item, { notes = "", method = "other" } = {}) {
+  return writeAuthedJson("/.netlify/functions/attention-resolutions", {
+    body: {
+      tenant: resolved.id,
+      action: "resolve",
+      id: item.id,
+      who: item.who,
+      what: item.what,
+      urgency: item.urgency,
+      notes,
+      method,
+    },
+  });
+}
+
+/** Undo a resolve (e.g. clicked by mistake) — brings the item back onto the live card. */
+export async function reopenAttentionItem(resolved, id) {
+  return writeAuthedJson("/.netlify/functions/attention-resolutions", {
+    body: { tenant: resolved.id, action: "reopen", id },
+  });
 }
