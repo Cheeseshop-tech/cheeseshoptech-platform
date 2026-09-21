@@ -111,8 +111,15 @@ configured, not built. Two real options once this is picked up:
   draft-and-review decision above, may be an acceptable v1 shape — worth asking directly before
   building either path).
 
-**Recommendation:** don't decide this by default — ask Rick which he'd rather stand up first, once
-he's ready to move past this spec into Phase 1 below.
+**Decided, 2026-09-21 (Rick, asked directly):** Gmail, through Chrome, from
+`sales@montitrentini-usa.com` — the same browser-driven pattern already used (deliberately, not by
+accident) for the daily-status-email idea in `[[cst-daily-accountability-system]]`, and for the
+same reason: Cowork's Gmail MCP connector is already tied to Monti's `sales@` mailbox for
+unrelated live work, so driving it via Chrome instead of the MCP avoids any risk of disrupting
+that connection. This also means send is inherently a live, Rick/Claude-session action, not an
+unattended cron step — which fits the draft-and-review decision above cleanly: the scheduled task
+computes and stores the pending queue (Blobs), and the actual send happens when Rick (or a live
+session with him) works through that queue via Chrome, same as the existing precedent.
 
 ## Phased build plan
 
@@ -136,3 +143,9 @@ this is sequenced as four separable, independently-shippable phases rather than 
 
 Confirm the email-sending mechanism question above, then start Phase 1 (trivial) + Phase 2
 (computation layer) together.
+
+**2026-09-21, update:** Email mechanism decided (see above). Phase 1 (Stefano's role) is a Netlify
+dashboard click on Rick's side, not code — still outstanding as of this write-up. Phase 2
+(computation layer, `src/lib/commitments.js`) built this same session — see
+`docs/HANDOFF_2026-09-21_campaign-commitments-computation.md` for what shipped and what Phase 3/4
+still need.
