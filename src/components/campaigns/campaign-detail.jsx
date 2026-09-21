@@ -3,6 +3,7 @@ import {
   ArrowLeft, ListChecks, BookOpen, FileText, Users, BarChart3, Plus, X, AlertTriangle,
   CheckCircle2, Copy, Check, ExternalLink, Link2, PhoneCall, ChevronDown, ChevronRight,
   ScrollText, Download, ClipboardList, UploadCloud, Trash2, MessageSquare, MapPin, Paperclip, Mail,
+  RotateCcw,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card.jsx";
 import { Button } from "@/components/ui/button.jsx";
@@ -200,7 +201,7 @@ export function CampaignDetail({
         title="Rep territory assignments"
         description="Load a distributor's reps live from HubSpot and pair each to the state(s)/cities they cover — Target Prospects above auto-populates from it the moment it's saved, no separate step. Works for any distributor, not just one."
       >
-        <RepVisitsPanel c={c} resolved={resolved} canWrite={canWrite} onPatch={onPatch} />
+        <RepVisitsPanel c={c} resolved={resolved} canWrite={canWrite} onPatch={onPatch} saveState={saveState} />
       </Section>
 
       {c.audience?.salesReps?.length > 0 && (
@@ -478,7 +479,7 @@ function normCompany(s) {
   return String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 }
 
-function RepVisitsPanel({ c, resolved, canWrite, onPatch }) {
+function RepVisitsPanel({ c, resolved, canWrite, onPatch, saveState = "idle" }) {
   const saved = c.repVisits || {};
   const [source, setSource] = useState(saved.source || c.audience?.repsFrom || "");
   const [crm, setCrm] = useState(undefined);
@@ -677,6 +678,46 @@ function RepVisitsPanel({ c, resolved, canWrite, onPatch }) {
         />
         <p className="mt-1.5 text-xs text-fg-muted">Matched against the Company field on live HubSpot contacts.</p>
       </div>
+
+      {/* Assignments so far — the running, SAVED result of Steps 1 & 2 below, kept in one place
+          so it's obvious what's landed as reps/territories/accounts get added (Rick, 2026-09-21:
+          "I need the assignments to populate the campaign list that builds as we add Reps,
+          territories, accounts so we can see a list as it build and confirm saved"). Purely
+          derived from accountAssignments/repStats above — nothing new to persist — so it updates
+          the instant a territory is locked in or a single account's dropdown is changed, and
+          RowSaveStatus (same chip every other panel here uses) confirms the write actually
+          landed, not just that the screen changed. Rendered ahead of the source-match gate below
+          so it still shows saved history even if `source` no longer matches (e.g. renamed). */}
+      {crm !== undefined && companies.length > 0 && (
+        <div className="rounded-base border border-border bg-bg p-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-sm font-medium text-fg">
+              Assignments so far — {totalAssigned.toLocaleString()} account{totalAssigned === 1 ? "" : "s"}
+              {Object.keys(repStats).length ? ` across ${Object.keys(repStats).length} rep${Object.keys(repStats).length === 1 ? "" : "s"}` : ""}
+            </p>
+            <RowSaveStatus state={saveState} />
+          </div>
+          {totalAssigned === 0 ? (
+            <p className="mt-1.5 text-xs text-fg-muted">
+              Nothing assigned yet — lock in a territory in Step 1, or set a rep on a single account in Step 2, and it shows up here.
+            </p>
+          ) : (
+            <ul className="mt-2 max-h-56 space-y-1 overflow-y-auto">
+              {Object.entries(repStats)
+                .sort(([, a], [, b]) => b.count - a.count)
+                .map(([email, stats]) => (
+                  <li key={email} className="flex flex-wrap items-center justify-between gap-2 text-sm">
+                    <span className="min-w-0 truncate text-fg">{repByEmail[email]?.name || email}</span>
+                    <Badge variant="outline">
+                      {stats.count.toLocaleString()} account{stats.count === 1 ? "" : "s"}
+                      {stats.states.size ? ` · ${[...stats.states].sort().join(", ")}` : ""}
+                    </Badge>
+                  </li>
+                ))}
+            </ul>
+          )}
+        </div>
+      )}
 
       {!source ? (
         <p className="text-sm text-fg-muted">Set the distributor's HubSpot company name above to load their reps.</p>
@@ -1535,10 +1576,20 @@ function ProspectPanel({ c, resolved, scripts = [], enrichment = {}, onEnrich, c
     () => seg.segment.filter((co) => hasGap(co) && isResolved(enrichment[co.id])),
     [seg, enrichment]
   );
+  // Split out of workedRows specifically (2026-09-21, Rick: "give me a remove button with a
+  // explanation for contacts that are not prospects but a different industry contact") — these
+  // were genuinely never prospects (wrong trade, not this industry, duplicate) rather than
+  // actually-worked/cleared rows, so they get their own reviewable tab instead of being buried
+  // inside "Worked" next to real captured contacts.
+  const removedRows = useMemo(
+    () => workedRows.filter((co) => enrichment[co.id]?.outcome === "not-a-prospect"),
+    [workedRows, enrichment]
+  );
   const gaps = useMemo(() => {
     const base = listFilter === "cleared" ? workedRows
-      : listFilter === "all" ? [...seg.remaining, ...workedRows]
-        : seg.remaining;
+      : listFilter === "removed" ? removedRows
+        : listFilter === "all" ? [...seg.remaining, ...workedRows]
+          : seg.remaining;
     // Search spans the fields you'd actually reach for mid-call: the shop, where it is, and
     // whoever has already been captured on it.
     const q = query.trim().toLowerCase();
@@ -1551,7 +1602,7 @@ function ProspectPanel({ c, resolved, scripts = [], enrichment = {}, onEnrich, c
     const list = base.filter(matchesPick).filter(hit);
     list.sort((a, b) => tierOf(a) - tierOf(b) || String(a.name).localeCompare(String(b.name)));
     return list;
-  }, [seg, pick, listFilter, workedRows, query, enrichment]);
+  }, [seg, pick, listFilter, workedRows, removedRows, query, enrichment]);
   // Export list stays strict: only rows with real captured detail. A disqualified company is
   // resolved (off the call list) but has nothing to send to HubSpot.
   const clearedRows = useMemo(
@@ -1692,6 +1743,7 @@ function ProspectPanel({ c, resolved, scripts = [], enrichment = {}, onEnrich, c
                 {[
                   ["remaining", `To call (${seg.remaining.length})`],
                   ["cleared", `Worked (${workedRows.length})`],
+                  ["removed", `Removed (${removedRows.length})`],
                   ["all", `All (${seg.remaining.length + workedRows.length})`],
                 ].map(([id, label]) => (
                   <button
@@ -1714,7 +1766,9 @@ function ProspectPanel({ c, resolved, scripts = [], enrichment = {}, onEnrich, c
                 {gaps.length.toLocaleString()} shown{query ? <> matching “{query}”</> : null}{pick ? <> in <strong>{pick.level === "longisland" ? "Long Island" : pick.level === "nycboroughs" ? "New York City" : pick.key}</strong></> : null}, ordered by channel tier.
                 {listFilter === "remaining"
                   ? " A row moves to Worked once the outcome is Reached and both the buyer and email are filled in."
-                  : " Open any row to correct what was captured before it goes to HubSpot."}
+                  : listFilter === "removed"
+                    ? " Marked Not a prospect, with the reason captured on each row — use Restore to send one back to the call list."
+                    : " Open any row to correct what was captured before it goes to HubSpot."}
               </p>
               <ul className="mt-3 max-h-[36rem] space-y-2 overflow-y-auto pr-1">
                 {gaps.slice(0, 200).map((co) => (
@@ -1833,13 +1887,48 @@ function ScriptWindow({ scripts }) {
 // One account on the gap list: what's missing, the number IN PLAIN TEXT so it can be dialled by
 // any method (Rick, 2026-08-03 — "phone number visible in line so I can choose a different
 // calling method"), and the capture fields for what the call produced.
+// The explanation captured when a row is Removed lives in the existing call-note field (see
+// confirmRemove() below) so nothing invents a second place to store text — this just reads the
+// last "Removed — …" line back out for display without requiring the row to be expanded.
+function removalReasonOf(rec) {
+  if (!rec?.note) return "";
+  const lines = String(rec.note).split("\n").map((l) => l.trim()).filter(Boolean);
+  const last = lines[lines.length - 1] || "";
+  const m = last.match(/^Removed — (.*)$/);
+  return m ? m[1] : last;
+}
+
 function CallRow({ co, rec, canWrite, onPatch, saveState, resolved }) {
   const [open, setOpen] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [verifyError, setVerifyError] = useState("");
+  // Remove — a dedicated, one-click path to "not-a-prospect" for a company that was never a real
+  // prospect (wrong industry, wrong trade, duplicate), distinct from the Call outcome dropdown
+  // further down (Rick, 2026-09-21: "give me a remove button with a explanation for contacts
+  // that are not prospects but a different industry contact"). Reuses the existing
+  // not-a-prospect outcome/isResolved machinery — the row drops out of "To call" into its own
+  // "Removed" tab in ProspectPanel — instead of inventing a parallel hide flag.
+  const [removing, setRemoving] = useState(false);
+  const [reason, setReason] = useState("");
   const phone = rec.phone || co.ownerPhone || co.phone || "";
   const outcome = rec.outcome || "not-called";
   const touched = outcome !== "not-called" || rec.buyer || rec.email || rec.note;
+  const isRemoved = outcome === "not-a-prospect";
+
+  function confirmRemove() {
+    const trimmed = reason.trim();
+    if (!trimmed) return;
+    // Appended, not overwritten — a rep may already have call notes on this row, and the
+    // explanation should never silently erase them.
+    const addition = `Removed — ${trimmed}`;
+    const nextNote = rec.note ? `${rec.note}\n\n${addition}` : addition;
+    onPatch({ outcome: "not-a-prospect", note: nextNote, calledAt: new Date().toISOString() });
+    setRemoving(false);
+    setReason("");
+  }
+  function restoreProspect() {
+    onPatch({ outcome: "not-called" });
+  }
 
   // Address verification (docs/ADDRESS_VERIFICATION_SPEC_2026-09-21.md) — verifies whatever's
   // currently in the fields (a rep's correction), falling back to HubSpot's own address/city/
@@ -1881,6 +1970,9 @@ function CallRow({ co, rec, canWrite, onPatch, saveState, resolved }) {
             <span className="block text-xs text-fg-muted">
               {[co.channel, [co.city, co.state].filter(Boolean).join(", ")].filter(Boolean).join(" · ") || "—"}
             </span>
+            {isRemoved && removalReasonOf(rec) && (
+              <span className="block truncate text-xs italic text-fg-muted">Removed — {removalReasonOf(rec)}</span>
+            )}
           </span>
         </button>
 
@@ -1891,8 +1983,43 @@ function CallRow({ co, rec, canWrite, onPatch, saveState, resolved }) {
           {touched && <Badge variant={OUTCOME_TONE[outcome] || "muted"}>{OUTCOME_LABEL[outcome]}</Badge>}
           <PhoneInline phone={phone} />
           <EmailInline resolved={resolved} to={rec.email || co.ownerEmail} subject={`Monti Trentini — ${co.name}`} />
+          {canWrite && (isRemoved ? (
+            <Button type="button" variant="outline" size="sm" onClick={restoreProspect} title="Send this back to the call list">
+              <RotateCcw className="h-3.5 w-3.5" /> Restore
+            </Button>
+          ) : (
+            <Button
+              type="button" variant="outline" size="sm" onClick={() => setRemoving((v) => !v)}
+              title="Not actually a prospect — different industry, wrong trade, duplicate, etc."
+            >
+              <Trash2 className="h-3.5 w-3.5" /> Remove
+            </Button>
+          ))}
         </div>
       </div>
+
+      {removing && (
+        <div className="space-y-2 border-t border-border bg-bg p-3">
+          <Label htmlFor={`rm-${co.id}`}>Why isn't this a prospect?</Label>
+          <div className="flex flex-wrap items-center gap-2">
+            <Input
+              id={`rm-${co.id}`} value={reason} onChange={(e) => setReason(e.target.value)}
+              placeholder="e.g. different industry, not a food distributor, duplicate record"
+              className="max-w-md" autoFocus
+            />
+            <Button type="button" variant="destructive" size="sm" disabled={!reason.trim()} onClick={confirmRemove}>
+              Confirm remove
+            </Button>
+            <Button type="button" variant="ghost" size="sm" onClick={() => { setRemoving(false); setReason(""); }}>
+              Cancel
+            </Button>
+          </div>
+          <p className="text-xs text-fg-muted">
+            Moves this to the Removed tab and marks the outcome "Not a prospect" — it stays on record, just off
+            the active call list, and Restore brings it back anytime.
+          </p>
+        </div>
+      )}
 
       {open && (
         <div className="space-y-3 border-t border-border p-3">
