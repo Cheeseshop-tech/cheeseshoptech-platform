@@ -91,19 +91,19 @@
     {
       "key": "why-trentino",
       "title": "Why the mountains matter",
-      "audience": ["supermarkets", "cheese-shops", "deli-sandwich", "independent-specialty", "food-service"],
+      "audience": ["cheese-shops", "deli-sandwich", "independent-specialty", "food-service"],
       "body": "Where cows graze in the Dolomites' shades, the milk is different — and so is the cheese. Made at altitude in the Trentino mountains, Monti Trentini's cheeses carry the character of alpine pasture: the herbs, the cool air, the slow seasons. This is authentic Italian Alpine cheese, not generic 'Made in Italy.' The mountain is the difference your customers can taste."
     },
     {
       "key": "sustainability",
       "title": "A new taste for the future",
-      "audience": ["supermarkets", "cheese-shops", "deli-sandwich", "independent-specialty", "distributor-partner"],
+      "audience": ["supermarkets", "independent-specialty", "distributor-partner"],
       "body": "We work daily to give the future a new taste. Sustainability drives our choices: a solar plant generating ~650,000 kWh a year used entirely in-house, 80% self-sufficiency for electricity, and roughly 1,000 tons of CO₂ avoided annually. Protecting the alpine landscape supports hundreds of mountain farms and the care of pastures and woodland — the whole mountain community benefits when the cheese is made right."
     },
     {
       "key": "retail-partnership",
       "title": "A partner for your shelves",
-      "audience": ["supermarkets", "cheese-shops", "deli-sandwich", "independent-specialty"],
+      "audience": ["supermarkets", "cheese-shops", "independent-specialty"],
       "body": "Monti Trentini brings a complete, authentic Italian Alpine range to specialty and retail shelves — heritage PDO wheels alongside ready-to-merchandise formats, all backed by a hundred-year story shoppers respond to. Happiness has plenty of shapes; we help you put them on the table. A single source from milk to package means consistency you can build a set around."
     },
     {
