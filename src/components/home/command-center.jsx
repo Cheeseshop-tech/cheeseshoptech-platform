@@ -74,6 +74,21 @@ export function CommandCenter({ resolved, onNavigate }) {
   }
 
   const { crm, campaigns, opportunities } = data;
+  // Dedupe by signal (2026-09-21, Rick flagged Opportunities "looks stale"): rankOpportunities
+  // picks one best signal PER ACCOUNT, and an evergreen "intent"/"seasonal" signal structurally
+  // outscores every "category-trend" signal (see TYPE_TIMELINESS in opportunities.js) regardless
+  // of how fresh the trend is. With 4+ distributor accounts all landing on the same signal, the
+  // old `.slice(0, 4)` filled the whole lane with 4 copies of one card and nothing newer ever
+  // surfaced. Surface up to 4 DISTINCT signals instead, so new signals actually get seen.
+  const seenSignalIds = new Set();
+  const diverseOpportunities = [];
+  for (const opp of opportunities || []) {
+    const sigId = opp.signalKeys?.[0];
+    if (sigId && seenSignalIds.has(sigId)) continue;
+    if (sigId) seenSignalIds.add(sigId);
+    diverseOpportunities.push(opp);
+    if (diverseOpportunities.length >= 4) break;
+  }
   // "In flight" = actually in market, else the ones being worked on. Showing only `launched`
   // would leave the card empty for most of a campaign's life, which is when it needs watching.
   const live = (campaigns || []).filter(isLive);
@@ -101,7 +116,7 @@ export function CommandCenter({ resolved, onNavigate }) {
     <>
       <h2 className="cs-display mb-4 mt-12 text-2xl text-brand-primary">At a glance</h2>
 
-      {opportunities?.length > 0 && (
+      {diverseOpportunities.length > 0 && (
         <Card className="mb-6 border-brand-primary/30">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -114,7 +129,7 @@ export function CommandCenter({ resolved, onNavigate }) {
             <p className="-mt-1 mb-1 text-xs text-fg-muted">
               Where a market signal meets an account — the brand-story angle that fits, ready to compose.
             </p>
-            {opportunities.slice(0, 4).map((opp) => (
+            {diverseOpportunities.map((opp) => (
               <div key={opp.id} className="flex items-start justify-between gap-4 border-b border-border pb-3 last:border-0 last:pb-0">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">

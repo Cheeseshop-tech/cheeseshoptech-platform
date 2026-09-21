@@ -20,11 +20,18 @@ export function getBrandKit(resolved) {
   return BUNDLES[resolved?.id] || null;
 }
 
-/** Audience tags used across story blocks + (later) the proposal builder's targeting. */
+/** Audience tags used across story blocks + (later) the proposal builder's targeting.
+ *  Expanded 2026-09-21 (Rick) from 3 broad buckets (retail/foodservice/distributor) to 6, so
+ *  supermarkets, cheese shops, delis and independent specialty markets — previously all lumped
+ *  into "retail" — can each get their own brand-story angle and Opportunity Engine targeting.
+ *  See src/lib/crm.js CHANNEL_TO_AUDIENCE for the HubSpot Channel → audience mapping. */
 export const AUDIENCES = [
-  { id: "retail", label: "Retail / specialty grocer" },
-  { id: "foodservice", label: "Foodservice / chef" },
-  { id: "distributor", label: "Distributor" },
+  { id: "distributor-partner", label: "Distributor partner" },
+  { id: "supermarkets", label: "Supermarkets" },
+  { id: "cheese-shops", label: "Cheese shops" },
+  { id: "deli-sandwich", label: "Deli / sandwich shop" },
+  { id: "food-service", label: "Food service" },
+  { id: "independent-specialty", label: "Independent specialty markets" },
 ];
 
 /** Story blocks filtered to an audience (or all). Used by Proposal Builder v2. */

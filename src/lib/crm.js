@@ -118,26 +118,34 @@ export function regionOf(company) {
   return STATE_REGION[st] || (st.length === 2 ? "Other US" : "International");
 }
 
-// HubSpot `Channel` → brand-voice audience (3, from brandKit.AUDIENCES). The single
+// HubSpot `Channel` → brand-voice audience (6, from brandKit.AUDIENCES). The single
 // authoring home for the customer-profile → brand-voice join: once a buyer's channel is known,
 // audienceOf() selects the right story blocks + readyPhrases (they're already audience-tagged).
 // See docs/MARKET_INTELLIGENCE_SPEC.md §2b. Amend the mapping here only.
 // 2026-07-24: extended to cover ALL 13 live values of the HubSpot Channel enum — the enrichment
 // pass wrote 8 values this map didn't know (183 accounts are "Cheese shop / Boutique grocery"),
 // and every unknown value silently dropped the account from Opportunity Engine targeting.
+// 2026-09-21 (Rick): split the old single "retail" bucket into 4 — supermarkets, cheese shops,
+// deli/sandwich shop, and independent specialty markets — so each gets its own targeting and
+// brand-story angle instead of one undifferentiated "retail" audience.
+//   - "deli-sandwich" has NO source Channel value yet (HubSpot has never distinguished a deli
+//     from a cheese shop) — it stays EMPTY until accounts are re-tagged by hand in HubSpot;
+//     every current "Cheese shop / Boutique grocery" account routes to "cheese-shops" for now.
+//   - "E-commerce" folds into "independent-specialty" (closest fit for boutique/DTC sellers) —
+//     it isn't one of Rick's 6 named categories on its own.
 export const CHANNEL_TO_AUDIENCE = {
-  "Distributor":                  "distributor",
-  "Importers":                    "distributor",
-  "Food Service Distributors":    "distributor",
-  "Manufacturers":                "distributor", // bulk/wholesale ingredient buyers — wholesale voice
-  "Restaurant / Chef":            "foodservice",
-  "Specialty grocer":             "retail",
-  "Retail chain":                 "retail",
-  "Cheese shop / Boutique grocery": "retail",
-  "Independent Supermarkets":     "retail",
-  "Regional Supermarket Chains":  "retail",
-  "National Chains":              "retail",
-  "E-commerce":                   "retail",
+  "Distributor":                  "distributor-partner",
+  "Importers":                    "distributor-partner",
+  "Food Service Distributors":    "distributor-partner",
+  "Manufacturers":                "distributor-partner", // bulk/wholesale ingredient buyers — wholesale voice
+  "Restaurant / Chef":            "food-service",
+  "Specialty grocer":             "independent-specialty",
+  "Retail chain":                 "supermarkets",
+  "Cheese shop / Boutique grocery": "cheese-shops",
+  "Independent Supermarkets":     "supermarkets",
+  "Regional Supermarket Chains":  "supermarkets",
+  "National Chains":              "supermarkets",
+  "E-commerce":                   "independent-specialty",
   "Partner / Producer":           null, // not a sell-to buyer — excluded from targeting
 };
 
@@ -152,11 +160,11 @@ export function audienceOf(account) {
 
 // Lowercase channel tokens used in mock orders (channel: "distributor" | "restaurant" | "grocer" | "chain").
 const TOKEN_TO_AUDIENCE = {
-  distributor: "distributor",
-  restaurant: "foodservice",
-  chef: "foodservice",
-  grocer: "retail",
-  chain: "retail",
+  distributor: "distributor-partner",
+  restaurant: "food-service",
+  chef: "food-service",
+  grocer: "supermarkets",
+  chain: "supermarkets",
 };
 
 const fmtUSD = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });

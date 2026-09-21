@@ -76,37 +76,37 @@
     {
       "key": "origin-provenance",
       "title": "A newer name, an old technique",
-      "audience": ["retail", "foodservice", "distributor"],
+      "audience": ["supermarkets", "cheese-shops", "deli-sandwich", "independent-specialty", "food-service", "distributor-partner"],
       "body": "Alpine Rind Co. isn't a hundred-year story — it's ten, and counting. Founded in 2016 in Vermont's Mad River Valley by cheesemakers trained in Swiss and French alpine technique, the creamery set out to prove that real alpine-style aging doesn't require the Alps — it requires patience, the right cellar, and milk worth waiting on."
     },
     {
       "key": "supply-chain-quality",
       "title": "Five farms, one creamery",
-      "audience": ["distributor", "foodservice"],
+      "audience": ["distributor-partner", "food-service"],
       "body": "Every wheel starts with milk from five neighboring dairy farms, all within 25 miles of the creamery — a co-op relationship, not a spot-market buy. That proximity means the milk reaches the vat within hours, and the same five herds show up in every batch, season after season. Traceable by design, not by claim."
     },
     {
       "key": "why-vermont",
       "title": "Why the Mad River Valley matters",
-      "audience": ["retail", "foodservice"],
+      "audience": ["supermarkets", "cheese-shops", "deli-sandwich", "independent-specialty", "food-service"],
       "body": "The Green Mountains don't make Alpine cheese by accident — cool nights, real pasture rotation, and a short, intense grazing season concentrate flavor the way altitude does anywhere else in the world. Alpine technique applied to Vermont pasture isn't an imitation of the Old World; it's the same principle, worked honestly on new ground."
     },
     {
       "key": "farm-partnership",
       "title": "A creamery built on five handshakes",
-      "audience": ["retail", "distributor"],
+      "audience": ["supermarkets", "cheese-shops", "deli-sandwich", "independent-specialty", "distributor-partner"],
       "body": "Every one of the five founding dairy farms is still shipping milk to Alpine Rind Co. today. That's the actual sustainability story — not a certification, a decade of the same farm families staying in business because the creamery pays a fair, predictable price for milk of a quality they can build a herd around."
     },
     {
       "key": "retail-partnership",
       "title": "A young range built for a real shelf set",
-      "audience": ["retail"],
+      "audience": ["supermarkets", "cheese-shops", "deli-sandwich", "independent-specialty"],
       "body": "Six wheels, one clear range: an entry tomme, three core alpine styles, and a flagship reserve with real cellar time. Built to fill a set, not to overwhelm a buyer's plan-o-gram with a hundred SKUs nobody asked for. A growing brand a shelf can grow with."
     },
     {
       "key": "foodservice-chef",
       "title": "For a menu that wants a story, not just a wheel",
-      "audience": ["foodservice"],
+      "audience": ["food-service"],
       "body": "Alpine Rind's range gives a chef real range of its own — from Cellar Door Tomme's approachable melt to Amber Rind Reserve's crystalline, 18-month bite. Every wheel comes with the five-farm story attached, ready for a menu description that does more than list a milk type."
     }
   ],

@@ -85,7 +85,7 @@ export function rankOpportunities({ crm, signals, brandKit, catalog, readiness }
   // still has something to show — one synthetic "account" per audience the signals target.
   const targets = accounts.length
     ? accounts.map((a) => ({ account: a, audience: audienceOf(a) }))
-    : ["distributor", "foodservice", "retail"].map((aud) => ({
+    : ["distributor-partner", "supermarkets", "cheese-shops", "deli-sandwich", "food-service", "independent-specialty"].map((aud) => ({
         account: { id: `segment-${aud}`, name: labelForAudience(aud), segment: true },
         audience: aud,
       }));
@@ -157,5 +157,12 @@ function score({ sig, account, matchedCount, readiness }) {
 }
 
 function labelForAudience(aud) {
-  return { distributor: "Distributor accounts", foodservice: "Foodservice / chefs", retail: "Specialty grocers" }[aud] || aud;
+  return {
+    "distributor-partner": "Distributor partners",
+    "supermarkets": "Supermarkets",
+    "cheese-shops": "Cheese shops",
+    "deli-sandwich": "Deli / sandwich shops",
+    "food-service": "Foodservice / chefs",
+    "independent-specialty": "Independent specialty markets",
+  }[aud] || aud;
 }

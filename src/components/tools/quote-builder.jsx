@@ -67,17 +67,20 @@ const PURPOSES = [
   },
 ];
 
-/* Which brand-kit story-block audience a class-of-trade tier implies. Explicit for the tiers
+/* Which brand-kit story-block audience(s) a class-of-trade tier implies. Explicit for the tiers
    that exist today, heuristic for tiers a future tenant invents, so an unknown tier degrades to
-   "show every block" rather than to an empty panel grid. */
+   "show every block" rather than to an empty panel grid.
+   2026-09-21: returns an ARRAY, not a single id — a pricing tier like "Direct to Retail" is too
+   coarse to resolve to just one of the 6 audiences (supermarkets vs. cheese shops vs. delis vs.
+   independent specialty), so it now matches ANY story block tagged with one of that group. */
 function audienceForTier(tier) {
   const id = String(tier?.id || "").toLowerCase();
   const label = String(tier?.label || "").toLowerCase();
   const hay = id + " " + label;
-  if (/food\s*service|foodservice|chef|restaurant/.test(hay)) return "foodservice";
-  if (/distributor|wholesale/.test(hay)) return "distributor";
-  if (/retail|consumer|dtc|e-?comm/.test(hay)) return "retail";
-  return "";
+  if (/food\s*service|foodservice|chef|restaurant/.test(hay)) return ["food-service"];
+  if (/distributor|wholesale/.test(hay)) return ["distributor-partner"];
+  if (/retail|consumer|dtc|e-?comm/.test(hay)) return ["supermarkets", "cheese-shops", "deli-sandwich", "independent-specialty"];
+  return [];
 }
 
 /* The divider bar's audience label: the tier label without its parenthetical gloss.
@@ -154,8 +157,8 @@ export function QuoteBuilder({ data, brand, resolved, itemsDoc }) {
   const [storyKeys, setStoryKeys] = useState([]);
   const storyPool = useMemo(() => {
     const blocks = kit?.storyBlocks || [];
-    if (!audience) return blocks;
-    const hit = blocks.filter((b) => (b.audience || []).includes(audience));
+    if (!audience?.length) return blocks;
+    const hit = blocks.filter((b) => (b.audience || []).some((a) => audience.includes(a)));
     return hit.length ? hit : blocks;
   }, [kit, audience]);
   useEffect(() => {
@@ -820,7 +823,7 @@ export function QuoteBuilder({ data, brand, resolved, itemsDoc }) {
               <input type="checkbox" checked={showStory} onChange={(e) => setShowStory(e.target.checked)}
                 className="h-4 w-4 accent-[var(--cs-color-brand-primary)]" />
               Show story panels
-              {audience && <Badge variant="muted">{audience}</Badge>}
+              {audience?.length > 0 && <Badge variant="muted">{audience.join(" / ")}</Badge>}
             </label>
             <p className="mt-1 text-xs text-fg-muted">
               From the brand kit, filtered to the audience this class of trade implies. Up to three print.

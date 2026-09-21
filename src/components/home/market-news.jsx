@@ -16,9 +16,13 @@ import { addLocalSignal, loadLocalSignals } from "@/lib/signals.js";
 // structured signal (localStorage overlay) that immediately feeds the Opportunity engine.
 
 // Rough audience mapping for a promoted headline; the house refines when authoring properly.
+// 2026-09-21: expanded from 3 broad buckets to the 6-category taxonomy (brandKit.AUDIENCES) —
+// "retail" fans out to every retail sub-type since a promoted headline hasn't been hand-tagged
+// to just one yet.
+const RETAIL_GROUP = ["supermarkets", "cheese-shops", "deli-sandwich", "independent-specialty"];
 const CATEGORY_AUDIENCES = {
-  trade: ["distributor", "retail"],
-  consumer: ["retail", "foodservice"],
+  trade: ["distributor-partner", ...RETAIL_GROUP],
+  consumer: [...RETAIL_GROUP, "food-service"],
 };
 
 /** Distill a news item into a Tier 2 signal (deterministic — no AI pass yet). */
@@ -26,7 +30,7 @@ function distill(item) {
   return {
     id: `sig-from-${item.id}`,
     scope: "market",
-    audience: CATEGORY_AUDIENCES[item.category] || ["retail"],
+    audience: CATEGORY_AUDIENCES[item.category] || RETAIL_GROUP,
     type: "category-trend",
     title: item.headline,
     insight: item.summary || item.headline,

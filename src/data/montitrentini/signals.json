@@ -2,7 +2,7 @@
   {
     "id": "sig-fall-boards",
     "scope": "market",
-    "audience": ["retail", "foodservice"],
+    "audience": ["supermarkets", "cheese-shops", "deli-sandwich", "independent-specialty", "food-service"],
     "type": "seasonal",
     "title": "Fall entertaining ramps — cheese-board season",
     "insight": "Sept–Nov is peak board & grazing demand for specialty grocers and chef menus; shareable-board menu engagement is up 33% year over year, and buyers set fall assortments now.",
@@ -15,7 +15,7 @@
   {
     "id": "sig-q4-gifting",
     "scope": "market",
-    "audience": ["retail"],
+    "audience": ["supermarkets", "cheese-shops", "deli-sandwich", "independent-specialty"],
     "type": "seasonal",
     "title": "Holiday gifting build for Q4",
     "insight": "Grocers lock gift & DTC box programs in late summer/early fall for Q4; a heritage story sells the gift, not the spec sheet.",
@@ -28,7 +28,7 @@
   {
     "id": "sig-distributor-reset",
     "scope": "segment",
-    "audience": ["distributor"],
+    "audience": ["distributor-partner"],
     "type": "intent",
     "title": "Distributor fall line-review / reset window",
     "insight": "Distributors run fall line reviews now; a tight range with a single-source quality story wins slots.",
@@ -41,7 +41,7 @@
   {
     "id": "sig-deli-reset",
     "scope": "segment",
-    "audience": ["retail"],
+    "audience": ["supermarkets", "cheese-shops", "deli-sandwich", "independent-specialty"],
     "type": "seasonal",
     "title": "Grocer deli reset — back-to-routine everyday cheese",
     "insight": "Post-summer deli resets favor dependable everyday SKUs with a warm, family-brand feel.",
@@ -54,7 +54,7 @@
   {
     "id": "sig-cheddar-price-surge",
     "scope": "market",
-    "audience": ["distributor", "retail"],
+    "audience": ["distributor-partner", "supermarkets", "cheese-shops", "deli-sandwich", "independent-specialty"],
     "type": "category-trend",
     "title": "Cheddar price surge widens the DOP-stability contrast",
     "insight": "Global Dairy Trade cheddar prices jumped 16.5% in the mid-September auction even as the broader index slipped — commodity cheddar is getting more volatile just as buyers are locking fall/Q4 assortments.",
@@ -67,7 +67,7 @@
   {
     "id": "sig-flavor-exploration-retail",
     "scope": "market",
-    "audience": ["retail"],
+    "audience": ["supermarkets", "cheese-shops", "deli-sandwich", "independent-specialty"],
     "type": "category-trend",
     "title": "Retail shoppers trading up into flavor exploration, not down on price",
     "insight": "Cheese Reporter: retail cheese sales are growing on convenience and flavor exploration — shoppers are trading into new varieties rather than trading down, meaning discovery is doing the work price promotions used to.",
@@ -80,7 +80,7 @@
   {
     "id": "sig-aged-texture-premium",
     "scope": "market",
-    "audience": ["retail", "foodservice"],
+    "audience": ["supermarkets", "cheese-shops", "deli-sandwich", "independent-specialty", "food-service"],
     "type": "category-trend",
     "title": "Texture, not just flavor, is now the purchase driver",
     "insight": "Buyers are increasingly choosing cheese on how it performs — crystalline bite, melt, the cheese pull — not just on flavor; aged, crystalline paste is a texture story that photographs well for merchandising.",
@@ -93,7 +93,7 @@
   {
     "id": "sig-specialty-market-growth",
     "scope": "market",
-    "audience": ["distributor"],
+    "audience": ["distributor-partner"],
     "type": "category-trend",
     "title": "Specialty cheese category headroom: $40bn by 2031",
     "insight": "DairyReporter: the global specialty cheese market is projected to reach $40bn by 2031 at roughly 5% annual growth, with premium imported varieties leading — useful framing for a distributor conversation about where the category is heading.",
@@ -106,7 +106,7 @@
   {
     "id": "sig-italian-import-recall-ca",
     "scope": "market",
-    "audience": ["retail", "distributor"],
+    "audience": ["supermarkets", "cheese-shops", "deli-sandwich", "independent-specialty", "distributor-partner"],
     "type": "competitive",
     "title": "Imported Italian-style cheese recalled for contamination (Canada)",
     "insight": "Yotvata brand Caciotta Peperoncino, a semi-soft Italian-style cheese, was recalled in Ontario on staph contamination — a reminder that buyers in this category are actively weighing supply-chain trust, not just price, right now.",
@@ -119,7 +119,7 @@
   {
     "id": "sig-usda-import-forecast-fy26",
     "scope": "market",
-    "audience": ["distributor"],
+    "audience": ["distributor-partner"],
     "type": "category-trend",
     "title": "USDA raises FY2026 US dairy import forecast to $5.5bn",
     "insight": "USDA FAS raised its fiscal 2026 US dairy import forecast by $200M from the August estimate, to $5.5bn — the category is being sized up, not down, going into the back half of the year.",
@@ -132,7 +132,7 @@
   {
     "id": "sig-counter-format-snacking",
     "scope": "market",
-    "audience": ["retail"],
+    "audience": ["supermarkets", "cheese-shops", "deli-sandwich", "independent-specialty"],
     "type": "category-trend",
     "title": "Cheesemongers add grab-and-go chillers as snacking-format cheese takes hold",
     "insight": "Trade press reports specialty cheese counters are adding dedicated grab-and-go chillers alongside full-service counters, with protein-rich snacking-format cheese now a genuine new category rather than a gimmick — a way to catch fast shoppers without losing the personal-connection sell.",
@@ -145,7 +145,7 @@
   {
     "id": "sig-genz-sustainability-stat",
     "scope": "market",
-    "audience": ["retail"],
+    "audience": ["supermarkets", "cheese-shops", "deli-sandwich", "independent-specialty"],
     "type": "category-trend",
     "title": "Gen Z's sustainability-first cheese buying now has a number attached",
     "insight": "30% of Gen Z cheese consumers in the US already actively seek sustainably produced cheese, naming sustainability as a purchase driver rather than a nice-to-have for younger shoppers.",
@@ -158,7 +158,7 @@
   {
     "id": "sig-independent-retail-closures",
     "scope": "market",
-    "audience": ["retail"],
+    "audience": ["supermarkets", "cheese-shops", "deli-sandwich", "independent-specialty"],
     "type": "category-trend",
     "title": "Independent specialty cheese shops closing under margin pressure",
     "insight": "Google Alerts surfaced two independent specialty cheese shop closures this week (a Sarasota-area shop and a Rosemary District specialty cheese shop down 40% before closing after 14 years) — a reminder that surviving independents need a differentiation story, not just SKUs, to compete with big grocers carrying similar products at lower prices.",
