@@ -20,14 +20,23 @@
    - New "Rep territory assignments" section on every campaign (`RepVisitsPanel`).
    - `RepVisitsPanel`: a "Distributor — HubSpot company name" input, live HubSpot contact match
      (reusing `getCrmData()` — the same read `ProspectPanel` and the CRM console already use, no
-     new fetch), search box, and one `RepRegionRow` per matched rep.
-   - `RepRegionRow`: expandable row, `PhoneInline` + new `EmailInline`, "States covered"
-     (comma-separated) and "City/town narrowing" (`"PA: Philadelphia, Pittsburgh; NY: Buffalo"`)
-     inputs, saved on blur through the existing `onPatch` autosave.
+     new fetch), a national rep list (read-only display), and a **territory builder**: state
+     checkboxes built live from `crm.companies`' own state→city breakdown (expandable to
+     city/town/borough checkboxes for that state — only real places with accounts show up), a
+     live preview list of matching accounts right below the checkboxes, an "assign to" rep
+     dropdown, and a "Lock in territory" button that merges the checked boxes into the chosen
+     rep's `states`/`cities` (union, not replace — a rep can be built up across more than one
+     lock-in pass) and saves through the normal autosave. **Revised same day** after Rick's
+     first-pass feedback: "I need som boxes... so wne the boxes get check and I lock in
+     territory the list for the focused territory is right below the rep list then once
+     teritory is matched it populates in the rep dropdown" — the original per-rep free-text
+     "States covered" input (`RepRegionRow`) was replaced entirely by this checkbox-and-lock-in
+     flow; no other file needed to change since the underlying `repVisits.reps[].states/cities`
+     shape is identical.
    - `EmailInline` (new, shared): wraps `composeUrl()` from `src/lib/crm.js` (same
      tenant-identity-aware Gmail-compose Booth's Calendar/Recap buttons already use). Wired in
      next to `PhoneInline` in both `CallRow` (Target Prospects) and `RepCallRow` (the older
-     Sales Rep Contacts panel).
+     Sales Rep Contacts panel), and in the national rep list rows in `RepVisitsPanel`.
 
 ## For the Ace Endico campaign specifically
 
@@ -43,13 +52,14 @@ above updates automatically, the same render.
 
 ## Verified
 
-`eslint` on all six touched files — 0 errors (5 pre-existing `react-hooks/exhaustive-deps`
-warnings across the file, including one new one on `RepVisitsPanel`'s `getCrmData` effect,
-same shape as three other pre-existing warnings in this file — not a functional issue).
-`vite build` — transform stage succeeded (2061 modules, 0 errors); the build then hit the
-sandbox's stray `dist/.DS_Store` unlink-permission quirk (documented in earlier handoffs, not a
-code issue) — requested delete permission for the repo folder, removed it, and the full build
-completed clean (`✓ built in 5.49s`).
+`eslint` on all six touched files — 0 errors both before and after the territory-builder
+revision (7 `react-hooks/exhaustive-deps` warnings total in campaign-detail.jsx, all the same
+pre-existing shape — missing `resolved` dep on a data-fetch effect, `companies` derived inline
+— already present elsewhere in this file before this feature). `vite build` — transform stage
+succeeded both times (2061 modules, 0 errors); the build then hit the sandbox's stray
+`dist/.DS_Store` unlink-permission quirk (documented in earlier handoffs, not a code issue) —
+requested delete permission for the repo folder once, removed it, and the full build completed
+clean (`✓ built in 5.36s` on the final revision).
 
 No test framework in this repo, so there's no automated coverage for the live HubSpot-match
 logic or the auto-derived filter — worth Rick doing one real pass after this deploys: open the

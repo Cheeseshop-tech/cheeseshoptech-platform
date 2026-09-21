@@ -36,6 +36,19 @@ button." Clarified over several follow-ups:
    hand per rep instead of hardcoded once for PA. A state is narrowed to specific cities only
    when *every* rep covering it gave city names; one rep with no narrowing keeps the whole
    state in the segment.
+2a. **Territory-first UI (2026-09-21, revised same day after first pass shipped).** Rick's
+   reaction to the first version (free-text "NY, NJ, PA" inputs per rep): "I need som boxes and
+   by state city town/ borough so wne the boxes get check and I lock in territory the list for
+   the focused territory is right below the rep list then once teritory is matched it populates
+   in the rep dropdown." Rebuilt as: check state/city checkboxes (built from the live CRM's own
+   state→city breakdown, so only real places with accounts show up — boroughs come along for
+   free since HubSpot stores them as plain city values), see the matching account list update
+   live right below the checkbox tree, then pick the rep from a dropdown and click "Lock in
+   territory" to save. Locking in MERGES (unions) into that rep's existing assignment rather
+   than replacing it, so a rep's territory can be built up across more than one lock-in pass.
+   The underlying data shape is unchanged (`repVisits.reps[].states/cities`) — only the input
+   method changed, so nothing else in the pipeline (`deriveRepFilter`, `mergeCampaign`,
+   `campaign-state.js`) needed to change.
 3. **Auto-routes on save — no apply button.** `mergeCampaign()` derives `audience.filter` from
    the saved rep assignments on every read, so the instant Rick blurs a "States covered" field
    the autosave fires and Target Prospects above recomputes from the new filter on next render.
@@ -66,11 +79,15 @@ CampaignDetail "Rep territory assignments" section (new, every campaign gets one
    ▼
 RepVisitsPanel
    │  "Distributor — HubSpot company name" input → repVisits.source
-   │  getCrmData(resolved) → crm.people, filtered by normalized company-name match
+   │  getCrmData(resolved) → crm.people (reps) + crm.companies (territory checkbox tree/preview)
    ▼
-RepRegionRow (one per matched HubSpot contact)
-   │  "States covered" (comma list) + "City/town narrowing" ("PA: Philadelphia, Pittsburgh; …")
-   │  PhoneInline + EmailInline (composeUrl)
+National rep list (read-only display: name/title, current region badge, PhoneInline, EmailInline)
+   ▼
+Territory builder: state checkboxes, expandable to real city/town/borough checkboxes for that
+   state (built live from crm.companies, not a static list) → live preview list of matching
+   accounts right below → "Assign this territory to" rep dropdown → "Lock in territory" button
+   ▼
+lockInTerritory() merges the checked states/cities into the chosen rep's existing assignment
    ▼
 onPatch({ repVisits: { source, reps: [...] } })  — same debounced autosave as every other
    campaign-detail field (items/comments/documents)

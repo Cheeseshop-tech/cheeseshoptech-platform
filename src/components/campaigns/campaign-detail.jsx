@@ -474,6 +474,15 @@ function RepVisitsPanel({ c, resolved, canWrite, onPatch }) {
   const [source, setSource] = useState(saved.source || c.audience?.repsFrom || "");
   const [crm, setCrm] = useState(undefined);
   const [q, setQ] = useState("");
+  // The territory being BUILT right now — checkboxes, not yet locked in to a rep (Rick,
+  // 2026-09-21: "I need som boxes and by state city town/ borough so wne the boxes get check
+  // and I lock in territory the list for the focused territory is right below the rep list
+  // then once teritory is matched it populates in the rep dropdown").
+  const [checkedStates, setCheckedStates] = useState(() => new Set());
+  const [checkedCities, setCheckedCities] = useState({}); // { ST: Set(cityKey) }
+  const [expandedStates, setExpandedStates] = useState(() => new Set());
+  const [assignRep, setAssignRep] = useState("");
+  const [lockMsg, setLockMsg] = useState("");
 
   useEffect(() => {
     let alive = true;
@@ -524,16 +533,101 @@ function RepVisitsPanel({ c, resolved, canWrite, onPatch }) {
     onPatch({ repVisits: { ...(next ? { source: next } : {}), reps: saved.reps || [] } });
   }
 
-  function patchRep(email, part) {
-    const key = email.toLowerCase();
-    const others = (saved.reps || []).filter((r) => String(r.email || "").toLowerCase() !== key);
+  // ---- Territory checkboxes: national state list, each expandable to the real cities/towns
+  // (boroughs included for free — HubSpot stores "Brooklyn"/"Queens"/etc. as plain city values,
+  // same field cityKeyOf() already normalizes elsewhere) that actually have accounts on file
+  // for that state, so the boxes only ever offer real places, not a static US list.
+  const companies = crm?.companies || [];
+  const stateTree = useMemo(() => {
+    const byState = new Map();
+    for (const co of companies) {
+      const st = stateOf(co);
+      if (!st) continue;
+      const ck = cityKeyOf(co);
+      if (!byState.has(st)) byState.set(st, { total: 0, cities: new Map() });
+      const entry = byState.get(st);
+      entry.total += 1;
+      if (ck) {
+        if (!entry.cities.has(ck)) entry.cities.set(ck, { total: 0 });
+        entry.cities.get(ck).total += 1;
+      }
+    }
+    return [...byState.entries()]
+      .map(([st, v]) => ({
+        state: st,
+        total: v.total,
+        cities: [...v.cities.entries()]
+          .map(([key, cv]) => ({ key, label: key.replace(/\b\w/g, (m) => m.toUpperCase()), total: cv.total }))
+          .sort((a, b) => b.total - a.total || a.label.localeCompare(b.label)),
+      }))
+      .sort((a, b) => b.total - a.total || a.state.localeCompare(b.state));
+  }, [companies]);
+
+  function toggleStateBox(st) {
+    setCheckedStates((prev) => {
+      const next = new Set(prev);
+      if (next.has(st)) next.delete(st); else next.add(st);
+      return next;
+    });
+  }
+  function toggleCityBox(st, cityKey) {
+    setCheckedCities((prev) => {
+      const cur = new Set(prev[st] || []);
+      cur.has(cityKey) ? cur.delete(cityKey) : cur.add(cityKey);
+      return { ...prev, [st]: cur };
+    });
+    // Checking a city implies its state is in play even if the state box itself isn't checked.
+    setCheckedStates((prev) => (prev.has(st) ? prev : new Set(prev).add(st)));
+  }
+  function toggleExpand(st) {
+    setExpandedStates((prev) => {
+      const next = new Set(prev);
+      next.has(st) ? next.delete(st) : next.add(st);
+      return next;
+    });
+  }
+
+  // Live preview of the accounts the CURRENTLY CHECKED boxes reach — right below the checkbox
+  // tree, updating as boxes are (un)checked. A state with no city boxes checked counts in full;
+  // a state with some cities checked narrows to just those.
+  const previewList = useMemo(() => {
+    if (!checkedStates.size) return [];
+    return companies.filter((co) => {
+      const st = stateOf(co);
+      if (!checkedStates.has(st)) return false;
+      const cities = checkedCities[st];
+      if (!cities || !cities.size) return true;
+      return cities.has(cityKeyOf(co));
+    });
+  }, [companies, checkedStates, checkedCities]);
+
+  // Lock the currently-checked territory in to whichever rep is picked in the dropdown — merges
+  // (union) into that rep's existing states/cities rather than replacing, so a rep can be built
+  // up from more than one lock-in pass. Writes straight through the normal onPatch autosave;
+  // deriveRepFilter()/mergeCampaign() pick it up and Target Prospects above updates on its own.
+  function lockInTerritory() {
+    setLockMsg("");
+    if (!checkedStates.size) { setLockMsg("Check at least one state first."); return; }
+    if (!assignRep) { setLockMsg("Pick which rep this territory belongs to."); return; }
+    const key = assignRep;
     const current = savedByEmail[key] || matched.find((r) => r.email === key) || { email: key };
-    const nextRep = { ...current, ...part, email: key };
+    const mergedStates = new Set([...(current.states || []), ...checkedStates]);
+    const mergedCities = { ...(current.cities || {}) };
+    for (const st of checkedStates) {
+      const list = checkedCities[st];
+      if (list && list.size) mergedCities[st] = [...new Set([...(mergedCities[st] || []), ...list])];
+    }
+    const nextRep = { ...current, email: key, states: [...mergedStates], cities: mergedCities };
+    const others = (saved.reps || []).filter((r) => String(r.email || "").toLowerCase() !== key);
     onPatch({ repVisits: { ...(source ? { source } : {}), reps: [...others, nextRep] } });
+    setLockMsg(`Locked in — ${[...checkedStates].join(", ")} assigned to ${current.name || key}. Target Prospects above updates automatically.`);
+    setCheckedStates(new Set());
+    setCheckedCities({});
+    setAssignRep("");
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <div>
         <Label htmlFor="rv-source">Distributor — HubSpot company name</Label>
         <Input
@@ -553,6 +647,8 @@ function RepVisitsPanel({ c, resolved, canWrite, onPatch }) {
         <p className="text-sm text-fg-muted">No HubSpot contacts found with company matching "{source}" — check the spelling matches HubSpot's Company field.</p>
       ) : (
         <>
+          {/* Every HubSpot contact under this distributor, nationally — whatever their
+              territory ends up being, set below. */}
           <div className="flex flex-wrap items-center justify-between gap-3">
             <Input
               placeholder="Search by name, email, or phone…"
@@ -563,84 +659,112 @@ function RepVisitsPanel({ c, resolved, canWrite, onPatch }) {
               {effectiveFilter?.states?.length ? ` · covering ${effectiveFilter.states.join(", ")}` : ""}
             </p>
           </div>
-          <ul className="space-y-2">
+          <ul className="max-h-64 space-y-1.5 overflow-y-auto rounded-base border border-border p-2">
             {filtered.map((r) => (
-              <RepRegionRow key={r.email} rep={r} resolved={resolved} canWrite={canWrite} onPatch={(part) => patchRep(r.email, part)} />
+              <li key={r.email} className="flex flex-wrap items-center justify-between gap-2 rounded-base px-2 py-1.5 hover:bg-bg">
+                <span className="min-w-0">
+                  <span className="block truncate text-sm text-fg">{r.name}</span>
+                  <span className="block text-xs text-fg-muted">{r.jobtitle || r.email}</span>
+                </span>
+                <div className="flex shrink-0 flex-wrap items-center gap-2">
+                  {r.states?.length ? <Badge variant="outline">{r.states.join(", ")}</Badge> : <Badge variant="muted">No region yet</Badge>}
+                  <PhoneInline phone={r.phone} />
+                  <EmailInline resolved={resolved} to={r.email} subject={`${r.name} — territory`} />
+                </div>
+              </li>
             ))}
-            {filtered.length === 0 && <li className="py-6 text-center text-sm text-fg-muted">No match.</li>}
+            {filtered.length === 0 && <li className="py-4 text-center text-sm text-fg-muted">No match.</li>}
           </ul>
+
+          {/* Territory builder — check state/city boxes, see the matching accounts right below,
+              lock it in to a rep. */}
+          <div className="rounded-base border border-border p-3">
+            <p className="text-sm font-medium text-fg">Build a territory</p>
+            <p className="mt-1 text-xs text-fg-muted">
+              Check a state to cover it in full, or expand it and check specific cities/towns
+              (boroughs included) to narrow it. Only places with accounts on file are listed.
+            </p>
+            <div className="mt-3 max-h-72 space-y-1 overflow-y-auto">
+              {stateTree.map((s) => (
+                <div key={s.state} className="rounded-base border border-border/60">
+                  <div className="flex flex-wrap items-center gap-2 px-2 py-1.5">
+                    <button
+                      type="button" onClick={() => toggleExpand(s.state)}
+                      className="text-fg-muted hover:text-fg disabled:opacity-30" disabled={!s.cities.length}
+                      title={s.cities.length ? "Show cities/towns" : "No city data on file"}
+                    >
+                      {s.cities.length
+                        ? (expandedStates.has(s.state) ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />)
+                        : <span className="inline-block w-3.5" />}
+                    </button>
+                    <label className="flex flex-1 items-center gap-2 text-sm text-fg">
+                      <Checkbox checked={checkedStates.has(s.state)} onCheckedChange={() => toggleStateBox(s.state)} disabled={!canWrite} />
+                      {s.state}
+                      <span className="text-xs text-fg-muted">({s.total})</span>
+                      {checkedCities[s.state]?.size
+                        ? <Badge variant="outline">{checkedCities[s.state].size} cit{checkedCities[s.state].size === 1 ? "y" : "ies"} narrowed</Badge>
+                        : null}
+                    </label>
+                  </div>
+                  {expandedStates.has(s.state) && (
+                    <div className="grid grid-cols-2 gap-x-3 gap-y-1 border-t border-border/60 px-3 py-2 sm:grid-cols-3">
+                      {s.cities.map((ct) => (
+                        <label key={ct.key} className="flex items-center gap-2 text-xs text-fg">
+                          <Checkbox checked={!!checkedCities[s.state]?.has(ct.key)} onCheckedChange={() => toggleCityBox(s.state, ct.key)} disabled={!canWrite} />
+                          {ct.label} <span className="text-fg-muted">({ct.total})</span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* The focused-territory list — right below the checkbox tree/rep list, live as
+                boxes change (Rick: "the list for the focused territory is right below the rep
+                list"). */}
+            <div className="mt-3 rounded-base bg-bg p-3">
+              <p className="text-xs font-medium text-fg">
+                {checkedStates.size === 0
+                  ? "Check boxes above to preview the accounts a territory would reach."
+                  : `${previewList.length.toLocaleString()} account${previewList.length === 1 ? "" : "s"} in this territory`}
+              </p>
+              {previewList.length > 0 && (
+                <ul className="mt-2 max-h-40 space-y-1 overflow-y-auto text-xs text-fg-muted">
+                  {previewList.slice(0, 200).map((co) => (
+                    <li key={co.id} className="truncate">{co.name} — {[co.city, stateOf(co)].filter(Boolean).join(", ")}</li>
+                  ))}
+                  {previewList.length > 200 && <li>…and {(previewList.length - 200).toLocaleString()} more</li>}
+                </ul>
+              )}
+            </div>
+
+            {/* Once a territory is checked the rep dropdown lights up — pick who it belongs to
+                and lock it in (Rick: "once teritory is matched it populates in the rep
+                dropdown"). */}
+            <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_auto]">
+              <div>
+                <Label htmlFor="rv-assign-rep">Assign this territory to</Label>
+                <select
+                  id="rv-assign-rep" value={assignRep} disabled={!canWrite || !checkedStates.size}
+                  onChange={(e) => setAssignRep(e.target.value)}
+                  className="mt-1.5 h-10 w-full rounded-base border border-border bg-surface px-3 text-sm text-fg disabled:opacity-40"
+                >
+                  <option value="">{checkedStates.size ? "Choose a rep…" : "Check a territory first"}</option>
+                  {matched.map((r) => <option key={r.email} value={r.email}>{r.name}</option>)}
+                </select>
+              </div>
+              <div className="flex items-end">
+                <Button type="button" disabled={!canWrite || !checkedStates.size || !assignRep} onClick={lockInTerritory}>
+                  Lock in territory
+                </Button>
+              </div>
+            </div>
+            {lockMsg && <p className="mt-2 text-xs text-fg-muted">{lockMsg}</p>}
+          </div>
         </>
       )}
     </div>
-  );
-}
-
-function RepRegionRow({ rep, resolved, canWrite, onPatch }) {
-  const [open, setOpen] = useState(false);
-  const [statesText, setStatesText] = useState((rep.states || []).join(", "));
-  const [citiesText, setCitiesText] = useState(
-    Object.entries(rep.cities || {}).map(([st, list]) => `${st}: ${(list || []).join(", ")}`).join("; ")
-  );
-
-  function commitStates(text) {
-    const states = [...new Set(text.split(",").map((v) => v.trim().toUpperCase()).filter((v) => v.length === 2))];
-    onPatch({ states });
-  }
-  function commitCities(text) {
-    // "PA: Philadelphia, Pittsburgh; NY: Buffalo" — one clause per state, free-text city/town
-    // names, generalizing the old fixed PA_TOP_CITIES set to any state (Rick: "states city town").
-    const cities = {};
-    for (const clause of text.split(";")) {
-      const [stRaw, listRaw] = clause.split(":");
-      const st = (stRaw || "").trim().toUpperCase();
-      if (st.length !== 2 || !listRaw) continue;
-      const list = listRaw.split(",").map((v) => v.trim().toLowerCase()).filter(Boolean);
-      if (list.length) cities[st] = list;
-    }
-    onPatch({ cities });
-  }
-
-  return (
-    <li className="rounded-base border border-border">
-      <div className="flex flex-wrap items-center justify-between gap-2 p-2.5">
-        <button type="button" onClick={() => setOpen((v) => !v)} className="flex min-w-0 items-center gap-2 text-left">
-          {open ? <ChevronDown className="h-4 w-4 shrink-0 text-fg-muted" /> : <ChevronRight className="h-4 w-4 shrink-0 text-fg-muted" />}
-          <span className="min-w-0">
-            <span className="block truncate text-sm text-fg">{rep.name}</span>
-            <span className="block text-xs text-fg-muted">{rep.jobtitle || rep.email}</span>
-          </span>
-        </button>
-        <div className="flex shrink-0 flex-wrap items-center gap-2">
-          {rep.states?.length ? <Badge variant="outline">{rep.states.join(", ")}</Badge> : <Badge variant="muted">No region yet</Badge>}
-          <PhoneInline phone={rep.phone} />
-          <EmailInline resolved={resolved} to={rep.email} subject={`${rep.name} — territory`} />
-        </div>
-      </div>
-      {open && (
-        <div className="space-y-3 border-t border-border p-3">
-          <p className="text-xs text-fg-muted">{rep.email}</p>
-          <div className="grid gap-1.5">
-            <Label htmlFor={`rv-st-${rep.email}`}>States covered</Label>
-            <Input
-              id={`rv-st-${rep.email}`} value={statesText} disabled={!canWrite}
-              onChange={(e) => setStatesText(e.target.value)}
-              onBlur={(e) => commitStates(e.target.value)}
-              placeholder="e.g. NY, NJ, PA"
-            />
-          </div>
-          <div className="grid gap-1.5">
-            <Label htmlFor={`rv-ct-${rep.email}`}>City/town narrowing (optional)</Label>
-            <Input
-              id={`rv-ct-${rep.email}`} value={citiesText} disabled={!canWrite}
-              onChange={(e) => setCitiesText(e.target.value)}
-              onBlur={(e) => commitCities(e.target.value)}
-              placeholder="e.g. PA: Philadelphia, Pittsburgh; NY: Buffalo, Rochester"
-            />
-            <p className="text-[11px] text-fg-muted">Leave a state out of this list and it counts in full — only named states get narrowed to these cities/towns.</p>
-          </div>
-        </div>
-      )}
-    </li>
   );
 }
 
