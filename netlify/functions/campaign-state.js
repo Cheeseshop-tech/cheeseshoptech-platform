@@ -13,7 +13,11 @@
 //
 // GET  ?tenant=<id>                → { entries, updatedAt }   (any valid passcode tier)
 // POST { tenant, entries }         → { ok, updatedAt }        (house/client-admin passcode)
-//   entries = { [campaignId]: { status, items, custom, hidden, results, updatedAt } }
+//   entries = { [campaignId]: { status, items, custom, hidden, results, comments, closedAt, updatedAt } }
+//   — comments = a shared, campaign-level running-update log (separate from the per-checklist-
+//   item notes in `items`); closedAt = set once, the moment a campaign's status first becomes
+//   "complete" (see [[cst-campaign-management]] / Rick's 2026-09-21 ask for open/closed status,
+//   comments, and a past-campaigns review record).
 //   — the FULL document each save (last-writer-wins; same trade-off as crm-outreach.js /
 //   items-save.js, and fine at this team size).
 //
@@ -31,6 +35,7 @@ const STATUSES = ["draft", "building", "ready", "launched", "complete"];
 // Results counters the UI tracks. Anything else in a posted results object is dropped.
 const RESULT_KEYS = ["sends", "opens", "clicks", "replies", "meetings", "won", "submissions"];
 const MAX_CUSTOM_ITEMS = 40; // a checklist longer than this is a runbook, not a launch gate
+const MAX_COMMENTS = 50; // a running per-campaign update log, not a chat transcript
 const ID_RE = /^[a-z0-9][a-z0-9-]{0,63}$/i;
 
 const CORS = {
@@ -122,10 +127,29 @@ const rawHandler = async (event, context) => {
     const hidden = (Array.isArray(e.hidden) ? e.hidden : []).slice(0, MAX_CUSTOM_ITEMS)
       .filter((h) => ID_RE.test(String(h || "")));
 
+    // comments: the campaign-level update log (separate from per-checklist-item notes above).
+    // `kind: "wrapup"` marks the note captured when a campaign is closed out — the headline of
+    // its entry in the Past Campaigns archive (see mergeCampaign()/campaigns.js).
+    const comments = (Array.isArray(e.comments) ? e.comments : []).slice(0, MAX_COMMENTS)
+      .filter((cm) => cm && typeof cm === "object" && ID_RE.test(cm.id || ""))
+      .map((cm) => ({
+        id: cm.id,
+        text: str(cm.text, 800),
+        author: str(cm.author, 120) || "Team",
+        at: str(cm.at, 40) || new Date().toISOString(),
+        kind: cm.kind === "wrapup" ? "wrapup" : "update",
+      }))
+      .filter((cm) => cm.text);
+
+    // closedAt: set once, when a campaign is marked complete — the sort key for the archive
+    // (distinct from `updatedAt`, which keeps moving on any later edit to a closed campaign).
+    const closedAt = str(e.closedAt, 40);
+
     const results = {};
     for (const k of RESULT_KEYS) if (e.results && e.results[k] != null) results[k] = int(e.results[k]);
 
-    if (!status && !Object.keys(items).length && !custom.length && !hidden.length && !Object.keys(results).length) {
+    if (!status && !Object.keys(items).length && !custom.length && !hidden.length
+        && !Object.keys(results).length && !comments.length && !closedAt) {
       continue; // nothing worth storing for this campaign
     }
     clean[id] = {
@@ -134,6 +158,8 @@ const rawHandler = async (event, context) => {
       ...(custom.length ? { custom } : {}),
       ...(hidden.length ? { hidden } : {}),
       ...(Object.keys(results).length ? { results } : {}),
+      ...(comments.length ? { comments } : {}),
+      ...(closedAt ? { closedAt } : {}),
       updatedAt: str(e.updatedAt, 40) || new Date().toISOString(),
     };
   }

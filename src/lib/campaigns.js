@@ -55,6 +55,10 @@ export const STATUS_LABEL = Object.fromEntries(LIFECYCLE.map((s) => [s.id, s.lab
 /** A campaign is "live" (in market) once launched, until it's closed out. */
 export const isLive = (c) => c?.status === "launched";
 
+/** A campaign is closed once it's Complete — everything else counts as "in flight." Drives the
+ * open/closed split in the Campaign Management pills and the Past Campaigns archive. */
+export const isClosed = (c) => c?.status === "complete";
+
 export const CHANNELS = { retail: "Retail", dtc: "DTC", social: "Social", foodservice: "Foodservice" };
 
 const fmtUSD = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
@@ -937,6 +941,9 @@ export function mergeCampaign(def, state = {}) {
     status: state.status || def.seedStatus || "draft",
     results: { ...(def.results || {}), ...(state.results || {}) },
     stateUpdatedAt: state.updatedAt || null,
+    // Campaign-level update log + when it was closed out — see campaign-state.js's doc comment.
+    comments: state.comments || [],
+    closedAt: state.closedAt || null,
   };
 }
 

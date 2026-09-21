@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft, ListChecks, BookOpen, FileText, Users, BarChart3, Plus, X, AlertTriangle,
   CheckCircle2, Copy, Check, ExternalLink, Link2, PhoneCall, ChevronDown, ChevronRight,
-  ScrollText, Download, ClipboardList, UploadCloud, Trash2,
+  ScrollText, Download, ClipboardList, UploadCloud, Trash2, MessageSquare,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card.jsx";
 import { Button } from "@/components/ui/button.jsx";
@@ -21,9 +21,10 @@ import {
   callSummary, pushToHubspot,
   scopeOf, segmentEnrichment, geoBreakdown, cityKeyOf, isLongIsland, isNYCBorough,
   getRepCalls, saveRepCalls, repCallSummary,
-  deleteCampaign,
+  deleteCampaign, isClosed,
 } from "@/lib/campaigns.js";
 import { getCrmData, CHANNEL_TO_AUDIENCE, regionOf, stateOf } from "@/lib/crm.js";
+import { useAuth } from "@/lib/auth-context.jsx";
 // The Library owns content and its approval vocabulary (submitted -> posted / returned).
 import { CONTENT_CATEGORIES, categoryLabel, entryStatus, entryCategory } from "@/lib/presentations-store.js";
 
@@ -36,7 +37,7 @@ import { CONTENT_CATEGORIES, categoryLabel, entryStatus, entryCategory } from "@
 // (getCrmData → crm-hubspot.js); it deliberately does not open a second HubSpot line, and
 // per-account call status stays in the outreach console rather than forking a second overlay.
 
-const SECTION_ICON = { checklist: ListChecks, strategy: BookOpen, content: FileText, prospects: Users, salesreps: PhoneCall, results: BarChart3 };
+const SECTION_ICON = { checklist: ListChecks, strategy: BookOpen, content: FileText, prospects: Users, salesreps: PhoneCall, results: BarChart3, updates: MessageSquare };
 
 export function CampaignDetail({
   campaign: c, resolved, onBack, onPatch, onDelete, onSaveNow, entry, canWrite,
@@ -69,6 +70,38 @@ export function CampaignDetail({
   const setStatus = (status) => onPatch({ status });
   const setResults = (part) => onPatch({ results: { ...(c.results || {}), ...part } });
 
+  // ---- Updates (campaign-level comment log) + Mark complete -------------------------------
+  // A shared running log, separate from the per-checklist-item notes above (Rick, 2026-09-21:
+  // "comments and status open/closed... an update and complete option... a record kept to
+  // review past campaigns"). `kind: "wrapup"` marks the note captured on close-out — that's
+  // what the Past Campaigns archive (campaigns-page.jsx) shows as the entry's headline.
+  const { user } = useAuth();
+  const authorName = user?.user_metadata?.full_name || user?.email || "Team";
+  const [completeOpen, setCompleteOpen] = useState(false);
+
+  function addComment(text, kind = "update") {
+    const trimmed = (text || "").trim();
+    if (!trimmed) return;
+    const id = `c-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
+    const comment = { id, text: trimmed, author: authorName, at: new Date().toISOString(), kind };
+    onPatch({ comments: [...(c.comments || []), comment] });
+  }
+  // "Mark complete" is the one status transition that gets its own action: it always asks for a
+  // wrap-up note (what worked, what to change next time) in the same step that closes the
+  // campaign, so the Past Campaigns record isn't left to a "go write it up later" that never
+  // happens. Every other status move still goes through the plain pill row in LaunchGate.
+  function confirmComplete(wrapup) {
+    const trimmed = (wrapup || "").trim();
+    const comments = trimmed
+      ? [...(c.comments || []), {
+          id: `c-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
+          text: trimmed, author: authorName, at: new Date().toISOString(), kind: "wrapup",
+        }]
+      : (c.comments || []);
+    onPatch({ status: "complete", closedAt: new Date().toISOString(), comments });
+    setCompleteOpen(false);
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -89,13 +122,21 @@ export function CampaignDetail({
               ))}
               {c.start && <span>· {c.start}{c.end ? ` → ${c.end}` : " → open"}</span>}
               {c.owner && <span>· owner {c.owner}</span>}
+              {isClosed(c) && c.closedAt && <span>· closed {fmtCommentDate(c.closedAt)}</span>}
             </div>
           </div>
           {c.custom && <DeleteCampaignButton c={c} resolved={resolved} canWrite={canWrite} onDeleted={onDelete} />}
         </div>
       </div>
 
-      <LaunchGate c={c} r={r} onSetStatus={setStatus} canWrite={canWrite} saveState={saveState} onSaveNow={onSaveNow} />
+      <LaunchGate
+        c={c} r={r} onSetStatus={setStatus} onRequestComplete={() => setCompleteOpen(true)}
+        canWrite={canWrite} saveState={saveState} onSaveNow={onSaveNow}
+      />
+
+      <Section id="updates" title="Updates" description="A running log for the team — status notes, decisions, what changed. Separate from the task notes on the checklist below, and what the Past Campaigns record is built from.">
+        <UpdatesPanel comments={c.comments || []} canWrite={canWrite} onAdd={addComment} />
+      </Section>
 
       <Section id="checklist" title="Launch readiness" description="Every required task must be done before this campaign can be marked ready to launch.">
         <ChecklistPanel
@@ -135,6 +176,10 @@ export function CampaignDetail({
       <Section id="results" title="Results" description={c.status === "launched" || c.status === "complete" ? "Performance since launch." : "Fills in once the campaign launches."}>
         <ResultsPanel c={c} onChange={setResults} canWrite={canWrite} />
       </Section>
+
+      <CompleteDialog
+        open={completeOpen} onClose={() => setCompleteOpen(false)} onConfirm={confirmComplete} campaignName={c.name}
+      />
     </div>
   );
 }
@@ -351,7 +396,7 @@ function RepCallRow({ rep, rec, canWrite, onPatch }) {
 // ---- The gate ------------------------------------------------------------------------------
 // The status control is where the checklist stops being decoration: anything at or past "ready"
 // is disabled while a required task is outstanding, and the reason is named.
-function LaunchGate({ c, r, onSetStatus, canWrite, saveState = "idle", onSaveNow }) {
+function LaunchGate({ c, r, onSetStatus, onRequestComplete, canWrite, saveState = "idle", onSaveNow }) {
   return (
     <Card className={r.ready ? "border-success" : undefined}>
       <CardContent className="p-5">
@@ -393,7 +438,7 @@ function LaunchGate({ c, r, onSetStatus, canWrite, saveState = "idle", onSaveNow
                   type="button"
                   disabled={disabled}
                   title={disabled && !gate.ok ? gate.reason : s.blurb}
-                  onClick={() => onSetStatus(s.id)}
+                  onClick={() => (s.id === "complete" && !active ? onRequestComplete() : onSetStatus(s.id))}
                   className={[
                     "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand",
@@ -411,6 +456,100 @@ function LaunchGate({ c, r, onSetStatus, canWrite, saveState = "idle", onSaveNow
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+// ---- Updates (campaign-level comments) ------------------------------------------------------
+// One shared, timestamped log per campaign — separate from the per-checklist-item notes in
+// ChecklistRow below. This is "what happened and when," not "is this task done."
+function UpdatesPanel({ comments = [], canWrite, onAdd }) {
+  const [text, setText] = useState("");
+  const sorted = [...comments].sort((a, b) => (b.at || "").localeCompare(a.at || ""));
+
+  function post() {
+    if (!text.trim()) return;
+    onAdd(text);
+    setText("");
+  }
+
+  return (
+    <div className="space-y-4">
+      {canWrite && (
+        <div className="space-y-2">
+          <Textarea
+            rows={2}
+            placeholder="Post a status update for the team…"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); post(); } }}
+          />
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-fg-muted">⌘/Ctrl + Enter to post</p>
+            <Button size="sm" onClick={post} disabled={!text.trim()}>Post update</Button>
+          </div>
+        </div>
+      )}
+
+      {sorted.length === 0 ? (
+        <p className="text-sm text-fg-muted">No updates yet — post one to keep a record for later.</p>
+      ) : (
+        <ul className="space-y-3">
+          {sorted.map((cm) => (
+            <li key={cm.id} className="rounded-base border border-border p-3">
+              <div className="flex flex-wrap items-center gap-2 text-xs text-fg-muted">
+                <span className="font-medium text-fg">{cm.author}</span>
+                <span>· {fmtCommentDate(cm.at)}</span>
+                {cm.kind === "wrapup" && <Badge variant="outline">Wrap-up</Badge>}
+              </div>
+              <p className="mt-1.5 whitespace-pre-wrap text-sm text-fg">{cm.text}</p>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function fmtCommentDate(iso) {
+  if (!iso) return "";
+  try {
+    return new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+  } catch { return iso; }
+}
+
+// ---- Mark complete ---------------------------------------------------------------------------
+// Every path to "Complete" (the pill row in LaunchGate) opens this instead of setting the status
+// directly, so a wrap-up note is captured in the SAME step a campaign closes — not a "go write
+// it up later" that never happens. That note becomes the headline of its Past Campaigns entry.
+function CompleteDialog({ open, onClose, onConfirm, campaignName }) {
+  const [wrapup, setWrapup] = useState("");
+  if (!open) return null;
+  return (
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Mark “{campaignName}” complete</DialogTitle>
+          <DialogDescription>
+            Closes the campaign out and moves it into Past Campaigns. A quick wrap-up note now saves you having
+            to reconstruct it later when you're planning the next one.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-2">
+          <Label htmlFor="wrapup-note">What worked, what you'd change next time (optional)</Label>
+          <Textarea
+            id="wrapup-note" rows={4} autoFocus
+            placeholder="e.g. Reply rate was strongest on the second send; next time cut the audience earlier and lead with the DTC offer."
+            value={wrapup} onChange={(e) => setWrapup(e.target.value)}
+          />
+        </div>
+
+        <DialogFooter>
+          <DialogClose asChild><Button variant="ghost" onClick={() => setWrapup("")}>Cancel</Button></DialogClose>
+          <Button onClick={() => { onConfirm(wrapup); setWrapup(""); }}>Mark complete</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

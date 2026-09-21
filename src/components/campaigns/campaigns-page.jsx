@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Mail, Share2, PhoneCall, Megaphone, Rocket, ListChecks, Users, MessageSquare, Lock, Link2, PlusCircle } from "lucide-react";
+import { Mail, Share2, PhoneCall, Megaphone, Rocket, ListChecks, Users, MessageSquare, Lock, Link2, PlusCircle, Archive } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
 import { Button } from "@/components/ui/button.jsx";
@@ -12,6 +12,7 @@ import {
   getCampaigns, getCampaignState, saveCampaignState, mergeCampaign, readinessOf, summarize,
   getEnrichment, saveEnrichment,
   canViewCampaigns, CAMPAIGN_TYPES, STATUS_TONE, STATUS_LABEL, CHANNELS, campaignsAreSample, compact,
+  isClosed, typeLabel,
 } from "@/lib/campaigns.js";
 // Campaign content lives in the CONTENT LIBRARY, not a per-campaign store (Rick, 2026-08-03).
 // The Library is "the organized catalog of finished, approved work" and owns the one approval
@@ -37,6 +38,7 @@ import { NewCampaignForm } from "./new-campaign-form.jsx";
 // localStorage).
 const TYPE_ICON = { email: Mail, social: Share2, enrichment: PhoneCall };
 const NEW_TAB = "__new__";
+const PAST_TAB = "__past__";
 
 export function CampaignsPage({ resolved }) {
   const { user } = useAuth();
@@ -174,6 +176,14 @@ export function CampaignsPage({ resolved }) {
     [defs, entries]
   );
   const byId = useMemo(() => Object.fromEntries(campaigns.map((c) => [c.id, c])), [campaigns]);
+  // Open/closed split (Rick, 2026-09-21): "campaigns in flight" — the type pills below only ever
+  // show open ones. A campaign only leaves "in flight" through the Mark complete flow in
+  // campaign-detail.jsx, at which point it moves here, into the Past Campaigns record.
+  const openCampaigns = useMemo(() => campaigns.filter((c) => !isClosed(c)), [campaigns]);
+  const closedCampaigns = useMemo(
+    () => campaigns.filter(isClosed).sort((a, b) => (b.closedAt || b.stateUpdatedAt || "").localeCompare(a.closedAt || a.stateUpdatedAt || "")),
+    [campaigns]
+  );
 
   if (!canViewCampaigns(user)) {
     return (
@@ -233,7 +243,7 @@ export function CampaignsPage({ resolved }) {
         <Tabs value={type} onValueChange={setType}>
           <TabsList className="flex-wrap">
             {CAMPAIGN_TYPES.map((t) => {
-              const n = campaigns.filter((c) => c.type === t.id).length;
+              const n = openCampaigns.filter((c) => c.type === t.id).length;
               return (
                 <TabsTrigger key={t.id} value={t.id}>
                   {t.label}
@@ -241,6 +251,10 @@ export function CampaignsPage({ resolved }) {
                 </TabsTrigger>
               );
             })}
+            <TabsTrigger value={PAST_TAB}>
+              <Archive className="mr-1.5 h-3.5 w-3.5" /> Past campaigns
+              <span className="ml-2 rounded-full bg-bg px-1.5 py-0.5 text-[11px] text-fg-muted">{closedCampaigns.length}</span>
+            </TabsTrigger>
             <TabsTrigger value={NEW_TAB} className="text-brand-primary">
               <PlusCircle className="mr-1.5 h-3.5 w-3.5" /> New campaign
             </TabsTrigger>
@@ -250,12 +264,15 @@ export function CampaignsPage({ resolved }) {
             <TabsContent key={t.id} value={t.id}>
               <TypePanel
                 type={t}
-                campaigns={campaigns.filter((c) => c.type === t.id)}
+                campaigns={openCampaigns.filter((c) => c.type === t.id)}
                 allCampaigns={campaigns}
                 onOpen={setOpenId}
               />
             </TabsContent>
           ))}
+          <TabsContent value={PAST_TAB}>
+            <PastCampaignsPanel campaigns={closedCampaigns} onOpen={setOpenId} />
+          </TabsContent>
           <TabsContent value={NEW_TAB}>
             <NewCampaignForm resolved={resolved} allCampaigns={campaigns} onCreated={handleCreated} />
           </TabsContent>
@@ -360,6 +377,74 @@ function CampaignCard({ c, serves, servedBy, onOpen }) {
                 <MessageSquare className="h-4 w-4" /> {c.results.replies || 0}
               </div>
             ) : null}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// Past Campaigns — the review record (Rick, 2026-09-21: "a record kept to review past campaigns
+// for future campaign ideas"). Every campaign type together, newest closed first, since the point
+// is browsing for a transferable idea, not working a single type's queue. Each card leads with
+// the wrap-up note captured on close (see CompleteDialog in campaign-detail.jsx) — that's the
+// one-line "what we learned" a future campaign gets planned from.
+function PastCampaignsPanel({ campaigns, onOpen }) {
+  if (campaigns.length === 0) {
+    return (
+      <EmptyState
+        icon={Archive}
+        title="No closed campaigns yet"
+        description="Mark a campaign complete from its detail view and it lands here for review — pull ideas from what worked before you plan the next one."
+      />
+    );
+  }
+  return (
+    <div className="space-y-4">
+      {campaigns.map((c) => <PastCampaignCard key={c.id} c={c} onOpen={() => onOpen(c.id)} />)}
+    </div>
+  );
+}
+
+function PastCampaignCard({ c, onOpen }) {
+  const wrapup = [...(c.comments || [])].reverse().find((cm) => cm.kind === "wrapup");
+  const closedOn = c.closedAt || c.stateUpdatedAt;
+  const resultStats = ["replies", "won", "meetings", "submissions", "sends"]
+    .map((k) => [k, c.results?.[k]])
+    .filter(([, v]) => v);
+
+  return (
+    <Card
+      onClick={onOpen}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onOpen(); } }}
+      className="cursor-pointer transition-colors hover:border-brand-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+    >
+      <CardContent className="p-5">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="font-heading text-lg text-fg">{c.name}</h3>
+              <Badge variant="outline">{typeLabel(c.type)}</Badge>
+            </div>
+            <p className="mt-1 text-sm text-fg-muted">{c.goal}</p>
+            {wrapup ? (
+              <p className="mt-2 text-sm text-fg">“{wrapup.text}”</p>
+            ) : (
+              <p className="mt-2 text-sm italic text-fg-muted">No wrap-up note left on this one.</p>
+            )}
+          </div>
+          <div className="text-right text-xs text-fg-muted">
+            {closedOn && <p>Closed {closedOn.slice(0, 10)}</p>}
+            {resultStats.length > 0 && (
+              <p className="mt-1">{resultStats.map(([k, v]) => `${v.toLocaleString()} ${k}`).join(" · ")}</p>
+            )}
+            {(c.comments || []).length > 0 && (
+              <p className="mt-1 inline-flex items-center gap-1 justify-end">
+                <MessageSquare className="h-3.5 w-3.5" /> {c.comments.length}
+              </p>
+            )}
           </div>
         </div>
       </CardContent>
