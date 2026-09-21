@@ -17,7 +17,13 @@
 //
 // GET  ?tenant=<id>          → { entries, updatedAt }   (any valid passcode tier)
 // POST { tenant, entries }   → { ok, updatedAt }        (house/client-admin passcode)
-//   entries = { [companyId]: { buyer, title, email, phone, instagram, outcome, note, calledAt, campaignId } }
+//   entries = { [companyId]: { buyer, title, email, phone, instagram, outcome, note, calledAt,
+//                               campaignId, street, city, state, zip, addressVerifiedAt,
+//                               addressVerdict } }
+//   street/city/state/zip (2026-09-21, docs/ADDRESS_VERIFICATION_SPEC_2026-09-21.md): what a
+//   rep captures/corrects in the call console, same relationship to HubSpot's read-only
+//   address/city/state/zip as buyer/email are to HubSpot's owner/ownerEmail. addressVerifiedAt +
+//   addressVerdict record the last address-verify.js result (confirmed/corrected/unconfirmed).
 
 import { connectLambda, getStore } from "@netlify/blobs";
 import { requireReadAuth, requireWriteAuth, jsonUnauthorized } from "./_write-guard.js";
@@ -29,6 +35,7 @@ const MAX_BYTES = 600_000;
 // "not-a-prospect" closes it by disqualifying the company. Both stop the row being called again
 // (isResolved in campaigns.js), but only "cleared" is exported to HubSpot.
 const OUTCOMES = ["not-called", "cleared", "left-message", "no-answer", "callback", "bad-number", "do-not-contact", "not-a-prospect"];
+const VERDICTS = ["confirmed", "corrected", "unconfirmed"];
 const ID_RE = /^[a-z0-9][a-z0-9-]{0,63}$/i;
 
 const CORS = {
@@ -85,6 +92,7 @@ const rawHandler = async (event, context) => {
     // HubSpot company record ids are numeric; keep the check as loose as crm-outreach.js's.
     if (!/^[0-9]+$/.test(companyId) || !e || typeof e !== "object") continue;
     const outcome = OUTCOMES.includes(e.outcome) ? e.outcome : "";
+    const verdict = VERDICTS.includes(e.addressVerdict) ? e.addressVerdict : "";
     const rec = {
       buyer: str(e.buyer, 120),
       title: str(e.title, 120),
@@ -92,11 +100,17 @@ const rawHandler = async (event, context) => {
       phone: str(e.phone, 40),
       instagram: str(e.instagram, 120),
       note: str(e.note, 1000),
+      street: str(e.street, 200),
+      city: str(e.city, 100),
+      state: str(e.state, 40),
+      zip: str(e.zip, 20),
       ...(outcome && outcome !== "not-called" ? { outcome } : {}),
       ...(ID_RE.test(e.campaignId || "") ? { campaignId: e.campaignId } : {}),
+      ...(verdict ? { addressVerdict: verdict, addressVerifiedAt: str(e.addressVerifiedAt, 40) || new Date().toISOString() } : {}),
     };
     // Nothing captured = nothing stored, so an accidental focus/blur never writes a row.
-    if (!rec.buyer && !rec.email && !rec.note && !rec.outcome && !rec.phone && !rec.title && !rec.instagram) continue;
+    if (!rec.buyer && !rec.email && !rec.note && !rec.outcome && !rec.phone && !rec.title && !rec.instagram
+        && !rec.street && !rec.city && !rec.state && !rec.zip) continue;
     clean[companyId] = { ...rec, calledAt: str(e.calledAt, 40) || new Date().toISOString() };
   }
 
