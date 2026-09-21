@@ -964,12 +964,17 @@ export function readinessOf(campaign) {
 }
 
 /**
- * Whether a status transition is allowed. Only ONE transition is gated — anything at or past
- * `ready` requires a complete required-checklist. Everything else is free movement, because
- * campaigns get paused, re-drafted, and reopened, and a status model that fights that gets
- * worked around instead of used.
+ * Whether a status transition is allowed. Two transitions are gated on the required checklist —
+ * `ready` and `launched` — because those are claims that the work is actually done. `complete` is
+ * deliberately EXEMPT (Rick, 2026-09-21: "no complete button to retire a campaign" — a checklist
+ * that never finished, e.g. a cancelled or superseded campaign, was silently blocking the one
+ * action that closes it out and files it in Past Campaigns). Retiring a campaign is a wrap-up
+ * action, not a readiness claim, so it's always allowed. Everything below `ready` is free
+ * movement too, because campaigns get paused, re-drafted, and reopened, and a status model that
+ * fights that gets worked around instead of used.
  */
 export function canAdvanceTo(campaign, status) {
+  if (status === "complete") return { ok: true };
   const gatedFrom = LIFECYCLE_IDS.indexOf("ready");
   if (LIFECYCLE_IDS.indexOf(status) < gatedFrom) return { ok: true };
   const r = readinessOf(campaign);
