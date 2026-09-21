@@ -21,7 +21,7 @@ import {
   callSummary, pushToHubspot,
   scopeOf, segmentEnrichment, geoBreakdown, cityKeyOf, isLongIsland, isNYCBorough,
   getRepCalls, saveRepCalls, repCallSummary,
-  deleteCampaign, isClosed,
+  deleteCampaign, isClosed, STANDING_LESSONS,
 } from "@/lib/campaigns.js";
 import { getCrmData, CHANNEL_TO_AUDIENCE, regionOf, stateOf } from "@/lib/crm.js";
 import { useAuth } from "@/lib/auth-context.jsx";
@@ -556,6 +556,16 @@ function CompleteDialog({ open, onClose, onConfirm, campaignName }) {
             to reconstruct it later when you're planning the next one.
           </DialogDescription>
         </DialogHeader>
+
+        <details className="rounded-md border border-border bg-muted/40 p-3 text-sm">
+          <summary className="flex cursor-pointer select-none items-center gap-1.5 font-medium text-fg-muted">
+            <BookOpen className="h-4 w-4" />
+            Standing lessons worth checking before you close this out
+          </summary>
+          <ul className="mt-2 list-disc space-y-1.5 pl-5 text-xs text-fg-muted">
+            {STANDING_LESSONS.map((lesson, i) => <li key={i}>{lesson}</li>)}
+          </ul>
+        </details>
 
         <div className="space-y-2">
           <Label htmlFor="wrapup-note">What worked, what you'd change next time (optional)</Label>

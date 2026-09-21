@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Mail, Share2, PhoneCall, Megaphone, Rocket, ListChecks, Users, MessageSquare, Lock, Link2, PlusCircle, Archive } from "lucide-react";
+import { Mail, Share2, PhoneCall, Tent, Megaphone, Rocket, ListChecks, Users, MessageSquare, Lock, Link2, PlusCircle, Archive } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
 import { Button } from "@/components/ui/button.jsx";
@@ -36,7 +36,7 @@ import { NewCampaignForm } from "./new-campaign-form.jsx";
 // lib/campaigns.js), while status + checklist ticks + results are the platform-owned overlay
 // saved through campaign-state.js to Netlify Blobs (shared, survives any browser — never
 // localStorage).
-const TYPE_ICON = { email: Mail, social: Share2, enrichment: PhoneCall };
+const TYPE_ICON = { email: Mail, social: Share2, enrichment: PhoneCall, event: Tent };
 const NEW_TAB = "__new__";
 const PAST_TAB = "__past__";
 

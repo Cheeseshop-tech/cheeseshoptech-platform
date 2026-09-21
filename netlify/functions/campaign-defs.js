@@ -42,7 +42,7 @@ const ID_RE = /^[a-z0-9][a-z0-9-]{0,63}$/i;
 // Mirrors CAMPAIGN_TYPES/CHANNELS in src/lib/campaigns.js. Kept as literals (not imported) —
 // Netlify Functions bundle separately from the Vite app, same reason campaign-state.js re-lists
 // STATUSES rather than importing LIFECYCLE.
-const TYPES = ["email", "social", "enrichment"];
+const TYPES = ["email", "social", "enrichment", "event"];
 const CHANNEL_KEYS = ["retail", "dtc", "social", "foodservice"];
 
 const CORS = {

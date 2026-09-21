@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Mail, Share2, PhoneCall, PlusCircle } from "lucide-react";
+import { Mail, Share2, PhoneCall, Tent, PlusCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card.jsx";
 import { Button } from "@/components/ui/button.jsx";
 import { Input, Textarea } from "@/components/ui/input.jsx";
@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge.jsx";
 import { useAuth } from "@/lib/auth-context.jsx";
 import { CAMPAIGN_TYPES, CHANNELS, templateFor, createCampaign } from "@/lib/campaigns.js";
 
-const TYPE_ICON = { email: Mail, social: Share2, enrichment: PhoneCall };
+const TYPE_ICON = { email: Mail, social: Share2, enrichment: PhoneCall, event: Tent };
 
 /**
  * "New Campaign" tab (2026-08-21, Rick: "lets add a template form and tab for create a

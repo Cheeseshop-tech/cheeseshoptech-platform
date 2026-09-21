@@ -35,6 +35,7 @@ export const CAMPAIGN_TYPES = [
   { id: "email", label: "Email Campaigns", blurb: "Sends, sequences, and the launch gate." },
   { id: "social", label: "Social Media", blurb: "Post batches and social pushes." },
   { id: "enrichment", label: "Enrichment Campaigns", blurb: "Phone passes that fill contact gaps before a send." },
+  { id: "event", label: "Trade Shows & Events", blurb: "Industry shows and on-site activations, booth to follow-up." },
 ];
 export const typeLabel = (id) => CAMPAIGN_TYPES.find((t) => t.id === id)?.label || id;
 
@@ -72,6 +73,19 @@ export const pct = (n, d) => (d ? Math.round((n / d) * 100) : 0);
 // The email template is generalized from FALL_TASTING_LAUNCH_RUNBOOK.md's real work-back
 // schedule, so it encodes what actually blocks a send here (DMARC and an ESP with open tracking
 // are the two that have bitten this account before).
+// Shared "Discipline" checklist items — forward-looking reminders distilled from the Standing
+// Lessons below (2026-09-21, ACE Fall Show post-mortem template Rick uploaded). Appended to
+// every checklist template so the same operational gaps get flagged on every campaign type, not
+// just events. Left non-required (Rick, 2026-09-21): required would retroactively flag every
+// already-launched campaign as "not ready" the moment this shipped — these are visible, checkable
+// reminders instead, not a launch-gate blocker.
+const DISCIPLINE_ITEMS = [
+  { id: "one-system", group: "Discipline", label: "All outreach/tracking lives in ONE system — no parallel spreadsheet", required: false },
+  { id: "owner-checkpoint", group: "Discipline", label: "Every execution item has a named owner + confirm-it-happened checkpoint", required: false },
+  { id: "fallback", group: "Discipline", label: "Must-make connections have a fallback plan, not just \"we'll catch them\"", required: false },
+  { id: "tested-e2e", group: "Discipline", label: "Key systems tested end-to-end under real conditions, not a click-test", required: false },
+];
+
 export const CHECKLIST_TEMPLATES = {
   email: [
     { id: "offer", group: "Decide", label: "Offer + mechanic locked", required: true },
@@ -88,6 +102,7 @@ export const CHECKLIST_TEMPLATES = {
     { id: "test", group: "Test", label: "End-to-end test send verified", required: true },
     { id: "date", group: "Test", label: "Send date locked (go / no-go)", required: true },
     { id: "schedule", group: "Launch", label: "Email 1 scheduled in the ESP", required: true },
+    ...DISCIPLINE_ITEMS,
   ],
   social: [
     { id: "concept", group: "Decide", label: "Concept + posting cadence agreed", required: true },
@@ -95,6 +110,7 @@ export const CHECKLIST_TEMPLATES = {
     { id: "captions", group: "Build", label: "Captions written + approved", required: true },
     { id: "approval", group: "Decide", label: "Client approval on the batch", required: true },
     { id: "scheduled", group: "Launch", label: "Posts scheduled", required: true },
+    ...DISCIPLINE_ITEMS,
   ],
   enrichment: [
     { id: "source", group: "Build", label: "Source list assembled + gaps identified", required: true },
@@ -102,9 +118,39 @@ export const CHECKLIST_TEMPLATES = {
     { id: "script", group: "Build", label: "Call script / ask drafted", required: true },
     { id: "calls", group: "Run", label: "Calls completed", required: true },
     { id: "writeback", group: "Run", label: "Results written back to the CRM", required: true },
+    ...DISCIPLINE_ITEMS,
+  ],
+  // Trade shows / on-site activations — modeled on the "Industry Show / Campaign Planning"
+  // template Rick uploaded (2026-09-21), built from the ACE Fall Show 2026 post-mortem.
+  event: [
+    { id: "outreach-plan", group: "Workstreams", label: "Outreach / enrichment calling — plan, owner, tracking method set", required: true },
+    { id: "capture-tool", group: "Workstreams", label: "On-site capture tool selected + process defined", required: true },
+    { id: "promo-plan", group: "Workstreams", label: "Promo / incentive — approval chain, publish + promote plan set", required: true },
+    { id: "swag-plan", group: "Workstreams", label: "Swag / giveaways assembled + distribution plan set", required: true },
+    { id: "ambassador-plan", group: "Workstreams", label: "Ambassador / partner activation — role + asks defined", required: true },
+    { id: "followup-plan", group: "Workstreams", label: "Follow-up plan set (recap emails, next-step cadence)", required: true },
+    { id: "arrival-locked", group: "Pre-event checklist", label: "Arrival time locked in — booth-ready 30–45 min before doors open", required: true },
+    { id: "promo-signoff", group: "Pre-event checklist", label: "Promo / incentive has full sign-off (internal + partner) before the event", required: true },
+    { id: "capture-tested", group: "Pre-event checklist", label: "On-site capture tool tested end-to-end, including under weak wifi/signal", required: true },
+    { id: "recap-tested", group: "Pre-event checklist", label: "Recap/follow-up automation tested for a real send-through, not just a click-test", required: true },
+    ...DISCIPLINE_ITEMS,
+    { id: "dayof-log", group: "Day-of & wrap-up", label: "Day-of execution log captured (contacts made, who was missed, what broke)", required: false },
+    { id: "results-captured", group: "Day-of & wrap-up", label: "Results captured (new contacts, deals/POs, uptake, comparison to past events)", required: false },
+    { id: "gap-analysis", group: "Day-of & wrap-up", label: "Gap analysis done (planned vs. executed vs. left undone, one row per workstream)", required: false },
   ],
 };
 export const templateFor = (type) => CHECKLIST_TEMPLATES[type] || [];
+
+// Standing lessons — carried forward from the ACE Fall Show 2026 post-mortem template Rick
+// uploaded (2026-09-21). Reviewable at planning time; surfaced again in the Mark Complete
+// wrap-up flow (CompleteDialog, campaign-detail.jsx) so the same gaps don't quietly repeat.
+export const STANDING_LESSONS = [
+  "Arrival time is the single biggest lever. A late arrival cascades into low capture volume and missed priority connections. Treat the arrival buffer as non-negotiable.",
+  "Parallel tracking systems quietly lose work. Anything tracked outside the main CRM (a spreadsheet, an email chain) tends to never get merged in or fully worked. Track everything in one place from day one.",
+  "\"Planned\" isn't \"done.\" Execution items without an owner and a checkpoint (swag, recap emails, verifications) go unconfirmed and are easy to lose track of. Give each one both.",
+  "In-person-only plans have no fallback. A must-make connection that depends entirely on catching someone on the floor is one compressed window away from failing. Always have a backup channel.",
+  "\"Tested\" should mean tested end-to-end. A feature (like a recap-email send) can pass a click-test and still fail in real use — verify it under real conditions, not just a demo pass.",
+];
 
 // Pennsylvania, scoped to its 5 largest cities (2026-09-03) — Rick: "add pennsylvania the 5
 // largest towns including Philly" for the ACE Fall Show campaign below. Unlike NY/NJ/RI/MA/CT
