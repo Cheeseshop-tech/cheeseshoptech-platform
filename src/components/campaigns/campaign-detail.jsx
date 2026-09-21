@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft, ListChecks, BookOpen, FileText, Users, BarChart3, Plus, X, AlertTriangle,
   CheckCircle2, Copy, Check, ExternalLink, Link2, PhoneCall, ChevronDown, ChevronRight,
-  ScrollText, Download, ClipboardList, UploadCloud, Trash2, MessageSquare,
+  ScrollText, Download, ClipboardList, UploadCloud, Trash2, MessageSquare, MapPin, Paperclip,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card.jsx";
 import { Button } from "@/components/ui/button.jsx";
@@ -24,6 +24,10 @@ import {
   deleteCampaign, isClosed, STANDING_LESSONS,
 } from "@/lib/campaigns.js";
 import { getCrmData, CHANNEL_TO_AUDIENCE, regionOf, stateOf } from "@/lib/crm.js";
+import { uploadDocument } from "@/lib/cloudinary.js";
+// Address verification (docs/ADDRESS_VERIFICATION_SPEC_2026-09-21.md) — own file, own
+// Netlify function; not part of the HubSpot read-only client.
+import { verifyAddress } from "@/lib/address-verify.js";
 import { useAuth } from "@/lib/auth-context.jsx";
 // The Library owns content and its approval vocabulary (submitted -> posted / returned).
 import { CONTENT_CATEGORIES, categoryLabel, entryStatus, entryCategory } from "@/lib/presentations-store.js";
@@ -37,7 +41,7 @@ import { CONTENT_CATEGORIES, categoryLabel, entryStatus, entryCategory } from "@
 // (getCrmData → crm-hubspot.js); it deliberately does not open a second HubSpot line, and
 // per-account call status stays in the outreach console rather than forking a second overlay.
 
-const SECTION_ICON = { checklist: ListChecks, strategy: BookOpen, content: FileText, prospects: Users, salesreps: PhoneCall, results: BarChart3, updates: MessageSquare };
+const SECTION_ICON = { checklist: ListChecks, strategy: BookOpen, content: FileText, documents: Paperclip, prospects: Users, salesreps: PhoneCall, results: BarChart3, updates: MessageSquare };
 
 export function CampaignDetail({
   campaign: c, resolved, onBack, onPatch, onDelete, onSaveNow, entry, canWrite,
@@ -85,6 +89,20 @@ export function CampaignDetail({
     const id = `c-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
     const comment = { id, text: trimmed, author: authorName, at: new Date().toISOString(), kind };
     onPatch({ comments: [...(c.comments || []), comment] });
+  }
+
+  // ---- Documents (2026-09-21, docs/CAMPAIGN_DOCUMENTS_SPEC_2026-09-21.md) -------------------
+  // Special-offer sheets and other reference files uploaded straight into the campaign. The file
+  // itself goes through the same signed Cloudinary path the Media Hub uses (uploadDocument() in
+  // cloudinary.js) — this just records the pointer via the normal onPatch autosave, same as
+  // comments above.
+  function addDocument(asset) {
+    const id = `d-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
+    const doc = { id, ...asset, uploadedBy: authorName, uploadedAt: new Date().toISOString() };
+    onPatch({ documents: [...(c.documents || []), doc] });
+  }
+  function removeDocument(id) {
+    onPatch({ documents: (c.documents || []).filter((d) => d.id !== id) });
   }
   // "Mark complete" is the one status transition that gets its own action: it always asks for a
   // wrap-up note (what worked, what to change next time) in the same step that closes the
@@ -164,6 +182,10 @@ export function CampaignDetail({
           linked={c.content} sequence={c.sequence} items={contentItems} canWrite={canWrite}
           onAdd={onAddContent} onPatch={onPatchContent} onRemove={onRemoveContent}
         />
+      </Section>
+
+      <Section id="documents" title="Documents" description="Special offers, spec sheets, or anything else the team needs on hand for this campaign — uploaded here, also visible in the Media Hub's Documents tab.">
+        <DocumentsPanel documents={c.documents || []} canWrite={canWrite} resolved={resolved} campaignId={c.id} onAdd={addDocument} onRemove={removeDocument} />
       </Section>
 
       <Section id="prospects" title={c.type === "enrichment" ? "Call console" : "Target prospects"} description={c.type === "enrichment" ? "Work the gap list — the approved script, the number, and what the call produced." : "Who this campaign reaches — live from the same HubSpot data as the CRM console."}>
@@ -525,6 +547,88 @@ function fmtCommentDate(iso) {
   try {
     return new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
   } catch { return iso; }
+}
+
+// ---- Documents (2026-09-21) ------------------------------------------------------------------
+// Special-offer sheets, spec sheets, or any other reference file a campaign needs on hand.
+// Uploads through the same signed Cloudinary path the Media Hub uses (uploadDocument() in
+// cloudinary.js) — tagged `campaign-document` and linked via `campaignId` in Cloudinary's
+// context, so the same file also shows up under the Media Hub's Documents tab. No approval
+// workflow here (Rick, 2026-09-21) — this is reference material, not content pending review.
+function fmtBytes(n) {
+  if (!n) return "";
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${Math.round(n / 1024)} KB`;
+  return `${(n / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function DocumentsPanel({ documents = [], canWrite, resolved, campaignId, onAdd, onRemove }) {
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState("");
+  const fileRef = useRef(null);
+  const sorted = [...documents].sort((a, b) => (b.uploadedAt || "").localeCompare(a.uploadedAt || ""));
+
+  async function onFilesSelected(e) {
+    const files = [...(e.target.files || [])];
+    e.target.value = "";
+    if (!files.length) return;
+    setUploading(true);
+    setError("");
+    try {
+      for (const file of files) {
+        const asset = await uploadDocument({
+          file, tenantFolder: resolved.cloudinaryFolder, campaignId, displayName: file.name, tenantId: resolved.id,
+        });
+        onAdd(asset);
+      }
+    } catch (err) {
+      setError(String(err?.message || err));
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  return (
+    <div className="space-y-3">
+      {canWrite && (
+        <div className="flex flex-wrap items-center gap-2">
+          <input
+            ref={fileRef} type="file" multiple hidden onChange={onFilesSelected}
+            accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,image/png,image/jpeg"
+          />
+          <Button variant="outline" size="sm" disabled={uploading} onClick={() => fileRef.current?.click()}>
+            <UploadCloud className="h-4 w-4" /> {uploading ? "Uploading…" : "Upload document"}
+          </Button>
+          {error && <span className="text-xs text-error">{error}</span>}
+        </div>
+      )}
+
+      {sorted.length === 0 ? (
+        <p className="text-sm text-fg-muted">No documents yet — attach a special-offer sheet or other reference file.</p>
+      ) : (
+        <ul className="space-y-2">
+          {sorted.map((d) => (
+            <li key={d.id} className="flex flex-wrap items-center justify-between gap-2 rounded-base border border-border p-3">
+              <a href={d.url} target="_blank" rel="noreferrer" className="flex min-w-0 items-center gap-2 text-sm text-fg hover:underline">
+                <Paperclip className="h-4 w-4 shrink-0 text-fg-muted" />
+                <span className="truncate">{d.name}</span>
+              </a>
+              <div className="flex shrink-0 flex-wrap items-center gap-2 text-xs text-fg-muted">
+                {d.format && <Badge variant="outline">{d.format.toUpperCase()}</Badge>}
+                {fmtBytes(d.bytes) && <span>{fmtBytes(d.bytes)}</span>}
+                <span>{d.uploadedBy} · {fmtCommentDate(d.uploadedAt)}</span>
+                {canWrite && (
+                  <Button variant="ghost" size="sm" onClick={() => onRemove(d.id)} title="Remove from this campaign (does not delete the file from the Media Hub)">
+                    <X className="h-3.5 w-3.5" />
+                  </Button>
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
 }
 
 // ---- Mark complete ---------------------------------------------------------------------------
@@ -1203,6 +1307,7 @@ function ProspectPanel({ c, resolved, scripts = [], enrichment = {}, onEnrich, c
                 {gaps.slice(0, 200).map((co) => (
                   <CallRow
                     key={co.id} co={co} rec={enrichment[co.id] || {}} canWrite={canWrite} saveState={saveState}
+                    resolved={resolved}
                     onPatch={(part) => onEnrich(co.id, { campaignId: c.id, ...part })}
                   />
                 ))}
@@ -1315,11 +1420,43 @@ function ScriptWindow({ scripts }) {
 // One account on the gap list: what's missing, the number IN PLAIN TEXT so it can be dialled by
 // any method (Rick, 2026-08-03 — "phone number visible in line so I can choose a different
 // calling method"), and the capture fields for what the call produced.
-function CallRow({ co, rec, canWrite, onPatch, saveState }) {
+function CallRow({ co, rec, canWrite, onPatch, saveState, resolved }) {
   const [open, setOpen] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  const [verifyError, setVerifyError] = useState("");
   const phone = rec.phone || co.ownerPhone || co.phone || "";
   const outcome = rec.outcome || "not-called";
   const touched = outcome !== "not-called" || rec.buyer || rec.email || rec.note;
+
+  // Address verification (docs/ADDRESS_VERIFICATION_SPEC_2026-09-21.md) — verifies whatever's
+  // currently in the fields (a rep's correction), falling back to HubSpot's own address/city/
+  // state/zip when a field is still blank, so clicking Verify with nothing typed yet still
+  // checks what's on file.
+  async function handleVerify() {
+    setVerifying(true);
+    setVerifyError("");
+    const res = await verifyAddress(resolved, {
+      street: rec.street || co.address || "",
+      city: rec.city || co.city || "",
+      state: rec.state || stateOf(co) || "",
+      zip: rec.zip || co.zip || "",
+    });
+    setVerifying(false);
+    if (!res.ok) {
+      setVerifyError(res.error === "not-configured" ? "Address lookup isn't set up yet — ask Rick." : "Couldn't verify that address — try again.");
+      return;
+    }
+    onPatch({
+      street: res.formatted.street, city: res.formatted.city, state: res.formatted.state, zip: res.formatted.zip,
+      addressVerdict: res.verdict, addressVerifiedAt: new Date().toISOString(),
+    });
+  }
+  const ADDRESS_VERDICT_BADGE = {
+    confirmed: { variant: "success", label: "Address confirmed" },
+    corrected: { variant: "warning", label: "Address corrected — review" },
+    unconfirmed: { variant: "error", label: "Address unconfirmed" },
+  };
+  const addressBadge = ADDRESS_VERDICT_BADGE[rec.addressVerdict];
 
   return (
     <li className="rounded-base border border-border">
@@ -1337,6 +1474,7 @@ function CallRow({ co, rec, canWrite, onPatch, saveState }) {
         <div className="flex shrink-0 flex-wrap items-center gap-2">
           {!co.owner && !rec.buyer && <Badge variant="warning">No buyer</Badge>}
           {!co.ownerEmail && !rec.email && <Badge variant="muted">No email</Badge>}
+          {addressBadge && <Badge variant={addressBadge.variant}>{addressBadge.label}</Badge>}
           {touched && <Badge variant={OUTCOME_TONE[outcome] || "muted"}>{OUTCOME_LABEL[outcome]}</Badge>}
           <PhoneInline phone={phone} />
         </div>
@@ -1351,6 +1489,21 @@ function CallRow({ co, rec, canWrite, onPatch, saveState }) {
             <Field label="Phone (correct it here)" value={rec.phone} placeholder={co.ownerPhone || co.phone || "number"} disabled={!canWrite} onChange={(v) => onPatch({ phone: v })} />
             <Field label="Instagram" value={rec.instagram} placeholder="@handle" disabled={!canWrite} onChange={(v) => onPatch({ instagram: v })} />
           </div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_5rem_7rem_auto]">
+            <Field label="Street address" value={rec.street} placeholder={co.address || "street address"} disabled={!canWrite} onChange={(v) => onPatch({ street: v })} />
+            <Field label="City / town" value={rec.city} placeholder={co.city || "city"} disabled={!canWrite} onChange={(v) => onPatch({ city: v })} />
+            <Field label="State" value={rec.state} placeholder={stateOf(co) || "ST"} disabled={!canWrite} onChange={(v) => onPatch({ state: v })} />
+            <Field label="Zip" value={rec.zip} placeholder={co.zip || "zip"} disabled={!canWrite} onChange={(v) => onPatch({ zip: v })} />
+            <div className="flex items-end">
+              <Button type="button" variant="outline" size="sm" disabled={!canWrite || verifying} onClick={handleVerify} className="w-full">
+                <MapPin className="h-4 w-4" /> {verifying ? "Verifying…" : "Verify address"}
+              </Button>
+            </div>
+          </div>
+          {verifyError && <p className="text-xs text-error">{verifyError}</p>}
+          {rec.addressVerifiedAt && !verifyError && (
+            <p className="text-xs text-fg-muted">Address last verified {rec.addressVerifiedAt.slice(0, 16).replace("T", " ")}</p>
+          )}
           <div className="grid gap-3 sm:grid-cols-[14rem_1fr]">
             <div className="grid gap-1.5">
               <Label htmlFor={`o-${co.id}`}>Call outcome</Label>

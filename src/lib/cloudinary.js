@@ -248,6 +248,66 @@ export async function uploadAsset({ file, tenantFolder, subfolder = "raw", cloud
 }
 
 /**
+ * Upload a document (PDF, DOCX, XLSX, PPTX — anything that isn't an image) to Cloudinary via a
+ * SIGNED upload, same auth model as uploadAsset() above (2026-09-17 signed-upload fix) rather
+ * than uploadFileAuto()'s older unsigned preset below — a document a rep attaches to a live
+ * campaign shouldn't go through the path that fix was specifically written to close.
+ * media-upload-sign.js already supports `resourceType: "raw"` (it signs the Monti spec-sheet
+ * PDFs today); this just exercises that same signed path for campaign documents
+ * (docs/CAMPAIGN_DOCUMENTS_SPEC_2026-09-21.md), tagged `campaign-document` and linked to the
+ * campaign via `campaignId` in Cloudinary's context (same relationship `sku` already has to a
+ * product — see media-upload-sign.js).
+ *
+ * No downscale step — that transform is image-only; documents pass through at full size (still
+ * subject to Cloudinary's own per-plan upload ceiling).
+ */
+export async function uploadDocument({ file, tenantFolder, subfolder = "campaign-documents", campaignId, displayName, tenantId = "" }) {
+  const folder = `${tenantFolder}/${subfolder}`;
+  const title = (displayName || "").trim() || file.name;
+
+  const signRes = await fetch("/.netlify/functions/media-upload-sign", {
+    method: "POST",
+    headers: { "content-type": "application/json", ...(await authHeaders()) },
+    body: JSON.stringify({
+      tenant: tenantId, folder, usage: ["campaign-document"], displayName: title,
+      resourceType: "raw", campaignId,
+    }),
+  });
+  if (!signRes.ok) {
+    if (signRes.status === 401) throw new Error(RELOGIN_MSG);
+    const msg = await signRes.text().catch(() => "");
+    throw new Error(`Upload not authorized (${signRes.status}) ${msg}`);
+  }
+  const sign = await signRes.json();
+
+  const form = new FormData();
+  form.append("file", file);
+  form.append("api_key", sign.apiKey);
+  form.append("timestamp", sign.timestamp);
+  form.append("signature", sign.signature);
+  form.append("folder", sign.folder);
+  form.append("tags", sign.tags);
+  form.append("context", sign.context);
+
+  const res = await fetch(`https://api.cloudinary.com/v1_1/${sign.cloud}/${sign.resourceType}/upload`, {
+    method: "POST",
+    body: form,
+  });
+  if (!res.ok) {
+    const msg = await res.text().catch(() => "");
+    throw new Error(`Upload failed (${res.status}) ${msg}`);
+  }
+  const r = await res.json();
+  return {
+    publicId: r.public_id,
+    url: r.secure_url,
+    name: title,
+    format: (r.format || "").toLowerCase(),
+    bytes: r.bytes,
+  };
+}
+
+/**
  * Upload ANY file type (PDF, PPTX, images) to Cloudinary via the unsigned preset, using the
  * `auto` endpoint so Cloudinary picks the right resource_type (image vs raw). Used by the
  * Presentations "Load" flow so a finished proposal can be a browsed/dropped file, not just a URL.

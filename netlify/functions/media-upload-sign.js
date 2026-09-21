@@ -20,6 +20,10 @@ import { withMonitoring } from "./_sentry.js";
 const USAGE_IDS = [
   "product-catalog", "hero", "back-shot", "unwrapped", "map-reference", "story-block", "lifestyle", "food-styling", "production",
   "social", "press", "event", "brand-asset", "email-campaign", "print", "web-marketing",
+  // 2026-09-21 (docs/CAMPAIGN_DOCUMENTS_SPEC_2026-09-21.md): special-offer sheets and other
+  // reference docs uploaded from inside a campaign — same physical store/signed path as every
+  // other upload, filterable in the Media Hub's Documents tab like any other usage tag.
+  "campaign-document",
 ];
 const APPROVAL_TAGS = ["approved-for-influencers", "approved-for-press", "draft"];
 
@@ -84,6 +88,12 @@ const rawHandler = async (event, context) => {
   if (body.sku != null) ctxParts.push(`sku=${clean(body.sku)}`);
   if (body.alt != null) ctxParts.push(`alt=${clean(body.alt)}`);
   if (body.description != null) ctxParts.push(`description=${clean(body.description)}`);
+  // Campaign document upload (2026-09-21) — same relationship to a campaign that `sku` already
+  // has to a product: an exact-match context field, not a tag (tags stay a small fixed
+  // allowlist; campaign ids are not). Validated the same shape campaign-state.js's ID_RE uses.
+  if (body.campaignId != null && /^[a-z0-9][a-z0-9-]{0,63}$/i.test(String(body.campaignId))) {
+    ctxParts.push(`campaignId=${clean(body.campaignId)}`);
+  }
   const uploadContext = ctxParts.join("|");
 
   const timestamp = Math.floor(Date.now() / 1000);

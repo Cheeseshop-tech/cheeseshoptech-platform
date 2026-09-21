@@ -13,11 +13,16 @@
 //
 // GET  ?tenant=<id>                → { entries, updatedAt }   (any valid passcode tier)
 // POST { tenant, entries }         → { ok, updatedAt }        (house/client-admin passcode)
-//   entries = { [campaignId]: { status, items, custom, hidden, results, comments, closedAt, updatedAt } }
+//   entries = { [campaignId]: { status, items, custom, hidden, results, comments, documents,
+//                                closedAt, updatedAt } }
 //   — comments = a shared, campaign-level running-update log (separate from the per-checklist-
 //   item notes in `items`); closedAt = set once, the moment a campaign's status first becomes
 //   "complete" (see [[cst-campaign-management]] / Rick's 2026-09-21 ask for open/closed status,
 //   comments, and a past-campaigns review record).
+//   — documents (2026-09-21, docs/CAMPAIGN_DOCUMENTS_SPEC_2026-09-21.md): special-offer sheets
+//   and other reference files uploaded to a campaign — the file itself lives in Cloudinary (same
+//   signed path/store the Media Hub uses, see media-upload-sign.js), this just holds the
+//   pointer + display metadata, same relationship `comments` has to its entries.
 //   — the FULL document each save (last-writer-wins; same trade-off as crm-outreach.js /
 //   items-save.js, and fine at this team size).
 //
@@ -36,6 +41,7 @@ const STATUSES = ["draft", "building", "ready", "launched", "complete"];
 const RESULT_KEYS = ["sends", "opens", "clicks", "replies", "meetings", "won", "submissions"];
 const MAX_CUSTOM_ITEMS = 40; // a checklist longer than this is a runbook, not a launch gate
 const MAX_COMMENTS = 50; // a running per-campaign update log, not a chat transcript
+const MAX_DOCUMENTS = 30; // reference material for one campaign, not a document archive
 const ID_RE = /^[a-z0-9][a-z0-9-]{0,63}$/i;
 
 const CORS = {
@@ -141,6 +147,21 @@ const rawHandler = async (event, context) => {
       }))
       .filter((cm) => cm.text);
 
+    // documents: files uploaded to Cloudinary from inside the campaign (uploadDocument() in
+    // cloudinary.js) — this store only ever holds the resulting pointer, never the file bytes.
+    const documents = (Array.isArray(e.documents) ? e.documents : []).slice(0, MAX_DOCUMENTS)
+      .filter((d) => d && typeof d === "object" && ID_RE.test(d.id || "") && /^https:\/\/res\.cloudinary\.com\//.test(d.url || ""))
+      .map((d) => ({
+        id: d.id,
+        name: str(d.name, 160) || "Untitled document",
+        url: d.url, // already validated above — a Cloudinary delivery URL, never arbitrary input
+        publicId: str(d.publicId, 300),
+        format: str(d.format, 20),
+        bytes: int(d.bytes),
+        uploadedBy: str(d.uploadedBy, 120) || "Team",
+        uploadedAt: str(d.uploadedAt, 40) || new Date().toISOString(),
+      }));
+
     // closedAt: set once, when a campaign is marked complete — the sort key for the archive
     // (distinct from `updatedAt`, which keeps moving on any later edit to a closed campaign).
     const closedAt = str(e.closedAt, 40);
@@ -149,7 +170,7 @@ const rawHandler = async (event, context) => {
     for (const k of RESULT_KEYS) if (e.results && e.results[k] != null) results[k] = int(e.results[k]);
 
     if (!status && !Object.keys(items).length && !custom.length && !hidden.length
-        && !Object.keys(results).length && !comments.length && !closedAt) {
+        && !Object.keys(results).length && !comments.length && !documents.length && !closedAt) {
       continue; // nothing worth storing for this campaign
     }
     clean[id] = {
@@ -159,6 +180,7 @@ const rawHandler = async (event, context) => {
       ...(hidden.length ? { hidden } : {}),
       ...(Object.keys(results).length ? { results } : {}),
       ...(comments.length ? { comments } : {}),
+      ...(documents.length ? { documents } : {}),
       ...(closedAt ? { closedAt } : {}),
       updatedAt: str(e.updatedAt, 40) || new Date().toISOString(),
     };

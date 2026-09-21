@@ -989,6 +989,9 @@ export function mergeCampaign(def, state = {}) {
     stateUpdatedAt: state.updatedAt || null,
     // Campaign-level update log + when it was closed out — see campaign-state.js's doc comment.
     comments: state.comments || [],
+    // Reference documents uploaded to the campaign (2026-09-21) — pointers into Cloudinary, see
+    // campaign-state.js's doc comment.
+    documents: state.documents || [],
     closedAt: state.closedAt || null,
   };
 }
