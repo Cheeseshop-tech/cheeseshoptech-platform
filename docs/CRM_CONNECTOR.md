@@ -9,8 +9,10 @@
 > `netlify/`** — it is a dead variable. CRM data now comes **straight from the HubSpot API**, server-side,
 > via `netlify/functions/crm-hubspot.js`. `VITE_CRM_BACKEND` takes **`mock` | `hubspot`** — *not* `make`.
 >
-> Make is still live **for campaigns** (`MAKE_CAMPAIGNS_WEBHOOK_URL` → `netlify/functions/campaigns.js`).
-> Don't read "Make is dead" from this — only the CRM leg of it is.
+> Campaigns' Make leg was also retired, 2026-09-20 (see `docs/INTEGRATION_WIRING_BRIEF.md`) — the
+> Make.com scenario it would have needed was never built, and campaign definitions now have a
+> native in-app write path (`netlify/functions/campaign-defs.js`). **There is no Make integration
+> left anywhere in this app.**
 
 Client CRM data flows into the dashboard **directly from HubSpot**, read-only, with the private-app token
 held server-side in the Netlify env var `HUBSPOT_TOKEN` (never exposed to the browser). HubSpot is the CRM

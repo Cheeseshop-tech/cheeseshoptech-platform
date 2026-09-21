@@ -17,7 +17,7 @@ rollback = `git revert`.** Each live integration needs a credential **Rick** pro
 | **Media** (Cloudinary) | ✅ live | `VITE_MEDIA_BACKEND=cloudinary` | done | — | — |
 | **Passcode gate** | ✅ configured | `VITE_AUTH_MODE=passcode` | done | — | — |
 | **CRM** (HubSpot) | 🔸 mock | `VITE_CRM_BACKEND=hubspot` | new `netlify/functions/crm.js` calling HubSpot API; map objects → app shape; read-only first | **HubSpot Private App token** (Netlify env `HUBSPOT_TOKEN`) | Medium / medium |
-| **Campaigns** (Make) | 🔸 mock | `VITE_CAMPAIGNS_BACKEND=make` | Make.com scenario(s) + webhook; function to trigger/report | Make account + webhook URL/key | Medium-high / medium |
+| **Campaigns** | ✅ retired (native) | — | Superseded 2026-09-20: campaign definitions are seeded in code plus a native in-app write path (`netlify/functions/campaign-defs.js`, Blobs). The Make webhook (`netlify/functions/campaigns.js`, `MAKE_CAMPAIGNS_WEBHOOK_URL`) was removed — Rick's Make account had zero scenarios/connections when checked, and it would only have been a second, competing source for data the app can already create directly. | — | — |
 | **Storefront** (Shopify) | 🔸 mock | `VITE_STORE_BACKEND=shopify` | real Shopify store + Storefront/Admin API; product/cart wiring | Shopify store + API tokens | High / medium |
 | **Pricing data** | 🔸 mock | `VITE_PRICING_BACKEND=function` | optional: serverless pricing endpoint (works today via the `images.json`/manifest + pricing-core) | — | Low / low |
 
@@ -26,8 +26,9 @@ rollback = `git revert`.** Each live integration needs a credential **Rick** pro
    the CRM" pitch, and Monti's HubSpot already holds 632 contacts. Pull contacts/companies/deals into the
    dashboard. Low blast radius if read-only.
 2. **CRM / HubSpot — write (next).** Log activities/notes from the app once read is solid.
-3. **Campaigns / Make.** When campaign volume justifies automation (social publishing still needs a scheduler
-   or Marketing Hub — HubSpot Starter can't publish social).
+3. ~~**Campaigns / Make.**~~ Retired 2026-09-20 — see the seam table above. If social-publishing
+   automation is worth building later, evaluate it fresh against whatever's live then (HubSpot
+   Marketing Hub, Buffer, etc.) rather than reviving this seam.
 4. **Storefront / Shopify.** Only when DTC e-commerce opens (ties to the SEAFRIGO DTC question on the Monti side).
 5. **Pricing function.** Optional/last — the manifest path works today.
 

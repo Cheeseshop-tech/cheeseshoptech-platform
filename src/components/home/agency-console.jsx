@@ -586,11 +586,13 @@ const ENV = import.meta.env;
 // Build-time backend switches: what each seam is wired to in THIS build. No "crm" row here —
 // the "HubSpot CRM (read-only)" row further down already live-tests CRM for real; a second,
 // build-flag-only CRM badge next to it could disagree with the real one and nobody should trust
-// a status panel that can contradict itself.
+// a status panel that can contradict itself. No "campaigns" row either (retired 2026-09-20) —
+// campaign definitions are seeded/versioned in code plus a native Blobs write path
+// (campaign-defs.js); there's no backend left to flip live, so a mock/live badge for it would
+// just be permanently, correctly mock forever and add noise.
 const SEAMS = [
   { key: "store", label: "Storefront", flag: ENV.VITE_STORE_BACKEND || "mock", liveWhen: "shopify" },
   { key: "media", label: "Media", flag: ENV.VITE_MEDIA_BACKEND || "mock", liveWhen: "cloudinary" },
-  { key: "campaigns", label: "Campaigns", flag: ENV.VITE_CAMPAIGNS_BACKEND || "mock", liveWhen: "make" },
   { key: "signals", label: "Market signals", flag: ENV.VITE_SIGNALS_BACKEND || "mock", liveWhen: "function" },
   { key: "market-news", label: "Market news", flag: ENV.VITE_MARKETNEWS_BACKEND || "mock", liveWhen: "function" },
   { key: "pricing", label: "Pricing data", flag: ENV.VITE_PRICING_BACKEND || "mock", liveWhen: "function" },
@@ -657,14 +659,6 @@ const SEAM_PINGS = {
     const data = await res.json().catch(() => null);
     if (!res.ok) return { ok: false, reason: /not configured/i.test(data?.error || "") ? "not-configured" : "error", detail: data?.error };
     return { ok: true, detail: `${data?.products?.length ?? "—"} products` };
-  },
-  campaigns: async (tenant) => {
-    if (!tenant) return { ok: false, reason: "no-tenant" };
-    const res = await fetch(`/.netlify/functions/campaigns?tenant=${encodeURIComponent(tenant)}`, { headers: await authHeaders() });
-    if (res.status === 401 || res.status === 403) return { ok: false, reason: "unauthorized" };
-    const data = await res.json().catch(() => null);
-    if (!res.ok) return { ok: false, reason: /not configured/i.test(data?.error || "") ? "not-configured" : "error", detail: data?.error };
-    return { ok: true, detail: Array.isArray(data) ? `${data.length} campaigns (${tenant})` : `reachable (${tenant})` };
   },
 };
 

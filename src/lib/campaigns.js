@@ -406,17 +406,22 @@ const SEEDS = {
   ],
 };
 
-// "mock" (bundled seeds) | "make" (netlify/functions/campaigns.js webhook proxy).
-const USE_MOCK = (import.meta.env.VITE_CAMPAIGNS_BACKEND || "mock") === "mock";
-// True while campaign DEFINITIONS are seeded rather than fetched. Note this does NOT describe the
-// checklist/status state — that is always live from Blobs (campaign-state.js), even in mock mode.
-export const campaignsAreSample = USE_MOCK;
+// Campaign DEFINITIONS are always seeded/versioned with the code (see SEEDS above) — never
+// fetched from an external backend. RETIRED 2026-09-20: this seam used to also support a "make"
+// backend (netlify/functions/campaigns.js, gated on VITE_CAMPAIGNS_BACKEND=make) meant to pull
+// campaign definitions from an external Make.com scenario. That scenario was never built — Rick's
+// Make account had zero scenarios/connections/hooks when checked — and the actual need it was
+// for (a write path for new campaign definitions) has since been met, more directly, by the
+// native in-app "+ New campaign" form -> campaign-defs.js (Netlify Blobs) below. Keeping a
+// second, unbuildable path to the same data was a redundant source of truth, so it's gone: the
+// function, the VITE_CAMPAIGNS_BACKEND flag, and MAKE_CAMPAIGNS_WEBHOOK_URL are all removed.
+// See docs/INTEGRATION_WIRING_BRIEF.md.
+export const campaignsAreSample = true;
 
-/** Seeded/webhook campaign definitions only — the read-only half. See getCampaigns() for the
- *  merged list the UI actually renders. */
+/** Seeded campaign definitions only — the read-only half. See getCampaigns() for the merged list
+ *  the UI actually renders. */
 async function getSourcedCampaigns(resolved) {
-  if (USE_MOCK) return SEEDS[resolved.id] || [];
-  return readAuthedJson(`/.netlify/functions/campaigns?tenant=${encodeURIComponent(resolved.id)}`, { onFail: [] });
+  return SEEDS[resolved.id] || [];
 }
 
 // ---- Custom campaign definitions (Netlify Blobs, netlify/functions/campaign-defs.js) -------

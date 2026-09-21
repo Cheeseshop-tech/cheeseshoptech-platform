@@ -9,6 +9,18 @@ First tenant: **Monti Trentini**. Canonical detail: `docs/POSITIONING.md`, `docs
 
 ## Remember
 
+**2026-09-20 — Campaigns' Make webhook seam retired (never built, made redundant).**
+`netlify/functions/campaigns.js` (`MAKE_CAMPAIGNS_WEBHOOK_URL`, `VITE_CAMPAIGNS_BACKEND=make`) is
+gone. It was designed pre-`campaign-defs.js` (2026-06 era) to fetch campaign *definitions* from an
+external Make.com scenario. That scenario was never built — Rick's Make account had zero
+scenarios/connections/hooks when checked live — and the need it served (a write path for new
+campaign definitions) has since been met more directly by the native in-app "+ New campaign" form
+-> `campaign-defs.js` (Netlify Blobs, shipped 2026-08-21). Keeping both was a redundant,
+unconfigurable second source of truth. Campaign definitions are now always: seeded in code
+(`src/lib/campaigns.js`) + custom ones from the native write path — nothing else. If campaign
+automation via Make (or another tool) is worth building later, treat it as a fresh seam, not a
+revival of this one. Detail: `docs/INTEGRATION_WIRING_BRIEF.md`.
+
 **2026-07-13 — Media Hub is the central media layer.**
 We are building the Media Hub as the single home for all media, used for content creation and email
 campaigns, and eventually social posts. The goal: **every asset is stored and organized once in

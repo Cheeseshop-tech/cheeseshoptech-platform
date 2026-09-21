@@ -11,7 +11,7 @@
 [build.environment]
   VITE_CLOUDINARY_UPLOAD_PRESET = "st_unsigned"
 
-# Serverless functions (Cloudinary media list, CRM/Make proxy). Secrets stay server-side.
+# Serverless functions (Cloudinary media list, direct HubSpot CRM, etc). Secrets stay server-side.
 [functions]
   directory = "netlify/functions"
   node_bundler = "esbuild"

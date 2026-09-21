@@ -40,10 +40,12 @@ setup; the pipeline lives in Salesforce. The CRM dashboard must wire to Salesfor
 - HubSpot is for **creating + scheduling social/marketing content** — done in HubSpot's own app.
 - The connected HubSpot MCP here is **CRM-read only** (search/read objects, properties) — it can NOT
   publish social content. Social publishing uses HubSpot's Marketing API / native scheduler.
-- Platform role: the **Campaigns** module (`campaigns-page.jsx`, `functions/campaigns.js`) surfaces
-  campaign **status / results** pulled from HubSpot's marketing API — it does not author posts.
-- Build later: a `functions/campaigns-hubspot.js` reading HubSpot marketing campaigns (needs a HubSpot
-  private-app token with marketing scopes), behind the existing campaigns seam.
+- Platform role: the **Campaigns** module (`campaigns-page.jsx`) holds campaign definitions and
+  results itself — seeded in code (`src/lib/campaigns.js`) plus a native in-app write path
+  (`netlify/functions/campaign-defs.js`, Blobs). `functions/campaigns.js` (a Make.com proxy this
+  section used to point at) was retired 2026-09-20 — never built, and redundant with the native
+  write path. If HubSpot marketing data is worth pulling in later, build it as a fresh seam against
+  whatever's live then, not a revival of the old Make path.
 
 ## Recommended sequence (when Rick is ready to build integrations)
 1. **Salesforce → CRM dashboard** (the real pipeline; highest sales value). Needs Rick's connected app.

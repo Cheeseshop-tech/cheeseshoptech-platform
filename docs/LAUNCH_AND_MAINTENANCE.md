@@ -50,7 +50,8 @@ The docs' "commit + push → Netlify auto-deploys" describes the *intended* setu
 - [x] ~~**[Rick]** Build the Make scenario → set `MAKE_WEBHOOK_URL`~~ — **CANCELLED 2026-07-16, do not do
       this.** The Make CRM leg was deleted: there is no `netlify/functions/crm.js`, `MAKE_WEBHOOK_URL` is
       dead in code, and `make` is not a valid `VITE_CRM_BACKEND` value. Superseded by the direct-HubSpot
-      read above. (Make is still live for *campaigns* via `MAKE_CAMPAIGNS_WEBHOOK_URL` — that one stays.)
+      read above. (Campaigns' Make leg is ALSO gone now — retired 2026-09-20, see
+      `docs/INTEGRATION_WIRING_BRIEF.md`. There is no Make integration left anywhere in this app.)
 - [ ] **[Rick]** *Only remaining CRM item:* confirm `crm.objects.contacts.write` on the private app owning
       the token in `HUBSPOT_TOKEN` — required by `crm-push.js` to sync booth/enrichment captures as
       contacts. A passing **dry run does not prove it** (dry run only searches); only a real commit does.

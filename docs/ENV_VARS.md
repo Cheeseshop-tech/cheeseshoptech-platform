@@ -46,8 +46,11 @@ These are read by `netlify/functions/*`. They never reach the browser.
 | `SHOPIFY_STOREFRONT_TOKEN` | Public storefront API | `store.js` | Storefront tool |
 | `SHOPIFY_ADMIN_TOKEN` | Admin API (orders) | `store-orders.js` | Storefront tool |
 | `INVENTORY_PUBLISH_SECRET` | Guards the inventory publish endpoint | `inventory-publish.js` | Used by the sync script |
-| `MAKE_CAMPAIGNS_WEBHOOK_URL` | Make webhook for campaigns | `campaigns.js` | Campaigns |
 | `SENTRY_DSN` | Error capture + slow-response signal for all 25 functions | `_sentry.js`, every function via `withMonitoring()` | **Status uncertain as of 2026-09-18** — was actually set already (this row previously and incorrectly said "not yet set"), but to a value that didn't match the project's current DSN. Rick edited it in Netlify; a local test of the pasted value then failed with "invalid DSN" format, and it's unclear whether the value now saved is the corrected one or a re-paste of the original. Re-verify in the Netlify dashboard before trusting this row. See `docs/POSTMORTEM_2026-09-18_buyer-catalog-crash.md`. |
+
+> **Campaigns has no live switch.** `MAKE_CAMPAIGNS_WEBHOOK_URL` and `VITE_CAMPAIGNS_BACKEND` were
+> both retired 2026-09-20 — the Make.com scenario was never built, and campaign definitions now
+> have a native in-app write path (`campaign-defs.js`). See `docs/INTEGRATION_WIRING_BRIEF.md`.
 
 > **Status caveat:** "Live" for everything except `ANTHROPIC_API_KEY` is *inferred* from the
 > corresponding feature working in production, not from reading the Netlify dashboard. Only the
@@ -67,7 +70,7 @@ Set in Netlify build environment or `netlify.toml`. Changing any of these **requ
 | `VITE_MEDIA_BACKEND` | `mock` \| `cloudinary` |
 | `VITE_CRM_BACKEND` | `mock` \| `hubspot` — **`mock` is why local dev shows an empty account book** |
 | `VITE_PRICING_BACKEND` | `function` = live Netlify Blobs store (see the inventory-sync note) |
-| `VITE_IMAGES_BACKEND`, `VITE_STORE_BACKEND`, `VITE_CAMPAIGNS_BACKEND`, `VITE_SIGNALS_BACKEND`, `VITE_ATTENTION_BACKEND`, `VITE_MARKETNEWS_BACKEND` | Per-surface mock/live switches |
+| `VITE_IMAGES_BACKEND`, `VITE_STORE_BACKEND`, `VITE_SIGNALS_BACKEND`, `VITE_ATTENTION_BACKEND`, `VITE_MARKETNEWS_BACKEND` | Per-surface mock/live switches |
 | `VITE_AUTH_MODE` | `passcode` selects `PasscodeGate` over Netlify Identity |
 | `VITE_GOTRUE_URL` | Netlify Identity endpoint |
 | `VITE_DEV_BYPASS_AUTH` | Local dev only — **must never be set in production** |
