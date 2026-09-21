@@ -80,13 +80,15 @@
       "key": "origin-provenance",
       "title": "A hundred-year story",
       "audience": ["supermarkets", "cheese-shops", "deli-sandwich", "independent-specialty", "food-service", "distributor-partner"],
-      "body": "A hundred-year-long story does not happen by chance. From a small dairy to a modern Alpine creamery, Monti Trentini has been guided by strong values — family, respect of territory, quality. Casa Finco has made cheese in the Trentino mountains since 1925, four generations of cheesemakers working milk from their own neighborhood within 90 km of the dairy in Grigno. The mountain origin isn't a marketing line; it's the product."
+      "body": "A hundred-year-long story does not happen by chance. From a small dairy to a modern Alpine creamery, Monti Trentini has been guided by strong values — family, respect of territory, quality. Casa Finco has made cheese in the Trentino mountains since 1925, four generations of cheesemakers working milk from their own neighborhood within 90 km of the dairy in Grigno. The mountain origin isn't a marketing line; it's the product.",
+      "socialLine": "Casa Finco has made cheese in the Trentino mountains since 1925 — four generations, one neighborhood, milk from within 90km of our dairy. Not a marketing line. The whole story."
     },
     {
       "key": "supply-chain-quality",
       "title": "Everything at home",
       "audience": ["distributor-partner", "food-service"],
-      "body": "Milk processing, cheese making, aging and packaging take place only in our own plants. That single fact is the quality control: every wheel is handled start to finish by the people who make it, using milk from a 90 km radius in the Trentino mountains and the Asiago plateau. Nothing is outsourced, nothing is anonymous — a certified dairy at 800 metres above sea level, working the way a family creamery has for a century."
+      "body": "Milk processing, cheese making, aging and packaging take place only in our own plants. That single fact is the quality control: every wheel is handled start to finish by the people who make it, using milk from a 90 km radius in the Trentino mountains and the Asiago plateau. Nothing is outsourced, nothing is anonymous — a certified dairy at 800 metres above sea level, working the way a family creamery has for a century.",
+      "socialLine": "Milk processing, cheesemaking, aging, and packaging — all in our own plants, by the people who make it. Nothing outsourced. Nothing anonymous."
     },
     {
       "key": "why-trentino",
@@ -104,7 +106,8 @@
       "key": "retail-partnership",
       "title": "A partner for your shelves",
       "audience": ["supermarkets", "cheese-shops", "independent-specialty"],
-      "body": "Monti Trentini brings a complete, authentic Italian Alpine range to specialty and retail shelves — heritage PDO wheels alongside ready-to-merchandise formats, all backed by a hundred-year story shoppers respond to. Happiness has plenty of shapes; we help you put them on the table. A single source from milk to package means consistency you can build a set around."
+      "body": "Monti Trentini brings a complete, authentic Italian Alpine range to specialty and retail shelves — heritage PDO wheels alongside ready-to-merchandise formats, all backed by a hundred-year story shoppers respond to. Happiness has plenty of shapes; we help you put them on the table. A single source from milk to package means consistency you can build a set around.",
+      "socialLine": "A hundred-year family story is the kind of differentiation an independent shelf can build around — not just another SKU next to the same five brands everyone else carries."
     },
     {
       "key": "foodservice-chef",

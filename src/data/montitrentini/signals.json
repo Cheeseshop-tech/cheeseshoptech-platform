@@ -62,7 +62,9 @@
     "storyHints": ["supply-chain-quality"],
     "skus": ["grana-padano", "asiago-stagionato-dop"],
     "source": "news-trade",
-    "freshness": "2026-09-19"
+    "freshness": "2026-09-19",
+    "socialReady": true,
+    "socialHook": "Commodity cheddar just jumped 16.5% in a single auction — a reminder of how volatile 'just a commodity' pricing can get."
   },
   {
     "id": "sig-flavor-exploration-retail",
@@ -114,7 +116,10 @@
     "storyHints": ["supply-chain-quality", "origin-provenance"],
     "skus": ["caciotta-basket-rind"],
     "source": "google-alert",
-    "freshness": "2026-09-19"
+    "freshness": "2026-09-19",
+    "socialReady": true,
+    "socialHook": "Another imported specialty cheese recall hit shelves this week — a reminder that 'imported' doesn't automatically mean traceable.",
+    "_socialNote": "Trend-level only — never name the recalled brand publicly (2026-09-21, Rick)."
   },
   {
     "id": "sig-usda-import-forecast-fy26",
@@ -166,6 +171,9 @@
     "storyHints": ["retail-partnership", "origin-provenance"],
     "skus": [],
     "source": "google-alert",
-    "freshness": "2026-09-21"
+    "freshness": "2026-09-21",
+    "socialReady": true,
+    "socialHook": "Two more independent specialty cheese shops closed their doors this month — squeezed by margin pressure and shelves that all look the same.",
+    "_socialNote": "Trend-level only — never name the specific shops publicly (2026-09-21, Rick)."
   }
 ]
