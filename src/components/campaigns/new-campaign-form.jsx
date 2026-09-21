@@ -34,6 +34,11 @@ export function NewCampaignForm({ resolved, allCampaigns, onCreated }) {
   const [strategy, setStrategy] = useState("");
   const [audienceLabel, setAudienceLabel] = useState("");
   const [audienceSize, setAudienceSize] = useState("");
+  // Rep source (2026-09-21) — wired into this template so any future distributor-rep-visits
+  // campaign (Rick: "in the near future we will wire other distributors and their reps to the
+  // campaign engine") gets a live Rep Territory Assignments tab from creation, not a bespoke
+  // build each time. Optional and free text — the exact HubSpot company name.
+  const [repsFrom, setRepsFrom] = useState("");
   const [serves, setServes] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -64,8 +69,12 @@ export function NewCampaignForm({ resolved, allCampaigns, onCreated }) {
       end: end || null,
       owner: owner.trim(),
       strategy: strategy.trim(),
-      audience: (audienceLabel.trim() || audienceSize)
-        ? { label: audienceLabel.trim(), ...(audienceSize ? { size: Number(audienceSize) } : {}) }
+      audience: (audienceLabel.trim() || audienceSize || repsFrom.trim())
+        ? {
+            label: audienceLabel.trim(),
+            ...(audienceSize ? { size: Number(audienceSize) } : {}),
+            ...(repsFrom.trim() ? { repsFrom: repsFrom.trim() } : {}),
+          }
         : null,
       ...(type === "enrichment" && serves ? { serves } : {}),
     };
@@ -189,6 +198,14 @@ export function NewCampaignForm({ resolved, allCampaigns, onCreated }) {
                 <Label htmlFor="nc-aud-size">Audience size</Label>
                 <Input id="nc-aud-size" type="number" min="0" value={audienceSize} onChange={(e) => setAudienceSize(e.target.value)} className="mt-1.5" />
               </div>
+            </div>
+
+            <div>
+              <Label htmlFor="nc-reps-from">Rep source — HubSpot company (optional)</Label>
+              <Input id="nc-reps-from" value={repsFrom} onChange={(e) => setRepsFrom(e.target.value)} placeholder="e.g. Ace Endico" className="mt-1.5" />
+              <p className="mt-1.5 text-xs text-fg-muted">
+                Pulls that distributor's contacts live from HubSpot into a Rep Territory Assignments tab on the campaign — pair each rep to the state(s)/cities they cover and Target Prospects auto-populates from it. Works for any distributor; leave blank and set it later from the campaign page if you're not sure yet.
+              </p>
             </div>
 
             <div>

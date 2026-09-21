@@ -42,6 +42,7 @@ const RESULT_KEYS = ["sends", "opens", "clicks", "replies", "meetings", "won", "
 const MAX_CUSTOM_ITEMS = 40; // a checklist longer than this is a runbook, not a launch gate
 const MAX_COMMENTS = 50; // a running per-campaign update log, not a chat transcript
 const MAX_DOCUMENTS = 30; // reference material for one campaign, not a document archive
+const MAX_REPS = 300; // a distributor's whole contact book, generously capped
 const ID_RE = /^[a-z0-9][a-z0-9-]{0,63}$/i;
 
 const CORS = {
@@ -166,11 +167,45 @@ const rawHandler = async (event, context) => {
     // (distinct from `updatedAt`, which keeps moving on any later edit to a closed campaign).
     const closedAt = str(e.closedAt, 40);
 
+    // repVisits (2026-09-21, Rick: "identify areas and prospect and reps... Ill select the reps
+    // and regions and the system CST should populate the fields"): reps pulled LIVE from a
+    // HubSpot company — `source` is free text, not a fixed id, because more distributors are
+    // coming ("in the near future we will wire other distributors and their reps to the
+    // campaign engine"), not just Ace Endico. `reps` is keyed by email (same key
+    // getRepCalls/saveRepCalls already use) since HubSpot only carries a free-text company name
+    // per contact, not an association. Each rep's states/cities is the manual region pairing —
+    // HubSpot only has the distributor's HQ address on every contact, never the rep's own
+    // territory. deriveRepFilter() (src/lib/campaigns.js) turns this straight into
+    // audience.filter so Target Prospects auto-populates the moment it's saved.
+    const repVisitsSource = str(e.repVisits?.source, 160);
+    const repVisitsReps = (Array.isArray(e.repVisits?.reps) ? e.repVisits.reps : []).slice(0, MAX_REPS)
+      .filter((rp) => rp && typeof rp === "object" && str(rp.email, 200))
+      .map((rp) => ({
+        email: str(rp.email, 200).toLowerCase(),
+        name: str(rp.name, 160),
+        phone: str(rp.phone, 40),
+        jobtitle: str(rp.jobtitle, 120),
+        states: (Array.isArray(rp.states) ? rp.states : []).slice(0, 60)
+          .map((s) => str(s, 4).toUpperCase()).filter(Boolean),
+        cities: Object.fromEntries(
+          Object.entries(rp.cities && typeof rp.cities === "object" && !Array.isArray(rp.cities) ? rp.cities : {})
+            .slice(0, 60)
+            .map(([st, list]) => [
+              str(st, 4).toUpperCase(),
+              (Array.isArray(list) ? list : []).slice(0, 60).map((v) => str(v, 80).toLowerCase()).filter(Boolean),
+            ])
+            .filter(([, list]) => list.length),
+        ),
+      }));
+    const repVisits = (repVisitsSource || repVisitsReps.length)
+      ? { ...(repVisitsSource ? { source: repVisitsSource } : {}), reps: repVisitsReps }
+      : null;
+
     const results = {};
     for (const k of RESULT_KEYS) if (e.results && e.results[k] != null) results[k] = int(e.results[k]);
 
     if (!status && !Object.keys(items).length && !custom.length && !hidden.length
-        && !Object.keys(results).length && !comments.length && !documents.length && !closedAt) {
+        && !Object.keys(results).length && !comments.length && !documents.length && !closedAt && !repVisits) {
       continue; // nothing worth storing for this campaign
     }
     clean[id] = {
@@ -182,6 +217,7 @@ const rawHandler = async (event, context) => {
       ...(comments.length ? { comments } : {}),
       ...(documents.length ? { documents } : {}),
       ...(closedAt ? { closedAt } : {}),
+      ...(repVisits ? { repVisits } : {}),
       updatedAt: str(e.updatedAt, 40) || new Date().toISOString(),
     };
   }

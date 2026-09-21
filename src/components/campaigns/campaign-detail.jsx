@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft, ListChecks, BookOpen, FileText, Users, BarChart3, Plus, X, AlertTriangle,
   CheckCircle2, Copy, Check, ExternalLink, Link2, PhoneCall, ChevronDown, ChevronRight,
-  ScrollText, Download, ClipboardList, UploadCloud, Trash2, MessageSquare, MapPin, Paperclip,
+  ScrollText, Download, ClipboardList, UploadCloud, Trash2, MessageSquare, MapPin, Paperclip, Mail,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card.jsx";
 import { Button } from "@/components/ui/button.jsx";
@@ -20,10 +20,10 @@ import {
   CALL_OUTCOMES, OUTCOME_TONE, OUTCOME_LABEL, isCleared, isResolved, hasGap, enrichmentCsv, downloadCsv,
   callSummary, pushToHubspot,
   scopeOf, segmentEnrichment, geoBreakdown, cityKeyOf, isLongIsland, isNYCBorough,
-  getRepCalls, saveRepCalls, repCallSummary,
+  getRepCalls, saveRepCalls, repCallSummary, deriveRepFilter,
   deleteCampaign, isClosed, STANDING_LESSONS,
 } from "@/lib/campaigns.js";
-import { getCrmData, CHANNEL_TO_AUDIENCE, regionOf, stateOf } from "@/lib/crm.js";
+import { getCrmData, CHANNEL_TO_AUDIENCE, regionOf, stateOf, composeUrl } from "@/lib/crm.js";
 import { uploadDocument } from "@/lib/cloudinary.js";
 // Address verification (docs/ADDRESS_VERIFICATION_SPEC_2026-09-21.md) — own file, own
 // Netlify function; not part of the HubSpot read-only client.
@@ -41,7 +41,7 @@ import { CONTENT_CATEGORIES, categoryLabel, entryStatus, entryCategory } from "@
 // (getCrmData → crm-hubspot.js); it deliberately does not open a second HubSpot line, and
 // per-account call status stays in the outreach console rather than forking a second overlay.
 
-const SECTION_ICON = { checklist: ListChecks, strategy: BookOpen, content: FileText, documents: Paperclip, prospects: Users, salesreps: PhoneCall, results: BarChart3, updates: MessageSquare };
+const SECTION_ICON = { checklist: ListChecks, strategy: BookOpen, content: FileText, documents: Paperclip, prospects: Users, salesreps: PhoneCall, repvisits: MapPin, results: BarChart3, updates: MessageSquare };
 
 export function CampaignDetail({
   campaign: c, resolved, onBack, onPatch, onDelete, onSaveNow, entry, canWrite,
@@ -193,6 +193,14 @@ export function CampaignDetail({
           c={c} resolved={resolved} scripts={contentItems} allCampaigns={allCampaigns}
           enrichment={enrichment} onEnrich={onEnrich} canWrite={canWrite} saveState={saveState}
         />
+      </Section>
+
+      <Section
+        id="repvisits"
+        title="Rep territory assignments"
+        description="Load a distributor's reps live from HubSpot and pair each to the state(s)/cities they cover — Target Prospects above auto-populates from it the moment it's saved, no separate step. Works for any distributor, not just one."
+      >
+        <RepVisitsPanel c={c} resolved={resolved} canWrite={canWrite} onPatch={onPatch} />
       </Section>
 
       {c.audience?.salesReps?.length > 0 && (
@@ -350,6 +358,7 @@ function SalesRepPanel({ reps = [], resolved, canWrite }) {
             rep={r}
             rec={calls[String(r.email || "").trim().toLowerCase()] || {}}
             canWrite={canWrite}
+            resolved={resolved}
             onPatch={(part) => patchRep(r.email, part)}
           />
         ))}
@@ -361,7 +370,7 @@ function SalesRepPanel({ reps = [], resolved, canWrite }) {
   );
 }
 
-function RepCallRow({ rep, rec, canWrite, onPatch }) {
+function RepCallRow({ rep, rec, canWrite, onPatch, resolved }) {
   const [open, setOpen] = useState(false);
   const outcome = rec.outcome || "not-called";
   const touched = outcome !== "not-called" || rec.territory || rec.note;
@@ -381,6 +390,7 @@ function RepCallRow({ rep, rec, canWrite, onPatch }) {
           {touched && <Badge variant={OUTCOME_TONE[outcome] || "muted"}>{OUTCOME_LABEL[outcome]}</Badge>}
           {rec.territory && <Badge variant="outline">{rec.territory}</Badge>}
           <PhoneInline phone={rep.phone} />
+          <EmailInline resolved={resolved} to={rep.email} subject={`${rep.name} — territory check-in`} />
         </div>
       </div>
 
@@ -419,6 +429,215 @@ function RepCallRow({ rep, rec, canWrite, onPatch }) {
             </p>
           )}
           {rec.calledAt && <p className="text-xs text-fg-muted">Last updated {rec.calledAt.slice(0, 16).replace("T", " ")}</p>}
+        </div>
+      )}
+    </li>
+  );
+}
+
+// A "Send" (mailto/Gmail-compose) counterpart to PhoneInline — forces the tenant's shared sales
+// identity when one is configured (composeUrl(), src/lib/crm.js), the same trick Booth's
+// Calendar/Recap buttons already use. The rep still taps Send themselves; nothing leaves the
+// device on its own.
+function EmailInline({ resolved, to, subject = "", body = "" }) {
+  if (!to) return null;
+  const href = composeUrl({ calendar: resolved?.calendar, to, subject, body });
+  return (
+    <a
+      href={href} target="_blank" rel="noreferrer" title={`Email ${to}`}
+      className="text-fg-muted hover:text-brand-primary"
+    >
+      <Mail className="h-3.5 w-3.5" />
+    </a>
+  );
+}
+
+// ---- Rep territory assignments (2026-09-21) -------------------------------------------------
+// Generic and reusable across ANY distributor's reps (Rick: "in the near future we will wire
+// other distributors and their reps to the campaign engine") — unlike the older hardcoded
+// audience.salesReps list above (Sales Rep Contacts), this pulls LIVE HubSpot contacts for
+// whatever company name is set as the source, and the only manual step is pairing each rep to
+// the state(s)/optional cities they cover, because HubSpot only holds the distributor's HQ
+// address on every one of its contacts (Rick: "we dont have the rep region info since their
+// contacts show the ACE headquarters not the regions or their home address"). The moment a
+// rep's region is saved, deriveRepFilter() (lib/campaigns.js) turns it into audience.filter and
+// mergeCampaign() feeds Target Prospects above from it automatically — no separate "apply" step
+// (Rick: "create the field to be filled in that will automatically route itself once filled
+// out"). Also wired into the New Campaign template (new-campaign-form.jsx `audience.repsFrom`)
+// so the next distributor-visits campaign starts with this tab live, not a bespoke rebuild.
+function normCompany(s) {
+  return String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+}
+
+function RepVisitsPanel({ c, resolved, canWrite, onPatch }) {
+  const saved = c.repVisits || {};
+  const [source, setSource] = useState(saved.source || c.audience?.repsFrom || "");
+  const [crm, setCrm] = useState(undefined);
+  const [q, setQ] = useState("");
+
+  useEffect(() => {
+    let alive = true;
+    setCrm(undefined);
+    getCrmData(resolved).then((d) => alive && setCrm(d || null)).catch(() => alive && setCrm(null));
+    return () => { alive = false; };
+  }, [resolved.id]);
+
+  const savedByEmail = useMemo(() => {
+    const m = {};
+    for (const r of saved.reps || []) m[String(r.email || "").toLowerCase()] = r;
+    return m;
+  }, [saved.reps]);
+
+  const matched = useMemo(() => {
+    const needle = normCompany(source);
+    if (!needle || !crm?.people?.length) return [];
+    const seen = new Set();
+    return crm.people
+      .filter((p) => p.email && p.company && normCompany(p.company).includes(needle))
+      .filter((p) => {
+        const key = p.email.toLowerCase();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
+      .map((p) => {
+        const key = p.email.toLowerCase();
+        const prior = savedByEmail[key];
+        return {
+          email: key, name: p.name || p.email, phone: p.phone || "", jobtitle: p.role || "",
+          states: prior?.states || [], cities: prior?.cities || {},
+        };
+      })
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [crm, source, savedByEmail]);
+
+  const filtered = useMemo(() => {
+    const needle = q.trim().toLowerCase();
+    if (!needle) return matched;
+    return matched.filter((r) => [r.name, r.email, r.phone].some((v) => v && String(v).toLowerCase().includes(needle)));
+  }, [matched, q]);
+
+  const assignedCount = matched.filter((r) => r.states.length).length;
+  const effectiveFilter = useMemo(() => deriveRepFilter(matched.filter((r) => r.states.length)), [matched]);
+
+  function saveSource(next) {
+    onPatch({ repVisits: { ...(next ? { source: next } : {}), reps: saved.reps || [] } });
+  }
+
+  function patchRep(email, part) {
+    const key = email.toLowerCase();
+    const others = (saved.reps || []).filter((r) => String(r.email || "").toLowerCase() !== key);
+    const current = savedByEmail[key] || matched.find((r) => r.email === key) || { email: key };
+    const nextRep = { ...current, ...part, email: key };
+    onPatch({ repVisits: { ...(source ? { source } : {}), reps: [...others, nextRep] } });
+  }
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <Label htmlFor="rv-source">Distributor — HubSpot company name</Label>
+        <Input
+          id="rv-source" value={source} disabled={!canWrite}
+          onChange={(e) => setSource(e.target.value)}
+          onBlur={(e) => saveSource(e.target.value.trim())}
+          placeholder="e.g. Ace Endico" className="mt-1.5 max-w-sm"
+        />
+        <p className="mt-1.5 text-xs text-fg-muted">Matched against the Company field on live HubSpot contacts.</p>
+      </div>
+
+      {!source ? (
+        <p className="text-sm text-fg-muted">Set the distributor's HubSpot company name above to load their reps.</p>
+      ) : crm === undefined ? (
+        <p className="text-sm text-fg-muted">Loading HubSpot contacts…</p>
+      ) : matched.length === 0 ? (
+        <p className="text-sm text-fg-muted">No HubSpot contacts found with company matching "{source}" — check the spelling matches HubSpot's Company field.</p>
+      ) : (
+        <>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <Input
+              placeholder="Search by name, email, or phone…"
+              value={q} onChange={(e) => setQ(e.target.value)} className="max-w-sm"
+            />
+            <p className="text-xs text-fg-muted">
+              {matched.length} rep{matched.length === 1 ? "" : "s"} from HubSpot · {assignedCount} assigned a region
+              {effectiveFilter?.states?.length ? ` · covering ${effectiveFilter.states.join(", ")}` : ""}
+            </p>
+          </div>
+          <ul className="space-y-2">
+            {filtered.map((r) => (
+              <RepRegionRow key={r.email} rep={r} resolved={resolved} canWrite={canWrite} onPatch={(part) => patchRep(r.email, part)} />
+            ))}
+            {filtered.length === 0 && <li className="py-6 text-center text-sm text-fg-muted">No match.</li>}
+          </ul>
+        </>
+      )}
+    </div>
+  );
+}
+
+function RepRegionRow({ rep, resolved, canWrite, onPatch }) {
+  const [open, setOpen] = useState(false);
+  const [statesText, setStatesText] = useState((rep.states || []).join(", "));
+  const [citiesText, setCitiesText] = useState(
+    Object.entries(rep.cities || {}).map(([st, list]) => `${st}: ${(list || []).join(", ")}`).join("; ")
+  );
+
+  function commitStates(text) {
+    const states = [...new Set(text.split(",").map((v) => v.trim().toUpperCase()).filter((v) => v.length === 2))];
+    onPatch({ states });
+  }
+  function commitCities(text) {
+    // "PA: Philadelphia, Pittsburgh; NY: Buffalo" — one clause per state, free-text city/town
+    // names, generalizing the old fixed PA_TOP_CITIES set to any state (Rick: "states city town").
+    const cities = {};
+    for (const clause of text.split(";")) {
+      const [stRaw, listRaw] = clause.split(":");
+      const st = (stRaw || "").trim().toUpperCase();
+      if (st.length !== 2 || !listRaw) continue;
+      const list = listRaw.split(",").map((v) => v.trim().toLowerCase()).filter(Boolean);
+      if (list.length) cities[st] = list;
+    }
+    onPatch({ cities });
+  }
+
+  return (
+    <li className="rounded-base border border-border">
+      <div className="flex flex-wrap items-center justify-between gap-2 p-2.5">
+        <button type="button" onClick={() => setOpen((v) => !v)} className="flex min-w-0 items-center gap-2 text-left">
+          {open ? <ChevronDown className="h-4 w-4 shrink-0 text-fg-muted" /> : <ChevronRight className="h-4 w-4 shrink-0 text-fg-muted" />}
+          <span className="min-w-0">
+            <span className="block truncate text-sm text-fg">{rep.name}</span>
+            <span className="block text-xs text-fg-muted">{rep.jobtitle || rep.email}</span>
+          </span>
+        </button>
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          {rep.states?.length ? <Badge variant="outline">{rep.states.join(", ")}</Badge> : <Badge variant="muted">No region yet</Badge>}
+          <PhoneInline phone={rep.phone} />
+          <EmailInline resolved={resolved} to={rep.email} subject={`${rep.name} — territory`} />
+        </div>
+      </div>
+      {open && (
+        <div className="space-y-3 border-t border-border p-3">
+          <p className="text-xs text-fg-muted">{rep.email}</p>
+          <div className="grid gap-1.5">
+            <Label htmlFor={`rv-st-${rep.email}`}>States covered</Label>
+            <Input
+              id={`rv-st-${rep.email}`} value={statesText} disabled={!canWrite}
+              onChange={(e) => setStatesText(e.target.value)}
+              onBlur={(e) => commitStates(e.target.value)}
+              placeholder="e.g. NY, NJ, PA"
+            />
+          </div>
+          <div className="grid gap-1.5">
+            <Label htmlFor={`rv-ct-${rep.email}`}>City/town narrowing (optional)</Label>
+            <Input
+              id={`rv-ct-${rep.email}`} value={citiesText} disabled={!canWrite}
+              onChange={(e) => setCitiesText(e.target.value)}
+              onBlur={(e) => commitCities(e.target.value)}
+              placeholder="e.g. PA: Philadelphia, Pittsburgh; NY: Buffalo, Rochester"
+            />
+            <p className="text-[11px] text-fg-muted">Leave a state out of this list and it counts in full — only named states get narrowed to these cities/towns.</p>
+          </div>
         </div>
       )}
     </li>
@@ -1477,6 +1696,7 @@ function CallRow({ co, rec, canWrite, onPatch, saveState, resolved }) {
           {addressBadge && <Badge variant={addressBadge.variant}>{addressBadge.label}</Badge>}
           {touched && <Badge variant={OUTCOME_TONE[outcome] || "muted"}>{OUTCOME_LABEL[outcome]}</Badge>}
           <PhoneInline phone={phone} />
+          <EmailInline resolved={resolved} to={rec.email || co.ownerEmail} subject={`Monti Trentini — ${co.name}`} />
         </div>
       </div>
 

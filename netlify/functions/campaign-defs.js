@@ -136,11 +136,21 @@ const rawHandler = async (event, context) => {
   const channels = (Array.isArray(input.channels) ? input.channels : []).filter((c) => CHANNEL_KEYS.includes(c));
   const audienceLabel = str(input.audience?.label, 160);
   const audienceNote = str(input.audience?.note, 500);
-  const audience = (audienceLabel || audienceNote || input.audience?.size != null)
+  // repsFrom (2026-09-21): the HubSpot company whose contacts are this campaign's field reps —
+  // wired into the New Campaign template (Rick: "wire this function to the template also so we
+  // wont have to build from scratch each time") so any future distributor-rep-visits campaign
+  // gets the Rep Territory Assignments tab live from the start, for any distributor (Rick: "in
+  // the near future we will wire other distributors and their reps to the campaign engine") —
+  // not a fixed id, since HubSpot contacts only carry a free-text company name. Can also be set
+  // (or changed) later from the campaign's own detail page (campaign-state.js repVisits.source),
+  // so a campaign created before this field existed isn't stuck without it.
+  const repsFrom = str(input.audience?.repsFrom, 160);
+  const audience = (audienceLabel || audienceNote || repsFrom || input.audience?.size != null)
     ? {
         ...(audienceLabel ? { label: audienceLabel } : {}),
         ...(input.audience?.size != null ? { size: int(input.audience.size) } : {}),
         ...(audienceNote ? { note: audienceNote } : {}),
+        ...(repsFrom ? { repsFrom } : {}),
       }
     : null;
   const strategySummary = str(input.strategy, 4000);

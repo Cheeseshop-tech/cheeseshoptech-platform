@@ -655,6 +655,35 @@ export function segmentOf(campaign, companies) {
 /** Whether an account still blocks a send: no email, or no named buyer to address. */
 export const hasGap = (co) => !co.ownerEmail || !co.owner;
 
+/**
+ * Turn manual rep→region assignments (campaign-state.js `repVisits.reps`) into the same
+ * `{ states, cityAllowlist }` shape segmentOf() already filters on — generalizing the old
+ * PA_TOP_CITIES special case to any state, for any distributor (2026-09-21, Rick: "states city
+ * town" + "in the near future we will wire other distributors and their reps to the campaign
+ * engine"). The union of every rep's states is the segment; a state is narrowed to specific
+ * cities/towns only when EVERY rep covering it gave city names — one rep covering a state with
+ * no narrowing means the whole state counts, same as PA_TOP_CITIES's relationship to its state.
+ * Returns null when no rep has a region yet, so mergeCampaign() leaves the campaign's own
+ * audience untouched until there's something to derive.
+ */
+export function deriveRepFilter(reps = []) {
+  const states = new Set();
+  const cityAllowlist = {};
+  const openState = new Set(); // a state some rep covers with NO city narrowing
+  for (const rep of reps || []) {
+    for (const st of rep.states || []) {
+      if (!st) continue;
+      states.add(st);
+      const cities = rep.cities?.[st];
+      if (cities?.length) cityAllowlist[st] = new Set([...(cityAllowlist[st] || []), ...cities]);
+      else openState.add(st);
+    }
+  }
+  for (const st of openState) delete cityAllowlist[st];
+  if (!states.size) return null;
+  return { states: [...states], ...(Object.keys(cityAllowlist).length ? { cityAllowlist } : {}) };
+}
+
 // City names in the live CRM carry neighbourhood qualifiers in parentheses and arrive lowercase
 // — the 2026-08-03 pull found "boston" (5) alongside "boston (north end)" (3), and "new york"
 // (45) alongside "new york (greenwich village)" (2). Keying on the raw string splits one city
@@ -981,8 +1010,17 @@ export function mergeCampaign(def, state = {}) {
     const done = st ? st.done === true : seedDone.has(t.id);
     return { ...t, done, doneAt: st?.doneAt || null, note: st?.note || "" };
   });
+  // Rep territory assignments (2026-09-21) auto-derive the campaign's live segment the moment
+  // they're saved (Rick: "create the field to be filled in that will automatically route itself
+  // once filled out") — only when the campaign has no fixed companyIds list already (an exact,
+  // hand-qualified scope always wins over a derived filter).
+  const repFilter = state.repVisits?.reps?.length ? deriveRepFilter(state.repVisits.reps) : null;
+  const audience = (repFilter && !def.audience?.companyIds?.length)
+    ? { ...(def.audience || {}), filter: repFilter, exact: false }
+    : def.audience;
   return {
     ...def,
+    audience,
     checklist,
     status: state.status || def.seedStatus || "draft",
     results: { ...(def.results || {}), ...(state.results || {}) },
@@ -993,6 +1031,9 @@ export function mergeCampaign(def, state = {}) {
     // campaign-state.js's doc comment.
     documents: state.documents || [],
     closedAt: state.closedAt || null,
+    // Live-HubSpot rep→region assignments, raw (for the editor UI) — see deriveRepFilter() above
+    // for how this turns into `audience.filter`.
+    repVisits: state.repVisits || null,
   };
 }
 
