@@ -130,3 +130,59 @@ ProspectPanel / segmentOf() — reads the merged campaign's audience.filter exac
 - `campaign-defs.js`'s create-only POST (409 on an existing id) is unchanged — region
   assignments and the rep source for an already-created campaign live entirely in the mutable
   `campaign-state.js` overlay, never in the immutable definition.
+
+
+## Revision 2 — account-by-account assignment (2026-09-21, same day)
+
+Rick, after seeing the checkbox territory builder work: "the mechanism is there to select the
+rep and the territory now it need to register and once a territory is opend the accounts un
+each territory with addresss phone numbers and email address open up un the rep in drop down
+menus. so two steps territory selection the key account selection. often reps will have some
+accounts scattered even in other reps territories so the first two steps build the broad shape
+state town borough then account will also have a drop down to select responsable rep
+assignment. this way the account by account remains flexable."
+
+Ran this through `engineering:system-design` before touching code, since it changes the shape
+of the source-of-truth data, not just the UI. Conclusion: a stored geometric filter (state/city
+per rep) can never correctly represent "this one account is the scattered exception" without
+also either over- or under-including its neighbors — so the filter can't be the source of
+truth once individual overrides exist. The fix is to stop storing a filter at all and store the
+actual assignment.
+
+**New model — two steps, one source of truth:**
+
+1. **Step 1 (territory, UI-only gesture).** Check state/city/town/borough boxes as before, pick
+   a rep, "Lock in territory." This is now purely a BULK-WRITE convenience: it snapshots
+   whichever accounts currently match the checked boxes and writes each one's assignment. No
+   territory *shape* is stored anywhere — only the resulting assignments.
+2. **Step 2 (accounts, the actual data).** The moment any state is checked, every matching
+   account opens up right there — name, address, phone, email (all already-live HubSpot company
+   fields) — each with its own "Responsible rep" dropdown. Changing one saves immediately,
+   independent of step 1, so a rep's scattered account in another rep's state stays correctly
+   assigned no matter how the broad territories get redrawn later.
+
+**Data model, revised:**
+```
+repVisits: {
+  source: string,                              // unchanged
+  accountAssignments: { [companyId]: repEmail } // NEW — the only source of truth
+  reps: [...]                                   // legacy (first revision), still accepted on
+                                                 // read/write so nothing already saved is lost,
+                                                 // but no longer written to by the UI
+}
+```
+`companyId` is the live HubSpot company id — stable under any later territory redefinition,
+unlike a state/city key. `mergeCampaign()`'s new `accountAssignmentScope()` (`src/lib/
+campaigns.js`) turns the assignment map's keys straight into `audience.companyIds` (an EXACT
+scope, not an approximation) whenever any account has been assigned — this is a strictly better
+fit than the old derived `audience.filter`, since `segmentOf()` already treats `companyIds` as
+authoritative over a filter, and an exact id list handles scattered accounts natively (a filter
+never could). The old `deriveRepFilter()`/filter-based path is kept as a read-only fallback for
+a campaign that was locked in during the first revision and hasn't been touched since — the
+instant Rick opens that campaign's Rep Territory Assignments tab again and saves anything, it
+migrates onto `accountAssignments` on its own (the panel writes the new shape from then on).
+
+**Per-rep display change:** the "states covered" badge on each rep in the national list is now
+DERIVED from the accounts actually assigned to them (counted + state-spread computed on the
+fly), not a stored/entered value — it can never drift out of sync with the real assignments the
+way a separately-maintained states array could.

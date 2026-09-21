@@ -684,6 +684,23 @@ export function deriveRepFilter(reps = []) {
   return { states: [...states], ...(Object.keys(cityAllowlist).length ? { cityAllowlist } : {}) };
 }
 
+/**
+ * The exact company-id scope for a campaign's account-by-account rep assignments
+ * (`repVisits.accountAssignments`, campaign-state.js) — every account that has been assigned to
+ * a rep, whatever state/city it's in. Revised 2026-09-21 from the region-filter approach above
+ * (Rick: "often reps will have some accounts scattered even in other reps territories... account
+ * will also have a drop down to select responsable rep assignment. this way the account by
+ * account remains flexable") — a state/city FILTER can't represent one scattered exception
+ * without also grabbing every other account in that rep's neighbor's territory, so the exact
+ * assigned-id list is now the source of truth for scope, not an approximation of it. Territory
+ * checkboxes in the UI are just a fast way to bulk-populate this map; nothing about their shape
+ * is stored or re-evaluated later.
+ */
+export function accountAssignmentScope(accountAssignments) {
+  const ids = Object.keys(accountAssignments || {});
+  return ids.length ? ids : null;
+}
+
 // City names in the live CRM carry neighbourhood qualifiers in parentheses and arrive lowercase
 // — the 2026-08-03 pull found "boston" (5) alongside "boston (north end)" (3), and "new york"
 // (45) alongside "new york (greenwich village)" (2). Keying on the raw string splits one city
@@ -1010,14 +1027,25 @@ export function mergeCampaign(def, state = {}) {
     const done = st ? st.done === true : seedDone.has(t.id);
     return { ...t, done, doneAt: st?.doneAt || null, note: st?.note || "" };
   });
-  // Rep territory assignments (2026-09-21) auto-derive the campaign's live segment the moment
-  // they're saved (Rick: "create the field to be filled in that will automatically route itself
-  // once filled out") — only when the campaign has no fixed companyIds list already (an exact,
-  // hand-qualified scope always wins over a derived filter).
-  const repFilter = state.repVisits?.reps?.length ? deriveRepFilter(state.repVisits.reps) : null;
-  const audience = (repFilter && !def.audience?.companyIds?.length)
-    ? { ...(def.audience || {}), filter: repFilter, exact: false }
-    : def.audience;
+  // Rep territory / account assignments (2026-09-21) auto-derive the campaign's live segment
+  // the moment they're saved (Rick: "create the field to be filled in that will automatically
+  // route itself once filled out") — only when the campaign has no fixed companyIds list
+  // already of its own (an exact, hand-qualified scope always wins).
+  //
+  // Prefer the exact account-by-account assignment list (accountAssignmentScope) when any
+  // account has been assigned — it's authoritative and handles scattered accounts correctly.
+  // Fall back to the older region-filter derivation (deriveRepFilter) only for data saved
+  // before 2026-09-21's account-level revision that hasn't been touched since — a campaign
+  // still on the legacy `repVisits.reps[].states/cities` shape with no accountAssignments yet.
+  const assignedIds = accountAssignmentScope(state.repVisits?.accountAssignments);
+  const repFilter = (!assignedIds && state.repVisits?.reps?.length) ? deriveRepFilter(state.repVisits.reps) : null;
+  const audience = def.audience?.companyIds?.length
+    ? def.audience
+    : assignedIds
+      ? { ...(def.audience || {}), companyIds: assignedIds, exact: true }
+      : repFilter
+        ? { ...(def.audience || {}), filter: repFilter, exact: false }
+        : def.audience;
   return {
     ...def,
     audience,

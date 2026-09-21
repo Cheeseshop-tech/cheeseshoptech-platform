@@ -20,10 +20,10 @@ import {
   CALL_OUTCOMES, OUTCOME_TONE, OUTCOME_LABEL, isCleared, isResolved, hasGap, enrichmentCsv, downloadCsv,
   callSummary, pushToHubspot,
   scopeOf, segmentEnrichment, geoBreakdown, cityKeyOf, isLongIsland, isNYCBorough,
-  getRepCalls, saveRepCalls, repCallSummary, deriveRepFilter,
+  getRepCalls, saveRepCalls, repCallSummary,
   deleteCampaign, isClosed, STANDING_LESSONS,
 } from "@/lib/campaigns.js";
-import { getCrmData, CHANNEL_TO_AUDIENCE, regionOf, stateOf, composeUrl } from "@/lib/crm.js";
+import { getCrmData, CHANNEL_TO_AUDIENCE, regionOf, stateOf, composeUrl, addressOf } from "@/lib/crm.js";
 import { uploadDocument } from "@/lib/cloudinary.js";
 // Address verification (docs/ADDRESS_VERIFICATION_SPEC_2026-09-21.md) — own file, own
 // Netlify function; not part of the HubSpot read-only client.
@@ -452,19 +452,28 @@ function EmailInline({ resolved, to, subject = "", body = "" }) {
   );
 }
 
-// ---- Rep territory assignments (2026-09-21) -------------------------------------------------
+// ---- Rep territory / account assignments (2026-09-21, revised same day) ---------------------
 // Generic and reusable across ANY distributor's reps (Rick: "in the near future we will wire
 // other distributors and their reps to the campaign engine") — unlike the older hardcoded
 // audience.salesReps list above (Sales Rep Contacts), this pulls LIVE HubSpot contacts for
-// whatever company name is set as the source, and the only manual step is pairing each rep to
-// the state(s)/optional cities they cover, because HubSpot only holds the distributor's HQ
-// address on every one of its contacts (Rick: "we dont have the rep region info since their
-// contacts show the ACE headquarters not the regions or their home address"). The moment a
-// rep's region is saved, deriveRepFilter() (lib/campaigns.js) turns it into audience.filter and
-// mergeCampaign() feeds Target Prospects above from it automatically — no separate "apply" step
-// (Rick: "create the field to be filled in that will automatically route itself once filled
-// out"). Also wired into the New Campaign template (new-campaign-form.jsx `audience.repsFrom`)
-// so the next distributor-visits campaign starts with this tab live, not a bespoke rebuild.
+// whatever company name is set as the source, because HubSpot only holds the distributor's HQ
+// address on every one of its contacts, never a rep's own territory.
+//
+// TWO STEPS (Rick: "so two steps territory selection the key account selection... often reps
+// will have some accounts scattered even in other reps territories so the first two steps
+// build the broad shape state town borough then account will also have a drop down to select
+// responsable rep assignment. this way the account by account remains flexable"):
+//   Step 1 — check state/city/town/borough boxes, "lock in" to bulk-assign everything matched.
+//   Step 2 — every account in the opened territory, with address/phone/email, gets its OWN
+//   rep dropdown, so a scattered exception can differ from its territory's default without
+//   disturbing anything else.
+// The actual source of truth is accountAssignments (company id -> rep email, campaign-state.js)
+// — accountAssignmentScope()/mergeCampaign() (lib/campaigns.js) feed it straight into
+// audience.companyIds so Target Prospects auto-populates the instant an account is (re)assigned,
+// no separate "apply" step (Rick: "create the field to be filled in that will automatically
+// route itself once filled out"). Also wired into the New Campaign template
+// (new-campaign-form.jsx `audience.repsFrom`) so the next distributor-visits campaign starts
+// with this tab live, not a bespoke rebuild.
 function normCompany(s) {
   return String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 }
@@ -474,10 +483,13 @@ function RepVisitsPanel({ c, resolved, canWrite, onPatch }) {
   const [source, setSource] = useState(saved.source || c.audience?.repsFrom || "");
   const [crm, setCrm] = useState(undefined);
   const [q, setQ] = useState("");
-  // The territory being BUILT right now — checkboxes, not yet locked in to a rep (Rick,
-  // 2026-09-21: "I need som boxes and by state city town/ borough so wne the boxes get check
-  // and I lock in territory the list for the focused territory is right below the rep list
-  // then once teritory is matched it populates in the rep dropdown").
+  // Tier 1 — the territory being BUILT right now (checkboxes, not yet locked in). Locking in is
+  // a BULK-WRITE convenience into accountAssignments below, not a stored rule of its own — a
+  // saved geometric filter can't represent a rep's scattered accounts in another rep's
+  // territory (Rick, 2026-09-21: "often reps will have some accounts scattered even in other
+  // reps territories... the first two steps build the broad shape state town borough then
+  // account will also have a drop down to select responsable rep assignment. this way the
+  // account by account remains flexable").
   const [checkedStates, setCheckedStates] = useState(() => new Set());
   const [checkedCities, setCheckedCities] = useState({}); // { ST: Set(cityKey) }
   const [expandedStates, setExpandedStates] = useState(() => new Set());
@@ -491,11 +503,9 @@ function RepVisitsPanel({ c, resolved, canWrite, onPatch }) {
     return () => { alive = false; };
   }, [resolved.id]);
 
-  const savedByEmail = useMemo(() => {
-    const m = {};
-    for (const r of saved.reps || []) m[String(r.email || "").toLowerCase()] = r;
-    return m;
-  }, [saved.reps]);
+  // Tier 2 — the actual source of truth: company id -> rep email. Stable under any later
+  // territory redefinition since it's keyed by the HubSpot company id, not by geography.
+  const accountAssignments = saved.accountAssignments || {};
 
   const matched = useMemo(() => {
     const needle = normCompany(source);
@@ -509,16 +519,17 @@ function RepVisitsPanel({ c, resolved, canWrite, onPatch }) {
         seen.add(key);
         return true;
       })
-      .map((p) => {
-        const key = p.email.toLowerCase();
-        const prior = savedByEmail[key];
-        return {
-          email: key, name: p.name || p.email, phone: p.phone || "", jobtitle: p.role || "",
-          states: prior?.states || [], cities: prior?.cities || {},
-        };
-      })
+      .map((p) => ({
+        email: p.email.toLowerCase(), name: p.name || p.email, phone: p.phone || "", jobtitle: p.role || "",
+      }))
       .sort((a, b) => a.name.localeCompare(b.name));
-  }, [crm, source, savedByEmail]);
+  }, [crm, source]);
+
+  const repByEmail = useMemo(() => {
+    const m = {};
+    for (const r of matched) m[r.email] = r;
+    return m;
+  }, [matched]);
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
@@ -526,18 +537,47 @@ function RepVisitsPanel({ c, resolved, canWrite, onPatch }) {
     return matched.filter((r) => [r.name, r.email, r.phone].some((v) => v && String(v).toLowerCase().includes(needle)));
   }, [matched, q]);
 
-  const assignedCount = matched.filter((r) => r.states.length).length;
-  const effectiveFilter = useMemo(() => deriveRepFilter(matched.filter((r) => r.states.length)), [matched]);
+  const companies = crm?.companies || [];
+  const companyById = useMemo(() => {
+    const m = {};
+    for (const co of companies) m[co.id] = co;
+    return m;
+  }, [companies]);
+
+  // Per-rep assignment count + state spread — DERIVED display from accountAssignments, not
+  // stored input, so it always reflects the real accounts a rep ended up with, scattered ones
+  // included, rather than a territory shape that can drift out of sync with reality.
+  const repStats = useMemo(() => {
+    const m = {};
+    for (const [companyId, repEmail] of Object.entries(accountAssignments)) {
+      const co = companyById[companyId];
+      if (!co) continue;
+      if (!m[repEmail]) m[repEmail] = { count: 0, states: new Set() };
+      m[repEmail].count += 1;
+      const st = stateOf(co);
+      if (st) m[repEmail].states.add(st);
+    }
+    return m;
+  }, [accountAssignments, companyById]);
+  const totalAssigned = Object.keys(accountAssignments).length;
 
   function saveSource(next) {
-    onPatch({ repVisits: { ...(next ? { source: next } : {}), reps: saved.reps || [] } });
+    onPatch({ repVisits: { ...(next ? { source: next } : {}), ...(saved.reps ? { reps: saved.reps } : {}), accountAssignments } });
+  }
+
+  // Single-account override — writes immediately, independent of the territory checkboxes
+  // (Rick: "account will also have a drop down to select responsable rep assignment... the
+  // account by account remains flexable"). An empty selection un-assigns the account.
+  function assignAccount(companyId, repEmail) {
+    const next = { ...accountAssignments };
+    if (repEmail) next[companyId] = repEmail; else delete next[companyId];
+    onPatch({ repVisits: { ...(source ? { source } : {}), ...(saved.reps ? { reps: saved.reps } : {}), accountAssignments: next } });
   }
 
   // ---- Territory checkboxes: national state list, each expandable to the real cities/towns
   // (boroughs included for free — HubSpot stores "Brooklyn"/"Queens"/etc. as plain city values,
   // same field cityKeyOf() already normalizes elsewhere) that actually have accounts on file
   // for that state, so the boxes only ever offer real places, not a static US list.
-  const companies = crm?.companies || [];
   const stateTree = useMemo(() => {
     const byState = new Map();
     for (const co of companies) {
@@ -588,8 +628,9 @@ function RepVisitsPanel({ c, resolved, canWrite, onPatch }) {
   }
 
   // Live preview of the accounts the CURRENTLY CHECKED boxes reach — right below the checkbox
-  // tree, updating as boxes are (un)checked. A state with no city boxes checked counts in full;
-  // a state with some cities checked narrows to just those.
+  // tree/rep list, updating as boxes are (un)checked. A state with no city boxes checked counts
+  // in full; a state with some cities checked narrows to just those. Once a territory is open,
+  // this doubles as step two: every row here carries its own rep-assignment dropdown.
   const previewList = useMemo(() => {
     if (!checkedStates.size) return [];
     return companies.filter((co) => {
@@ -600,27 +641,21 @@ function RepVisitsPanel({ c, resolved, canWrite, onPatch }) {
       return cities.has(cityKeyOf(co));
     });
   }, [companies, checkedStates, checkedCities]);
+  const PREVIEW_RENDER_CAP = 300;
 
-  // Lock the currently-checked territory in to whichever rep is picked in the dropdown — merges
-  // (union) into that rep's existing states/cities rather than replacing, so a rep can be built
-  // up from more than one lock-in pass. Writes straight through the normal onPatch autosave;
-  // deriveRepFilter()/mergeCampaign() pick it up and Target Prospects above updates on its own.
+  // Step one — lock the currently-checked territory in to whichever rep is picked, BULK-WRITING
+  // accountAssignments[companyId] for every account currently in the preview list. This is a
+  // fast starting point, not a standing rule: any of those rows can be flipped to a different
+  // rep individually afterward (step two, the dropdown on each row) without re-locking anything.
   function lockInTerritory() {
     setLockMsg("");
     if (!checkedStates.size) { setLockMsg("Check at least one state first."); return; }
     if (!assignRep) { setLockMsg("Pick which rep this territory belongs to."); return; }
-    const key = assignRep;
-    const current = savedByEmail[key] || matched.find((r) => r.email === key) || { email: key };
-    const mergedStates = new Set([...(current.states || []), ...checkedStates]);
-    const mergedCities = { ...(current.cities || {}) };
-    for (const st of checkedStates) {
-      const list = checkedCities[st];
-      if (list && list.size) mergedCities[st] = [...new Set([...(mergedCities[st] || []), ...list])];
-    }
-    const nextRep = { ...current, email: key, states: [...mergedStates], cities: mergedCities };
-    const others = (saved.reps || []).filter((r) => String(r.email || "").toLowerCase() !== key);
-    onPatch({ repVisits: { ...(source ? { source } : {}), reps: [...others, nextRep] } });
-    setLockMsg(`Locked in — ${[...checkedStates].join(", ")} assigned to ${current.name || key}. Target Prospects above updates automatically.`);
+    const next = { ...accountAssignments };
+    for (const co of previewList) next[co.id] = assignRep;
+    onPatch({ repVisits: { ...(source ? { source } : {}), ...(saved.reps ? { reps: saved.reps } : {}), accountAssignments: next } });
+    const repName = repByEmail[assignRep]?.name || assignRep;
+    setLockMsg(`Locked in — ${previewList.length.toLocaleString()} account${previewList.length === 1 ? "" : "s"} in ${[...checkedStates].join(", ")} assigned to ${repName}. Target Prospects above updates automatically. Adjust any single account below if it actually belongs to someone else.`);
     setCheckedStates(new Set());
     setCheckedCities({});
     setAssignRep("");
@@ -647,41 +682,44 @@ function RepVisitsPanel({ c, resolved, canWrite, onPatch }) {
         <p className="text-sm text-fg-muted">No HubSpot contacts found with company matching "{source}" — check the spelling matches HubSpot's Company field.</p>
       ) : (
         <>
-          {/* Every HubSpot contact under this distributor, nationally — whatever their
-              territory ends up being, set below. */}
+          {/* Every HubSpot contact under this distributor, nationally — whatever accounts they
+              end up with, set below in two steps. */}
           <div className="flex flex-wrap items-center justify-between gap-3">
             <Input
               placeholder="Search by name, email, or phone…"
               value={q} onChange={(e) => setQ(e.target.value)} className="max-w-sm"
             />
             <p className="text-xs text-fg-muted">
-              {matched.length} rep{matched.length === 1 ? "" : "s"} from HubSpot · {assignedCount} assigned a region
-              {effectiveFilter?.states?.length ? ` · covering ${effectiveFilter.states.join(", ")}` : ""}
+              {matched.length} rep{matched.length === 1 ? "" : "s"} from HubSpot · {totalAssigned.toLocaleString()} account{totalAssigned === 1 ? "" : "s"} assigned
             </p>
           </div>
           <ul className="max-h-64 space-y-1.5 overflow-y-auto rounded-base border border-border p-2">
-            {filtered.map((r) => (
-              <li key={r.email} className="flex flex-wrap items-center justify-between gap-2 rounded-base px-2 py-1.5 hover:bg-bg">
-                <span className="min-w-0">
-                  <span className="block truncate text-sm text-fg">{r.name}</span>
-                  <span className="block text-xs text-fg-muted">{r.jobtitle || r.email}</span>
-                </span>
-                <div className="flex shrink-0 flex-wrap items-center gap-2">
-                  {r.states?.length ? <Badge variant="outline">{r.states.join(", ")}</Badge> : <Badge variant="muted">No region yet</Badge>}
-                  <PhoneInline phone={r.phone} />
-                  <EmailInline resolved={resolved} to={r.email} subject={`${r.name} — territory`} />
-                </div>
-              </li>
-            ))}
+            {filtered.map((r) => {
+              const stats = repStats[r.email];
+              return (
+                <li key={r.email} className="flex flex-wrap items-center justify-between gap-2 rounded-base px-2 py-1.5 hover:bg-bg">
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm text-fg">{r.name}</span>
+                    <span className="block text-xs text-fg-muted">{r.jobtitle || r.email}</span>
+                  </span>
+                  <div className="flex shrink-0 flex-wrap items-center gap-2">
+                    {stats?.count
+                      ? <Badge variant="outline">{stats.count} account{stats.count === 1 ? "" : "s"}{stats.states.size ? ` · ${[...stats.states].sort().join(", ")}` : ""}</Badge>
+                      : <Badge variant="muted">No accounts yet</Badge>}
+                    <PhoneInline phone={r.phone} />
+                    <EmailInline resolved={resolved} to={r.email} subject={`${r.name} — territory`} />
+                  </div>
+                </li>
+              );
+            })}
             {filtered.length === 0 && <li className="py-4 text-center text-sm text-fg-muted">No match.</li>}
           </ul>
 
-          {/* Territory builder — check state/city boxes, see the matching accounts right below,
-              lock it in to a rep. */}
+          {/* Step one — territory shape: check state/city boxes to open the account list below. */}
           <div className="rounded-base border border-border p-3">
-            <p className="text-sm font-medium text-fg">Build a territory</p>
+            <p className="text-sm font-medium text-fg">Step 1 — build a territory</p>
             <p className="mt-1 text-xs text-fg-muted">
-              Check a state to cover it in full, or expand it and check specific cities/towns
+              Check a state to open it in full, or expand it and check specific cities/towns
               (boroughs included) to narrow it. Only places with accounts on file are listed.
             </p>
             <div className="mt-3 max-h-72 space-y-1 overflow-y-auto">
@@ -720,28 +758,8 @@ function RepVisitsPanel({ c, resolved, canWrite, onPatch }) {
               ))}
             </div>
 
-            {/* The focused-territory list — right below the checkbox tree/rep list, live as
-                boxes change (Rick: "the list for the focused territory is right below the rep
-                list"). */}
-            <div className="mt-3 rounded-base bg-bg p-3">
-              <p className="text-xs font-medium text-fg">
-                {checkedStates.size === 0
-                  ? "Check boxes above to preview the accounts a territory would reach."
-                  : `${previewList.length.toLocaleString()} account${previewList.length === 1 ? "" : "s"} in this territory`}
-              </p>
-              {previewList.length > 0 && (
-                <ul className="mt-2 max-h-40 space-y-1 overflow-y-auto text-xs text-fg-muted">
-                  {previewList.slice(0, 200).map((co) => (
-                    <li key={co.id} className="truncate">{co.name} — {[co.city, stateOf(co)].filter(Boolean).join(", ")}</li>
-                  ))}
-                  {previewList.length > 200 && <li>…and {(previewList.length - 200).toLocaleString()} more</li>}
-                </ul>
-              )}
-            </div>
-
-            {/* Once a territory is checked the rep dropdown lights up — pick who it belongs to
-                and lock it in (Rick: "once teritory is matched it populates in the rep
-                dropdown"). */}
+            {/* Step one's quick bulk-assign — sets a default rep for everything currently
+                checked; step two below still lets any single row differ. */}
             <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_auto]">
               <div>
                 <Label htmlFor="rv-assign-rep">Assign this territory to</Label>
@@ -762,6 +780,54 @@ function RepVisitsPanel({ c, resolved, canWrite, onPatch }) {
             </div>
             {lockMsg && <p className="mt-2 text-xs text-fg-muted">{lockMsg}</p>}
           </div>
+
+          {/* Step two — once a territory is open, every account in it: address, phone, email,
+              and its OWN rep dropdown, so a scattered account can differ from its territory's
+              default without disturbing anything else (Rick: "the account by account remains
+              flexable"). */}
+          {checkedStates.size > 0 && (
+            <div className="rounded-base border border-border p-3">
+              <p className="text-sm font-medium text-fg">
+                Step 2 — {previewList.length.toLocaleString()} account{previewList.length === 1 ? "" : "s"} in this territory
+              </p>
+              <p className="mt-1 text-xs text-fg-muted">
+                Each account defaults to whoever it's currently assigned to (or unassigned) — set
+                or change any single one here, independent of "Lock in territory" above.
+              </p>
+              <ul className="mt-3 max-h-96 space-y-2 overflow-y-auto">
+                {previewList.slice(0, PREVIEW_RENDER_CAP).map((co) => (
+                  <li key={co.id} className="rounded-base border border-border/60 p-2.5">
+                    <div className="flex flex-wrap items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <span className="block truncate text-sm text-fg">{co.name}</span>
+                        <span className="block text-xs text-fg-muted">{addressOf(co) || [co.city, stateOf(co)].filter(Boolean).join(", ") || "—"}</span>
+                      </div>
+                      <div className="flex shrink-0 flex-wrap items-center gap-2">
+                        <PhoneInline phone={co.ownerPhone || co.phone} />
+                        <EmailInline resolved={resolved} to={co.ownerEmail} subject={`${co.name}`} />
+                      </div>
+                    </div>
+                    <div className="mt-2">
+                      <select
+                        aria-label={`Responsible rep for ${co.name}`}
+                        value={accountAssignments[co.id] || ""} disabled={!canWrite}
+                        onChange={(e) => assignAccount(co.id, e.target.value)}
+                        className="h-9 w-full max-w-xs rounded-base border border-border bg-surface px-2.5 text-xs text-fg disabled:opacity-40"
+                      >
+                        <option value="">Unassigned</option>
+                        {matched.map((r) => <option key={r.email} value={r.email}>{r.name}</option>)}
+                      </select>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              {previewList.length > PREVIEW_RENDER_CAP && (
+                <p className="mt-2 text-xs text-fg-muted">
+                  Showing the first {PREVIEW_RENDER_CAP} of {previewList.length.toLocaleString()} — narrow with a city/town checkbox above to see the rest.
+                </p>
+              )}
+            </div>
+          )}
         </>
       )}
     </div>

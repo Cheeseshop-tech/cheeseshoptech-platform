@@ -79,3 +79,57 @@ Prospects above narrows to it.
   `crm-hubspot.js` already uses for its owner join) — a distributor whose contacts have
   inconsistent company-field spelling in HubSpot will need that cleaned up there, same
   limitation the existing CRM console already has.
+
+## Revision 2 addendum — account-by-account assignment (2026-09-21, same day)
+
+Second same-day revision, after Rick saw the checkbox territory builder working and asked for
+the next layer: per-account rep assignment, since "reps will have some accounts scattered even
+in other reps territories." Ran `engineering:system-design` first — see the spec's "Revision 2"
+section for the full reasoning; short version: a stored region filter can't represent a
+scattered exception, so account-level assignment (keyed by stable HubSpot company id) is now
+the one source of truth, and territory checkboxes became a bulk-write convenience into it
+rather than a stored rule.
+
+### What changed
+
+1. **`netlify/functions/campaign-state.js`** — `repVisits` now also accepts
+   `accountAssignments: {companyId: repEmail}` (capped at 5,000 entries, every value validated
+   as email-shaped). The old `reps[]` field is still accepted (read AND write) so a campaign
+   saved under the first revision isn't silently wiped — it just stops being written to once the
+   UI saves anything new.
+2. **`src/lib/campaigns.js`** — new `accountAssignmentScope(accountAssignments)`: returns the
+   assignment map's keys as an exact company-id list, or `null` if empty. `mergeCampaign()` now
+   prefers this (as `audience.companyIds`, `exact: true`) over the old `deriveRepFilter()`-based
+   approximation; the old path only fires as a fallback for a campaign with legacy `reps[]` data
+   and no `accountAssignments` yet. `deriveRepFilter()` itself is untouched/still exported (kept
+   for that fallback and for anything else that might read it).
+3. **`src/components/campaigns/campaign-detail.jsx`** — `RepVisitsPanel` restructured into
+   explicit Step 1 / Step 2:
+   - Step 1 (territory checkboxes + "Lock in territory") is unchanged in appearance but now
+     bulk-writes `accountAssignments` directly instead of merging into a per-rep states/cities
+     record.
+   - Step 2 (new): the instant any state is checked, the matching accounts render right there —
+     name, `addressOf()`-formatted address, `PhoneInline`, `EmailInline` — each with its own
+     "Responsible rep" `<select>` defaulting to that account's current assignment (or
+     "Unassigned"). Changing it calls `assignAccount(companyId, repEmail)`, which patches
+     `accountAssignments` immediately, independent of step 1 — this is the actual mechanism for
+     the "scattered account" case.
+   - The national rep list's per-rep badge is now derived (`repStats`, a `useMemo` over
+     `accountAssignments` joined against live company data) — count + state spread computed
+     from real assignments, not a separately-entered value.
+   - Rendering is capped at 300 rows per open territory (`PREVIEW_RENDER_CAP`) with a "narrow
+     with a city checkbox" hint beyond that, so opening an entire large state doesn't stall the
+     page.
+
+### Verified
+
+`eslint` on all three touched files — 0 errors (9 warnings total in campaign-detail.jsx, all
+the same pre-existing `react-hooks/exhaustive-deps` shape already present before this feature
+— missing `resolved`/`companies` deps on effects and memos that derive from props, same pattern
+`ProspectPanel` already had). `vite build` — clean, 2061 modules, 0 errors, `✓ built in 5.62s`.
+
+No test framework in this repo. Worth Rick doing one real pass after this deploys: open the Ace
+Endico campaign (or wherever the first revision's territory was already locked in), check that
+those accounts either show up already assigned under Step 2, or re-lock the territory once to
+populate `accountAssignments` for the first time — then try moving one account to a different
+rep and confirm Target Prospects above still shows it correctly.

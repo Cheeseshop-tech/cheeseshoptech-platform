@@ -168,15 +168,26 @@ const rawHandler = async (event, context) => {
     const closedAt = str(e.closedAt, 40);
 
     // repVisits (2026-09-21, Rick: "identify areas and prospect and reps... Ill select the reps
-    // and regions and the system CST should populate the fields"): reps pulled LIVE from a
-    // HubSpot company — `source` is free text, not a fixed id, because more distributors are
-    // coming ("in the near future we will wire other distributors and their reps to the
-    // campaign engine"), not just Ace Endico. `reps` is keyed by email (same key
-    // getRepCalls/saveRepCalls already use) since HubSpot only carries a free-text company name
-    // per contact, not an association. Each rep's states/cities is the manual region pairing —
-    // HubSpot only has the distributor's HQ address on every contact, never the rep's own
-    // territory. deriveRepFilter() (src/lib/campaigns.js) turns this straight into
-    // audience.filter so Target Prospects auto-populates the moment it's saved.
+    // and regions and the system CST should populate the fields") — reps pulled LIVE from a
+    // HubSpot company, `source` is free text (not a fixed id) since more distributors are coming
+    // ("in the near future we will wire other distributors and their reps to the campaign
+    // engine"), not just Ace Endico.
+    //
+    // TWO-TIER model (revised same day, Rick: "so two steps territory selection the key account
+    // selection... often reps will have some accounts scattered even in other reps territories
+    // so the first two steps build the broad shape state town borough then account will also
+    // have a drop down to select responsable rep assignment"):
+    //   Tier 1 (UI-only, not stored as a rule) — check state/city boxes, "lock in" BULK-WRITES
+    //   accountAssignments for whatever matched at that moment. It's a fast way to populate
+    //   Tier 2, not a standing filter, because a stored geometric rule can't represent a rep's
+    //   scattered accounts inside another rep's territory.
+    //   Tier 2 (the actual source of truth) — accountAssignments: {companyId: repEmail}, keyed
+    //   by the HubSpot company's stable id so it survives any later territory redefinition.
+    //   Always wins; there's nothing else to reconcile it against.
+    // `reps` (legacy shape from the first version, states/cities per rep) is still accepted
+    // read/write so nothing already saved is silently dropped, but the app no longer writes new
+    // data into it — accountAssignments is what mergeCampaign()/deriveAccountAssignmentFilter()
+    // (src/lib/campaigns.js) now read to auto-populate Target Prospects.
     const repVisitsSource = str(e.repVisits?.source, 160);
     const repVisitsReps = (Array.isArray(e.repVisits?.reps) ? e.repVisits.reps : []).slice(0, MAX_REPS)
       .filter((rp) => rp && typeof rp === "object" && str(rp.email, 200))
@@ -197,8 +208,23 @@ const rawHandler = async (event, context) => {
             .filter(([, list]) => list.length),
         ),
       }));
-    const repVisits = (repVisitsSource || repVisitsReps.length)
-      ? { ...(repVisitsSource ? { source: repVisitsSource } : {}), reps: repVisitsReps }
+    // accountAssignments: plain object, company id -> rep email. Bounded generously (a
+    // distributor's whole reachable book, not just one campaign's worth) and every value
+    // validated as looking like an email rather than trusted blindly.
+    const MAX_ACCOUNT_ASSIGNMENTS = 5000;
+    const rawAssignments = e.repVisits?.accountAssignments;
+    const repVisitsAccountAssignments = Object.fromEntries(
+      Object.entries(rawAssignments && typeof rawAssignments === "object" && !Array.isArray(rawAssignments) ? rawAssignments : {})
+        .slice(0, MAX_ACCOUNT_ASSIGNMENTS)
+        .map(([companyId, repEmail]) => [str(companyId, 40), str(repEmail, 200).toLowerCase()])
+        .filter(([companyId, repEmail]) => companyId && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(repEmail))
+    );
+    const repVisits = (repVisitsSource || repVisitsReps.length || Object.keys(repVisitsAccountAssignments).length)
+      ? {
+          ...(repVisitsSource ? { source: repVisitsSource } : {}),
+          ...(repVisitsReps.length ? { reps: repVisitsReps } : {}),
+          ...(Object.keys(repVisitsAccountAssignments).length ? { accountAssignments: repVisitsAccountAssignments } : {}),
+        }
       : null;
 
     const results = {};
