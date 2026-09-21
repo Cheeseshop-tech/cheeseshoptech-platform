@@ -90,7 +90,15 @@ export function CampaignDetail({
   // wrap-up note (what worked, what to change next time) in the same step that closes the
   // campaign, so the Past Campaigns record isn't left to a "go write it up later" that never
   // happens. Every other status move still goes through the plain pill row in LaunchGate.
-  function confirmComplete(wrapup) {
+  //
+  // Unlike everything else on this page, this does NOT trust the passive ~1s autosave debounce
+  // (Rick, 2026-09-21: a campaign he'd marked complete was still showing as in flight on the
+  // Home dashboard). Retiring a campaign is a one-time, decisive action — if the write silently
+  // never lands (closed the tab a beat too soon, a flaky connection, a denied/expired passcode),
+  // it should surface right here, not as a campaign that quietly never actually closed. So this
+  // forces an immediate flush via onSaveNow() and only closes the dialog once that's confirmed;
+  // CompleteDialog shows the failure and lets Rick retry without losing the wrap-up note.
+  async function confirmComplete(wrapup) {
     const trimmed = (wrapup || "").trim();
     const comments = trimmed
       ? [...(c.comments || []), {
@@ -99,7 +107,9 @@ export function CampaignDetail({
         }]
       : (c.comments || []);
     onPatch({ status: "complete", closedAt: new Date().toISOString(), comments });
-    setCompleteOpen(false);
+    const ok = onSaveNow ? await onSaveNow() : true;
+    if (ok) setCompleteOpen(false);
+    return ok;
   }
 
   return (
@@ -523,9 +533,21 @@ function fmtCommentDate(iso) {
 // it up later" that never happens. That note becomes the headline of its Past Campaigns entry.
 function CompleteDialog({ open, onClose, onConfirm, campaignName }) {
   const [wrapup, setWrapup] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [failed, setFailed] = useState(false);
   if (!open) return null;
+
+  async function submit() {
+    setBusy(true);
+    setFailed(false);
+    const ok = await onConfirm(wrapup);
+    setBusy(false);
+    if (ok) setWrapup(""); // onConfirm already closed the dialog on success
+    else setFailed(true);
+  }
+
   return (
-    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+    <Dialog open={open} onOpenChange={(v) => !v && !busy && onClose()}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>Mark “{campaignName}” complete</DialogTitle>
@@ -538,15 +560,26 @@ function CompleteDialog({ open, onClose, onConfirm, campaignName }) {
         <div className="space-y-2">
           <Label htmlFor="wrapup-note">What worked, what you'd change next time (optional)</Label>
           <Textarea
-            id="wrapup-note" rows={4} autoFocus
+            id="wrapup-note" rows={4} autoFocus disabled={busy}
             placeholder="e.g. Reply rate was strongest on the second send; next time cut the audience earlier and lead with the DTC offer."
             value={wrapup} onChange={(e) => setWrapup(e.target.value)}
           />
         </div>
 
+        {failed && (
+          <p className="text-sm text-warning">
+            Couldn't save — check your connection (or that your passcode still has write access) and try again.
+            Your note hasn't been lost.
+          </p>
+        )}
+
         <DialogFooter>
-          <DialogClose asChild><Button variant="ghost" onClick={() => setWrapup("")}>Cancel</Button></DialogClose>
-          <Button onClick={() => { onConfirm(wrapup); setWrapup(""); }}>Mark complete</Button>
+          <DialogClose asChild>
+            <Button variant="ghost" disabled={busy} onClick={() => { setWrapup(""); setFailed(false); }}>Cancel</Button>
+          </DialogClose>
+          <Button onClick={submit} disabled={busy}>
+            {busy ? "Marking complete…" : failed ? "Retry" : "Mark complete"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
