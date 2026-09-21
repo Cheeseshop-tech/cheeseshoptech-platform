@@ -133,3 +133,19 @@ Endico campaign (or wherever the first revision's territory was already locked i
 those accounts either show up already assigned under Step 2, or re-lock the territory once to
 populate `accountAssignments` for the first time — then try moving one account to a different
 rep and confirm Target Prospects above still shows it correctly.
+
+## 2026-09-21 bugfix — "I cant see results from the territory assignment"
+
+Rick's exact report after the account-assignment revision above shipped. Root cause: Step 2 only
+renders while `checkedStates.size > 0`, but `lockInTerritory()` called `setCheckedStates(new
+Set())` (and cleared `checkedCities`) right after a successful save — so the just-locked-in
+account list vanished the instant the write succeeded, even though the toast message right above
+it says "adjust any single account below." Below was empty.
+
+Fix (`campaign-detail.jsx`, `lockInTerritory()`): stop clearing `checkedStates`/`checkedCities`
+on lock-in. Only `assignRep` resets now. Step 2 stays open and shows exactly what was just
+assigned, with each account's rep dropdown live and editable right there — which is also just a
+better fit for Rick's original ask ("account by account remains flexible").
+
+No data model or Netlify Function change — UI-only fix, `accountAssignments` itself was already
+being written and read correctly.

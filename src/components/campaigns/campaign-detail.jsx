@@ -656,8 +656,12 @@ function RepVisitsPanel({ c, resolved, canWrite, onPatch }) {
     onPatch({ repVisits: { ...(source ? { source } : {}), ...(saved.reps ? { reps: saved.reps } : {}), accountAssignments: next } });
     const repName = repByEmail[assignRep]?.name || assignRep;
     setLockMsg(`Locked in — ${previewList.length.toLocaleString()} account${previewList.length === 1 ? "" : "s"} in ${[...checkedStates].join(", ")} assigned to ${repName}. Target Prospects above updates automatically. Adjust any single account below if it actually belongs to someone else.`);
-    setCheckedStates(new Set());
-    setCheckedCities({});
+    // Deliberately NOT clearing checkedStates/checkedCities here (2026-09-21 fix, Rick: "I cant
+    // see results from the territory assignment") — Step 2 below only renders while a territory
+    // is checked, so clearing the checkboxes right after a successful lock-in made the just-saved
+    // account list (and its per-account rep dropdowns, which the message above points to) vanish
+    // instead of confirming the result. Leave the territory open so Step 2 keeps showing what was
+    // just assigned; only the rep picker resets, since a rep has to be re-chosen for the next one.
     setAssignRep("");
   }
 
