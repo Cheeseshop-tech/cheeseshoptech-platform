@@ -1,37 +1,55 @@
 [
   {
-    "id": "att-email-expense-1",
+    "id": "att-expense-reimb-0831",
     "kind": "email",
     "urgency": "urgent",
     "who": "Stefano — Monti Trentini",
-    "what": "Expense reimbursement (8/31–9/16, ACE meeting + Fall Show) — asked for Friday payout, no reply since. Deadline passed.",
-    "due": "2026-09-18",
-    "action": "Reply"
-  },
-  {
-    "id": "att-email-truffle-image",
-    "kind": "email",
-    "urgency": "urgent",
-    "who": "Tess McNamara — Eataly",
-    "what": "Aged Truffle 7oz image/spec still missing — her Eataly x Prime Line quote review is blocked on it.",
-    "due": "2026-09-19",
-    "action": "Reply"
-  },
-  {
-    "id": "att-email-specs-1",
-    "kind": "email",
-    "urgency": "high",
-    "who": "Nico — Monti Trentini",
-    "what": "Sent the wrong (whole-wheel) Asiago Vecchio spec by mistake; asked for the full precut specs folder — no reply yet.",
+    "what": "Expense reimbursement (8/31–9/16, ACE meeting + Fall Show) missed Friday payout — Stefano replied 9/20 saying Sara didn't process it. Still unpaid.",
     "due": "",
     "action": "Reply"
   },
   {
-    "id": "att-email-precuts-1",
+    "id": "att-product-signs-approval",
+    "kind": "email",
+    "urgency": "urgent",
+    "who": "Stefano — Monti Trentini",
+    "what": "Refreshed product signs sent for review/approval on 9/11 — ten days with zero reply, blocking the Staples print job.",
+    "due": "",
+    "action": "Reply"
+  },
+  {
+    "id": "att-invoice-26159-musco",
+    "kind": "email",
+    "urgency": "high",
+    "who": "Joe Macaluso — Musco Food",
+    "what": "Invoice #26159 dispute (\"there is no invoice, I've been deducting based on agreement\") — unread, unresolved for 40 days.",
+    "due": "",
+    "action": "Reply"
+  },
+  {
+    "id": "att-truffle-image-spec",
+    "kind": "email",
+    "urgency": "high",
+    "who": "Olivia (QC) — Monti Trentini Italy",
+    "what": "Asked export/QC for a clean high-res label + spec sheet for the Aged Truffle 7oz — no reply yet; this is the image still blocking the Eataly precut push.",
+    "due": "",
+    "action": "Reply"
+  },
+  {
+    "id": "att-specsheets-asiago-vecchio",
+    "kind": "email",
+    "urgency": "high",
+    "who": "Nico — Monti Trentini",
+    "what": "Flagged that the Asiago Vecchio spec sent was the whole-wheel version, not the precut; asked for the full precut specs folder — no reply yet.",
+    "due": "",
+    "action": "Reply"
+  },
+  {
+    "id": "att-ace-fallshow-recap",
     "kind": "email",
     "urgency": "high",
     "who": "Stefano — Monti Trentini",
-    "what": "Asked for accurate precut info + high-res images for ACE and new customers — no reply.",
+    "what": "Sent Fall Show prep recap, results, and suggested improvements for next time — no acknowledgment yet.",
     "due": "",
     "action": "Reply"
   }
