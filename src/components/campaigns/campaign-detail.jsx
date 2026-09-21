@@ -201,7 +201,10 @@ export function CampaignDetail({
         title="Rep territory assignments"
         description="Load a distributor's reps live from HubSpot and pair each to the state(s)/cities they cover — Target Prospects above auto-populates from it the moment it's saved, no separate step. Works for any distributor, not just one."
       >
-        <RepVisitsPanel c={c} resolved={resolved} canWrite={canWrite} onPatch={onPatch} saveState={saveState} />
+        <RepVisitsPanel
+          c={c} resolved={resolved} canWrite={canWrite} onPatch={onPatch} saveState={saveState}
+          enrichment={enrichment} onEnrich={onEnrich}
+        />
       </Section>
 
       {c.audience?.salesReps?.length > 0 && (
@@ -479,7 +482,7 @@ function normCompany(s) {
   return String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 }
 
-function RepVisitsPanel({ c, resolved, canWrite, onPatch, saveState = "idle" }) {
+function RepVisitsPanel({ c, resolved, canWrite, onPatch, saveState = "idle", enrichment = {}, onEnrich }) {
   const saved = c.repVisits || {};
   const [source, setSource] = useState(saved.source || c.audience?.repsFrom || "");
   const [crm, setCrm] = useState(undefined);
@@ -496,6 +499,14 @@ function RepVisitsPanel({ c, resolved, canWrite, onPatch, saveState = "idle" }) 
   const [expandedStates, setExpandedStates] = useState(() => new Set());
   const [assignRep, setAssignRep] = useState("");
   const [lockMsg, setLockMsg] = useState("");
+  // Which rep's assigned accounts are open as an actual working call list right now (Rick,
+  // 2026-09-21: "we're not just assigning the reps regions and accounts the purpose is we are
+  // building a working list so I can make phone calls to accounts on behalf of the rep to
+  // coordinate sales of monti trentini products through the rep"). Reuses CallRow/the same
+  // campaign-enrichment.js store the Target Prospects call console uses below — same outcome
+  // vocabulary, same notes field, same Remove — rather than a parallel tracker, so a call logged
+  // here is the same record whichever screen you view it from.
+  const [selectedRep, setSelectedRep] = useState("");
 
   useEffect(() => {
     let alive = true;
@@ -702,20 +713,67 @@ function RepVisitsPanel({ c, resolved, canWrite, onPatch, saveState = "idle" }) 
               Nothing assigned yet — lock in a territory in Step 1, or set a rep on a single account in Step 2, and it shows up here.
             </p>
           ) : (
-            <ul className="mt-2 max-h-56 space-y-1 overflow-y-auto">
-              {Object.entries(repStats)
-                .sort(([, a], [, b]) => b.count - a.count)
-                .map(([email, stats]) => (
-                  <li key={email} className="flex flex-wrap items-center justify-between gap-2 text-sm">
-                    <span className="min-w-0 truncate text-fg">{repByEmail[email]?.name || email}</span>
-                    <Badge variant="outline">
-                      {stats.count.toLocaleString()} account{stats.count === 1 ? "" : "s"}
-                      {stats.states.size ? ` · ${[...stats.states].sort().join(", ")}` : ""}
-                    </Badge>
-                  </li>
-                ))}
-            </ul>
+            <>
+              <p className="mt-1.5 text-xs text-fg-muted">Click a rep to open their accounts as a call list below.</p>
+              <ul className="mt-2 max-h-56 space-y-1 overflow-y-auto">
+                {Object.entries(repStats)
+                  .sort(([, a], [, b]) => b.count - a.count)
+                  .map(([email, stats]) => (
+                    <li key={email}>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedRep((cur) => (cur === email ? "" : email))}
+                        className={[
+                          "flex w-full flex-wrap items-center justify-between gap-2 rounded-base px-2 py-1.5 text-left text-sm transition-colors",
+                          selectedRep === email ? "bg-brand-primary/10 ring-1 ring-brand-primary" : "hover:bg-bg",
+                        ].join(" ")}
+                      >
+                        <span className="min-w-0 truncate text-fg">{repByEmail[email]?.name || email}</span>
+                        <Badge variant="outline">
+                          {stats.count.toLocaleString()} account{stats.count === 1 ? "" : "s"}
+                          {stats.states.size ? ` · ${[...stats.states].sort().join(", ")}` : ""}
+                        </Badge>
+                      </button>
+                    </li>
+                  ))}
+              </ul>
+            </>
           )}
+        </div>
+      )}
+
+      {/* The actual working call list for whichever rep is selected above — every account
+          assigned to them, each a full CallRow (same component Target Prospects uses): call
+          outcome, notes, phone/email, Remove/Restore. Calling here IS calling that account on
+          Monti Trentini's behalf, coordinated through this specific rep, so the list is scoped
+          to their book rather than the whole territory. */}
+      {selectedRep && (
+        <div className="rounded-base border border-border p-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-sm font-medium text-fg">
+              Call list — {repByEmail[selectedRep]?.name || selectedRep}
+              {" "}({(repStats[selectedRep]?.count || 0).toLocaleString()} account{(repStats[selectedRep]?.count || 0) === 1 ? "" : "s"})
+            </p>
+            <RowSaveStatus state={saveState} />
+          </div>
+          <p className="mt-1 text-xs text-fg-muted">
+            Calling on Monti Trentini's behalf to coordinate sales through {repByEmail[selectedRep]?.name || "this rep"} —
+            log what happened on each call the same way the Target Prospects call console does.
+          </p>
+          <ul className="mt-3 max-h-[36rem] space-y-2 overflow-y-auto pr-1">
+            {Object.entries(accountAssignments)
+              .filter(([, repEmail]) => repEmail === selectedRep)
+              .map(([companyId]) => companyById[companyId])
+              .filter(Boolean)
+              .sort((a, b) => tierOf(a) - tierOf(b) || String(a.name).localeCompare(String(b.name)))
+              .map((co) => (
+                <CallRow
+                  key={co.id} co={co} rec={enrichment[co.id] || {}} canWrite={canWrite} saveState={saveState}
+                  resolved={resolved}
+                  onPatch={(part) => onEnrich(co.id, { campaignId: c.id, ...part })}
+                />
+              ))}
+          </ul>
         </div>
       )}
 
