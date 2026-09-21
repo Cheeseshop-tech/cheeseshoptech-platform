@@ -128,5 +128,44 @@
     "skus": [],
     "source": "usda-fas",
     "freshness": "2026-09-19"
+  },
+  {
+    "id": "sig-counter-format-snacking",
+    "scope": "market",
+    "audience": ["retail"],
+    "type": "category-trend",
+    "title": "Cheesemongers add grab-and-go chillers as snacking-format cheese takes hold",
+    "insight": "Trade press reports specialty cheese counters are adding dedicated grab-and-go chillers alongside full-service counters, with protein-rich snacking-format cheese now a genuine new category rather than a gimmick — a way to catch fast shoppers without losing the personal-connection sell.",
+    "suggestedAngle": "Portioned Vezzena or Alpeggio cuts give counters a provenance-rich option for the fast lane, not just the full-service case.",
+    "storyHints": ["origin-provenance", "retail-partnership"],
+    "skus": ["vezzena-cheese", "alpeggio-cheese"],
+    "source": "category-trend",
+    "freshness": "2026-09-21"
+  },
+  {
+    "id": "sig-genz-sustainability-stat",
+    "scope": "market",
+    "audience": ["retail"],
+    "type": "category-trend",
+    "title": "Gen Z's sustainability-first cheese buying now has a number attached",
+    "insight": "30% of Gen Z cheese consumers in the US already actively seek sustainably produced cheese, naming sustainability as a purchase driver rather than a nice-to-have for younger shoppers.",
+    "suggestedAngle": "Leads with the solar/CHP self-sufficiency stats up front for younger-shopper-facing retail content, instead of treating them as a footnote.",
+    "storyHints": ["sustainability"],
+    "skus": [],
+    "source": "category-trend",
+    "freshness": "2026-09-21"
+  },
+  {
+    "id": "sig-independent-retail-closures",
+    "scope": "market",
+    "audience": ["retail"],
+    "type": "category-trend",
+    "title": "Independent specialty cheese shops closing under margin pressure",
+    "insight": "Google Alerts surfaced two independent specialty cheese shop closures this week (a Sarasota-area shop and a Rosemary District specialty cheese shop down 40% before closing after 14 years) — a reminder that surviving independents need a differentiation story, not just SKUs, to compete with big grocers carrying similar products at lower prices.",
+    "suggestedAngle": "Position MT's family story and traceable sourcing as the differentiation an independent retailer needs when a Wisconsin wedge can undercut on price alone.",
+    "storyHints": ["retail-partnership", "origin-provenance"],
+    "skus": [],
+    "source": "google-alert",
+    "freshness": "2026-09-21"
   }
 ]
