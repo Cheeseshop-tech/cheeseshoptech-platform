@@ -60,6 +60,18 @@
       "tag": "CRM · live"
     },
     {
+      "key": "territories",
+      "label": "Territory Book",
+      "description": "Named territories, who covers them, and the accounts inside each one. Look one up, open its accounts, plan the visit. Carries across every campaign.",
+      "icon": "map",
+      "type": "internal",
+      "route": "territories",
+      "status": "live",
+      "featured": true,
+      "tag": "Coverage · visit planning",
+      "allowed": ["admin", "client"]
+    },
+    {
       "key": "booth",
       "label": "Greet to Meet",
       "description": "Turns a greeting into a meeting — a trade-show floor, a networking cocktail hour, or a chance encounter during the day. Capture it and book the next step on the spot. Works offline.",

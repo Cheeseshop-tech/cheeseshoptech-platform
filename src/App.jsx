@@ -24,6 +24,7 @@ import { CampaignsPage } from "@/components/campaigns/campaigns-page.jsx";
 import { FeaturedTool } from "@/components/tools/featured-tool.jsx";
 import { PricingTool } from "@/components/tools/pricing-tool.jsx";
 import { BoothTool } from "@/components/tools/booth-tool.jsx";
+import { TerritoryTool } from "@/components/tools/territory-tool.jsx";
 import { toolIcon } from "@/lib/icons.js";
 import { OrdersPage } from "@/components/crm/crm-dashboard.jsx";
 import { CrmPage } from "@/components/crm/crm-page.jsx";
@@ -65,7 +66,9 @@ const NAV = [
 // item-driven price-list mirror now, a first-class daily surface.
 // Booth-to-Meeting sits next to CRM: it's the field end of the same account book (it reads the
 // HubSpot companies CRM reads, and pushes contacts back through crm-push).
-const NAV_ORDER = ["dashboard", "tool:price-list", "crm", "tool:booth", "campaigns", "orders", "tool:buyer-catalog", "presentations", "tools", "tool:shopify", "media"];
+// Territory Book sits right after CRM for the same reason Booth sits next to it: it's another
+// view of the one account book — who covers which accounts, standing rather than per-campaign.
+const NAV_ORDER = ["dashboard", "tool:price-list", "crm", "tool:territories", "tool:booth", "campaigns", "orders", "tool:buyer-catalog", "presentations", "tools", "tool:shopify", "media"];
 // Pages reachable WITHOUT a nav tab: buyer share links + Opportunity-Engine compose (as before),
 // plus the Content Engine's apps (their tabs moved into the engine page's cards). `catalog`
 // stays listed so dashboard cards + ?page=catalog deep links keep working alongside the tab.
@@ -192,7 +195,9 @@ export default function App({ initialResolved }) {
             ? <CatalogPage resolved={resolved} />
             : activeFeatured.route === "booth"
               ? <BoothTool resolved={resolved} />
-              : <FeaturedTool tool={activeFeatured} resolved={resolved} />
+              : activeFeatured.route === "territories"
+                ? <TerritoryTool resolved={resolved} />
+                : <FeaturedTool tool={activeFeatured} resolved={resolved} />
       ) : effectivePage === "media" ? (
         <MediaHub resolved={resolved} />
       ) : effectivePage === "campaigns" ? (
