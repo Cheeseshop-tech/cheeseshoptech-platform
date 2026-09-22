@@ -26,6 +26,7 @@ import {
 } from "@/lib/campaigns.js";
 import { getCrmData, CHANNEL_TO_AUDIENCE, regionOf, stateOf, composeUrl, addressOf } from "@/lib/crm.js";
 import { uploadDocument } from "@/lib/cloudinary.js";
+import { MediaDocumentPicker } from "@/components/media/media-document-picker.jsx";
 // Address verification (docs/ADDRESS_VERIFICATION_SPEC_2026-09-21.md) — own file, own
 // Netlify function; not part of the HubSpot read-only client.
 import { verifyAddress } from "@/lib/address-verify.js";
@@ -1111,6 +1112,10 @@ function DocumentsPanel({ documents = [], canWrite, resolved, campaignId, onAdd,
           <Button variant="outline" size="sm" disabled={uploading} onClick={() => fileRef.current?.click()}>
             <UploadCloud className="h-4 w-4" /> {uploading ? "Uploading…" : "Upload document"}
           </Button>
+          {/* Pick something that's already in the Media Hub -- spec sheets, sell sheets, photos --
+              instead of uploading a fresh copy (Rick, 2026-09-21). Multi-select; each picked asset
+              flows through the same onAdd() path as a fresh upload. */}
+          <MediaDocumentPicker resolved={resolved} disabled={uploading} onAdd={(docs) => docs.forEach(onAdd)} />
           {error && <span className="text-xs text-error">{error}</span>}
         </div>
       )}
