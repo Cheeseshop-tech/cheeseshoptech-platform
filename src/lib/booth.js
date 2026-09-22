@@ -978,6 +978,10 @@ export function toHistoryRecord(capture) {
     contactRole: capture.contactRole || "",
     temperature: capture.temperature || "cold",
     nextStepMode: capture.nextStepMode || "",
+    // 2026-09-22 fix: was missing entirely, so a capture's typed note never reached History on
+    // create — only a later manual Edit could add one. The server whitelist (booth-history.js
+    // sanitizeNew()) now accepts this field too; both sides needed the fix.
+    notes: capture.notes || "",
     products: (capture.products || []).map((p) => ({ name: p.name, spec: productSpec(p) })),
     scopeId: capture.scopeId || null,
     pushedAt: capture.pushedAt || null,

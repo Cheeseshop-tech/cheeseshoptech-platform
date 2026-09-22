@@ -17,11 +17,25 @@
 // v2 (2026-09-16, Rick): individual rep attribution + edit rights, layered on v1's log. A capture
 // row now carries WHO captured it and WHO has touched it since, and that provenance can only ever
 // come from a server-verified identity — never from anything the client claims in the request
-// body. This is why create/edit here are stricter than the GET (and stricter than history.js's
-// own POST, which accepts any passcode tier): there is no such thing as "capturedBy" without a
-// real signed-in person behind it.
+// body.
+//
+// v3 (2026-09-22, Rick — architecture review): v2's "Identity JWT only, no passcode fallback" was
+// unreachable in practice. The live pilot runs the WHOLE portal behind PasscodeGate exclusively
+// (VITE_AUTH_MODE=passcode, src/App.jsx:42) — RequireAuth/LoginScreen, the only UI that could ever
+// produce a real Identity JWT, is never rendered in production. So no capture, on any device, from
+// any rep, could ever satisfy v2's requirement — this is what actually caused the 9/15 Ace Endico
+// capture (and everything since) to silently vanish from History while still reaching HubSpot via
+// crm-push.js, which accepts passcode auth. (A handful of earlier records DID carry a real
+// capturedBy — an out-of-band Identity session, not something reachable through the deployed app.)
+// Now accepts the SAME admin/client-admin passcode tiers requireWriteAuth() grants everywhere
+// else in this app (campaign-state.js, crm-push.js) — write access stays privileged-tier only, it
+// just stops requiring a login screen that doesn't exist here. A real Identity session, when one
+// IS present, still wins and still attributes to that actual person; passcode-tier writes get an
+// honest synthetic identity (mirrors passcodeUser() in auth-context.jsx) rather than a fabricated
+// name, and are restricted to privileged roles for edits (see isPrivileged below) since there's no
+// individual to check "did YOU capture this" against.
 import { connectLambda, getStore } from "@netlify/blobs";
-import { requireReadAuth, jsonUnauthorized } from "./_write-guard.js";
+import { requireReadAuth, requireWriteAuth, jsonUnauthorized } from "./_write-guard.js";
 import { logWrite } from "./_write-log.js";
 import { withMonitoring } from "./_sentry.js";
 
@@ -58,6 +72,20 @@ function identityOf(user) {
   };
 }
 
+// Passcode-tier "who" — same shape as identityOf() above, but honest about not being a real
+// person: no email a client could later be checked against, a role-based label instead of a name
+// (mirrors passcodeUser() in src/lib/auth-context.jsx exactly, so "who wrote this" reads the same
+// way everywhere in the app). `email: ""` is deliberate — sanitizeNew()/the edit ownership check
+// below both treat an empty capturedBy.email as "no individual owner," which is correct: nobody
+// signed in personally, so nobody personally owns it.
+function passcodeWho(role) {
+  return {
+    email: "",
+    name: role === "admin" ? "CST Admin" : role === "client-admin" ? "Portal Admin" : "Portal",
+    role,
+  };
+}
+
 function sanitizeProduct(p) {
   if (!p || typeof p !== "object") return null;
   const name = String(p.name || "").slice(0, 120);
@@ -82,6 +110,10 @@ function sanitizeNew(r, capturedBy) {
     contactRole: String(r.contactRole || "").slice(0, 60),
     temperature: ["hot", "warm", "cold"].includes(r.temperature) ? r.temperature : "cold",
     nextStepMode: ["time", "window", "request", ""].includes(r.nextStepMode) ? r.nextStepMode : "",
+    // notes (2026-09-22 fix): omitted here from day one, so every capture that ever auto-synced
+    // landed in History with blank notes no matter what the rep typed — notes only ever attached
+    // via a later manual Edit. Same 2000-char cap sanitizePatch() already applies below.
+    notes: String(r.notes || "").slice(0, 2000),
     products: Array.isArray(r.products) ? r.products.slice(0, 20).map(sanitizeProduct).filter(Boolean) : [],
     scopeId: r.scopeId ? String(r.scopeId).slice(0, 80) : null,
     pushedAt: r.pushedAt ? String(r.pushedAt).slice(0, 30) : null,
@@ -138,17 +170,23 @@ const rawHandler = async (event, context) => {
     let body;
     try { body = JSON.parse(event.body || "{}"); } catch { return json(400, { error: "Invalid JSON" }); }
 
-    // Both create and edit require a REAL, Netlify-verified Identity session — never the legacy
-    // passcode path. Netlify verifies the JWT's signature and populates this before this code
-    // ever runs (same trust mechanism record-login.js and _write-guard.js already rely on), so a
-    // client cannot claim to be someone else, and there is no meaningful "capturedBy"/"editedBy"
-    // without it.
+    // Create/edit need privileged write access — same admin/client-admin gate as every other
+    // write endpoint in this app (v3, 2026-09-22; see the header comment for why the old
+    // Identity-only requirement was unreachable in production). A real Identity session, when
+    // present, still wins and attributes to that actual signed-in person; a passcode-tier caller
+    // gets an honest synthetic "who" instead (passcodeWho() above) rather than fabricating a name.
     const identityUser = context?.clientContext?.user || null;
-    if (!identityUser) {
-      await logWrite(event, { fn: "booth-history", ok: false, status: 401, tenant, action: body.action || "create" });
-      return json(401, { error: "Sign in with your account to log or edit a capture" });
+    let who;
+    if (identityUser) {
+      who = identityOf(identityUser);
+    } else {
+      const auth = requireWriteAuth(event, tenant, context);
+      if (!auth.ok) {
+        await logWrite(event, { fn: "booth-history", ok: false, status: auth.status, tenant, action: body.action || "create" });
+        return jsonUnauthorized(auth);
+      }
+      who = passcodeWho(auth.role);
     }
-    const who = identityOf(identityUser);
 
     // ---- Edit -----------------------------------------------------------------------------
     if (body.action === "update") {

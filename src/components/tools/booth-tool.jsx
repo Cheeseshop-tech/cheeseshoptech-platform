@@ -95,6 +95,7 @@ const CSS = `
 .bth .pill.bkd{background:#e3f6e9;border-color:#9ed8b3;color:var(--cs-color-success);font-weight:700;}
 .bth .pill.win{background:#eef3ff;border-color:#c3d4ff;font-weight:600;}
 .bth .pill.req{background:#fdf1e2;border-color:#f0d68a;color:var(--cs-color-warning);font-weight:600;}
+.bth .pill.pending{background:#fdf1e2;border-color:#f0d68a;color:var(--cs-color-warning);font-weight:600;}
 .bth .muted{color:var(--cs-color-fg-muted);font-size:13px;}
 .bth .empty{text-align:center;padding:34px 16px;color:var(--cs-color-fg-muted);border:1px dashed var(--cs-color-border);border-radius:10px;}
 .bth .sync{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--cs-color-bg);border:1px solid var(--cs-color-border);border-radius:10px;padding:12px 14px;margin:14px 0;}
@@ -1533,6 +1534,12 @@ export function BoothTool({ resolved }) {
                   {c.nextStepMode === "request" && <span className="pill req">Requested</span>}
                   {c.scanState === "pending" && <span className="pill scan">Card unread</span>}
                   {c.pushedAt && <span className="pill">Synced</span>}
+                  {/* Visible sync-failure signal (2026-09-22, architecture review) — pushToHistory()
+                      is deliberately fire-and-forget and never surfaces a failure on its own; this
+                      is what turns "silently missing from History forever" into something a rep can
+                      actually see and act on (reconnect, or just keep going — the retry sweep at
+                      the top of this file picks it back up automatically once conditions clear). */}
+                  {!c.historySyncedAt && <span className="pill pending" title="Not yet backed up to the shared History log — will retry automatically">Not backed up</span>}
                   {c.nextStepMode === "time" && c.whenISO && !c.calendarAddedAt && (
                     <button className="btn sm" onClick={() => openCalendar(c)} disabled={!online}>
                       Add to Google Calendar
