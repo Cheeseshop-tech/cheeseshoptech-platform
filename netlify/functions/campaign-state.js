@@ -22,7 +22,10 @@
 //   — documents (2026-09-21, docs/CAMPAIGN_DOCUMENTS_SPEC_2026-09-21.md): special-offer sheets
 //   and other reference files uploaded to a campaign — the file itself lives in Cloudinary (same
 //   signed path/store the Media Hub uses, see media-upload-sign.js), this just holds the
-//   pointer + display metadata, same relationship `comments` has to its entries.
+//   pointer + display metadata, same relationship `comments` has to its entries. Each document
+//   also carries its own approvalStatus (pending/approved/rejected) and comment thread as of
+//   2026-09-22 — a deliberate reversal of the original "no approval workflow" call, see the
+//   addendum at the bottom of that spec doc.
 //   — the FULL document each save (last-writer-wins; same trade-off as crm-outreach.js /
 //   items-save.js, and fine at this team size).
 //
@@ -42,6 +45,8 @@ const RESULT_KEYS = ["sends", "opens", "clicks", "replies", "meetings", "won", "
 const MAX_CUSTOM_ITEMS = 40; // a checklist longer than this is a runbook, not a launch gate
 const MAX_COMMENTS = 50; // a running per-campaign update log, not a chat transcript
 const MAX_DOCUMENTS = 30; // reference material for one campaign, not a document archive
+const MAX_DOC_COMMENTS = 40; // per-document review thread — same order of magnitude as MAX_COMMENTS
+const DOC_APPROVAL_STATUSES = ["pending", "approved", "rejected"];
 const MAX_REPS = 300; // a distributor's whole contact book, generously capped
 const ID_RE = /^[a-z0-9][a-z0-9-]{0,63}$/i;
 
@@ -150,18 +155,40 @@ const rawHandler = async (event, context) => {
 
     // documents: files uploaded to Cloudinary from inside the campaign (uploadDocument() in
     // cloudinary.js) — this store only ever holds the resulting pointer, never the file bytes.
+    // approvalStatus/approvedBy/approvedAt + a per-document `comments` thread added 2026-09-22
+    // (Rick, reversing the 2026-09-21 "no approval workflow" call — see the addendum in
+    // docs/CAMPAIGN_DOCUMENTS_SPEC_2026-09-21.md) so a document can be reviewed and discussed
+    // without downloading it first, via the new full-size viewer opened from its pill.
     const documents = (Array.isArray(e.documents) ? e.documents : []).slice(0, MAX_DOCUMENTS)
       .filter((d) => d && typeof d === "object" && ID_RE.test(d.id || "") && /^https:\/\/res\.cloudinary\.com\//.test(d.url || ""))
-      .map((d) => ({
-        id: d.id,
-        name: str(d.name, 160) || "Untitled document",
-        url: d.url, // already validated above — a Cloudinary delivery URL, never arbitrary input
-        publicId: str(d.publicId, 300),
-        format: str(d.format, 20),
-        bytes: int(d.bytes),
-        uploadedBy: str(d.uploadedBy, 120) || "Team",
-        uploadedAt: str(d.uploadedAt, 40) || new Date().toISOString(),
-      }));
+      .map((d) => {
+        const docComments = (Array.isArray(d.comments) ? d.comments : []).slice(0, MAX_DOC_COMMENTS)
+          .filter((cm) => cm && typeof cm === "object" && ID_RE.test(cm.id || ""))
+          .map((cm) => ({
+            id: cm.id,
+            text: str(cm.text, 800),
+            author: str(cm.author, 120) || "Team",
+            at: str(cm.at, 40) || new Date().toISOString(),
+          }))
+          .filter((cm) => cm.text);
+        const approvalStatus = DOC_APPROVAL_STATUSES.includes(d.approvalStatus) ? d.approvalStatus : "pending";
+        return {
+          id: d.id,
+          name: str(d.name, 160) || "Untitled document",
+          url: d.url, // already validated above — a Cloudinary delivery URL, never arbitrary input
+          publicId: str(d.publicId, 300),
+          format: str(d.format, 20),
+          bytes: int(d.bytes),
+          uploadedBy: str(d.uploadedBy, 120) || "Team",
+          uploadedAt: str(d.uploadedAt, 40) || new Date().toISOString(),
+          approvalStatus,
+          ...(approvalStatus !== "pending" ? {
+            approvedBy: str(d.approvedBy, 120) || "Team",
+            approvedAt: str(d.approvedAt, 40) || new Date().toISOString(),
+          } : {}),
+          ...(docComments.length ? { comments: docComments } : {}),
+        };
+      });
 
     // closedAt: set once, when a campaign is marked complete — the sort key for the archive
     // (distinct from `updatedAt`, which keeps moving on any later edit to a closed campaign).
@@ -208,16 +235,30 @@ const rawHandler = async (event, context) => {
             .filter(([, list]) => list.length),
         ),
       }));
-    // accountAssignments: plain object, company id -> rep email. Bounded generously (a
+    // accountAssignments: plain object, company id -> ARRAY of rep emails (2026-09-22, Rick:
+    // "leave the flexability to assign the same terrritory to multiple reps since there are a
+    // few opperating in the same or crossover areas in the same city or town or state" -- one
+    // account can now legitimately belong to several reps at once). Still accepts a bare string
+    // per company (the pre-2026-09-22 shape) and upgrades it to a one-element array in place,
+    // so nothing saved before this change needs a separate migration. Bounded generously (a
     // distributor's whole reachable book, not just one campaign's worth) and every value
     // validated as looking like an email rather than trusted blindly.
     const MAX_ACCOUNT_ASSIGNMENTS = 5000;
+    const MAX_REPS_PER_ACCOUNT = 25;
+    const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const rawAssignments = e.repVisits?.accountAssignments;
     const repVisitsAccountAssignments = Object.fromEntries(
       Object.entries(rawAssignments && typeof rawAssignments === "object" && !Array.isArray(rawAssignments) ? rawAssignments : {})
         .slice(0, MAX_ACCOUNT_ASSIGNMENTS)
-        .map(([companyId, repEmail]) => [str(companyId, 40), str(repEmail, 200).toLowerCase()])
-        .filter(([companyId, repEmail]) => companyId && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(repEmail))
+        .map(([companyId, val]) => {
+          const emails = [...new Set(
+            (Array.isArray(val) ? val : [val])
+              .map((v) => str(v, 200).toLowerCase())
+              .filter((v) => EMAIL_RE.test(v))
+          )].slice(0, MAX_REPS_PER_ACCOUNT);
+          return [str(companyId, 40), emails];
+        })
+        .filter(([companyId, emails]) => companyId && emails.length)
     );
     const repVisits = (repVisitsSource || repVisitsReps.length || Object.keys(repVisitsAccountAssignments).length)
       ? {
@@ -227,11 +268,46 @@ const rawHandler = async (event, context) => {
         }
       : null;
 
+    // repRoster (2026-09-22, REP_TERRITORY_ASSIGNMENTS_SPEC Revision 4 + ADR-002) — WHO this
+    // campaign is working. Stored per campaign because that is a campaign decision, while
+    // everything you LEARN about a rep (their calls, their territories) is tenant-wide and lives
+    // in campaign-rep-calls / territory-book.
+    //
+    // This exists because the panel previously held five different "which reps" selections and
+    // only the account-assignment map survived a reload — so a rep was in the campaign only once
+    // they had a territory, which is backwards. "Pick twelve reps and email them" was not
+    // representable at all. The roster makes it a fact that persists.
+    const MAX_ROSTER = 200;
+    const rosterSource = str(e.repRoster?.source, 160);
+    const rosterReps = Object.fromEntries(
+      Object.entries(e.repRoster?.reps && typeof e.repRoster.reps === "object" && !Array.isArray(e.repRoster.reps) ? e.repRoster.reps : {})
+        .slice(0, MAX_ROSTER)
+        .map(([email, r]) => [String(email || "").trim().toLowerCase(), r])
+        .filter(([email, r]) => EMAIL_RE.test(email) && r && typeof r === "object")
+        .map(([email, r]) => [email, {
+          ...(str(r.name, 160) ? { name: str(r.name, 160) } : {}),
+          ...(str(r.phone, 40) ? { phone: str(r.phone, 40) } : {}),
+          ...(str(r.jobtitle, 120) ? { jobtitle: str(r.jobtitle, 120) } : {}),
+          addedAt: str(r.addedAt, 40) || new Date().toISOString(),
+          // Absent until the rep is actually emailed — this is the fact the ✉ progress dot
+          // reads, so it must never be set speculatively.
+          ...(str(r.emailedAt, 40) ? { emailedAt: str(r.emailedAt, 40) } : {}),
+          ...(r.dropped === true ? { dropped: true } : {}),
+        }])
+    );
+    const repRoster = (rosterSource || Object.keys(rosterReps).length)
+      ? {
+          ...(rosterSource ? { source: rosterSource } : {}),
+          ...(Object.keys(rosterReps).length ? { reps: rosterReps } : {}),
+        }
+      : null;
+
     const results = {};
     for (const k of RESULT_KEYS) if (e.results && e.results[k] != null) results[k] = int(e.results[k]);
 
     if (!status && !Object.keys(items).length && !custom.length && !hidden.length
-        && !Object.keys(results).length && !comments.length && !documents.length && !closedAt && !repVisits) {
+        && !Object.keys(results).length && !comments.length && !documents.length && !closedAt
+        && !repVisits && !repRoster) {
       continue; // nothing worth storing for this campaign
     }
     clean[id] = {
@@ -244,6 +320,7 @@ const rawHandler = async (event, context) => {
       ...(documents.length ? { documents } : {}),
       ...(closedAt ? { closedAt } : {}),
       ...(repVisits ? { repVisits } : {}),
+      ...(repRoster ? { repRoster } : {}),
       updatedAt: str(e.updatedAt, 40) || new Date().toISOString(),
     };
   }

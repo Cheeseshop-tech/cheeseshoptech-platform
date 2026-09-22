@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft, ListChecks, BookOpen, FileText, Users, BarChart3, Plus, X, AlertTriangle,
-  CheckCircle2, Copy, Check, ExternalLink, Link2, PhoneCall, ChevronDown, ChevronRight,
+  CheckCircle2, XCircle, Copy, Check, ExternalLink, Link2, PhoneCall, ChevronDown, ChevronRight,
   ScrollText, Download, ClipboardList, UploadCloud, Trash2, MessageSquare, MapPin, Paperclip, Mail,
   RotateCcw,
 } from "lucide-react";
@@ -22,8 +22,12 @@ import {
   callSummary, pushToHubspot,
   scopeOf, segmentEnrichment, geoBreakdown, cityKeyOf, isLongIsland, isNYCBorough,
   getRepCalls, saveRepCalls, repCallSummary,
+  rosterEmails, repProgress,
   deleteCampaign, isClosed, STANDING_LESSONS,
 } from "@/lib/campaigns.js";
+// The tenant-wide territory book (ADR-002) — read-only here. Editing lives in the Territory Book
+// tool, because a territory outlives any one campaign.
+import { territoriesOfRep, accountIdsOfRep } from "@/lib/territories.js";
 import { getCrmData, CHANNEL_TO_AUDIENCE, regionOf, stateOf, composeUrl, addressOf } from "@/lib/crm.js";
 import { uploadDocument } from "@/lib/cloudinary.js";
 import { MediaDocumentPicker } from "@/components/media/media-document-picker.jsx";
@@ -45,8 +49,14 @@ import { CONTENT_CATEGORIES, categoryLabel, entryStatus, entryCategory } from "@
 
 const SECTION_ICON = { checklist: ListChecks, strategy: BookOpen, content: FileText, documents: Paperclip, prospects: Users, salesreps: PhoneCall, repvisits: MapPin, results: BarChart3, updates: MessageSquare };
 
+// Document approval vocabulary (2026-09-22) — deliberately simple: one reviewer, two outcomes,
+// no multi-stage pipeline like the Content Library's submitted → posted/returned. See the
+// addendum in docs/CAMPAIGN_DOCUMENTS_SPEC_2026-09-21.md for why this exists at all.
+const DOC_APPROVAL_LABEL = { pending: "Pending review", approved: "Approved", rejected: "Changes requested" };
+const DOC_APPROVAL_TONE = { pending: "warning", approved: "success", rejected: "error" };
+
 export function CampaignDetail({
-  campaign: c, resolved, onBack, onPatch, onDelete, onSaveNow, entry, canWrite,
+  campaign: c, resolved, onBack, onPatch, onDelete, onSaveNow, entry, canWrite, book = {},
   contentItems = [], onAddContent, onPatchContent, onRemoveContent, enrichment = {}, onEnrich, allCampaigns = [], saveState = "idle",
 }) {
   const r = readinessOf(c);
@@ -105,6 +115,25 @@ export function CampaignDetail({
   }
   function removeDocument(id) {
     onPatch({ documents: (c.documents || []).filter((d) => d.id !== id) });
+  }
+  // Approve/request-changes + a per-document comment thread (2026-09-22) — opened from the new
+  // full-size viewer (click the document's pill) so a reviewer never has to download the file
+  // first. Reverses the 2026-09-21 "no approval workflow" call; see the spec doc addendum.
+  function setDocumentApproval(id, status) {
+    const documents = (c.documents || []).map((d) =>
+      d.id === id ? { ...d, approvalStatus: status, approvedBy: authorName, approvedAt: new Date().toISOString() } : d
+    );
+    onPatch({ documents });
+  }
+  function addDocumentComment(id, text) {
+    const trimmed = (text || "").trim();
+    if (!trimmed) return;
+    const cid = `dc-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
+    const comment = { id: cid, text: trimmed, author: authorName, at: new Date().toISOString() };
+    const documents = (c.documents || []).map((d) =>
+      d.id === id ? { ...d, comments: [...(d.comments || []), comment] } : d
+    );
+    onPatch({ documents });
   }
   // "Mark complete" is the one status transition that gets its own action: it always asks for a
   // wrap-up note (what worked, what to change next time) in the same step that closes the
@@ -186,8 +215,11 @@ export function CampaignDetail({
         />
       </Section>
 
-      <Section id="documents" title="Documents" description="Special offers, spec sheets, or anything else the team needs on hand for this campaign — uploaded here, also visible in the Media Hub's Documents tab.">
-        <DocumentsPanel documents={c.documents || []} canWrite={canWrite} resolved={resolved} campaignId={c.id} onAdd={addDocument} onRemove={removeDocument} />
+      <Section id="documents" title="Documents" description="Special offers, spec sheets, or anything else the team needs on hand for this campaign — uploaded here, also visible in the Media Hub's Documents tab. Click a document to review, approve, or comment without downloading it.">
+        <DocumentsPanel
+          documents={c.documents || []} canWrite={canWrite} resolved={resolved} campaignId={c.id}
+          onAdd={addDocument} onRemove={removeDocument} onApprove={setDocumentApproval} onComment={addDocumentComment}
+        />
       </Section>
 
       <Section id="prospects" title={c.type === "enrichment" ? "Call console" : "Target prospects"} description={c.type === "enrichment" ? "Work the gap list — the approved script, the number, and what the call produced." : "Who this campaign reaches — live from the same HubSpot data as the CRM console."}>
@@ -199,12 +231,12 @@ export function CampaignDetail({
 
       <Section
         id="repvisits"
-        title="Rep territory assignments"
-        description="Load a distributor's reps live from HubSpot and pair each to the state(s)/cities they cover — Target Prospects above auto-populates from it the moment it's saved, no separate step. Works for any distributor, not just one."
+        title="Rep roster & territory"
+        description="Pick the reps this campaign is working — no territory needed to start. Email the roster, follow up by phone, and each rep's territory fills in as you talk to them. Target Prospects above is scoped to the accounts in their territories; the territories themselves live in the Territory Book, because they outlive this campaign."
       >
-        <RepVisitsPanel
+        <RepRosterPanel
           c={c} resolved={resolved} canWrite={canWrite} onPatch={onPatch} saveState={saveState}
-          enrichment={enrichment} onEnrich={onEnrich}
+          book={book}
         />
       </Section>
 
@@ -457,484 +489,394 @@ function EmailInline({ resolved, to, subject = "", body = "" }) {
   );
 }
 
-// ---- Rep territory / account assignments (2026-09-21, revised same day) ---------------------
+// ---- Rep territory / account assignments (2026-09-21, revised 2026-09-22) -------------------
 // Generic and reusable across ANY distributor's reps (Rick: "in the near future we will wire
 // other distributors and their reps to the campaign engine") — unlike the older hardcoded
 // audience.salesReps list above (Sales Rep Contacts), this pulls LIVE HubSpot contacts for
 // whatever company name is set as the source, because HubSpot only holds the distributor's HQ
 // address on every one of its contacts, never a rep's own territory.
 //
-// TWO STEPS (Rick: "so two steps territory selection the key account selection... often reps
-// will have some accounts scattered even in other reps territories so the first two steps
-// build the broad shape state town borough then account will also have a drop down to select
-// responsable rep assignment. this way the account by account remains flexable"):
-//   Step 1 — check state/city/town/borough boxes, "lock in" to bulk-assign everything matched.
-//   Step 2 — every account in the opened territory, with address/phone/email, gets its OWN
-//   rep dropdown, so a scattered exception can differ from its territory's default without
-//   disturbing anything else.
-// The actual source of truth is accountAssignments (company id -> rep email, campaign-state.js)
-// — accountAssignmentScope()/mergeCampaign() (lib/campaigns.js) feed it straight into
-// audience.companyIds so Target Prospects auto-populates the instant an account is (re)assigned,
-// no separate "apply" step (Rick: "create the field to be filled in that will automatically
-// route itself once filled out"). Also wired into the New Campaign template
-// (new-campaign-form.jsx `audience.repsFrom`) so the next distributor-visits campaign starts
-// with this tab live, not a bespoke rebuild.
+// FLOW (revised 2026-09-22, Rick: "modify it so I can first select the reps then in each rep
+// card assign territory and or accounts. leave the flexability to assign the same terrritory
+// to multiple reps since there are a few opperating in the same or crossover areas in the same
+// city or town or state"):
+//   Step 1 — pick which reps you're building territory for right now (a rep isn't assigned
+//   anything just by being picked here; picking just opens their card).
+//   Rep cards — one per picked rep, each with its OWN territory tree (state/city/town/borough
+//   checkboxes) and its OWN account checklist. Locking in a rep's territory ADDS that rep to
+//   every matched account without touching any other rep already on it, and every account row
+//   is its own checkbox per rep rather than a single dropdown — so the SAME account, city, or
+//   whole state can legitimately belong to several reps' cards at once for crossover coverage.
+// The actual source of truth is accountAssignments (company id -> ARRAY of rep emails,
+// campaign-state.js) — accountAssignmentScope()/mergeCampaign() (lib/campaigns.js) feed the
+// company-id keys straight into audience.companyIds so Target Prospects auto-populates the
+// instant an account is (re)assigned, no separate "apply" step (Rick: "create the field to be
+// filled in that will automatically route itself once filled out"). Also wired into the New
+// Campaign template (new-campaign-form.jsx `audience.repsFrom`) so the next distributor-visits
+// campaign starts with this tab live, not a bespoke rebuild.
 function normCompany(s) {
   return String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 }
 
-function RepVisitsPanel({ c, resolved, canWrite, onPatch, saveState = "idle", enrichment = {}, onEnrich }) {
-  const saved = c.repVisits || {};
-  const [source, setSource] = useState(saved.source || c.audience?.repsFrom || "");
+// (repEmailsOf lived here until 2026-09-22. It normalized legacy single-string accountAssignments
+// values for this panel; that map is no longer read here — territories.js owns rep↔account now,
+// and campaigns.js still handles the legacy shape for campaigns that predate the territory book.)
+
+// ---- Rep roster + territory (ADR-002 + spec Revision 4) --------------------------------------
+//
+// Rick, 2026-09-22: "I want to pick the reps list first for the campaign then assign territory
+// second as we go... launch the campaign with an email then follow up with phone calls. and while
+// I develop my communication and relationship with the rep I will build in the accounts and the
+// territories."
+//
+// WHAT REPLACED WHAT. This panel used to be territory-first: check states/cities, then assign a
+// rep, and the resulting {companyId: [repEmail]} map was the only durable rep↔campaign link. That
+// made a rep a member of the campaign only once they had a territory — backwards — and the three
+// selections that actually drove the work (who to email, whose card is open, whose accounts to
+// call) were plain useState, so they evaporated on reload. "Pick twelve reps and email them" could
+// not be stored at all.
+//
+// Now: the ROSTER is the campaign (persisted, campaign-state.repRoster), and territory is a
+// tenant-wide fact that accrues to a rep over weeks of calls (territory-book.js). Editing
+// territories happens in the Territory Book tool, not here — a territory outlives this campaign,
+// so a campaign panel is the wrong place to own it. This panel reads the book and shows what each
+// rostered rep covers.
+//
+// Progress is DERIVED, never stored: emailed (roster.emailedAt), called + territory
+// (campaign-rep-calls), accounts (the book). Four independent facts, not a funnel — a rep can hand
+// over their territory in the first email reply, or take three calls and never name one.
+
+function RepRosterPanel({ c, resolved, canWrite, onPatch, saveState = "idle", book = {} }) {
+  // Memoized rather than `c.repRoster || {}` inline: the fallback literal is a new object every
+  // render, which would re-run every derivation below even when the roster hasn't changed.
+  const roster = useMemo(() => c.repRoster || {}, [c.repRoster]);
+  const [source, setSource] = useState(roster.source || c.audience?.repsFrom || "");
   const [crm, setCrm] = useState(undefined);
   const [q, setQ] = useState("");
-  // Tier 1 — the territory being BUILT right now (checkboxes, not yet locked in). Locking in is
-  // a BULK-WRITE convenience into accountAssignments below, not a stored rule of its own — a
-  // saved geometric filter can't represent a rep's scattered accounts in another rep's
-  // territory (Rick, 2026-09-21: "often reps will have some accounts scattered even in other
-  // reps territories... the first two steps build the broad shape state town borough then
-  // account will also have a drop down to select responsable rep assignment. this way the
-  // account by account remains flexable").
-  const [checkedStates, setCheckedStates] = useState(() => new Set());
-  const [checkedCities, setCheckedCities] = useState({}); // { ST: Set(cityKey) }
-  const [expandedStates, setExpandedStates] = useState(() => new Set());
-  const [assignRep, setAssignRep] = useState("");
-  const [lockMsg, setLockMsg] = useState("");
-  // Which rep's assigned accounts are open as an actual working call list right now (Rick,
-  // 2026-09-21: "we're not just assigning the reps regions and accounts the purpose is we are
-  // building a working list so I can make phone calls to accounts on behalf of the rep to
-  // coordinate sales of monti trentini products through the rep"). Reuses CallRow/the same
-  // campaign-enrichment.js store the Target Prospects call console uses below — same outcome
-  // vocabulary, same notes field, same Remove — rather than a parallel tracker, so a call logged
-  // here is the same record whichever screen you view it from.
-  const [selectedRep, setSelectedRep] = useState("");
+  const [calls, setCalls] = useState({});
+  const [callSave, setCallSave] = useState("idle");
+  const [onlyToCall, setOnlyToCall] = useState(false);
+  const [openRep, setOpenRep] = useState("");
+  const callsRef = useRef(calls);
+  callsRef.current = calls;
+  const callsLoadOk = useRef(false);
+  const callTimer = useRef(null);
 
   useEffect(() => {
     let alive = true;
     setCrm(undefined);
     getCrmData(resolved).then((d) => alive && setCrm(d || null)).catch(() => alive && setCrm(null));
-    return () => { alive = false; };
+    callsLoadOk.current = false;
+    getRepCalls(resolved).then((d) => {
+      if (!alive) return;
+      if (d) { callsLoadOk.current = true; setCalls(d.entries || {}); }
+      else setCallSave("load-failed");
+    }).catch(() => alive && setCallSave("load-failed"));
+    return () => { alive = false; clearTimeout(callTimer.current); };
   }, [resolved.id]);
 
-  // Tier 2 — the actual source of truth: company id -> rep email. Stable under any later
-  // territory redefinition since it's keyed by the HubSpot company id, not by geography.
-  const accountAssignments = saved.accountAssignments || {};
+  // Same last-writer-wins guard SalesRepPanel uses: never save over an overlay that failed to load.
+  function saveCalls(next) {
+    if (!callsLoadOk.current) { setCallSave("load-failed"); return; }
+    setCalls(next);
+    setCallSave("dirty");
+    clearTimeout(callTimer.current);
+    callTimer.current = setTimeout(async () => {
+      setCallSave("saving");
+      const res = await saveRepCalls(resolved, callsRef.current);
+      setCallSave(res.ok ? "saved" : res.status === 401 ? "denied" : "failed");
+    }, 900);
+  }
+  const patchRepCall = (email, part) => {
+    const key = String(email || "").trim().toLowerCase();
+    if (!key) return;
+    saveCalls({ ...callsRef.current, [key]: { ...callsRef.current[key], ...part, calledAt: new Date().toISOString() } });
+  };
 
-  const matched = useMemo(() => {
+  const reps = useMemo(() => roster.reps || {}, [roster]);
+  const onRoster = useMemo(() => rosterEmails(roster), [roster]);
+
+  function patchRoster(next) {
+    onPatch({ repRoster: { ...(source ? { source } : {}), reps: next } });
+  }
+  function saveSource(next) {
+    setSource(next);
+    onPatch({ repRoster: { ...(next ? { source: next } : {}), reps } });
+  }
+
+  /** Add or remove a rep. Removing sets `dropped` rather than deleting: having emailed someone is
+   *  a fact about the past, and deleting the record would erase it. */
+  function toggleRoster(person) {
+    const key = String(person.email || "").trim().toLowerCase();
+    if (!key) return;
+    const cur = reps[key];
+    if (cur && !cur.dropped) {
+      patchRoster({ ...reps, [key]: { ...cur, dropped: true } });
+    } else {
+      patchRoster({
+        ...reps,
+        [key]: {
+          ...(cur || {}),
+          name: person.name || cur?.name || "",
+          phone: person.phone || cur?.phone || "",
+          jobtitle: person.jobtitle || cur?.jobtitle || "",
+          addedAt: cur?.addedAt || new Date().toISOString(),
+          dropped: false,
+        },
+      });
+    }
+  }
+
+  // Candidate reps: live HubSpot contacts at the distributor named in `source`.
+  const candidates = useMemo(() => {
     const needle = normCompany(source);
     if (!needle || !crm?.people?.length) return [];
     const seen = new Set();
     return crm.people
       .filter((p) => p.email && p.company && normCompany(p.company).includes(needle))
       .filter((p) => {
-        const key = p.email.toLowerCase();
-        if (seen.has(key)) return false;
-        seen.add(key);
+        const k = p.email.toLowerCase();
+        if (seen.has(k)) return false;
+        seen.add(k);
         return true;
       })
-      .map((p) => ({
-        email: p.email.toLowerCase(), name: p.name || p.email, phone: p.phone || "", jobtitle: p.role || "",
-      }))
-      .sort((a, b) => a.name.localeCompare(b.name));
+      .sort((a, b) => String(a.name || a.email).localeCompare(String(b.name || b.email)));
   }, [crm, source]);
 
-  const repByEmail = useMemo(() => {
-    const m = {};
-    for (const r of matched) m[r.email] = r;
-    return m;
-  }, [matched]);
-
-  const filtered = useMemo(() => {
+  const shown = useMemo(() => {
     const needle = q.trim().toLowerCase();
-    if (!needle) return matched;
-    return matched.filter((r) => [r.name, r.email, r.phone].some((v) => v && String(v).toLowerCase().includes(needle)));
-  }, [matched, q]);
+    if (!needle) return candidates;
+    return candidates.filter((p) => [p.name, p.jobtitle, p.email, p.phone]
+      .some((v) => v && String(v).toLowerCase().includes(needle)));
+  }, [candidates, q]);
 
-  const companies = crm?.companies || [];
-  const companyById = useMemo(() => {
-    const m = {};
-    for (const co of companies) m[co.id] = co;
-    return m;
-  }, [companies]);
+  // One row per rostered rep, with everything known about them assembled in one place.
+  const rows = useMemo(() => onRoster.map((email) => {
+    const r = reps[email] || {};
+    const terrs = territoriesOfRep(book, email);
+    const accounts = accountIdsOfRep(book, email);
+    return {
+      email,
+      name: r.name || email,
+      phone: r.phone || "",
+      jobtitle: r.jobtitle || "",
+      emailedAt: r.emailedAt || "",
+      territories: terrs,
+      accounts: accounts.length,
+      progress: repProgress(email, { roster, calls, accountCount: accounts.length }),
+      call: calls[email] || {},
+    };
+  }), [onRoster, reps, book, roster, calls]);
 
-  // Per-rep assignment count + state spread — DERIVED display from accountAssignments, not
-  // stored input, so it always reflects the real accounts a rep ended up with, scattered ones
-  // included, rather than a territory shape that can drift out of sync with reality.
-  const repStats = useMemo(() => {
-    const m = {};
-    for (const [companyId, repEmail] of Object.entries(accountAssignments)) {
-      const co = companyById[companyId];
-      if (!co) continue;
-      if (!m[repEmail]) m[repEmail] = { count: 0, states: new Set() };
-      m[repEmail].count += 1;
-      const st = stateOf(co);
-      if (st) m[repEmail].states.add(st);
-    }
-    return m;
-  }, [accountAssignments, companyById]);
-  const totalAssigned = Object.keys(accountAssignments).length;
+  // Sorted by what needs doing next, so the top of the list is always the next action.
+  const ordered = useMemo(() => {
+    const rank = (r) => (!r.progress.emailed ? 0 : !r.progress.called ? 1 : !r.progress.territory ? 2 : 3);
+    const list = onlyToCall ? rows.filter((r) => r.progress.emailed && !r.progress.called) : rows;
+    return [...list].sort((a, b) => rank(a) - rank(b) || (a.emailedAt || "").localeCompare(b.emailedAt || "") || a.name.localeCompare(b.name));
+  }, [rows, onlyToCall]);
 
-  function saveSource(next) {
-    onPatch({ repVisits: { ...(next ? { source: next } : {}), ...(saved.reps ? { reps: saved.reps } : {}), accountAssignments } });
+  const stats = useMemo(() => ({
+    total: rows.length,
+    emailed: rows.filter((r) => r.progress.emailed).length,
+    called: rows.filter((r) => r.progress.called).length,
+    mapped: rows.filter((r) => r.progress.territory || r.accounts > 0).length,
+    accounts: new Set(rows.flatMap((r) => territoriesOfRep(book, r.email).flatMap((t) => t.accountIds || []))).size,
+    toCall: rows.filter((r) => r.progress.emailed && !r.progress.called).length,
+  }), [rows, book]);
+
+  /** Open one compose addressed to everyone given, and record that they were emailed. The stamp is
+   *  written only for the reps actually in this send — `emailedAt` is what the ✉ dot reads, so it
+   *  must describe something that happened, not something intended. */
+  function emailThese(list) {
+    if (!list.length) return;
+    const to = list.map((r) => r.email).join(",");
+    const url = composeUrl({ calendar: resolved.calendar, to, subject: c.name || "" });
+    const a = document.createElement("a");
+    a.href = url; a.target = "_blank"; a.rel = "noreferrer";
+    a.click();
+    const now = new Date().toISOString();
+    const next = { ...reps };
+    for (const r of list) next[r.email] = { ...(next[r.email] || {}), emailedAt: next[r.email]?.emailedAt || now };
+    patchRoster(next);
   }
 
-  // Single-account override — writes immediately, independent of the territory checkboxes
-  // (Rick: "account will also have a drop down to select responsable rep assignment... the
-  // account by account remains flexable"). An empty selection un-assigns the account.
-  function assignAccount(companyId, repEmail) {
-    const next = { ...accountAssignments };
-    if (repEmail) next[companyId] = repEmail; else delete next[companyId];
-    onPatch({ repVisits: { ...(source ? { source } : {}), ...(saved.reps ? { reps: saved.reps } : {}), accountAssignments: next } });
-  }
-
-  // ---- Territory checkboxes: national state list, each expandable to the real cities/towns
-  // (boroughs included for free — HubSpot stores "Brooklyn"/"Queens"/etc. as plain city values,
-  // same field cityKeyOf() already normalizes elsewhere) that actually have accounts on file
-  // for that state, so the boxes only ever offer real places, not a static US list.
-  const stateTree = useMemo(() => {
-    const byState = new Map();
-    for (const co of companies) {
-      const st = stateOf(co);
-      if (!st) continue;
-      const ck = cityKeyOf(co);
-      if (!byState.has(st)) byState.set(st, { total: 0, cities: new Map() });
-      const entry = byState.get(st);
-      entry.total += 1;
-      if (ck) {
-        if (!entry.cities.has(ck)) entry.cities.set(ck, { total: 0 });
-        entry.cities.get(ck).total += 1;
-      }
-    }
-    return [...byState.entries()]
-      .map(([st, v]) => ({
-        state: st,
-        total: v.total,
-        cities: [...v.cities.entries()]
-          .map(([key, cv]) => ({ key, label: key.replace(/\b\w/g, (m) => m.toUpperCase()), total: cv.total }))
-          .sort((a, b) => b.total - a.total || a.label.localeCompare(b.label)),
-      }))
-      .sort((a, b) => b.total - a.total || a.state.localeCompare(b.state));
-  }, [companies]);
-
-  function toggleStateBox(st) {
-    setCheckedStates((prev) => {
-      const next = new Set(prev);
-      if (next.has(st)) next.delete(st); else next.add(st);
-      return next;
-    });
-  }
-  function toggleCityBox(st, cityKey) {
-    setCheckedCities((prev) => {
-      const cur = new Set(prev[st] || []);
-      cur.has(cityKey) ? cur.delete(cityKey) : cur.add(cityKey);
-      return { ...prev, [st]: cur };
-    });
-    // Checking a city implies its state is in play even if the state box itself isn't checked.
-    setCheckedStates((prev) => (prev.has(st) ? prev : new Set(prev).add(st)));
-  }
-  function toggleExpand(st) {
-    setExpandedStates((prev) => {
-      const next = new Set(prev);
-      next.has(st) ? next.delete(st) : next.add(st);
-      return next;
-    });
-  }
-
-  // Live preview of the accounts the CURRENTLY CHECKED boxes reach — right below the checkbox
-  // tree/rep list, updating as boxes are (un)checked. A state with no city boxes checked counts
-  // in full; a state with some cities checked narrows to just those. Once a territory is open,
-  // this doubles as step two: every row here carries its own rep-assignment dropdown.
-  const previewList = useMemo(() => {
-    if (!checkedStates.size) return [];
-    return companies.filter((co) => {
-      const st = stateOf(co);
-      if (!checkedStates.has(st)) return false;
-      const cities = checkedCities[st];
-      if (!cities || !cities.size) return true;
-      return cities.has(cityKeyOf(co));
-    });
-  }, [companies, checkedStates, checkedCities]);
-  const PREVIEW_RENDER_CAP = 300;
-
-  // Step one — lock the currently-checked territory in to whichever rep is picked, BULK-WRITING
-  // accountAssignments[companyId] for every account currently in the preview list. This is a
-  // fast starting point, not a standing rule: any of those rows can be flipped to a different
-  // rep individually afterward (step two, the dropdown on each row) without re-locking anything.
-  function lockInTerritory() {
-    setLockMsg("");
-    if (!checkedStates.size) { setLockMsg("Check at least one state first."); return; }
-    if (!assignRep) { setLockMsg("Pick which rep this territory belongs to."); return; }
-    const next = { ...accountAssignments };
-    for (const co of previewList) next[co.id] = assignRep;
-    onPatch({ repVisits: { ...(source ? { source } : {}), ...(saved.reps ? { reps: saved.reps } : {}), accountAssignments: next } });
-    const repName = repByEmail[assignRep]?.name || assignRep;
-    setLockMsg(`Locked in — ${previewList.length.toLocaleString()} account${previewList.length === 1 ? "" : "s"} in ${[...checkedStates].join(", ")} assigned to ${repName}. Target Prospects above updates automatically. Adjust any single account below if it actually belongs to someone else.`);
-    // Deliberately NOT clearing checkedStates/checkedCities here (2026-09-21 fix, Rick: "I cant
-    // see results from the territory assignment") — Step 2 below only renders while a territory
-    // is checked, so clearing the checkboxes right after a successful lock-in made the just-saved
-    // account list (and its per-account rep dropdowns, which the message above points to) vanish
-    // instead of confirming the result. Leave the territory open so Step 2 keeps showing what was
-    // just assigned; only the rep picker resets, since a rep has to be re-chosen for the next one.
-    setAssignRep("");
-  }
+  const notYetEmailed = ordered.filter((r) => !r.progress.emailed);
 
   return (
     <div className="space-y-5">
-      <div>
-        <Label htmlFor="rv-source">Distributor — HubSpot company name</Label>
-        <Input
-          id="rv-source" value={source} disabled={!canWrite}
-          onChange={(e) => setSource(e.target.value)}
-          onBlur={(e) => saveSource(e.target.value.trim())}
-          placeholder="e.g. Ace Endico" className="mt-1.5 max-w-sm"
-        />
-        <p className="mt-1.5 text-xs text-fg-muted">Matched against the Company field on live HubSpot contacts.</p>
+      {/* Step 1 — who this campaign is working. Nothing is assigned by being here. */}
+      <div className="space-y-2">
+        <Label htmlFor="rep-source">Step 1 · Roster — who are you working?</Label>
+        <div className="flex flex-wrap items-center gap-3">
+          <Input
+            id="rep-source"
+            placeholder="Distributor — HubSpot company name (e.g. Ace Endico)"
+            value={source}
+            onChange={(e) => setSource(e.target.value)}
+            onBlur={(e) => saveSource(e.target.value)}
+            disabled={!canWrite}
+            className="max-w-sm"
+          />
+          <SaveChip state={saveState} />
+        </div>
+        <p className="text-xs text-fg-muted">
+          Checking a rep in puts them on this campaign — no territory needed. Territory and accounts
+          come later, as you talk to them.
+        </p>
       </div>
 
-      {/* Assignments so far — the running, SAVED result of Steps 1 & 2 below, kept in one place
-          so it's obvious what's landed as reps/territories/accounts get added (Rick, 2026-09-21:
-          "I need the assignments to populate the campaign list that builds as we add Reps,
-          territories, accounts so we can see a list as it build and confirm saved"). Purely
-          derived from accountAssignments/repStats above — nothing new to persist — so it updates
-          the instant a territory is locked in or a single account's dropdown is changed, and
-          RowSaveStatus (same chip every other panel here uses) confirms the write actually
-          landed, not just that the screen changed. Rendered ahead of the source-match gate below
-          so it still shows saved history even if `source` no longer matches (e.g. renamed). */}
-      {crm !== undefined && companies.length > 0 && (
-        <div className="rounded-base border border-border bg-bg p-3">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="text-sm font-medium text-fg">
-              Assignments so far — {totalAssigned.toLocaleString()} account{totalAssigned === 1 ? "" : "s"}
-              {Object.keys(repStats).length ? ` across ${Object.keys(repStats).length} rep${Object.keys(repStats).length === 1 ? "" : "s"}` : ""}
-            </p>
-            <RowSaveStatus state={saveState} />
-          </div>
-          {totalAssigned === 0 ? (
-            <p className="mt-1.5 text-xs text-fg-muted">
-              Nothing assigned yet — lock in a territory in Step 1, or set a rep on a single account in Step 2, and it shows up here.
-            </p>
-          ) : (
-            <>
-              <p className="mt-1.5 text-xs text-fg-muted">Click a rep to open their accounts as a call list below.</p>
-              <ul className="mt-2 max-h-56 space-y-1 overflow-y-auto">
-                {Object.entries(repStats)
-                  .sort(([, a], [, b]) => b.count - a.count)
-                  .map(([email, stats]) => (
-                    <li key={email}>
-                      <button
-                        type="button"
-                        onClick={() => setSelectedRep((cur) => (cur === email ? "" : email))}
-                        className={[
-                          "flex w-full flex-wrap items-center justify-between gap-2 rounded-base px-2 py-1.5 text-left text-sm transition-colors",
-                          selectedRep === email ? "bg-brand-primary/10 ring-1 ring-brand-primary" : "hover:bg-bg",
-                        ].join(" ")}
-                      >
-                        <span className="min-w-0 truncate text-fg">{repByEmail[email]?.name || email}</span>
-                        <Badge variant="outline">
-                          {stats.count.toLocaleString()} account{stats.count === 1 ? "" : "s"}
-                          {stats.states.size ? ` · ${[...stats.states].sort().join(", ")}` : ""}
-                        </Badge>
-                      </button>
-                    </li>
-                  ))}
-              </ul>
-            </>
-          )}
-        </div>
-      )}
-
-      {/* The actual working call list for whichever rep is selected above — every account
-          assigned to them, each a full CallRow (same component Target Prospects uses): call
-          outcome, notes, phone/email, Remove/Restore. Calling here IS calling that account on
-          Monti Trentini's behalf, coordinated through this specific rep, so the list is scoped
-          to their book rather than the whole territory. */}
-      {selectedRep && (
-        <div className="rounded-base border border-border p-3">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="text-sm font-medium text-fg">
-              Call list — {repByEmail[selectedRep]?.name || selectedRep}
-              {" "}({(repStats[selectedRep]?.count || 0).toLocaleString()} account{(repStats[selectedRep]?.count || 0) === 1 ? "" : "s"})
-            </p>
-            <RowSaveStatus state={saveState} />
-          </div>
-          <p className="mt-1 text-xs text-fg-muted">
-            Calling on Monti Trentini's behalf to coordinate sales through {repByEmail[selectedRep]?.name || "this rep"} —
-            log what happened on each call the same way the Target Prospects call console does.
-          </p>
-          <ul className="mt-3 max-h-[36rem] space-y-2 overflow-y-auto pr-1">
-            {Object.entries(accountAssignments)
-              .filter(([, repEmail]) => repEmail === selectedRep)
-              .map(([companyId]) => companyById[companyId])
-              .filter(Boolean)
-              .sort((a, b) => tierOf(a) - tierOf(b) || String(a.name).localeCompare(String(b.name)))
-              .map((co) => (
-                <CallRow
-                  key={co.id} co={co} rec={enrichment[co.id] || {}} canWrite={canWrite} saveState={saveState}
-                  resolved={resolved}
-                  onPatch={(part) => onEnrich(co.id, { campaignId: c.id, ...part })}
-                />
-              ))}
-          </ul>
-        </div>
-      )}
-
-      {!source ? (
-        <p className="text-sm text-fg-muted">Set the distributor's HubSpot company name above to load their reps.</p>
-      ) : crm === undefined ? (
-        <p className="text-sm text-fg-muted">Loading HubSpot contacts…</p>
-      ) : matched.length === 0 ? (
-        <p className="text-sm text-fg-muted">No HubSpot contacts found with company matching "{source}" — check the spelling matches HubSpot's Company field.</p>
+      {crm === undefined ? (
+        <p className="text-sm text-fg-muted">Loading contacts…</p>
+      ) : !source.trim() ? (
+        <p className="text-sm text-fg-muted">Name the distributor above to load their reps.</p>
+      ) : candidates.length === 0 ? (
+        <p className="text-sm text-fg-muted">No HubSpot contacts matched “{source}”.</p>
       ) : (
-        <>
-          {/* Every HubSpot contact under this distributor, nationally — whatever accounts they
-              end up with, set below in two steps. */}
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <Input
-              placeholder="Search by name, email, or phone…"
-              value={q} onChange={(e) => setQ(e.target.value)} className="max-w-sm"
-            />
-            <p className="text-xs text-fg-muted">
-              {matched.length} rep{matched.length === 1 ? "" : "s"} from HubSpot · {totalAssigned.toLocaleString()} account{totalAssigned === 1 ? "" : "s"} assigned
-            </p>
-          </div>
-          <ul className="max-h-64 space-y-1.5 overflow-y-auto rounded-base border border-border p-2">
-            {filtered.map((r) => {
-              const stats = repStats[r.email];
+        <div className="space-y-2">
+          <Input
+            placeholder="Search by name, title, phone, or email…"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            className="max-w-sm"
+          />
+          <div className="flex flex-wrap gap-2">
+            {shown.map((p) => {
+              const key = p.email.toLowerCase();
+              const on = !!reps[key] && !reps[key].dropped;
               return (
-                <li key={r.email} className="flex flex-wrap items-center justify-between gap-2 rounded-base px-2 py-1.5 hover:bg-bg">
-                  <span className="min-w-0">
-                    <span className="block truncate text-sm text-fg">{r.name}</span>
-                    <span className="block text-xs text-fg-muted">{r.jobtitle || r.email}</span>
-                  </span>
-                  <div className="flex shrink-0 flex-wrap items-center gap-2">
-                    {stats?.count
-                      ? <Badge variant="outline">{stats.count} account{stats.count === 1 ? "" : "s"}{stats.states.size ? ` · ${[...stats.states].sort().join(", ")}` : ""}</Badge>
-                      : <Badge variant="muted">No accounts yet</Badge>}
-                    <PhoneInline phone={r.phone} />
-                    <EmailInline resolved={resolved} to={r.email} subject={`${r.name} — territory`} />
-                  </div>
-                </li>
+                <button
+                  key={key}
+                  type="button"
+                  disabled={!canWrite}
+                  onClick={() => toggleRoster(p)}
+                  className={`rounded-full border px-3 py-1 text-sm ${on ? "border-brand-primary bg-brand-primary text-white" : "border-border text-fg-muted hover:border-brand-primary"}`}
+                  title={p.jobtitle || p.email}
+                >
+                  {on ? "✓ " : "+ "}{p.name || p.email}
+                </button>
               );
             })}
-            {filtered.length === 0 && <li className="py-4 text-center text-sm text-fg-muted">No match.</li>}
-          </ul>
+          </div>
+          <p className="text-xs text-fg-muted">{shown.length} of {candidates.length} contacts shown.</p>
+        </div>
+      )}
 
-          {/* Step one — territory shape: check state/city boxes to open the account list below. */}
-          <div className="rounded-base border border-border p-3">
-            <p className="text-sm font-medium text-fg">Step 1 — build a territory</p>
-            <p className="mt-1 text-xs text-fg-muted">
-              Check a state to open it in full, or expand it and check specific cities/towns
-              (boroughs included) to narrow it. Only places with accounts on file are listed.
-            </p>
-            <div className="mt-3 max-h-72 space-y-1 overflow-y-auto">
-              {stateTree.map((s) => (
-                <div key={s.state} className="rounded-base border border-border/60">
-                  <div className="flex flex-wrap items-center gap-2 px-2 py-1.5">
-                    <button
-                      type="button" onClick={() => toggleExpand(s.state)}
-                      className="text-fg-muted hover:text-fg disabled:opacity-30" disabled={!s.cities.length}
-                      title={s.cities.length ? "Show cities/towns" : "No city data on file"}
-                    >
-                      {s.cities.length
-                        ? (expandedStates.has(s.state) ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />)
-                        : <span className="inline-block w-3.5" />}
-                    </button>
-                    <label className="flex flex-1 items-center gap-2 text-sm text-fg">
-                      <Checkbox checked={checkedStates.has(s.state)} onCheckedChange={() => toggleStateBox(s.state)} disabled={!canWrite} />
-                      {s.state}
-                      <span className="text-xs text-fg-muted">({s.total})</span>
-                      {checkedCities[s.state]?.size
-                        ? <Badge variant="outline">{checkedCities[s.state].size} cit{checkedCities[s.state].size === 1 ? "y" : "ies"} narrowed</Badge>
-                        : null}
-                    </label>
-                  </div>
-                  {expandedStates.has(s.state) && (
-                    <div className="grid grid-cols-2 gap-x-3 gap-y-1 border-t border-border/60 px-3 py-2 sm:grid-cols-3">
-                      {s.cities.map((ct) => (
-                        <label key={ct.key} className="flex items-center gap-2 text-xs text-fg">
-                          <Checkbox checked={!!checkedCities[s.state]?.has(ct.key)} onCheckedChange={() => toggleCityBox(s.state, ct.key)} disabled={!canWrite} />
-                          {ct.label} <span className="text-fg-muted">({ct.total})</span>
-                        </label>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
+      {/* Step 2 — work the roster. */}
+      {rows.length > 0 && (
+        <div className="space-y-3 border-t border-border pt-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <Label>Step 2 · Work the roster</Label>
+              <p className="text-xs text-fg-muted">
+                {stats.total} reps · {stats.emailed} emailed · {stats.called} called · {stats.mapped} mapped ·{" "}
+                {stats.accounts} accounts covered
+              </p>
             </div>
-
-            {/* Step one's quick bulk-assign — sets a default rep for everything currently
-                checked; step two below still lets any single row differ. */}
-            <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_auto]">
-              <div>
-                <Label htmlFor="rv-assign-rep">Assign this territory to</Label>
-                <select
-                  id="rv-assign-rep" value={assignRep} disabled={!canWrite || !checkedStates.size}
-                  onChange={(e) => setAssignRep(e.target.value)}
-                  className="mt-1.5 h-10 w-full rounded-base border border-border bg-surface px-3 text-sm text-fg disabled:opacity-40"
-                >
-                  <option value="">{checkedStates.size ? "Choose a rep…" : "Check a territory first"}</option>
-                  {matched.map((r) => <option key={r.email} value={r.email}>{r.name}</option>)}
-                </select>
-              </div>
-              <div className="flex items-end">
-                <Button type="button" disabled={!canWrite || !checkedStates.size || !assignRep} onClick={lockInTerritory}>
-                  Lock in territory
+            <div className="flex flex-wrap items-center gap-2">
+              <RowSaveStatus state={callSave} />
+              {notYetEmailed.length > 0 && (
+                <Button size="sm" disabled={!canWrite} onClick={() => emailThese(notYetEmailed)}>
+                  <Mail className="mr-1.5 h-4 w-4" />
+                  Email the {notYetEmailed.length} not yet emailed
                 </Button>
-              </div>
+              )}
+              <Button
+                size="sm"
+                variant={onlyToCall ? "default" : "outline"}
+                onClick={() => setOnlyToCall((v) => !v)}
+                title="Emailed, no call logged yet"
+              >
+                <PhoneCall className="mr-1.5 h-4 w-4" />
+                Call queue ({stats.toCall})
+              </Button>
             </div>
-            {lockMsg && <p className="mt-2 text-xs text-fg-muted">{lockMsg}</p>}
           </div>
 
-          {/* Step two — once a territory is open, every account in it: address, phone, email,
-              and its OWN rep dropdown, so a scattered account can differ from its territory's
-              default without disturbing anything else (Rick: "the account by account remains
-              flexable"). */}
-          {checkedStates.size > 0 && (
-            <div className="rounded-base border border-border p-3">
-              <p className="text-sm font-medium text-fg">
-                Step 2 — {previewList.length.toLocaleString()} account{previewList.length === 1 ? "" : "s"} in this territory
-              </p>
-              <p className="mt-1 text-xs text-fg-muted">
-                Each account defaults to whoever it's currently assigned to (or unassigned) — set
-                or change any single one here, independent of "Lock in territory" above.
-              </p>
-              <ul className="mt-3 max-h-96 space-y-2 overflow-y-auto">
-                {previewList.slice(0, PREVIEW_RENDER_CAP).map((co) => (
-                  <li key={co.id} className="rounded-base border border-border/60 p-2.5">
-                    <div className="flex flex-wrap items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <span className="block truncate text-sm text-fg">{co.name}</span>
-                        <span className="block text-xs text-fg-muted">{addressOf(co) || [co.city, stateOf(co)].filter(Boolean).join(", ") || "—"}</span>
-                      </div>
-                      <div className="flex shrink-0 flex-wrap items-center gap-2">
-                        <PhoneInline phone={co.ownerPhone || co.phone} />
-                        <EmailInline resolved={resolved} to={co.ownerEmail} subject={`${co.name}`} />
-                      </div>
+          <ul className="space-y-2">
+            {ordered.map((r) => (
+              <li key={r.email} className="rounded-lg border border-border p-3">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="font-medium">{r.name}</div>
+                    <div className="text-xs text-fg-muted">
+                      {[r.jobtitle, r.email].filter(Boolean).join(" · ")}
                     </div>
-                    <div className="mt-2">
-                      <select
-                        aria-label={`Responsible rep for ${co.name}`}
-                        value={accountAssignments[co.id] || ""} disabled={!canWrite}
-                        onChange={(e) => assignAccount(co.id, e.target.value)}
-                        className="h-9 w-full max-w-xs rounded-base border border-border bg-surface px-2.5 text-xs text-fg disabled:opacity-40"
-                      >
-                        <option value="">Unassigned</option>
-                        {matched.map((r) => <option key={r.email} value={r.email}>{r.name}</option>)}
-                      </select>
+                    <div className="mt-1 flex flex-wrap items-center gap-2 text-xs">
+                      <Dot on={r.progress.emailed} label={r.emailedAt ? `Emailed ${r.emailedAt.slice(5, 10)}` : "Not emailed"} />
+                      <Dot on={r.progress.called} label={r.progress.called ? OUTCOME_LABEL[r.call.outcome] || "Called" : "No call yet"} />
+                      <Dot on={r.progress.territory} label={r.progress.territory ? r.call.territory : "No territory yet"} />
+                      <Dot on={r.accounts > 0} label={`${r.accounts} account${r.accounts === 1 ? "" : "s"}`} />
                     </div>
-                  </li>
-                ))}
-              </ul>
-              {previewList.length > PREVIEW_RENDER_CAP && (
-                <p className="mt-2 text-xs text-fg-muted">
-                  Showing the first {PREVIEW_RENDER_CAP} of {previewList.length.toLocaleString()} — narrow with a city/town checkbox above to see the rest.
-                </p>
-              )}
-            </div>
+                    {r.territories.length > 0 && (
+                      <div className="mt-1 text-xs text-fg-muted">
+                        Covers: {r.territories.map((t) => t.name).join(" · ")}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex shrink-0 flex-wrap gap-2">
+                    {r.phone && <PhoneInline phone={r.phone} />}
+                    <EmailInline resolved={resolved} to={r.email} subject={c.name || ""} />
+                    <Button size="sm" variant="outline" onClick={() => setOpenRep(openRep === r.email ? "" : r.email)}>
+                      {openRep === r.email ? "Close" : "Log call"}
+                    </Button>
+                    <Button size="sm" variant="ghost" disabled={!canWrite} onClick={() => toggleRoster({ email: r.email })}>
+                      Drop
+                    </Button>
+                  </div>
+                </div>
+
+                {openRep === r.email && (
+                  <div className="mt-3 grid gap-2 border-t border-border pt-3 sm:grid-cols-[180px_1fr]">
+                    <select
+                      aria-label={`Call outcome for ${r.name}`}
+                      className="h-9 rounded-md border border-border bg-bg px-2 text-sm"
+                      value={r.call.outcome || "not-called"}
+                      disabled={!canWrite}
+                      onChange={(e) => patchRepCall(r.email, { outcome: e.target.value })}
+                    >
+                      {CALL_OUTCOMES.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
+                    </select>
+                    <Input
+                      placeholder="Territory they gave you — type it as they said it"
+                      defaultValue={r.call.territory || ""}
+                      disabled={!canWrite}
+                      onBlur={(e) => patchRepCall(r.email, { territory: e.target.value })}
+                    />
+                    <div className="sm:col-span-2">
+                      <Textarea
+                        placeholder="Notes from the call…"
+                        defaultValue={r.call.note || ""}
+                        disabled={!canWrite}
+                        onBlur={(e) => patchRepCall(r.email, { note: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+
+          {onlyToCall && ordered.length === 0 && (
+            <p className="text-sm text-fg-muted">Nobody is waiting on a call — everyone emailed has been rung.</p>
           )}
-        </>
+
+          <p className="text-xs text-fg-muted">
+            Target Prospects above is scoped to the accounts in these reps’ territories. Territories
+            themselves are edited in the <strong>Territory Book</strong> tool — they outlive this
+            campaign, so they aren’t owned by it.
+          </p>
+        </div>
       )}
     </div>
+  );
+}
+
+/** One progress fact. Deliberately a fact-with-a-label, not a stage number — see the panel note. */
+function Dot({ on, label }) {
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 ${on ? "border-success text-success" : "border-border text-fg-muted"}`}>
+      <span aria-hidden>{on ? "●" : "○"}</span>{label}
+    </span>
   );
 }
 
@@ -1062,12 +1004,17 @@ function fmtCommentDate(iso) {
   } catch { return iso; }
 }
 
-// ---- Documents (2026-09-21) ------------------------------------------------------------------
+// ---- Documents (2026-09-21; approval + comments added 2026-09-22) -----------------------------
 // Special-offer sheets, spec sheets, or any other reference file a campaign needs on hand.
 // Uploads through the same signed Cloudinary path the Media Hub uses (uploadDocument() in
 // cloudinary.js) — tagged `campaign-document` and linked via `campaignId` in Cloudinary's
-// context, so the same file also shows up under the Media Hub's Documents tab. No approval
-// workflow here (Rick, 2026-09-21) — this is reference material, not content pending review.
+// context, so the same file also shows up under the Media Hub's Documents tab.
+//
+// Originally shipped with no approval step ("reference material, not content pending review").
+// Reversed 2026-09-22 (Rick, confirmed directly): each document is now a clickable pill that
+// opens a full-size DocumentViewerDialog — preview, approve/request-changes, and a comment
+// thread, all without downloading the file first. See the addendum in
+// docs/CAMPAIGN_DOCUMENTS_SPEC_2026-09-21.md.
 function fmtBytes(n) {
   if (!n) return "";
   if (n < 1024) return `${n} B`;
@@ -1075,11 +1022,27 @@ function fmtBytes(n) {
   return `${(n / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function DocumentsPanel({ documents = [], canWrite, resolved, campaignId, onAdd, onRemove }) {
+// What the viewer can render inline vs. fall back to open/download for. Campaign documents are
+// always uploaded as Cloudinary resource_type "raw" (see uploadDocument()), so there's no
+// server-side page rasterization available the way the buyer catalog's spec-sheet PDFs get —
+// images render directly, PDFs get the browser's own inline viewer via an iframe, everything
+// else (DOC/XLS/PPT and friends) has no in-browser preview at all.
+function previewKind(format) {
+  const f = (format || "").toLowerCase();
+  if (["png", "jpg", "jpeg", "gif", "webp"].includes(f)) return "image";
+  if (f === "pdf") return "pdf";
+  return "none";
+}
+
+function DocumentsPanel({ documents = [], canWrite, resolved, campaignId, onAdd, onRemove, onApprove, onComment }) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const fileRef = useRef(null);
+  const [viewingId, setViewingId] = useState(null);
   const sorted = [...documents].sort((a, b) => (b.uploadedAt || "").localeCompare(a.uploadedAt || ""));
+  // Look up by id against the live `documents` prop (not `sorted`, though they're the same set)
+  // so the dialog reflects an approval/comment the instant onPatch's round trip updates it.
+  const viewing = viewingId ? documents.find((d) => d.id === viewingId) || null : null;
 
   async function onFilesSelected(e) {
     const files = [...(e.target.files || [])];
@@ -1126,11 +1089,21 @@ function DocumentsPanel({ documents = [], canWrite, resolved, campaignId, onAdd,
         <ul className="space-y-2">
           {sorted.map((d) => (
             <li key={d.id} className="flex flex-wrap items-center justify-between gap-2 rounded-base border border-border p-3">
-              <a href={d.url} target="_blank" rel="noreferrer" className="flex min-w-0 items-center gap-2 text-sm text-fg hover:underline">
-                <Paperclip className="h-4 w-4 shrink-0 text-fg-muted" />
-                <span className="truncate">{d.name}</span>
-              </a>
+              {/* The whole point of this pill: click opens the full-size viewer (preview +
+                  approve/comment) instead of jumping straight to a download. */}
+              <button
+                type="button"
+                onClick={() => setViewingId(d.id)}
+                className="flex min-w-0 items-center gap-2 rounded-full border border-border bg-surface px-3 py-1.5 text-sm text-fg transition-colors hover:border-brand-primary"
+                title="Open full-size view"
+              >
+                <Paperclip className="h-3.5 w-3.5 shrink-0 text-fg-muted" />
+                <span className="max-w-[16rem] truncate">{d.name}</span>
+              </button>
               <div className="flex shrink-0 flex-wrap items-center gap-2 text-xs text-fg-muted">
+                <Badge variant={DOC_APPROVAL_TONE[d.approvalStatus || "pending"]}>
+                  {DOC_APPROVAL_LABEL[d.approvalStatus || "pending"]}
+                </Badge>
                 {d.format && <Badge variant="outline">{d.format.toUpperCase()}</Badge>}
                 {fmtBytes(d.bytes) && <span>{fmtBytes(d.bytes)}</span>}
                 <span>{d.uploadedBy} · {fmtCommentDate(d.uploadedAt)}</span>
@@ -1144,7 +1117,134 @@ function DocumentsPanel({ documents = [], canWrite, resolved, campaignId, onAdd,
           ))}
         </ul>
       )}
+
+      <DocumentViewerDialog
+        doc={viewing} canWrite={canWrite}
+        onClose={() => setViewingId(null)}
+        onApprove={onApprove} onComment={onComment}
+      />
     </div>
+  );
+}
+
+// Full-size view opened by clicking a document's pill above — preview on the left, an
+// approve/request-changes action and a threaded comment list on the right, so reviewing a
+// document never requires downloading it first. Comments are modeled on UpdatesPanel above
+// (author/timestamp/text) but scoped to this one document instead of the whole campaign.
+function DocumentViewerDialog({ doc: d, canWrite, onClose, onApprove, onComment }) {
+  const [text, setText] = useState("");
+  const kind = previewKind(d?.format);
+  const status = d?.approvalStatus || "pending";
+  const sortedComments = [...(d?.comments || [])].sort((a, b) => (a.at || "").localeCompare(b.at || ""));
+
+  // Comment draft doesn't need to survive between documents — clear it whenever a different
+  // document is opened so a half-typed note can't get posted to the wrong one.
+  useEffect(() => { setText(""); }, [d?.id]);
+
+  function post() {
+    if (!text.trim() || !d) return;
+    onComment(d.id, text);
+    setText("");
+  }
+
+  return (
+    <Dialog open={!!d} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-4xl p-0">
+        {d && (
+          <div className="grid max-h-[85vh] md:grid-cols-[1.5fr_1fr]">
+            <div className="flex max-h-[85vh] flex-col overflow-y-auto p-5 md:rounded-l-base">
+              <DialogTitle className="mb-1 truncate text-lg">{d.name}</DialogTitle>
+              <div className="mb-3 flex flex-wrap items-center gap-2">
+                <Badge variant={DOC_APPROVAL_TONE[status]}>{DOC_APPROVAL_LABEL[status]}</Badge>
+                {d.format && <Badge variant="outline">{d.format.toUpperCase()}</Badge>}
+                <span className="text-xs text-fg-muted">
+                  {fmtBytes(d.bytes)} · {d.uploadedBy} · {fmtCommentDate(d.uploadedAt)}
+                </span>
+              </div>
+              {status !== "pending" && d.approvedBy && (
+                <p className="mb-3 text-xs text-fg-muted">
+                  {status === "approved" ? "Approved" : "Changes requested"} by {d.approvedBy} · {fmtCommentDate(d.approvedAt)}
+                </p>
+              )}
+
+              <div className="flex flex-1 items-center justify-center overflow-hidden rounded-base border border-border bg-white">
+                {kind === "image" ? (
+                  <img src={d.url} alt={d.name} className="max-h-[55vh] w-auto max-w-full object-contain" />
+                ) : kind === "pdf" ? (
+                  <iframe src={d.url} title={d.name} className="h-[55vh] w-full" />
+                ) : (
+                  <div className="flex flex-col items-center gap-3 py-20 text-fg-muted">
+                    <FileText className="h-10 w-10" />
+                    <p className="text-sm">Preview isn't available for this file type — open or download it.</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <a href={d.url} target="_blank" rel="noreferrer">
+                  <Button variant="ghost" size="sm"><ExternalLink className="h-4 w-4" /> Open</Button>
+                </a>
+                <a href={d.url} download={d.name}>
+                  <Button variant="secondary" size="sm"><Download className="h-4 w-4" /> Download</Button>
+                </a>
+                {canWrite && (
+                  <div className="ml-auto flex gap-2">
+                    <Button
+                      variant={status === "approved" ? "primary" : "outline"} size="sm"
+                      onClick={() => onApprove(d.id, "approved")}
+                    >
+                      <CheckCircle2 className="h-4 w-4" /> Approve
+                    </Button>
+                    <Button
+                      variant={status === "rejected" ? "destructive" : "outline"} size="sm"
+                      onClick={() => onApprove(d.id, "rejected")}
+                    >
+                      <XCircle className="h-4 w-4" /> Request changes
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex max-h-[85vh] flex-col border-t border-border p-5 md:border-l md:border-t-0">
+              <h4 className="mb-3 flex items-center gap-1.5 text-sm font-medium text-fg">
+                <MessageSquare className="h-4 w-4" /> Comments
+              </h4>
+              <div className="flex-1 space-y-3 overflow-y-auto">
+                {sortedComments.length === 0 ? (
+                  <p className="text-sm text-fg-muted">No comments yet.</p>
+                ) : (
+                  sortedComments.map((cm) => (
+                    <div key={cm.id} className="rounded-base border border-border p-2.5">
+                      <div className="flex flex-wrap items-center gap-2 text-xs text-fg-muted">
+                        <span className="font-medium text-fg">{cm.author}</span>
+                        <span>· {fmtCommentDate(cm.at)}</span>
+                      </div>
+                      <p className="mt-1 whitespace-pre-wrap text-sm text-fg">{cm.text}</p>
+                    </div>
+                  ))
+                )}
+              </div>
+              {canWrite && (
+                <div className="mt-3 space-y-2 border-t border-border pt-3">
+                  <Textarea
+                    rows={2}
+                    placeholder="Leave a comment for the team…"
+                    value={text}
+                    onChange={(e) => setText(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); post(); } }}
+                  />
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-fg-muted">⌘/Ctrl + Enter to post</p>
+                    <Button size="sm" onClick={post} disabled={!text.trim()}>Post comment</Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
 

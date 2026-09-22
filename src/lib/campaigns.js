@@ -19,6 +19,9 @@ import { readAuthedJson, writeAuthedJson } from "./authed-fetch.js";
 // Segment filters are expressed in the CRM's own region/state vocabulary — reuse its
 // normalizers rather than a second copy that could disagree about "NJ" vs "New Jersey".
 import { regionOf, stateOf } from "./crm.js";
+// The tenant-wide territory book (ADR-002). campaigns.js depends on territories.js and never the
+// other way round, so there is no cycle — territories.js knows about accounts, not campaigns.
+import { scopeForRoster } from "./territories.js";
 
 export function canViewCampaigns(user) {
   const roles = rolesOf(user);
@@ -696,6 +699,35 @@ export function deriveRepFilter(reps = []) {
  * checkboxes in the UI are just a fast way to bulk-populate this map; nothing about their shape
  * is stored or re-evaluated later.
  */
+/**
+ * The reps ON a campaign — its roster (REP_TERRITORY_ASSIGNMENTS_SPEC Revision 4).
+ *
+ * The roster is what makes a campaign rep-first: you pick who you're working before any territory
+ * exists, and it survives a reload, which the old ephemeral checkbox selections did not. A dropped
+ * rep keeps their record (so the history of having emailed them isn't erased) but leaves the
+ * working list.
+ */
+export function rosterEmails(repRoster) {
+  return Object.entries(repRoster?.reps || {})
+    .filter(([email, r]) => email && !r?.dropped)
+    .map(([email]) => email);
+}
+
+/** How far a rep has got, DERIVED from facts already recorded elsewhere rather than a status
+ *  field someone has to remember to set — the same rule the launch gate follows. Four independent
+ *  facts, not a funnel: a rep can hand over their territory in the first email reply, or take
+ *  three calls and never name one. */
+export function repProgress(email, { roster, calls = {}, accountCount = 0 } = {}) {
+  const key = String(email || "").toLowerCase();
+  const call = calls[key] || {};
+  return {
+    emailed: !!roster?.reps?.[key]?.emailedAt,
+    called: !!call.outcome && call.outcome !== "not-called",
+    territory: !!String(call.territory || "").trim(),
+    accounts: accountCount,
+  };
+}
+
 export function accountAssignmentScope(accountAssignments) {
   const ids = Object.keys(accountAssignments || {});
   return ids.length ? ids : null;
@@ -1014,7 +1046,7 @@ export function downloadCsv(filename, csv) {
  * a resolved checklist (template minus hidden, plus custom, each carrying its done state),
  * the effective status, and results.
  */
-export function mergeCampaign(def, state = {}) {
+export function mergeCampaign(def, state = {}, book = null) {
   const hidden = new Set(state.hidden || []);
   const items = state.items || {};
   const base = templateFor(def.type).filter((t) => !hidden.has(t.id));
@@ -1037,7 +1069,14 @@ export function mergeCampaign(def, state = {}) {
   // Fall back to the older region-filter derivation (deriveRepFilter) only for data saved
   // before 2026-09-21's account-level revision that hasn't been touched since — a campaign
   // still on the legacy `repVisits.reps[].states/cities` shape with no accountAssignments yet.
-  const assignedIds = accountAssignmentScope(state.repVisits?.accountAssignments);
+  //
+  // ADR-002 adds a THIRD and now-preferred source: the tenant-wide territory book, scoped to the
+  // reps on this campaign's roster. It wins over the per-campaign assignment map because it is the
+  // one that accumulates — a territory built during September's campaign is still there in
+  // October, which was the whole reason territory moved out of campaign state. The roster filter
+  // is what keeps a SHARED book from dragging every other rep's accounts into this campaign.
+  const rosterIds = scopeForRoster(book, rosterEmails(state.repRoster));
+  const assignedIds = rosterIds || accountAssignmentScope(state.repVisits?.accountAssignments);
   const repFilter = (!assignedIds && state.repVisits?.reps?.length) ? deriveRepFilter(state.repVisits.reps) : null;
   const audience = def.audience?.companyIds?.length
     ? def.audience
@@ -1062,6 +1101,10 @@ export function mergeCampaign(def, state = {}) {
     // Live-HubSpot rep→region assignments, raw (for the editor UI) — see deriveRepFilter() above
     // for how this turns into `audience.filter`.
     repVisits: state.repVisits || null,
+    // The campaign's roster — who you're working, independent of whether they have a territory
+    // yet. This is the rep-first half of ADR-002's integration; `audience` above is the
+    // territory half.
+    repRoster: state.repRoster || null,
   };
 }
 

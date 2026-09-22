@@ -21,6 +21,7 @@ import {
 import {
   fetchCatalog, loadCatalog, addEntry, updateEntry, removeEntry, entriesForCampaign,
 } from "@/lib/presentations-store.js";
+import { getTerritoryBook } from "@/lib/territories.js";
 import { CampaignDetail } from "./campaign-detail.jsx";
 import { NewCampaignForm } from "./new-campaign-form.jsx";
 
@@ -60,6 +61,8 @@ export function CampaignsPage({ resolved }) {
   // one box would silently overwrite real saved checklist/enrichment progress. loadOkRef gates
   // scheduleSave() below so that can't happen.
   const loadOkRef = useRef(false);
+  // Tenant-wide territory book (ADR-002) — read-only here; the Territory Book tool owns editing.
+  const [book, setBook] = useState({});
 
   useEffect(() => {
     let alive = true;
@@ -77,6 +80,11 @@ export function CampaignsPage({ resolved }) {
         setSaveState("load-failed");
       }
     });
+    // The territory book (ADR-002) loads on its OWN promise, deliberately outside the Promise.all
+    // above: it feeds the audience derivation, but a failed read must not set load-failed and
+    // block checklist autosave. No book simply means no territory-derived scope, and the campaign
+    // falls back to its own assignments exactly as before.
+    getTerritoryBook(resolved).then((b) => alive && setBook(b || {})).catch(() => alive && setBook({}));
     return () => { alive = false; };
   }, [resolved.id]);
 
@@ -172,8 +180,8 @@ export function CampaignsPage({ resolved }) {
   };
 
   const campaigns = useMemo(
-    () => (defs || []).map((d) => mergeCampaign(d, entries[d.id] || {})),
-    [defs, entries]
+    () => (defs || []).map((d) => mergeCampaign(d, entries[d.id] || {}, book)),
+    [defs, entries, book]
   );
   const byId = useMemo(() => Object.fromEntries(campaigns.map((c) => [c.id, c])), [campaigns]);
   // Open/closed split (Rick, 2026-09-21): "campaigns in flight" — the type pills below only ever
@@ -229,6 +237,7 @@ export function CampaignsPage({ resolved }) {
           onDelete={handleDeleted}
           onSaveNow={flush}
           entry={entries[open.id] || {}}
+          book={book}
           contentItems={entriesForCampaign(library, open.id)}
           onAddContent={(piece) => addContent(open.id, piece)}
           onPatchContent={patchContentItem}

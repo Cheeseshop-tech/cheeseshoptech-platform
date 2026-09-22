@@ -198,6 +198,37 @@ migration pass. "Lock in territory" ADDS a rep to each matched account instead o
 whoever was there, and each account row's checkbox is scoped to one rep.
 
 
+## Revision 5 — shipped (2026-09-22)
+
+Revision 4's roster and ADR-002's territory book are both built and wired into the campaign
+manager. What shipped, and where it differs from the design below:
+
+- **`RepVisitsPanel` and `RepTerritoryCard` are gone**, replaced by `RepRosterPanel`
+  (campaign-detail.jsx). Territory *editing* moved out of the campaign entirely, into the
+  Territory Book tool — a territory outlives the campaign, so a campaign panel is the wrong owner.
+  The campaign panel reads the book and shows what each rostered rep covers.
+- **`repRoster`** added to campaign-state.js: `{source, reps: {email: {name, phone, jobtitle,
+  addedAt, emailedAt, dropped}}}`, capped at 200, email-validated. Dropping a rep sets `dropped`
+  rather than deleting — having emailed someone is a fact about the past.
+- **`mergeCampaign(def, state, book)`** takes the book as an optional third argument. Precedence:
+  hand-qualified `audience.companyIds` → roster×territory scope → legacy `accountAssignments` →
+  legacy region filter. A campaign with no roster behaves exactly as it did before.
+- **`rosterEmails()` / `repProgress()`** added to campaigns.js. Progress is derived from facts
+  already recorded (roster `emailedAt`, rep-call `outcome`/`territory`, book account count) — four
+  independent dots, not a funnel.
+- The book loads on its **own** promise in campaigns-page.jsx, outside the `Promise.all` that sets
+  `loadOkRef`: a failed book read must not block checklist autosave. No book simply means no
+  territory-derived scope.
+
+Verified against the real modules in the browser: a one-rep roster pulls only that rep's
+territories (another rep's accounts stay out — the roster filter is what makes a shared book safe),
+two reps dedupe a shared account, a dropped rep is excluded, a campaign with no roster still falls
+back to its own assignments, hand-qualified ids still win, and a null book leaves the audience
+untouched rather than narrowing it to nothing.
+
+Not verified: anything needing live CRM data or Netlify Functions — localhost serves neither.
+
+
 ## Revision 4 — rep-first model (2026-09-22) — DESIGNED, PARTLY SUPERSEDED
 
 > **Superseded in part by `docs/ADR-002_territory-as-first-class-entity_2026-09-22.md`.** The
