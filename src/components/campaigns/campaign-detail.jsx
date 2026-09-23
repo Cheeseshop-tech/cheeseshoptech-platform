@@ -28,6 +28,9 @@ import {
 // The tenant-wide territory book (ADR-002) — read-only here. Editing lives in the Territory Book
 // tool, because a territory outlives any one campaign.
 import { territoriesOfRep, accountIdsOfRep } from "@/lib/territories.js";
+// Per-recipient email drafts. Documents travel as LINKS — a compose URL has no attachment
+// parameter — and nothing is ever sent: every draft opens for a human to read first.
+import { buildDraft, emailScripts, firstNameOf, DEFAULT_TEMPLATE } from "@/lib/mail-merge.js";
 import { getCrmData, CHANNEL_TO_AUDIENCE, regionOf, stateOf, composeUrl, addressOf } from "@/lib/crm.js";
 import { uploadDocument } from "@/lib/cloudinary.js";
 import { MediaDocumentPicker } from "@/components/media/media-document-picker.jsx";
@@ -236,7 +239,7 @@ export function CampaignDetail({
       >
         <RepRosterPanel
           c={c} resolved={resolved} canWrite={canWrite} onPatch={onPatch} saveState={saveState}
-          book={book}
+          book={book} contentItems={contentItems}
         />
       </Section>
 
@@ -546,7 +549,7 @@ function normCompany(s) {
 // (campaign-rep-calls), accounts (the book). Four independent facts, not a funnel — a rep can hand
 // over their territory in the first email reply, or take three calls and never name one.
 
-function RepRosterPanel({ c, resolved, canWrite, onPatch, saveState = "idle", book = {} }) {
+function RepRosterPanel({ c, resolved, canWrite, onPatch, saveState = "idle", book = {}, contentItems = [] }) {
   // Memoized rather than `c.repRoster || {}` inline: the fallback literal is a new object every
   // render, which would re-run every derivation below even when the roster hasn't changed.
   const roster = useMemo(() => c.repRoster || {}, [c.repRoster]);
@@ -701,23 +704,49 @@ function RepRosterPanel({ c, resolved, canWrite, onPatch, saveState = "idle", bo
     toCall: rows.filter((r) => r.progress.emailed && !r.progress.called).length,
   }), [rows, book]);
 
-  /** Open one compose addressed to everyone given, and record that they were emailed. The stamp is
-   *  written only for the reps actually in this send — `emailedAt` is what the ✉ dot reads, so it
-   *  must describe something that happened, not something intended. */
-  function emailThese(list) {
-    if (!list.length) return;
-    const to = list.map((r) => r.email).join(",");
-    const url = composeUrl({ calendar: resolved.calendar, to, subject: c.name || "" });
+  // The campaign's posted email copy, and the documents that may travel with it. See
+  // src/lib/mail-merge.js for why documents become LINKS and why only approved ones are included.
+  const scripts = useMemo(() => emailScripts(contentItems, { entryCategory, entryStatus }), [contentItems]);
+  const [scriptId, setScriptId] = useState("");
+  const script = useMemo(
+    () => scripts.find((s) => s.id === scriptId) || scripts[0] || null,
+    [scripts, scriptId]
+  );
+  const template = useMemo(() => (script
+    ? { subject: script.title || c.name || "", body: script.body }
+    : DEFAULT_TEMPLATE), [script, c.name]);
+
+  const docs = c.documents || [];
+  const sender = resolved.calendar?.address || "";
+
+  /**
+   * Draft ONE rep's email and stamp them emailed.
+   *
+   * One at a time, never a batch: a browser blocks the second and later popups from a single
+   * click anyway, but more importantly each draft is meant to be read before it goes. The stamp is
+   * written when the composer opens — `emailedAt` is what the ✉ dot reads, so it has to describe
+   * something that actually happened, not something intended.
+   */
+  function draftFor(row) {
+    const d = buildDraft({
+      recipient: { name: row.name, email: row.email, company: source },
+      campaign: c, documents: docs, template, sender,
+    });
     const a = document.createElement("a");
-    a.href = url; a.target = "_blank"; a.rel = "noreferrer";
+    a.href = composeUrl({ calendar: resolved.calendar, to: d.to, subject: d.subject, body: d.body });
+    a.target = "_blank"; a.rel = "noreferrer";
     a.click();
-    const now = new Date().toISOString();
-    const next = { ...reps };
-    for (const r of list) next[r.email] = { ...(next[r.email] || {}), emailedAt: next[r.email]?.emailedAt || now };
-    patchRoster(next);
+    patchRoster({ ...reps, [row.email]: { ...(reps[row.email] || {}), emailedAt: reps[row.email]?.emailedAt || new Date().toISOString() } });
   }
 
   const notYetEmailed = ordered.filter((r) => !r.progress.emailed);
+  const nextToDraft = notYetEmailed[0] || null;
+  const preview = useMemo(() => (nextToDraft
+    ? buildDraft({
+        recipient: { name: nextToDraft.name, email: nextToDraft.email, company: source },
+        campaign: c, documents: docs, template, sender,
+      })
+    : null), [nextToDraft, c, docs, template, sender, source]);
 
   return (
     <div className="space-y-5">
@@ -802,10 +831,10 @@ function RepRosterPanel({ c, resolved, canWrite, onPatch, saveState = "idle", bo
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <RowSaveStatus state={callSave} />
-              {notYetEmailed.length > 0 && (
-                <Button size="sm" disabled={!canWrite} onClick={() => emailThese(notYetEmailed)}>
+              {nextToDraft && (
+                <Button size="sm" disabled={!canWrite} onClick={() => draftFor(nextToDraft)}>
                   <Mail className="mr-1.5 h-4 w-4" />
-                  Email the {notYetEmailed.length} not yet emailed
+                  Draft next — {firstNameOf(nextToDraft.name)} ({notYetEmailed.length} left)
                 </Button>
               )}
               <Button
@@ -819,6 +848,42 @@ function RepRosterPanel({ c, resolved, canWrite, onPatch, saveState = "idle", bo
               </Button>
             </div>
           </div>
+
+          {/* What each draft will actually say, resolved for the next recipient. A merge you
+              can't see before it fires is a merge that goes out wrong twelve times. */}
+          {preview && (
+            <details className="rounded-lg border border-border">
+              <summary className="cursor-pointer px-3 py-2 text-sm">
+                Preview the draft for <strong>{nextToDraft.name}</strong>
+                {" — "}{preview.documentCount} document{preview.documentCount === 1 ? "" : "s"} attached as links
+                {preview.withheldCount > 0 && `, ${preview.withheldCount} withheld (not approved)`}
+              </summary>
+              <div className="space-y-2 border-t border-border p-3">
+                {scripts.length > 1 && (
+                  <select
+                    aria-label="Email copy to merge from"
+                    className="h-9 w-full max-w-sm rounded-md border border-border bg-bg px-2 text-sm"
+                    value={script?.id || ""}
+                    onChange={(e) => setScriptId(e.target.value)}
+                  >
+                    {scripts.map((s) => <option key={s.id} value={s.id}>{s.title || "Untitled copy"}</option>)}
+                  </select>
+                )}
+                <p className="text-xs text-fg-muted">
+                  {script
+                    ? <>Merging from posted copy: <strong>{script.title || "Untitled"}</strong>.</>
+                    : <>No posted <em>Email campaigns</em> copy on this campaign yet, so this is a blank
+                       starter. Write one in <strong>Content &amp; approvals</strong> above and post it.</>}
+                  {" "}Documents go as links — an email composer can’t carry attachments.
+                </p>
+                <div className="rounded-md bg-bg-subtle p-2 text-sm">
+                  <div><span className="text-fg-muted">To:</span> {preview.to}</div>
+                  <div><span className="text-fg-muted">Subject:</span> {preview.subject}</div>
+                  <pre className="mt-2 whitespace-pre-wrap font-sans text-sm">{preview.body}</pre>
+                </div>
+              </div>
+            </details>
+          )}
 
           <ul className="space-y-2">
             {ordered.map((r) => (
@@ -843,7 +908,10 @@ function RepRosterPanel({ c, resolved, canWrite, onPatch, saveState = "idle", bo
                   </div>
                   <div className="flex shrink-0 flex-wrap gap-2">
                     {r.phone && <PhoneInline phone={r.phone} />}
-                    <EmailInline resolved={resolved} to={r.email} subject={c.name || ""} />
+                    <Button size="sm" variant="outline" disabled={!canWrite} onClick={() => draftFor(r)}>
+                      <Mail className="mr-1.5 h-4 w-4" />
+                      {r.progress.emailed ? "Draft again" : "Draft email"}
+                    </Button>
                     <Button size="sm" variant="outline" onClick={() => setOpenRep(openRep === r.email ? "" : r.email)}>
                       {openRep === r.email ? "Close" : "Log call"}
                     </Button>
