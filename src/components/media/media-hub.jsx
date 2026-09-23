@@ -244,7 +244,9 @@ export function MediaHub({ resolved }) {
         </div>
         {canUpload(user) && (
           <>
-            <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml,image/gif,.png,.jpg,.jpeg,.webp,.svg,.gif" multiple hidden onChange={onFilesSelected} />
+            {/* 2026-09-23: PDFs accepted (spec sheets, sales sheets). uploadAsset() posts them to image/upload,
+                the same storage the 7 oz spec sheets use, so they get a page-1 thumbnail and land in Documents. */}
+            <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml,image/gif,application/pdf,.png,.jpg,.jpeg,.webp,.svg,.gif,.pdf" multiple hidden onChange={onFilesSelected} />
             <Button variant="primary" onClick={onUpload} disabled={uploading}>
               <Upload className="h-4 w-4" /> {uploading ? "Uploading…" : "Upload"}
             </Button>

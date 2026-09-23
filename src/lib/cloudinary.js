@@ -241,6 +241,11 @@ export async function uploadAsset({ file, tenantFolder, subfolder = "raw", cloud
     title,
     usage,
     approvalState: "draft",
+    // 2026-09-23: a PDF uploaded here is a document, not a photo -- flag it the same way
+    // media-list.js does so the fresh tile renders as a document before the next reload.
+    ...((r.format || "").toLowerCase() === "pdf"
+      ? { kind: "document", docType: /spec[-_ ]?sheet|scheda/i.test(title) ? "spec-sheet" : "other" }
+      : { kind: "image" }),
     format: r.format,
     width: r.width,
     height: r.height,

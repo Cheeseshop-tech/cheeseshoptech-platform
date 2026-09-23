@@ -53,7 +53,10 @@ function docTypeOf(r) {
   const id = (r.public_id || "").toLowerCase();
   const explicit = DOC_TYPES.find((t) => tags.includes(t));
   if (explicit) return explicit;
-  if (/spec[-_]?sheet|scheda/.test(id)) return "spec-sheet";
+  // 2026-09-23: Hub uploads get an auto-generated public_id, so the name the uploader typed
+  // (stored as the caption) is the only place "04176-specsheet" survives -- check it too.
+  const caption = (r.context?.custom?.caption || "").toLowerCase();
+  if (/spec[-_ ]?sheet|scheda/.test(id) || /spec[-_ ]?sheet|scheda/.test(caption)) return "spec-sheet";
   if (/sell[-_]?sheet|sales[-_]?sheet|quote|proposal/.test(id)) return "sales-sheet";
   if (/\/presentations?\//.test(id) || /\bdeck\b/.test(id)) return "presentation";
   if (tags.includes("email-campaign")) return "email-campaign";
