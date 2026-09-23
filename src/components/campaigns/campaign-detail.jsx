@@ -627,21 +627,38 @@ function RepRosterPanel({ c, resolved, canWrite, onPatch, saveState = "idle", bo
     }
   }
 
-  // Candidate reps: live HubSpot contacts at the distributor named in `source`.
+  // Candidate reps: live HubSpot contacts at the distributor named in `source`, UNIONED with the
+  // campaign's own seeded rep list (audience.salesReps).
+  //
+  // The union is not belt-and-braces — it's load-bearing. HubSpot and the seeded list genuinely
+  // disagree: Michael Cannillo (mcannillo@aceendico.com) is in the seed and in no HubSpot import,
+  // and Rick confirmed 2026-09-22 that he doesn't appear in the live CRM either. Reading only live
+  // HubSpot would make him — and anyone else in that gap — impossible to put on a roster, which is
+  // strictly worse than the panel this replaced, since the old Sales Rep Contacts panel read the
+  // seed. `inHubspot: false` is surfaced in the UI rather than papered over: a rep you can call but
+  // can't find in the CRM is a record that needs creating, and hiding that just loses the fact.
   const candidates = useMemo(() => {
     const needle = normCompany(source);
-    if (!needle || !crm?.people?.length) return [];
-    const seen = new Set();
-    return crm.people
-      .filter((p) => p.email && p.company && normCompany(p.company).includes(needle))
-      .filter((p) => {
+    const byEmail = new Map();
+    if (needle && crm?.people?.length) {
+      for (const p of crm.people) {
+        if (!p.email || !p.company || !normCompany(p.company).includes(needle)) continue;
         const k = p.email.toLowerCase();
-        if (seen.has(k)) return false;
-        seen.add(k);
-        return true;
-      })
+        if (!byEmail.has(k)) byEmail.set(k, { ...p, inHubspot: true });
+      }
+    }
+    // Seeded reps show whether or not a source has been typed — they belong to this campaign, not
+    // to a HubSpot lookup, so they shouldn't be gated behind one.
+    for (const r of c.audience?.salesReps || []) {
+      const k = String(r.email || "").toLowerCase();
+      if (!k || byEmail.has(k)) continue;
+      byEmail.set(k, { ...r, email: k, inHubspot: false });
+    }
+    return [...byEmail.values()]
       .sort((a, b) => String(a.name || a.email).localeCompare(String(b.name || b.email)));
-  }, [crm, source]);
+  }, [crm, source, c.audience?.salesReps]);
+
+  const missingFromCrm = useMemo(() => candidates.filter((p) => !p.inHubspot).length, [candidates]);
 
   const shown = useMemo(() => {
     const needle = q.trim().toLowerCase();
@@ -727,10 +744,12 @@ function RepRosterPanel({ c, resolved, canWrite, onPatch, saveState = "idle", bo
 
       {crm === undefined ? (
         <p className="text-sm text-fg-muted">Loading contacts…</p>
-      ) : !source.trim() ? (
-        <p className="text-sm text-fg-muted">Name the distributor above to load their reps.</p>
       ) : candidates.length === 0 ? (
-        <p className="text-sm text-fg-muted">No HubSpot contacts matched “{source}”.</p>
+        <p className="text-sm text-fg-muted">
+          {source.trim()
+            ? `No contacts matched “${source}”, and this campaign has no seeded rep list.`
+            : "Name the distributor above to load their reps."}
+        </p>
       ) : (
         <div className="space-y-2">
           <Input
@@ -750,14 +769,23 @@ function RepRosterPanel({ c, resolved, canWrite, onPatch, saveState = "idle", bo
                   disabled={!canWrite}
                   onClick={() => toggleRoster(p)}
                   className={`rounded-full border px-3 py-1 text-sm ${on ? "border-brand-primary bg-brand-primary text-white" : "border-border text-fg-muted hover:border-brand-primary"}`}
-                  title={p.jobtitle || p.email}
+                  title={p.inHubspot ? (p.jobtitle || p.email) : `${p.jobtitle || p.email} — not found in HubSpot`}
                 >
                   {on ? "✓ " : "+ "}{p.name || p.email}
+                  {/* Not a warning about the rep — a pointer at a CRM record that needs creating.
+                      They stay fully selectable; the campaign shouldn't wait on data entry. */}
+                  {!p.inHubspot && <span className="ml-1 opacity-70" aria-label="not in HubSpot">·CRM?</span>}
                 </button>
               );
             })}
           </div>
-          <p className="text-xs text-fg-muted">{shown.length} of {candidates.length} contacts shown.</p>
+          <p className="text-xs text-fg-muted">
+            {shown.length} of {candidates.length} contacts shown.
+            {missingFromCrm > 0 && (
+              <> {missingFromCrm} marked <strong>·CRM?</strong> are on this campaign’s own rep list
+              but not in HubSpot — you can roster them now; they’re worth adding to the CRM.</>
+            )}
+          </p>
         </div>
       )}
 
