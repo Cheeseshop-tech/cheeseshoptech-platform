@@ -7,7 +7,10 @@
     "url": "https://www.thegrocer.co.uk/news/asda-to-roll-out-inpost-parcel-lockers-to-700-stores-nationwide/723880.article",
     "source": "The Grocer",
     "date": "2026-09-22",
-    "tags": ["uk-retail", "store-services"]
+    "tags": [
+      "uk-retail",
+      "store-services"
+    ]
   },
   {
     "id": "news-2026-09-21-01",
@@ -17,7 +20,11 @@
     "url": "https://www.dairyreporter.com/Article/2026/09/21/milkscape-milkpep-unveils-dairy-milk-intelligence-hub/",
     "source": "DairyReporter",
     "date": "2026-09-21",
-    "tags": ["retail-data", "category-management", "dairy"]
+    "tags": [
+      "retail-data",
+      "category-management",
+      "dairy"
+    ]
   },
   {
     "id": "news-2026-09-21-05",
@@ -27,37 +34,39 @@
     "url": "https://www.dairyreporter.com/Article/2026/09/21/from-protein-to-lactose-free-the-dairy-categories-driving-growth/",
     "source": "DairyReporter",
     "date": "2026-09-21",
-    "tags": ["basket-size", "cross-merchandising", "shopper-data"]
+    "tags": [
+      "basket-size",
+      "cross-merchandising",
+      "shopper-data"
+    ]
   },
   {
-    "id": "news-2026-09-21-04",
+    "id": "news-2026-09-24-01",
     "category": "trade",
-    "headline": "Kroger cuts its 2026 same-store sales outlook",
-    "summary": "Kroger trimmed full-year identical-store sales guidance to 0.2%-0.8% from 1%-2% — a signal that grocery volume pressure is broadening beyond perishables into overall basket growth.",
-    "url": "https://www.supermarketnews.com/finance/kroger-cuts-same-store-sales-outlook-for-2026",
-    "source": "Supermarket News",
-    "date": "2026-09-11",
-    "tags": ["kroger", "sales-outlook", "grocery-finance"]
-  },
-  {
-    "id": "news-2026-09-21-02",
-    "category": "trade",
-    "headline": "East Hill Creamery named Grand Champion at NY State Dairy Products Competition",
-    "summary": "187 entries across 26 categories this year — a good regional credibility signal and sourcing lead for buyers building out an artisanal/award-winning cheese set.",
-    "url": "https://cheesereporter.com/contests-awards/2026/09/10/east-hill-creamery-named-grand-champion-in-new-york-state-2026-dairy-products-competition/",
+    "headline": "Senate Ag Committee passes Farm Bill; dairy groups back the dairy title",
+    "summary": "The Agricultural Act of 2026 removes the Dairy Forward Pricing sunset, reauthorizes the indemnity program to 2031, and adds mandatory cost/yield reporting to AMS — the pricing framework your import and domestic competitors will be quoting off.",
+    "url": "https://cheesereporter.com/news/policy-legislation/2026/09/18/senate-ag-committee-passes-farm-bill-dairy-groups-praise-legislation/",
     "source": "Cheese Reporter",
-    "date": "2026-09-10",
-    "tags": ["awards", "artisanal", "sourcing"]
+    "date": "2026-09-18",
+    "tags": [
+      "farm-bill",
+      "dairy-policy",
+      "pricing"
+    ]
   },
   {
-    "id": "news-2026-09-21-03",
+    "id": "news-2026-09-24-02",
     "category": "trade",
-    "headline": "Irish buffalo cheese maker recalls mozzarella and bocconcini over Listeria",
-    "summary": "Macroom Buffalo Cheese pulled all 125g mozzarella and 160g bocconcini packs with a use-by date of Sept. 7 — worth checking import/distribution lists for exposure.",
-    "url": "https://www.dairyreporter.com/Article/2026/09/02/irish-buffalo-cheese-maker-pulls-products-due-to-listeria/",
-    "source": "DairyReporter",
-    "date": "2026-09-02",
-    "tags": ["recall", "food-safety", "listeria"]
+    "headline": "USTR opens comment window on foreign trade barriers hitting US exporters",
+    "summary": "Input feeds the annual National Trade Estimate report — the document that shapes next year's tariff and market-access fights, which is where DOP import economics get decided.",
+    "url": "https://cheesereporter.com/news/global-trade-tariffs/2026/09/18/ustr-seeks-comments-on-foreign-trade-barriers-faced-by-us-exporters/",
+    "source": "Cheese Reporter",
+    "date": "2026-09-18",
+    "tags": [
+      "tariffs",
+      "trade-policy",
+      "imports"
+    ]
   },
   {
     "id": "news-2026-09-18-04",
@@ -67,7 +76,24 @@
     "url": "https://retailslop.substack.com/p/retail-around-the-world-18-september-cdb",
     "source": "Retail Around The World (Howard Lake)",
     "date": "2026-09-18",
-    "tags": ["curbside", "instacart", "grocery-ops"]
+    "tags": [
+      "curbside",
+      "instacart",
+      "grocery-ops"
+    ]
+  },
+  {
+    "id": "news-2026-09-24-03",
+    "category": "trade",
+    "headline": "WCMA extends free dairy export consulting to 10 more midwestern states",
+    "summary": "Processors in IL, IN, IA, KS, MI, MN, MO, NE, OH and SD can now tap WCMA export help — a signal domestic makers are being pushed hard toward export volume, which loosens domestic specialty shelf competition.",
+    "url": "https://cheesereporter.com/news/global-trade-tariffs/2026/09/17/wcma-expands-free-dairy-export-consultation-services-to-10-additional-states/",
+    "source": "Cheese Reporter",
+    "date": "2026-09-17",
+    "tags": [
+      "exports",
+      "domestic-supply"
+    ]
   },
   {
     "id": "news-2026-09-18-02",
@@ -77,7 +103,11 @@
     "url": "https://www.ams.usda.gov/mnreports/dywweeklyreport.pdf",
     "source": "USDA AMS Dairy Market News",
     "date": "2026-09-17",
-    "tags": ["pricing", "cme", "cheddar"]
+    "tags": [
+      "pricing",
+      "cme",
+      "cheddar"
+    ]
   },
   {
     "id": "news-2026-09-18-03",
@@ -87,7 +117,11 @@
     "url": "https://www.grocerydive.com/news/august-tough-month-grocery-unit-sales-perishables/830644/",
     "source": "Grocery Dive",
     "date": "2026-09-17",
-    "tags": ["grocery-sales", "food-safety", "perishables"]
+    "tags": [
+      "grocery-sales",
+      "food-safety",
+      "perishables"
+    ]
   },
   {
     "id": "news-2026-09-18-01",
@@ -97,7 +131,94 @@
     "url": "https://cheesereporter.com/news/global-trade-tariffs/2026/09/16/global-dairy-trade-price-index-falls-1-1-cheddar-price-jumps-16-5/",
     "source": "Cheese Reporter",
     "date": "2026-09-16",
-    "tags": ["pricing", "cheddar", "global-trade"]
+    "tags": [
+      "pricing",
+      "cheddar",
+      "global-trade"
+    ]
+  },
+  {
+    "id": "news-2026-09-24-04",
+    "category": "trade",
+    "headline": "Kroger's private label outpaces national brands again in Q2",
+    "summary": "Private Selection grew 14%+ and Kroger added 600+ health and organic SKUs — premium own-brand is taking the trade-up slot, so a named-origin DOP pitch has to beat Private Selection, not just the commodity block.",
+    "url": "https://www.grocerydive.com/news/kroger-private-label-second-quarter-2026/830260/",
+    "source": "Grocery Dive",
+    "date": "2026-09-14",
+    "tags": [
+      "private-label",
+      "kroger",
+      "premium"
+    ]
+  },
+  {
+    "id": "news-2026-09-21-04",
+    "category": "trade",
+    "headline": "Kroger cuts its 2026 same-store sales outlook",
+    "summary": "Kroger trimmed full-year identical-store sales guidance to 0.2%-0.8% from 1%-2% — a signal that grocery volume pressure is broadening beyond perishables into overall basket growth.",
+    "url": "https://www.supermarketnews.com/finance/kroger-cuts-same-store-sales-outlook-for-2026",
+    "source": "Supermarket News",
+    "date": "2026-09-11",
+    "tags": [
+      "kroger",
+      "sales-outlook",
+      "grocery-finance"
+    ]
+  },
+  {
+    "id": "news-2026-09-24-06",
+    "category": "consumer",
+    "headline": "Beverages lead growth across mainstream and emerging food retail categories",
+    "summary": "Circana-style category read showing where incremental shopper dollars are going — useful for arguing cheese placement in beverage-adjacent and snacking occasions rather than the deli case alone.",
+    "url": "https://cheesereporter.com/news/consumer-retail/2026/09/10/beverages-drive-growth-in-mainstream-and-emerging-food-retail-categories/",
+    "source": "Cheese Reporter",
+    "date": "2026-09-10",
+    "tags": [
+      "category-growth",
+      "snacking"
+    ]
+  },
+  {
+    "id": "news-2026-09-21-02",
+    "category": "trade",
+    "headline": "East Hill Creamery named Grand Champion at NY State Dairy Products Competition",
+    "summary": "187 entries across 26 categories this year — a good regional credibility signal and sourcing lead for buyers building out an artisanal/award-winning cheese set.",
+    "url": "https://cheesereporter.com/contests-awards/2026/09/10/east-hill-creamery-named-grand-champion-in-new-york-state-2026-dairy-products-competition/",
+    "source": "Cheese Reporter",
+    "date": "2026-09-10",
+    "tags": [
+      "awards",
+      "artisanal",
+      "sourcing"
+    ]
+  },
+  {
+    "id": "news-2026-09-21-03",
+    "category": "trade",
+    "headline": "Irish buffalo cheese maker recalls mozzarella and bocconcini over Listeria",
+    "summary": "Macroom Buffalo Cheese pulled all 125g mozzarella and 160g bocconcini packs with a use-by date of Sept. 7 — worth checking import/distribution lists for exposure.",
+    "url": "https://www.dairyreporter.com/Article/2026/09/02/irish-buffalo-cheese-maker-pulls-products-due-to-listeria/",
+    "source": "DairyReporter",
+    "date": "2026-09-02",
+    "tags": [
+      "recall",
+      "food-safety",
+      "listeria"
+    ]
+  },
+  {
+    "id": "news-2026-09-24-07",
+    "category": "consumer",
+    "headline": "'Girl dinner' and shareable meals keep pulling demand toward artisan cheese",
+    "summary": "Artisan cheese grew 9% year over year on sharable, protein-forward small-plate eating among Gen Z and millennials — the clearest current demand story to lead a fall cut-and-wrap or board program with.",
+    "url": "https://www.dairyfoods.com/articles/99387-how-the-girl-dinner-trend-is-driving-artisan-cheese-innovation-in-retail-and-foodservice",
+    "source": "Dairy Foods",
+    "date": "2026-09-01",
+    "tags": [
+      "artisan-cheese",
+      "snacking",
+      "gen-z"
+    ]
   },
   {
     "id": "news-2026-09-01-01",
@@ -107,6 +228,10 @@
     "url": "https://cheesereporter.com/column/2026/08/28/cheese-prominent-in-canadian-trade-dispute/",
     "source": "Cheese Reporter",
     "date": "2026-08-28",
-    "tags": ["tariffs", "canada", "trade-dispute"]
+    "tags": [
+      "tariffs",
+      "canada",
+      "trade-dispute"
+    ]
   }
 ]
