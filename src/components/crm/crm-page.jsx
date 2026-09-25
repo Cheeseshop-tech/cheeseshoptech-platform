@@ -356,6 +356,23 @@ export function CrmPage({ resolved, onNavigate }) {
         </div>
       )}
 
+      {/* The feed CAN be empty for two very different reasons — nothing happened, or the HubSpot
+          app has no `sales-email-read` scope so the read never ran. crm-hubspot.js has always
+          reported which (`activityNote`, :127) and until 2026-09-25 nothing in the UI read it, so
+          a disabled integration looked identical to a quiet week. Say which out loud. */}
+      {!(data?.activity?.length || 0) && data?.activityNote && (
+        <div className="resp">
+          <h3>Email activity <span className="muted">(not enabled)</span></h3>
+          <div className="ritem">
+            <div className="rs">
+              {/sales-email-read/.test(data.activityNote)
+                ? "The HubSpot private app is missing the sales-email-read scope, so sends, replies and bounces can't be read. Add it in HubSpot → Settings → Integrations → Private Apps → Scopes."
+                : data.activityNote}
+            </div>
+          </div>
+        </div>
+      )}
+
       <table>
         <thead>
           <tr>
@@ -445,6 +462,7 @@ export function CrmPage({ resolved, onNavigate }) {
           entry={entryOf(lookup)}
           enrichment={enrichment[lookup]}
           activity={data?.activity}
+          activityNote={data?.activityNote}
           calendar={resolved.calendar}
           refreshing={refreshing}
           onClose={() => setLookup(null)}
@@ -460,7 +478,7 @@ export function CrmPage({ resolved, onNavigate }) {
 // outreach status/notes, and any matching recent email activity, plus one-tap Call/Email. This
 // is the "just before a call" window: everything a rep needs in one place, with a Refresh button
 // that re-pulls HubSpot without losing the table's search/filter state underneath.
-function ProspectCard({ company, entry, enrichment, activity, calendar, refreshing, onClose, onPatch, onRefresh }) {
+function ProspectCard({ company, entry, enrichment, activity, activityNote, calendar, refreshing, onClose, onPatch, onRefresh }) {
   if (!company) return null;
   const addr = addressOf(company);
   const mapUrl = mapUrlOf(company);
@@ -549,6 +567,18 @@ function ProspectCard({ company, entry, enrichment, activity, calendar, refreshi
             {related.slice(0, 4).map((a, i) => (
               <div key={i} className="pc-act-item">{a.what} · <span className="muted">{a.when}</span></div>
             ))}
+          </div>
+        )}
+        {/* Same distinction as the page-level feed: "no emails with this account" and "the email
+            integration is switched off" are different facts and should not look the same. */}
+        {related.length === 0 && activityNote && (
+          <div className="pc-activity">
+            <div className="pc-l" style={{ marginBottom: 4 }}>Recent activity</div>
+            <div className="pc-act-item muted">
+              {/sales-email-read/.test(activityNote)
+                ? "Email activity is off — HubSpot app missing the sales-email-read scope."
+                : activityNote}
+            </div>
           </div>
         )}
 
