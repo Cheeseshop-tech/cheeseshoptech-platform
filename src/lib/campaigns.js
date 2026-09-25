@@ -567,8 +567,12 @@ export async function saveCampaignState(resolved, entries) {
 // entriesForCampaign() / postedOfCategory().
 
 // ---- Enrichment capture (Netlify Blobs) ----------------------------------------------------
-// What a phone pass produces. NOT written back to HubSpot — the private app is read-only (see
-// netlify/functions/campaign-enrichment.js header). Leaves as a HubSpot-import CSV instead.
+// What a phone pass produces. Captured here first, then promoted to HubSpot deliberately.
+//
+// CORRECTED 2026-09-25 — this said "NOT written back to HubSpot — the private app is read-only."
+// That stopped being true on 2026-08-16 when netlify/functions/crm-push.js shipped. Cleared rows
+// DO go to HubSpot, via pushToHubspot() below (dry-run first, then commit). The CSV is the
+// fallback path, not the only one.
 
 export const CALL_OUTCOMES = [
   { id: "not-called", label: "Not called", tone: "muted", clears: false },

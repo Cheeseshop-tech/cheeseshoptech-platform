@@ -153,9 +153,11 @@ image, breathable info rail, accordion sections, no parallax). Detail:
 - Product ID + image resolution: `catalog.json`'s active SKU list is the item-number source of
   truth today; a Cloudinary asset's `code`/`sku` context field is the join key for photos AND
   spec sheets; `kind` (`"image"` vs `"document"`) comes from Cloudinary's resource type, never a
-  tag, and only `imageForCode()`/`codeImageUrl()` (`src/lib/images.js`) should ever resolve "the
-  photo for this SKU." Full rule + the 2026-09-18 spec-sheets-as-product-photos bug + fix:
-  `docs/PRODUCT_ID_AND_IMAGE_TRUTH_2026-09-18.md`.
+  tag. `imageForCode()`/`codeImageUrl()` (`src/lib/images.js`) is the resolver you should USE and
+  the one everything should eventually route through — but as of 2026-09-25 it is not the only one
+  in production (buyer-catalog and studio-director each resolve their own way; see the TRIGGER
+  block above). Add no fourth path. Full rule + the 2026-09-18 spec-sheets-as-product-photos bug +
+  fix: `docs/PRODUCT_ID_AND_IMAGE_TRUTH_2026-09-18.md`.
 
 ## Task routing
 

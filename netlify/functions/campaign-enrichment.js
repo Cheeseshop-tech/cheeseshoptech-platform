@@ -2,13 +2,24 @@
 // (Rick, 2026-08-03 feedback: "how will we track phone call notes and fill in the enrichment so
 // that it uploads to HubSpot?").
 //
-// WHY THIS IS A STORE AND NOT A HUBSPOT WRITE. The HubSpot private app is READ-ONLY by design:
-// crm-hubspot.js declares crm.objects.companies.read / crm.objects.contacts.read / sales-email-read
-// and every call it makes is a POST to HubSpot's /search endpoint, which is a read. There is no
-// write scope anywhere in this codebase. So a call outcome CANNOT go straight back to HubSpot
-// today. It lands here, and leaves as a HubSpot-import-shaped CSV (see enrichmentCsv() in
-// src/lib/campaigns.js). Turning that into a live write needs `crm.objects.contacts.write` on the
-// private app plus a push function — a deliberate decision, not something to switch on quietly.
+// WHY THIS IS A STORE AND NOT A HUBSPOT WRITE. A phone pass produces facts the moment they are
+// spoken, and HubSpot is the CRM of record — so capture lands here first, unconditionally, and
+// promotion to HubSpot is a separate, deliberate step. This store is the capture buffer, not a
+// dead end.
+//
+// CORRECTED 2026-09-25 — this comment previously said "There is no write scope anywhere in this
+// codebase" and that an outcome "CANNOT go straight back to HubSpot today." Both were true when
+// written and became false on 2026-08-16, when netlify/functions/crm-push.js shipped. That
+// function IS the live write path: it requires `crm.objects.contacts.write` on the private app,
+// dry-runs by default, accepts only CLEARED rows (email AND buyer name), and resolves companies
+// domain-first with an unambiguous-name fallback. Reached from pushToHubspot() in
+// src/lib/campaigns.js and the PushDialog in campaign-detail.jsx.
+//
+// So there are now TWO exits from this store, and the CSV is the fallback, not the only door:
+//   1. LIVE PUSH — crm-push.js, dry-run then commit. Preferred.
+//   2. CSV — enrichmentCsv() in src/lib/campaigns.js, HubSpot-import shaped. Use when the write
+//      scope is missing or a human wants to eyeball the batch in a spreadsheet first.
+// If you are about to tell Rick to export a CSV by hand, check the push path first.
 //
 // Distinct from crm-outreach.js on purpose: that store is the OUTREACH PIPELINE overlay
 // ({status, note} per company, and its sanitizer drops anything else). Enrichment captures
