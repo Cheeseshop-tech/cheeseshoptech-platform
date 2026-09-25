@@ -106,83 +106,88 @@ const rawHandler = async (event, context) => {
 };
 
 // ---- Email activity (sales-email engagements) ---------------------------------------------
-// 3 requests total: search recent email objects → batch-read their contact associations →
-// batch-read those contacts' names. Maps to the dashboard activity shape {who, what, when}.
+//
+// REWRITTEN 2026-09-26 — now reads the ENGAGEMENTS v1 API, not /crm/v3/objects/emails/search.
+//
+// These are two different APIs with two different scope requirements, and the old code was
+// knocking on the wrong door:
+//   · /crm/v3/objects/emails/search  needs `crm.objects.emails.read` — a scope HubSpot does not
+//     offer in the private-app scope picker (confirmed live on this portal 2026-09-26).
+//   · /engagements/v1/...            needs `sales-email-read` + `crm.objects.contacts.read`,
+//     BOTH of which this app now has. `sales-email-read` IS in the picker — Rick found it and
+//     granted it 2026-09-26, after an earlier note here wrongly called it deprecated/absent.
+//
+// So the old call could never have succeeded, and it 403'd on EVERY crm-hubspot request — one
+// wasted HubSpot API call and one logged error per CRM page load, for months, silently. That is
+// the bug behind the "bunch of API call errors in HubSpot" Rick spotted. A 403 that is handled
+// gracefully is still a 403 on someone's dashboard.
+//
+// Bonus: v1 returns the contact associations inline, so this is ONE request where the old path
+// took three (search → association batch-read → contact batch-read).
 const EMAIL_LIMIT = 20;
+const EMAIL_TYPES = new Set(["EMAIL", "INCOMING_EMAIL", "FORWARDED_EMAIL"]);
 
 async function fetchEmailActivity(token) {
   const headers = { Authorization: `Bearer ${token}`, "content-type": "application/json" };
 
-  // 1) Most recent email engagements.
-  const search = await fetch("https://api.hubapi.com/crm/v3/objects/emails/search", {
-    method: "POST",
-    headers,
-    body: JSON.stringify({
-      limit: EMAIL_LIMIT,
-      sorts: [{ propertyName: "hs_timestamp", direction: "DESCENDING" }],
-      properties: ["hs_timestamp", "hs_email_subject", "hs_email_direction", "hs_email_status"],
-    }),
-  });
-  if (search.status === 403) {
-    // Not an error — the integration just isn't switched on.
-    //
-    // CORRECTED 2026-09-25: this used to name `sales-email-read`, which is the LEGACY Engagements
-    // API scope and was deprecated by HubSpot in September 2025. The call above is against
-    // /crm/v3/objects/emails/search — a CRM object read — so the scope that actually grants it is
-    // `crm.objects.emails.read`, the same family as crm.objects.contacts.read. Naming the dead
-    // scope sent Rick hunting through the scope picker for a string that no longer exists.
-    return { activity: [], activityNote: "HubSpot app lacks the crm.objects.emails.read scope" };
+  // Recent engagements, newest first. `count` is engagements of ALL types, so ask for more than
+  // EMAIL_LIMIT and filter down — otherwise a busy day of calls/notes crowds the emails out.
+  const res = await fetch(
+    `https://api.hubapi.com/engagements/v1/engagements/recent/modified?count=${EMAIL_LIMIT * 5}`,
+    { headers }
+  );
+  if (res.status === 403) {
+    // Still not switched on. Name the scope that ACTUALLY grants this endpoint, and say where.
+    return {
+      activity: [],
+      activityNote: "HubSpot app lacks the sales-email-read scope (Settings → Integrations → Private Apps → Scopes)",
+    };
   }
-  if (!search.ok) throw new Error(`HubSpot emails search ${search.status}`);
-  const emails = (await search.json()).results || [];
+  if (!res.ok) throw new Error(`HubSpot engagements ${res.status}`);
+
+  const results = (await res.json()).results || [];
+  const emails = results
+    .filter((r) => EMAIL_TYPES.has(r.engagement?.type))
+    .slice(0, EMAIL_LIMIT);
   if (!emails.length) return { activity: [] };
 
-  // 2) Email → contact associations (one batch call); 3) contact names (one batch call).
-  // Both are enrichment — the feed still works if either fails.
-  const contactIdByEmail = {};
+  // Contact names, one batch call. Pure enrichment — the feed still renders without it, showing
+  // "Outbound email" instead of a person's name.
   const contactNames = {};
-  try {
-    const assocRes = await fetch("https://api.hubapi.com/crm/v4/associations/emails/contacts/batch/read", {
-      method: "POST",
-      headers,
-      body: JSON.stringify({ inputs: emails.map((e) => ({ id: e.id })) }),
-    });
-    if (assocRes.ok) {
-      for (const a of ((await assocRes.json()).results || [])) {
-        const cid = a.to?.[0]?.toObjectId;
-        if (cid != null && a.from?.id) contactIdByEmail[a.from.id] = String(cid);
-      }
-      const ids = [...new Set(Object.values(contactIdByEmail))];
-      if (ids.length) {
-        const cRes = await fetch("https://api.hubapi.com/crm/v3/objects/contacts/batch/read", {
-          method: "POST",
-          headers,
-          body: JSON.stringify({
-            inputs: ids.map((id) => ({ id })),
-            properties: ["firstname", "lastname", "email", "company"],
-          }),
-        });
-        if (cRes.ok) {
-          for (const c of ((await cRes.json()).results || [])) {
-            const p = c.properties || {};
-            const name = [p.firstname, p.lastname].filter(Boolean).join(" ") || p.email || "";
-            contactNames[c.id] = p.company ? `${name} — ${p.company}` : name;
-          }
+  const ids = [...new Set(emails.flatMap((e) => e.associations?.contactIds || []).map(String))].slice(0, 100);
+  if (ids.length) {
+    try {
+      const cRes = await fetch("https://api.hubapi.com/crm/v3/objects/contacts/batch/read", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          inputs: ids.map((id) => ({ id })),
+          properties: ["firstname", "lastname", "email", "company"],
+        }),
+      });
+      if (cRes.ok) {
+        for (const c of ((await cRes.json()).results || [])) {
+          const p = c.properties || {};
+          const name = [p.firstname, p.lastname].filter(Boolean).join(" ") || p.email || "";
+          contactNames[c.id] = p.company ? `${name} — ${p.company}` : name;
         }
       }
-    }
-  } catch { /* enrichment only */ }
+    } catch { /* enrichment only */ }
+  }
 
   const activity = emails.map((e) => {
-    const p = e.properties || {};
-    const subject = p.hs_email_subject || "(no subject)";
-    const incoming = (p.hs_email_direction || "").includes("INCOMING");
-    const bounced = (p.hs_email_status || "") === "BOUNCED";
+    const meta = e.metadata || {};
+    const subject = meta.subject || "(no subject)";
+    const incoming = e.engagement?.type === "INCOMING_EMAIL";
+    // v1 exposes per-recipient delivery status; BOUNCE anywhere in the thread is worth flagging.
+    const bounced = (meta.status || "") === "BOUNCED"
+      || (meta.to || []).some((t) => (t.status || "") === "BOUNCED");
     const verb = bounced ? "Bounced" : incoming ? "Reply" : "Sent";
+    const cid = (e.associations?.contactIds || [])[0];
     return {
-      who: contactNames[contactIdByEmail[e.id]] || (incoming ? "Inbound email" : "Outbound email"),
+      who: contactNames[String(cid)] || (incoming ? "Inbound email" : "Outbound email"),
       what: `${verb}: ${subject}`,
-      when: relTime(p.hs_timestamp),
+      when: relTime(e.engagement?.timestamp),
     };
   });
   return { activity };
