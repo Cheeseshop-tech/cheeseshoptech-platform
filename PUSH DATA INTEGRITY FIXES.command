@@ -9,6 +9,13 @@
 
 cd "$(dirname "$0")" || exit 1
 
+# NEVER let git open a pager in a .command window. `git log` pipes to `less` whenever the output
+# is taller than the terminal, which silently parks the whole script waiting for a keypress in a
+# window that gives no hint it is waiting. Cost us one confused deploy on 2026-09-26.
+# Belt and braces: env var for every git call, plus --no-pager on the one that prints a list.
+export GIT_PAGER=cat
+export PAGER=cat
+
 echo ""
 echo "======================================================================"
 echo "  PUSHING DATA INTEGRITY FIXES"
@@ -27,7 +34,7 @@ done
 echo ""
 echo "About to push these commits:"
 echo "----------------------------------------------------------------------"
-git log --oneline origin/phase-2-6-build..HEAD
+git --no-pager log --oneline origin/phase-2-6-build..HEAD | cat
 echo "----------------------------------------------------------------------"
 echo ""
 
