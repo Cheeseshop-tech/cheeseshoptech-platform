@@ -357,7 +357,7 @@ export function CrmPage({ resolved, onNavigate }) {
       )}
 
       {/* The feed CAN be empty for two very different reasons — nothing happened, or the HubSpot
-          app has no `sales-email-read` scope so the read never ran. crm-hubspot.js has always
+          app has no `crm.objects.emails.read` scope so the read never ran. crm-hubspot.js has always
           reported which (`activityNote`, :127) and until 2026-09-25 nothing in the UI read it, so
           a disabled integration looked identical to a quiet week. Say which out loud. */}
       {!(data?.activity?.length || 0) && data?.activityNote && (

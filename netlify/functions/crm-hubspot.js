@@ -95,7 +95,7 @@ const rawHandler = async (event, context) => {
       orders: [],
       invoices: [],
       // LIVE (2026-07-06): recent sales-email engagements (sends / replies / bounces) — the
-      // Asiago Touch 1 feed. Needs private-app scope `sales-email-read`; without it this
+      // Asiago Touch 1 feed. Needs private-app scope `crm.objects.emails.read`; without it this
       // degrades to [] and the card hides itself (activityNote says why — check via curl).
       activity: emailActivity.activity,
       ...(emailActivity.activityNote ? { activityNote: emailActivity.activityNote } : {}),
