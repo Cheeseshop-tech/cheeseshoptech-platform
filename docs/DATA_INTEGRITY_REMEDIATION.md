@@ -205,6 +205,57 @@ the bundled file, and `_sentry.js:67` only captures on `>= 500`. A Blobs outage 
 
 ---
 
+---
+
+## HubSpot findings, 2026-09-25 — read before touching CRM scopes again
+
+**The private app already has `crm.objects.contacts.write`.** It has had it since August. Three
+places in the code insisted no HubSpot write path existed — `campaign-enrichment.js`,
+`campaigns.js`, and the on-screen text in the enrichment panel telling Rick to export CSVs. All
+three corrected. `crm-push.js` is and was the live write path.
+
+**Verified end-to-end in dry run** (2026-09-25, 5 real cleared rows): HTTP 200, all five resolved
+to existing contacts as `update`, all five companies `from-account-book`, zero creates, zero
+ambiguous matches, `results: []`. The write itself is the one untested link — a dry run only
+exercises reads.
+
+**DO NOT remove `crm.objects.companies.write`.** An earlier version of this doc recommended
+withholding it to make accidental company creation impossible. That was wrong: the v4 association
+PUT (`crm-push.js:258`) that links contact→company requires it, and every eligible row associates.
+Removing it would 403 the association on all of them. The guard against accidental company
+creation has to live in code instead — the open item is an explicit `allowCompanyCreate: true`
+flag on crm-push, default off, same shape as `--promote` on sync-inventory.
+
+**The email activity feed cannot be enabled on the private app. Stop trying.**
+`crm-hubspot.js` calls `/crm/v3/objects/emails/search`, which needs `crm.objects.emails.read`.
+That scope **is not present in the private-app scope picker** — not for this portal, and per
+multiple HubSpot community reports not for anyone, including Professional + Super Admin. The
+legacy `sales-email-read` it used to name was deprecated by HubSpot in September 2025 and is
+silently dropped from grants. Code comments and UI messages were corrected to name the live scope,
+but the scope is ungrantable, so the feed stays dark until the implementation changes.
+
+Two ways out, neither started — **Rick has not chosen yet**:
+- [ ] **Path 1 (recommended): contact properties.** `notes_last_contacted` and
+      `hs_last_sales_activity_timestamp` are populated on 204 contacts and readable with
+      `crm.objects.contacts.read`, which the app already has. Live, free, no HubSpot change. Also
+      fixes a real bug: the current feed "has no companyId to join on — best-effort match against
+      the shop name" (`crm-page.jsx:473`); contact properties join exactly. Costs the subject line.
+- [ ] **Path 2: connector + publish pipeline.** The HubSpot MCP connector CAN read EMAIL objects
+      (verified: 3,228 records, `readAccess: AVAILABLE`). A scheduled task could publish a digest
+      to Blobs the way market-news/signals/attention/improvement-review already do. Richer, but
+      not live, and it is a fifth publish pipeline — one of the existing four was silently broken
+      for a week. **Note: the connector is available in a Claude session only, never to the app at
+      runtime**, so this is the only way connector data can reach the UI.
+
+**Portal ID: `246062426`** — for direct record URLs.
+
+**Open, needs Rick:** one real `commit: true` push on a single row (Lou Dipalo — existing contact,
+carries a note, company already on the card) to confirm the write scope actually works. If notes
+are a separate scope this will half-succeed and `crm-push.js` reports `noteError` separately, which
+tells us exactly which half is missing.
+
+---
+
 ## Trade-offs — what I am deliberately NOT recommending
 
 - **Not a database.** JSON-in-git gives free history, diffs, and offline fallback, and the
