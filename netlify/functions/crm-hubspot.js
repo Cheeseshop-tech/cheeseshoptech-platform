@@ -229,7 +229,30 @@ async function fetchAllCompanies(token) {
       // for the prospect quick-look card). Power the CRM outreach console's location column,
       // region filter, site links, and the quick-look card's full address. Absent values come
       // back undefined → null below.
-      properties: ["name", CHANNEL_PROPERTY, BUSINESS_TYPE_PROPERTY, "city", "state", "address", "zip", "domain", "phone"],
+      // ENGAGEMENT ROLL-UP (2026-09-26) — notes_last_contacted / notes_last_updated /
+      // num_contacted_notes / hs_last_logged_call_date / hs_last_booked_meeting_date.
+      //
+      // This is the replacement for the email-activity feed, and it is strictly better. The old
+      // feed read /crm/v3/objects/emails/search, which needs `crm.objects.emails.read` — a scope
+      // that is NOT offered in the private-app scope picker for this portal (confirmed live
+      // 2026-09-26; the legacy `sales-email-read` it used to name was deprecated by HubSpot in
+      // Sept 2025). So that feed could never be switched on, whatever anyone ticked.
+      //
+      // HubSpot already rolls the same history up onto the COMPANY object, and it comes free with
+      // crm.objects.companies.read, which this function has always had. notes_last_contacted is
+      // defined by HubSpot as "the last time a call, chat conversation, LinkedIn message, postal
+      // mail, meeting, SALES EMAIL, SMS, or WhatsApp message was logged for a company."
+      //
+      // It also fixes a real defect rather than just working around a scope: the old feed had no
+      // companyId to join on and fell back to substring-matching the shop name (see the comment
+      // in crm-page.jsx's ProspectCard), which mis-attributes "Baldor" vs "Baldor Specialty
+      // Foods". These properties ARE on the company row, so there is no join to get wrong.
+      // Verified populated on 66 companies at time of writing.
+      properties: [
+        "name", CHANNEL_PROPERTY, BUSINESS_TYPE_PROPERTY, "city", "state", "address", "zip", "domain", "phone",
+        "notes_last_contacted", "notes_last_updated", "num_contacted_notes",
+        "hs_last_logged_call_date", "hs_last_booked_meeting_date",
+      ],
       ...(after ? { after } : {}),
     });
     if (!data) break; // degrade: serve what we have rather than 502 the payload
@@ -252,6 +275,15 @@ async function fetchAllCompanies(token) {
         zip: r.properties?.zip || null,
         domain: r.properties?.domain || null,
         phone: r.properties?.phone || null,
+        // Engagement roll-up. `lastContacted` is the headline — the last outbound or logged
+        // touch of any kind, sales email included. `timesContacted` gives it weight: "today, 89
+        // touches" is a very different account from "today, 1". Nulls are expected and normal —
+        // a company nobody has contacted yet simply has none of these.
+        lastContacted: r.properties?.notes_last_contacted || null,
+        lastActivity: r.properties?.notes_last_updated || null,
+        timesContacted: Number(r.properties?.num_contacted_notes) || 0,
+        lastCall: r.properties?.hs_last_logged_call_date || null,
+        lastMeeting: r.properties?.hs_last_booked_meeting_date || null,
       });
     }
     after = data.paging?.next?.after;

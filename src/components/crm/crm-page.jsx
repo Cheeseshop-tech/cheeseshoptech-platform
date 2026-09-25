@@ -94,6 +94,22 @@ const CSS = `
 
 const statusClass = (s) => "status-sel s-" + String(s).replace(/[^A-Za-z]/g, "").replace(/^Nota/, "Nota");
 
+// "today" / "3 days ago" / "on 12 Mar 2026". A rep deciding who to call next thinks in elapsed
+// time, not timestamps — "last contacted 6 weeks ago" is the number that moves a decision, and a
+// raw ISO string makes you do that subtraction in your head. Falls back to an absolute date past
+// ~3 months, where "94 days ago" stops being easier to read than the date itself.
+const sinceLabel = (iso) => {
+  if (!iso) return "—";
+  const t = Date.parse(iso);
+  if (!Number.isFinite(t)) return "—";
+  const days = Math.floor((Date.now() - t) / 86400000);
+  if (days < 0) return "just now";           // clock skew, not worth a scary message
+  if (days === 0) return "today";
+  if (days === 1) return "yesterday";
+  if (days < 90) return `${days} days ago`;
+  return "on " + new Date(t).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
+};
+
 // Minimal, honest prefill for the Gmail-forced compose links below — a greeting stub, not a
 // drafted email. The rep writes the actual message; this just saves retyping "Hi <first name>,".
 const greetingFor = (ownerName) => {
@@ -356,22 +372,14 @@ export function CrmPage({ resolved, onNavigate }) {
         </div>
       )}
 
-      {/* The feed CAN be empty for two very different reasons — nothing happened, or the HubSpot
-          app has no `crm.objects.emails.read` scope so the read never ran. crm-hubspot.js has always
-          reported which (`activityNote`, :127) and until 2026-09-25 nothing in the UI read it, so
-          a disabled integration looked identical to a quiet week. Say which out loud. */}
-      {!(data?.activity?.length || 0) && data?.activityNote && (
-        <div className="resp">
-          <h3>Email activity <span className="muted">(not enabled)</span></h3>
-          <div className="ritem">
-            <div className="rs">
-              {/emails\.read/.test(data.activityNote)
-                ? "The HubSpot private app is missing the crm.objects.emails.read scope, so sends, replies and bounces can't be read. Add it in HubSpot → Settings → Integrations → Private Apps → Scopes → Add new scope, and search \"emails\" (not \"sales-email\" — that one is deprecated)."
-                : data.activityNote}
-            </div>
-          </div>
-        </div>
-      )}
+      {/* The "email activity is off, add the scope" notice lived here for one day (2026-09-25→26)
+          and is deliberately gone. It was honest but useless: it told Rick to grant
+          `crm.objects.emails.read`, and that scope is not offered in the private-app scope picker
+          at all, so the instruction could never be followed. Per-account engagement now comes from
+          the company roll-up instead (see ProspectCard's Engagement block), which needs no new
+          scope. A message telling someone to do an impossible thing is worse than no message.
+          If activityNote is ever non-null for a DIFFERENT reason it still reaches the client, so
+          a future real fault is not being swallowed — it just has no panel of its own. */}
 
       <table>
         <thead>
@@ -462,7 +470,6 @@ export function CrmPage({ resolved, onNavigate }) {
           entry={entryOf(lookup)}
           enrichment={enrichment[lookup]}
           activity={data?.activity}
-          activityNote={data?.activityNote}
           calendar={resolved.calendar}
           refreshing={refreshing}
           onClose={() => setLookup(null)}
@@ -478,7 +485,7 @@ export function CrmPage({ resolved, onNavigate }) {
 // outreach status/notes, and any matching recent email activity, plus one-tap Call/Email. This
 // is the "just before a call" window: everything a rep needs in one place, with a Refresh button
 // that re-pulls HubSpot without losing the table's search/filter state underneath.
-function ProspectCard({ company, entry, enrichment, activity, activityNote, calendar, refreshing, onClose, onPatch, onRefresh }) {
+function ProspectCard({ company, entry, enrichment, activity, calendar, refreshing, onClose, onPatch, onRefresh }) {
   if (!company) return null;
   const addr = addressOf(company);
   const mapUrl = mapUrlOf(company);
@@ -561,24 +568,43 @@ function ProspectCard({ company, entry, enrichment, activity, activityNote, cale
           </div>
         </div>
 
+        {/* ENGAGEMENT — HubSpot's own roll-up on the company record (crm-hubspot.js), covering
+            calls, meetings, and sales emails. This REPLACED the old email-activity feed on
+            2026-09-26 rather than sitting beside it: that feed needed a scope HubSpot does not
+            offer for private apps, and it matched accounts by substring on the shop name. These
+            values are on the company row itself, so there is no join to get wrong. */}
+        {(company.lastContacted || company.timesContacted > 0) && (
+          <div className="pc-activity">
+            <div className="pc-l" style={{ marginBottom: 4 }}>Engagement</div>
+            <div className="pc-act-item">
+              <strong>Last contacted</strong> {sinceLabel(company.lastContacted)}
+              {company.timesContacted > 0 && (
+                <span className="muted"> · {company.timesContacted} touch{company.timesContacted === 1 ? "" : "es"} total</span>
+              )}
+            </div>
+            {company.lastCall && (
+              <div className="pc-act-item">Last logged call <span className="muted">{sinceLabel(company.lastCall)}</span></div>
+            )}
+            {company.lastMeeting && (
+              <div className="pc-act-item">Last meeting booked <span className="muted">{sinceLabel(company.lastMeeting)}</span></div>
+            )}
+          </div>
+        )}
+        {/* A never-touched account is a real and useful fact — say it rather than render nothing,
+            which is indistinguishable from a broken panel. */}
+        {!company.lastContacted && !company.timesContacted && (
+          <div className="pc-activity">
+            <div className="pc-l" style={{ marginBottom: 4 }}>Engagement</div>
+            <div className="pc-act-item muted">No calls, meetings or emails logged against this account yet.</div>
+          </div>
+        )}
+        {/* The old name-matched email feed, kept only while it still has anything to show. */}
         {related.length > 0 && (
           <div className="pc-activity">
-            <div className="pc-l" style={{ marginBottom: 4 }}>Recent activity</div>
+            <div className="pc-l" style={{ marginBottom: 4 }}>Recent email</div>
             {related.slice(0, 4).map((a, i) => (
               <div key={i} className="pc-act-item">{a.what} · <span className="muted">{a.when}</span></div>
             ))}
-          </div>
-        )}
-        {/* Same distinction as the page-level feed: "no emails with this account" and "the email
-            integration is switched off" are different facts and should not look the same. */}
-        {related.length === 0 && activityNote && (
-          <div className="pc-activity">
-            <div className="pc-l" style={{ marginBottom: 4 }}>Recent activity</div>
-            <div className="pc-act-item muted">
-              {/emails\.read/.test(activityNote)
-                ? "Email activity is off — HubSpot app missing the crm.objects.emails.read scope."
-                : activityNote}
-            </div>
           </div>
         )}
 
