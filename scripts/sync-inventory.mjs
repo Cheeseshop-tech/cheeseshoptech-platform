@@ -99,10 +99,16 @@ function monthYear(s) {
   return mo ? `20${m[2]}-${mo}` : null;
 }
 const num = (s) => {
-  // The sheet writes in-transit case counts as "#60" (the # marks a container count).
+  // In-transit case counts carry a marker character that is NOT part of the number.
   // Without stripping it, Number("#60") is NaN -> intOr0 -> 0, and every in-transit
-  // lot silently reads as zero cases. Started appearing in the 2026-08-15 drop.
-  const t = clean(s).replace(/,/g, "").replace(/^#/, "");
+  // lot silently reads as zero cases while the run still looks healthy.
+  // Markers seen so far, all meaning "container count":
+  //   "#60"  leading hash    — appeared 2026-08-15 drop
+  //   "60*"  trailing star   — appeared 2026-09-17 drop (replaced the hash)
+  // MT changes this marker without warning, so strip both and keep adding cases
+  // here rather than assuming the current one is final. The silent-zero guard in
+  // validate() is what catches the next new marker — do not weaken it.
+  const t = clean(s).replace(/,/g, "").replace(/^#/, "").replace(/\*$/, "");
   if (t === "") return null;
   const n = Number(t);
   return Number.isFinite(n) ? n : null;

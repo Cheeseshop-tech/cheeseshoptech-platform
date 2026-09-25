@@ -1,14 +1,14 @@
 {
   "schemaVersion": "1.2",
   "clientId": "monti-trentini",
-  "lastUpdated": "2026-09-14",
+  "lastUpdated": "2026-09-25",
   "lastUpdatedSource": "drive-modifiedTime",
-  "sheetStatedUpdate": "2026-09-09",
-  "sheetModifiedAt": "2026-09-14T20:20:30.147Z",
+  "sheetStatedUpdate": "2026-09-17",
+  "sheetModifiedAt": "2026-09-25T14:19:02.718Z",
   "sheetFileId": "1meZQQ_0dA1S1IR5xjVWzFvuqCJE6DLgVd-fOfSMGvCk",
   "sheetOwner": "order@montitrentini-usa.com",
-  "source": "availability_2026-09-16.csv",
-  "generatedAt": "2026-09-16T11:18:38.348Z",
+  "source": "availability_2026-09-25.csv",
+  "generatedAt": "2026-09-25T14:54:55.309Z",
   "generatedBy": "scripts/sync-inventory.mjs",
   "skus": {
     "20141": {
@@ -72,7 +72,7 @@
     "20162": {
       "code": "20162",
       "name": "CACIOTTA BLACK TRUFFLE 1.2 LBS",
-      "casesAvail": 50,
+      "casesAvail": 47,
       "casesInTransit": 0,
       "comment": "15x Greg monthly plan, we monitor",
       "commentEn": "",
@@ -82,9 +82,9 @@
           "status": "on_hand",
           "receiptDate": "2026-05-15",
           "eta": null,
-          "cases": 50,
+          "cases": 47,
           "reserved": 0,
-          "netAvailLb": 402.77,
+          "netAvailLb": 364.04,
           "expDate": "2026-12-16",
           "expMonth": null,
           "comment": ""
@@ -94,272 +94,68 @@
     "20163": {
       "code": "20163",
       "name": "CACIOTTA RUSTEGA WITH TRUFFLE 6 LBS",
-      "casesAvail": -120,
-      "casesInTransit": 300,
+      "casesAvail": 360,
+      "casesInTransit": 600,
       "comment": "TJ preorder",
       "commentEn": "",
       "lots": [
         {
-          "lotNum": "1322646",
+          "lotNum": "1328690",
           "status": "on_hand",
-          "receiptDate": "2026-09-01",
+          "receiptDate": "2026-09-24",
           "eta": null,
           "cases": 60,
           "reserved": 60,
           "netAvailLb": 1680,
-          "expDate": "2027-07-17",
+          "expDate": "2027-08-20",
           "expMonth": null,
           "comment": "TJs"
         },
         {
-          "lotNum": "1322651",
+          "lotNum": "1328691",
           "status": "on_hand",
-          "receiptDate": "2026-09-01",
+          "receiptDate": "2026-09-24",
           "eta": null,
           "cases": 60,
           "reserved": 60,
           "netAvailLb": 1680,
-          "expDate": "2027-07-17",
+          "expDate": "2027-08-20",
           "expMonth": null,
           "comment": "TJs"
         },
         {
-          "lotNum": "1322652",
+          "lotNum": "1328695",
           "status": "on_hand",
-          "receiptDate": "2026-09-01",
+          "receiptDate": "2026-09-24",
           "eta": null,
           "cases": 60,
           "reserved": 60,
           "netAvailLb": 1680,
-          "expDate": "2027-07-17",
+          "expDate": "2027-08-20",
           "expMonth": null,
           "comment": "TJs"
         },
         {
-          "lotNum": "1322637",
+          "lotNum": "1328688",
           "status": "on_hand",
-          "receiptDate": "2026-09-01",
+          "receiptDate": "2026-09-24",
           "eta": null,
           "cases": 60,
           "reserved": 60,
           "netAvailLb": 1680,
-          "expDate": "2027-07-22",
+          "expDate": "2027-08-16",
           "expMonth": null,
           "comment": "TJs"
         },
         {
-          "lotNum": "1322635",
+          "lotNum": "1328697",
           "status": "on_hand",
-          "receiptDate": "2026-09-01",
+          "receiptDate": "2026-09-24",
           "eta": null,
           "cases": 60,
           "reserved": 60,
           "netAvailLb": 1680,
-          "expDate": "2027-07-23",
-          "expMonth": null,
-          "comment": "TJs"
-        },
-        {
-          "lotNum": "1322636",
-          "status": "on_hand",
-          "receiptDate": "2026-09-01",
-          "eta": null,
-          "cases": 60,
-          "reserved": 60,
-          "netAvailLb": 1680,
-          "expDate": "2027-07-23",
-          "expMonth": null,
-          "comment": "TJs"
-        },
-        {
-          "lotNum": "1322640",
-          "status": "on_hand",
-          "receiptDate": "2026-09-01",
-          "eta": null,
-          "cases": 60,
-          "reserved": 60,
-          "netAvailLb": 1680,
-          "expDate": "2027-07-23",
-          "expMonth": null,
-          "comment": "TJs"
-        },
-        {
-          "lotNum": "1322641",
-          "status": "on_hand",
-          "receiptDate": "2026-09-01",
-          "eta": null,
-          "cases": 60,
-          "reserved": 60,
-          "netAvailLb": 1680,
-          "expDate": "2027-07-23",
-          "expMonth": null,
-          "comment": "TJs"
-        },
-        {
-          "lotNum": "1322653",
-          "status": "on_hand",
-          "receiptDate": "2026-09-01",
-          "eta": null,
-          "cases": 60,
-          "reserved": 60,
-          "netAvailLb": 1680,
-          "expDate": "2027-07-23",
-          "expMonth": null,
-          "comment": "TJs"
-        },
-        {
-          "lotNum": "1322639",
-          "status": "on_hand",
-          "receiptDate": "2026-09-01",
-          "eta": null,
-          "cases": 60,
-          "reserved": 60,
-          "netAvailLb": 1680,
-          "expDate": "2027-07-24",
-          "expMonth": null,
-          "comment": "TJs"
-        },
-        {
-          "lotNum": "1322647",
-          "status": "on_hand",
-          "receiptDate": "2026-09-01",
-          "eta": null,
-          "cases": 60,
-          "reserved": 60,
-          "netAvailLb": 1680,
-          "expDate": "2027-07-24",
-          "expMonth": null,
-          "comment": "TJs"
-        },
-        {
-          "lotNum": "1322649",
-          "status": "on_hand",
-          "receiptDate": "2026-09-01",
-          "eta": null,
-          "cases": 60,
-          "reserved": 60,
-          "netAvailLb": 1680,
-          "expDate": "2027-07-24",
-          "expMonth": null,
-          "comment": "TJs"
-        },
-        {
-          "lotNum": "1322648",
-          "status": "on_hand",
-          "receiptDate": "2026-09-01",
-          "eta": null,
-          "cases": 60,
-          "reserved": 60,
-          "netAvailLb": 1680,
-          "expDate": "2027-07-30",
-          "expMonth": null,
-          "comment": "TJs"
-        },
-        {
-          "lotNum": "1322654",
-          "status": "on_hand",
-          "receiptDate": "2026-09-01",
-          "eta": null,
-          "cases": 60,
-          "reserved": 60,
-          "netAvailLb": 1680,
-          "expDate": "2027-07-30",
-          "expMonth": null,
-          "comment": "TJs"
-        },
-        {
-          "lotNum": "1324233",
-          "status": "on_hand",
-          "receiptDate": "2026-09-04",
-          "eta": null,
-          "cases": 60,
-          "reserved": 60,
-          "netAvailLb": 1680,
-          "expDate": "2027-07-31",
-          "expMonth": null,
-          "comment": "TJs"
-        },
-        {
-          "lotNum": "1324245",
-          "status": "on_hand",
-          "receiptDate": "2026-09-04",
-          "eta": null,
-          "cases": 60,
-          "reserved": 60,
-          "netAvailLb": 1680,
-          "expDate": "2027-07-31",
-          "expMonth": null,
-          "comment": "TJs"
-        },
-        {
-          "lotNum": "1324254",
-          "status": "on_hand",
-          "receiptDate": "2026-09-04",
-          "eta": null,
-          "cases": 60,
-          "reserved": 60,
-          "netAvailLb": 1680,
-          "expDate": "2027-07-31",
-          "expMonth": null,
-          "comment": "TJs"
-        },
-        {
-          "lotNum": "1324237",
-          "status": "on_hand",
-          "receiptDate": "2026-09-04",
-          "eta": null,
-          "cases": 60,
-          "reserved": 60,
-          "netAvailLb": 1680,
-          "expDate": "2027-08-02",
-          "expMonth": null,
-          "comment": "TJs"
-        },
-        {
-          "lotNum": "1324252",
-          "status": "on_hand",
-          "receiptDate": "2026-09-04",
-          "eta": null,
-          "cases": 60,
-          "reserved": 60,
-          "netAvailLb": 1680,
-          "expDate": "2027-08-02",
-          "expMonth": null,
-          "comment": "TJs"
-        },
-        {
-          "lotNum": "1324255",
-          "status": "on_hand",
-          "receiptDate": "2026-09-04",
-          "eta": null,
-          "cases": 60,
-          "reserved": 60,
-          "netAvailLb": 1680,
-          "expDate": "2027-08-02",
-          "expMonth": null,
-          "comment": "TJs"
-        },
-        {
-          "lotNum": "1324235",
-          "status": "on_hand",
-          "receiptDate": "2026-09-04",
-          "eta": null,
-          "cases": 60,
-          "reserved": 60,
-          "netAvailLb": 1680,
-          "expDate": "2027-08-05",
-          "expMonth": null,
-          "comment": "TJs"
-        },
-        {
-          "lotNum": "1324236",
-          "status": "on_hand",
-          "receiptDate": "2026-09-04",
-          "eta": null,
-          "cases": 60,
-          "reserved": 60,
-          "netAvailLb": 1680,
-          "expDate": "2027-08-05",
+          "expDate": "2027-08-16",
           "expMonth": null,
           "comment": "TJs"
         },
@@ -412,63 +208,315 @@
           "comment": "TJs"
         },
         {
-          "lotNum": "269423014",
-          "status": "in_transit",
-          "receiptDate": null,
-          "eta": "2026-09-29",
+          "lotNum": "1324235",
+          "status": "on_hand",
+          "receiptDate": "2026-09-04",
+          "eta": null,
           "cases": 60,
           "reserved": 60,
-          "netAvailLb": 1451.44,
-          "expDate": null,
-          "expMonth": "2027-08",
+          "netAvailLb": 1680,
+          "expDate": "2027-08-05",
+          "expMonth": null,
           "comment": "TJs"
         },
         {
-          "lotNum": "269423014",
-          "status": "in_transit",
-          "receiptDate": null,
-          "eta": "2026-09-29",
+          "lotNum": "1324236",
+          "status": "on_hand",
+          "receiptDate": "2026-09-04",
+          "eta": null,
           "cases": 60,
           "reserved": 60,
-          "netAvailLb": 1450.41,
-          "expDate": null,
-          "expMonth": "2027-08",
+          "netAvailLb": 1680,
+          "expDate": "2027-08-05",
+          "expMonth": null,
           "comment": "TJs"
         },
         {
-          "lotNum": "269423014",
+          "lotNum": "1324237",
+          "status": "on_hand",
+          "receiptDate": "2026-09-04",
+          "eta": null,
+          "cases": 60,
+          "reserved": 60,
+          "netAvailLb": 1680,
+          "expDate": "2027-08-02",
+          "expMonth": null,
+          "comment": "TJs"
+        },
+        {
+          "lotNum": "1324252",
+          "status": "on_hand",
+          "receiptDate": "2026-09-04",
+          "eta": null,
+          "cases": 60,
+          "reserved": 60,
+          "netAvailLb": 1680,
+          "expDate": "2027-08-02",
+          "expMonth": null,
+          "comment": "TJs"
+        },
+        {
+          "lotNum": "1324255",
+          "status": "on_hand",
+          "receiptDate": "2026-09-04",
+          "eta": null,
+          "cases": 60,
+          "reserved": 60,
+          "netAvailLb": 1680,
+          "expDate": "2027-08-02",
+          "expMonth": null,
+          "comment": "TJs"
+        },
+        {
+          "lotNum": "1324233",
+          "status": "on_hand",
+          "receiptDate": "2026-09-04",
+          "eta": null,
+          "cases": 60,
+          "reserved": 60,
+          "netAvailLb": 1680,
+          "expDate": "2027-07-31",
+          "expMonth": null,
+          "comment": "TJs"
+        },
+        {
+          "lotNum": "1324245",
+          "status": "on_hand",
+          "receiptDate": "2026-09-04",
+          "eta": null,
+          "cases": 60,
+          "reserved": 60,
+          "netAvailLb": 1680,
+          "expDate": "2027-07-31",
+          "expMonth": null,
+          "comment": "TJs"
+        },
+        {
+          "lotNum": "1324254",
+          "status": "on_hand",
+          "receiptDate": "2026-09-04",
+          "eta": null,
+          "cases": 60,
+          "reserved": 60,
+          "netAvailLb": 1680,
+          "expDate": "2027-07-31",
+          "expMonth": null,
+          "comment": "TJs"
+        },
+        {
+          "lotNum": "1322648",
+          "status": "on_hand",
+          "receiptDate": "2026-09-01",
+          "eta": null,
+          "cases": 60,
+          "reserved": 60,
+          "netAvailLb": 1680,
+          "expDate": "2027-07-30",
+          "expMonth": null,
+          "comment": "TJs"
+        },
+        {
+          "lotNum": "1322654",
+          "status": "on_hand",
+          "receiptDate": "2026-09-01",
+          "eta": null,
+          "cases": 60,
+          "reserved": 60,
+          "netAvailLb": 1680,
+          "expDate": "2027-07-30",
+          "expMonth": null,
+          "comment": "TJs"
+        },
+        {
+          "lotNum": "1322639",
+          "status": "on_hand",
+          "receiptDate": "2026-09-01",
+          "eta": null,
+          "cases": 60,
+          "reserved": 60,
+          "netAvailLb": 1680,
+          "expDate": "2027-07-24",
+          "expMonth": null,
+          "comment": "TJs"
+        },
+        {
+          "lotNum": "1322649",
+          "status": "on_hand",
+          "receiptDate": "2026-09-01",
+          "eta": null,
+          "cases": 60,
+          "reserved": 60,
+          "netAvailLb": 1680,
+          "expDate": "2027-07-24",
+          "expMonth": null,
+          "comment": "TJs"
+        },
+        {
+          "lotNum": "1322635",
+          "status": "on_hand",
+          "receiptDate": "2026-09-01",
+          "eta": null,
+          "cases": 60,
+          "reserved": 60,
+          "netAvailLb": 1680,
+          "expDate": "2027-07-23",
+          "expMonth": null,
+          "comment": "TJs"
+        },
+        {
+          "lotNum": "1322636",
+          "status": "on_hand",
+          "receiptDate": "2026-09-01",
+          "eta": null,
+          "cases": 60,
+          "reserved": 60,
+          "netAvailLb": 1680,
+          "expDate": "2027-07-23",
+          "expMonth": null,
+          "comment": "TJs"
+        },
+        {
+          "lotNum": "1322640",
+          "status": "on_hand",
+          "receiptDate": "2026-09-01",
+          "eta": null,
+          "cases": 60,
+          "reserved": 60,
+          "netAvailLb": 1680,
+          "expDate": "2027-07-23",
+          "expMonth": null,
+          "comment": "TJs"
+        },
+        {
+          "lotNum": "1322653",
+          "status": "on_hand",
+          "receiptDate": "2026-09-01",
+          "eta": null,
+          "cases": 60,
+          "reserved": 60,
+          "netAvailLb": 1680,
+          "expDate": "2027-07-23",
+          "expMonth": null,
+          "comment": "TJs"
+        },
+        {
+          "lotNum": "269381402",
           "status": "in_transit",
           "receiptDate": null,
-          "eta": "2026-09-29",
+          "eta": "2026-10-08",
+          "cases": 60,
+          "reserved": 60,
+          "netAvailLb": 1437.1,
+          "expDate": null,
+          "expMonth": "2027-09",
+          "comment": "TJs"
+        },
+        {
+          "lotNum": "269381402",
+          "status": "in_transit",
+          "receiptDate": null,
+          "eta": "2026-10-08",
+          "cases": 60,
+          "reserved": 60,
+          "netAvailLb": 1488.2,
+          "expDate": null,
+          "expMonth": "2027-09",
+          "comment": "TJs"
+        },
+        {
+          "lotNum": "269381402",
+          "status": "in_transit",
+          "receiptDate": null,
+          "eta": "2026-10-08",
+          "cases": 60,
+          "reserved": 60,
+          "netAvailLb": 1423.35,
+          "expDate": null,
+          "expMonth": "2027-09",
+          "comment": "TJs"
+        },
+        {
+          "lotNum": "269381402",
+          "status": "in_transit",
+          "receiptDate": null,
+          "eta": "2026-10-08",
+          "cases": 60,
+          "reserved": 60,
+          "netAvailLb": 1478.75,
+          "expDate": null,
+          "expMonth": "2027-09",
+          "comment": "TJs"
+        },
+        {
+          "lotNum": "269381402",
+          "status": "in_transit",
+          "receiptDate": null,
+          "eta": "2026-10-08",
           "cases": 60,
           "reserved": 0,
-          "netAvailLb": 1455.79,
+          "netAvailLb": 1442.97,
           "expDate": null,
-          "expMonth": "2027-08",
+          "expMonth": "2027-09",
           "comment": ""
         },
         {
-          "lotNum": "269423014",
+          "lotNum": "269381401",
           "status": "in_transit",
           "receiptDate": null,
-          "eta": "2026-09-29",
+          "eta": "2026-10-08",
           "cases": 60,
           "reserved": 0,
-          "netAvailLb": 1475.06,
+          "netAvailLb": 1427.77,
           "expDate": null,
-          "expMonth": "2027-08",
+          "expMonth": "2027-09",
           "comment": ""
         },
         {
-          "lotNum": "269423014",
+          "lotNum": "269381401",
           "status": "in_transit",
           "receiptDate": null,
-          "eta": "2026-09-29",
+          "eta": "2026-10-08",
           "cases": 60,
           "reserved": 0,
-          "netAvailLb": 1532.53,
+          "netAvailLb": 1492.08,
           "expDate": null,
-          "expMonth": "2027-08",
+          "expMonth": "2027-09",
+          "comment": ""
+        },
+        {
+          "lotNum": "269381401",
+          "status": "in_transit",
+          "receiptDate": null,
+          "eta": "2026-10-08",
+          "cases": 60,
+          "reserved": 0,
+          "netAvailLb": 1486.13,
+          "expDate": null,
+          "expMonth": "2027-09",
+          "comment": ""
+        },
+        {
+          "lotNum": "269381401",
+          "status": "in_transit",
+          "receiptDate": null,
+          "eta": "2026-10-08",
+          "cases": 60,
+          "reserved": 0,
+          "netAvailLb": 1549.35,
+          "expDate": null,
+          "expMonth": "2027-09",
+          "comment": ""
+        },
+        {
+          "lotNum": "269381401",
+          "status": "in_transit",
+          "receiptDate": null,
+          "eta": "2026-10-08",
+          "cases": 60,
+          "reserved": 0,
+          "netAvailLb": 1437.55,
+          "expDate": null,
+          "expMonth": "2027-09",
           "comment": ""
         }
       ]
@@ -482,18 +530,6 @@
       "commentEn": "",
       "lots": [
         {
-          "lotNum": "1282618",
-          "status": "on_hand",
-          "receiptDate": "2026-03-23",
-          "eta": null,
-          "cases": 10,
-          "reserved": 0,
-          "netAvailLb": 64.36,
-          "expDate": "2027-02-19",
-          "expMonth": null,
-          "comment": ""
-        },
-        {
           "lotNum": "1290743",
           "status": "on_hand",
           "receiptDate": "2026-04-24",
@@ -504,13 +540,25 @@
           "expDate": "2027-03-22",
           "expMonth": null,
           "comment": ""
+        },
+        {
+          "lotNum": "1282618",
+          "status": "on_hand",
+          "receiptDate": "2026-03-23",
+          "eta": null,
+          "cases": 10,
+          "reserved": 0,
+          "netAvailLb": 64.36,
+          "expDate": "2027-02-19",
+          "expMonth": null,
+          "comment": ""
         }
       ]
     },
     "20229": {
       "code": "20229",
       "name": "CACIOTTA HERBS 1.2 LBS",
-      "casesAvail": 25,
+      "casesAvail": 23,
       "casesInTransit": 0,
       "comment": "10-15x monthly plan Cowbell",
       "commentEn": "",
@@ -520,9 +568,9 @@
           "status": "on_hand",
           "receiptDate": "2026-07-03",
           "eta": null,
-          "cases": 25,
+          "cases": 23,
           "reserved": 0,
-          "netAvailLb": 222.36,
+          "netAvailLb": 196.7,
           "expDate": "2027-02-03",
           "expMonth": null,
           "comment": ""
@@ -572,20 +620,20 @@
     "20423": {
       "code": "20423",
       "name": "CACIOTTA BLACK TRUFFLES 7 OZ EW",
-      "casesAvail": 208,
-      "casesInTransit": 144,
+      "casesAvail": 352,
+      "casesInTransit": 0,
       "comment": "HEB 1 pallet + something small for Lettieri",
       "commentEn": "",
       "lots": [
         {
-          "lotNum": "1312806",
+          "lotNum": "1328727",
           "status": "on_hand",
-          "receiptDate": "2026-07-23",
+          "receiptDate": "2026-09-24",
           "eta": null,
-          "cases": 70,
+          "cases": 144,
           "reserved": 0,
-          "netAvailLb": 369.6,
-          "expDate": "2027-02-24",
+          "netAvailLb": 760.32,
+          "expDate": "2027-04-28",
           "expMonth": null,
           "comment": ""
         },
@@ -602,15 +650,15 @@
           "comment": ""
         },
         {
-          "lotNum": "269423001",
-          "status": "in_transit",
-          "receiptDate": null,
-          "eta": "2026-09-29",
-          "cases": 144,
+          "lotNum": "1312806",
+          "status": "on_hand",
+          "receiptDate": "2026-07-23",
+          "eta": null,
+          "cases": 70,
           "reserved": 0,
-          "netAvailLb": 760.32,
-          "expDate": null,
-          "expMonth": "2027-04",
+          "netAvailLb": 369.6,
+          "expDate": "2027-02-24",
+          "expMonth": null,
           "comment": ""
         }
       ]
@@ -618,8 +666,8 @@
     "20424": {
       "code": "20424",
       "name": "CACIOTTA CHILI RED PEPPER 7 OZ EW",
-      "casesAvail": 67,
-      "casesInTransit": 0,
+      "casesAvail": 115,
+      "casesInTransit": 48,
       "comment": "we don't have project right now",
       "commentEn": "",
       "lots": [
@@ -634,14 +682,26 @@
           "expDate": "2026-10-22",
           "expMonth": null,
           "comment": ""
+        },
+        {
+          "lotNum": "269381430",
+          "status": "in_transit",
+          "receiptDate": null,
+          "eta": "2026-10-08",
+          "cases": 48,
+          "reserved": 0,
+          "netAvailLb": 253.44,
+          "expDate": null,
+          "expMonth": "2027-05",
+          "comment": ""
         }
       ]
     },
     "20438": {
       "code": "20438",
       "name": "PROVOLONE CYLINDER CHEESE",
-      "casesAvail": 72,
-      "casesInTransit": 72,
+      "casesAvail": 229,
+      "casesInTransit": 216,
       "comment": "1 pallet available for Stock, Veroni preorder",
       "commentEn": "",
       "lots": [
@@ -670,28 +730,64 @@
           "comment": ""
         },
         {
+          "lotNum": "1328716",
+          "status": "on_hand",
+          "receiptDate": "2026-09-24",
+          "eta": null,
+          "cases": 72,
+          "reserved": 0,
+          "netAvailLb": 1096.03,
+          "expDate": "2027-04-29",
+          "expMonth": null,
+          "comment": ""
+        },
+        {
           "lotNum": "1324251",
           "status": "on_hand",
           "receiptDate": "2026-09-04",
           "eta": null,
-          "cases": 72,
+          "cases": 47,
           "reserved": 0,
-          "netAvailLb": 1040.97,
+          "netAvailLb": 679.52,
           "expDate": "2027-04-07",
           "expMonth": null,
           "comment": ""
         },
         {
-          "lotNum": "290826244",
+          "lotNum": "10926257",
           "status": "in_transit",
           "receiptDate": null,
-          "eta": "2026-09-29",
+          "eta": "2026-10-08",
           "cases": 72,
-          "reserved": 0,
-          "netAvailLb": 1096.03,
+          "reserved": 72,
+          "netAvailLb": 1081.47,
           "expDate": null,
-          "expMonth": "2027-04",
-          "comment": ""
+          "expMonth": "2027-05",
+          "comment": "Veroni 23-26C"
+        },
+        {
+          "lotNum": "10926257",
+          "status": "in_transit",
+          "receiptDate": null,
+          "eta": "2026-10-08",
+          "cases": 72,
+          "reserved": 72,
+          "netAvailLb": 1085.3,
+          "expDate": null,
+          "expMonth": "2027-05",
+          "comment": "Veroni 23-26C"
+        },
+        {
+          "lotNum": "10926257",
+          "status": "in_transit",
+          "receiptDate": null,
+          "eta": "2026-10-08",
+          "cases": 72,
+          "reserved": 72,
+          "netAvailLb": 1089.21,
+          "expDate": null,
+          "expMonth": "2027-05",
+          "comment": "Veroni 23-26C"
         }
       ]
     },
@@ -713,7 +809,7 @@
           "netAvailLb": 94.97,
           "expDate": "2027-01-11",
           "expMonth": null,
-          "comment": "Spec FL??"
+          "comment": ""
         }
       ]
     },
@@ -753,49 +849,37 @@
           "netAvailLb": 108.34,
           "expDate": "2027-01-11",
           "expMonth": null,
-          "comment": "Spec FL??"
+          "comment": ""
         }
       ]
     },
     "20464": {
       "code": "20464",
       "name": "ALTA BADIA",
-      "casesAvail": 20,
-      "casesInTransit": 30,
+      "casesAvail": 21,
+      "casesInTransit": 0,
       "comment": "few quantities is fine, do we have <20? Specialty Merchants/CowBell/DiPalo",
       "commentEn": "",
       "lots": [
         {
-          "lotNum": "1312797",
+          "lotNum": "1328693",
           "status": "on_hand",
-          "receiptDate": "2026-07-23",
+          "receiptDate": "2026-09-24",
           "eta": null,
-          "cases": 20,
+          "cases": 21,
           "reserved": 0,
-          "netAvailLb": 429.83,
-          "expDate": "2027-02-13",
+          "netAvailLb": 448.266,
+          "expDate": "2027-04-30",
           "expMonth": null,
-          "comment": "35 DIPALO HOLIDAY"
-        },
-        {
-          "lotNum": "050826121, 634189121",
-          "status": "in_transit",
-          "receiptDate": null,
-          "eta": "2026-09-29",
-          "cases": 30,
-          "reserved": 0,
-          "netAvailLb": 640.38,
-          "expDate": null,
-          "expMonth": "2027-04",
-          "comment": ""
+          "comment": "15 DIPALO HOLIDAY"
         }
       ]
     },
     "20480": {
       "code": "20480",
       "name": "CACIOTTA MNT HERBS 7 OZ EW",
-      "casesAvail": 93,
-      "casesInTransit": 144,
+      "casesAvail": 259,
+      "casesInTransit": 0,
       "comment": "",
       "commentEn": "",
       "lots": [
@@ -812,6 +896,18 @@
           "comment": ""
         },
         {
+          "lotNum": "1328740",
+          "status": "on_hand",
+          "receiptDate": "2026-09-24",
+          "eta": null,
+          "cases": 144,
+          "reserved": 0,
+          "netAvailLb": 760.32,
+          "expDate": "2027-04-28",
+          "expMonth": null,
+          "comment": ""
+        },
+        {
           "lotNum": "1324266",
           "status": "on_hand",
           "receiptDate": "2026-09-04",
@@ -822,26 +918,14 @@
           "expDate": "2027-04-09",
           "expMonth": null,
           "comment": "KeHE 3898594"
-        },
-        {
-          "lotNum": "269423002",
-          "status": "in_transit",
-          "receiptDate": null,
-          "eta": "2026-09-29",
-          "cases": 144,
-          "reserved": 0,
-          "netAvailLb": 760.32,
-          "expDate": null,
-          "expMonth": "2027-04",
-          "comment": ""
         }
       ]
     },
     "20481": {
       "code": "20481",
       "name": "CACIOTTA PEPATO 7 OZ EW",
-      "casesAvail": 11,
-      "casesInTransit": 0,
+      "casesAvail": 55,
+      "casesInTransit": 44,
       "comment": "",
       "commentEn": "",
       "lots": [
@@ -856,47 +940,71 @@
           "expDate": "2026-12-16",
           "expMonth": null,
           "comment": ""
+        },
+        {
+          "lotNum": "269381428",
+          "status": "in_transit",
+          "receiptDate": null,
+          "eta": "2026-10-08",
+          "cases": 44,
+          "reserved": 0,
+          "netAvailLb": 232.32,
+          "expDate": null,
+          "expMonth": "2027-05",
+          "comment": ""
         }
       ]
     },
     "20511": {
       "code": "20511",
       "name": "FONTAL 1/4 WHEEL",
-      "casesAvail": 240,
+      "casesAvail": 438,
       "casesInTransit": 240,
       "comment": "Lettieri",
       "commentEn": "",
       "lots": [
         {
-          "lotNum": "1324249",
+          "lotNum": "1328704",
           "status": "on_hand",
-          "receiptDate": "2026-09-04",
+          "receiptDate": "2026-09-24",
           "eta": null,
           "cases": 240,
           "reserved": 0,
-          "netAvailLb": 1482.13,
-          "expDate": "2027-04-07",
+          "netAvailLb": 1437.63,
+          "expDate": "2027-04-29",
           "expMonth": null,
           "comment": ""
         },
         {
-          "lotNum": "269423010",
+          "lotNum": "1324249",
+          "status": "on_hand",
+          "receiptDate": "2026-09-04",
+          "eta": null,
+          "cases": 198,
+          "reserved": 0,
+          "netAvailLb": 1222.76,
+          "expDate": "2027-04-07",
+          "expMonth": null,
+          "comment": "40 DI PALO HOLIDAY"
+        },
+        {
+          "lotNum": "269381431",
           "status": "in_transit",
           "receiptDate": null,
-          "eta": "2026-09-29",
+          "eta": "2026-10-08",
           "cases": 240,
-          "reserved": 0,
-          "netAvailLb": 1437.63,
+          "reserved": 240,
+          "netAvailLb": 1415.1,
           "expDate": null,
-          "expMonth": "2027-04",
-          "comment": "80 DIPALO HOLIDAY"
+          "expMonth": "2027-05",
+          "comment": "Lettieri 0003302"
         }
       ]
     },
     "20519": {
       "code": "20519",
       "name": "GORGONZOLA DOLCE PDO 1/8 WHEEL",
-      "casesAvail": 42,
+      "casesAvail": 32,
       "casesInTransit": 0,
       "comment": "<15?",
       "commentEn": "",
@@ -906,9 +1014,9 @@
           "status": "on_hand",
           "receiptDate": "2026-06-18",
           "eta": null,
-          "cases": 42,
+          "cases": 32,
           "reserved": 0,
-          "netAvailLb": 128.17,
+          "netAvailLb": 97.652,
           "expDate": "2027-07-15",
           "expMonth": null,
           "comment": ""
@@ -918,31 +1026,44 @@
     "20520": {
       "code": "20520",
       "name": "TALEGGIO CHEESE PDO WHOLE WHEEL",
-      "casesAvail": 0,
-      "casesInTransit": 0,
+      "casesAvail": 60,
+      "casesInTransit": 60,
       "comment": "<10? Cheese importers wants stock consistent? (45)",
       "commentEn": "",
-      "lots": []
+      "lots": [
+        {
+          "lotNum": "6511",
+          "status": "in_transit",
+          "receiptDate": null,
+          "eta": "2026-10-08",
+          "cases": 60,
+          "reserved": 0,
+          "netAvailLb": 302.58,
+          "expDate": null,
+          "expMonth": "2027-09",
+          "comment": ""
+        }
+      ]
     },
     "20533": {
       "code": "20533",
       "name": "AGED TRUFFLE CHEESE BLACK",
-      "casesAvail": 195,
-      "casesInTransit": 120,
+      "casesAvail": 537,
+      "casesInTransit": 240,
       "comment": "News about production? Baldor",
       "commentEn": "",
       "lots": [
         {
-          "lotNum": "1316590",
+          "lotNum": "1328694",
           "status": "on_hand",
-          "receiptDate": "2026-08-06",
+          "receiptDate": "2026-09-24",
           "eta": null,
-          "cases": 105,
-          "reserved": 30,
-          "netAvailLb": 533,
-          "expDate": "2027-03-12",
+          "cases": 120,
+          "reserved": 0,
+          "netAvailLb": 618.03,
+          "expDate": "2027-04-30",
           "expMonth": null,
-          "comment": "Selected"
+          "comment": ""
         },
         {
           "lotNum": "1324232",
@@ -957,22 +1078,56 @@
           "comment": ""
         },
         {
-          "lotNum": "269423008",
+          "lotNum": "1316590",
+          "status": "on_hand",
+          "receiptDate": "2026-08-06",
+          "eta": null,
+          "cases": 57,
+          "reserved": 0,
+          "netAvailLb": 289.34,
+          "expDate": "2027-03-12",
+          "expMonth": null,
+          "comment": ""
+        },
+        {
+          "lotNum": "269381443",
           "status": "in_transit",
           "receiptDate": null,
-          "eta": "2026-09-29",
-          "cases": 120,
+          "eta": "2026-10-08",
+          "cases": 240,
           "reserved": 0,
-          "netAvailLb": 618.03,
+          "netAvailLb": 1277.4,
           "expDate": null,
-          "expMonth": "2027-04",
+          "expMonth": "2027-05",
+          "comment": ""
+        }
+      ]
+    },
+    "20568": {
+      "code": "20568",
+      "name": "BIANCO D'ITALIA 1/4 WHEEL (IT)",
+      "casesAvail": 100,
+      "casesInTransit": 100,
+      "comment": "Cowbell",
+      "commentEn": "",
+      "lots": [
+        {
+          "lotNum": "L2532611",
+          "status": "in_transit",
+          "receiptDate": null,
+          "eta": "2026-10-08",
+          "cases": 100,
+          "reserved": 0,
+          "netAvailLb": 2043.3,
+          "expDate": null,
+          "expMonth": "2027-09",
           "comment": ""
         }
       ]
     },
     "20569": {
       "code": "20569",
-      "name": "BIANCO D'ITALIA 1/4 WHEEL",
+      "name": "BIANCO D'ITALIA 1/4 WHEEL (EU)",
       "casesAvail": 0,
       "casesInTransit": 0,
       "comment": "Cowbell",
@@ -982,11 +1137,23 @@
     "20584": {
       "code": "20584",
       "name": "STELVIO PDO CHEESE WHOLE WHEEL",
-      "casesAvail": 9,
-      "casesInTransit": 30,
+      "casesAvail": 39,
+      "casesInTransit": 0,
       "comment": "<30?",
       "commentEn": "",
       "lots": [
+        {
+          "lotNum": "1328702",
+          "status": "on_hand",
+          "receiptDate": "2026-09-24",
+          "eta": null,
+          "cases": 30,
+          "reserved": 0,
+          "netAvailLb": 637.24,
+          "expDate": "2027-04-29",
+          "expMonth": null,
+          "comment": ""
+        },
         {
           "lotNum": "1312762",
           "status": "on_hand",
@@ -994,21 +1161,9 @@
           "eta": null,
           "cases": 9,
           "reserved": 0,
-          "netAvailLb": 195.79,
+          "netAvailLb": 195.792,
           "expDate": "2027-02-13",
           "expMonth": null,
-          "comment": "15 DIPALO HOLIDAY"
-        },
-        {
-          "lotNum": "070826122, 634190122",
-          "status": "in_transit",
-          "receiptDate": null,
-          "eta": "2026-09-29",
-          "cases": 30,
-          "reserved": 0,
-          "netAvailLb": 637.24,
-          "expDate": null,
-          "expMonth": "2027-04",
           "comment": ""
         }
       ]
@@ -1094,18 +1249,6 @@
       "commentEn": "",
       "lots": [
         {
-          "lotNum": "1304242",
-          "status": "on_hand",
-          "receiptDate": "2026-06-18",
-          "eta": null,
-          "cases": 16,
-          "reserved": 0,
-          "netAvailLb": 203.52,
-          "expDate": "2027-05-07",
-          "expMonth": null,
-          "comment": ""
-        },
-        {
           "lotNum": "1312770",
           "status": "on_hand",
           "receiptDate": "2026-07-23",
@@ -1114,6 +1257,18 @@
           "reserved": 0,
           "netAvailLb": 391.58,
           "expDate": "2027-06-17",
+          "expMonth": null,
+          "comment": ""
+        },
+        {
+          "lotNum": "1304242",
+          "status": "on_hand",
+          "receiptDate": "2026-06-18",
+          "eta": null,
+          "cases": 16,
+          "reserved": 0,
+          "netAvailLb": 203.524,
+          "expDate": "2027-05-07",
           "expMonth": null,
           "comment": ""
         }
@@ -1211,24 +1366,11 @@
     "40020": {
       "code": "40020",
       "name": "MONTASIO CHEESE WHOLE WHEEL",
-      "casesAvail": 30,
+      "casesAvail": 0,
       "casesInTransit": 0,
       "comment": "do we have <25?",
       "commentEn": "",
-      "lots": [
-        {
-          "lotNum": "1322668",
-          "status": "on_hand",
-          "receiptDate": "2026-09-01",
-          "eta": null,
-          "cases": 30,
-          "reserved": 0,
-          "netAvailLb": 384.26,
-          "expDate": "2027-07-23",
-          "expMonth": null,
-          "comment": ""
-        }
-      ]
+      "lots": []
     },
     "40086": {
       "code": "40086",
@@ -1242,43 +1384,30 @@
     "40103": {
       "code": "40103",
       "name": "PECORINO ROMANO PDO WHOLE WHEEL",
-      "casesAvail": 33,
+      "casesAvail": 0,
       "casesInTransit": 0,
       "comment": "keep 1-2 pallet in stock",
       "commentEn": "",
-      "lots": [
-        {
-          "lotNum": "1324228",
-          "status": "on_hand",
-          "receiptDate": "2026-09-04",
-          "eta": null,
-          "cases": 33,
-          "reserved": 0,
-          "netAvailLb": 2433.98,
-          "expDate": "2027-08-05",
-          "expMonth": null,
-          "comment": ""
-        }
-      ]
+      "lots": []
     },
     "40104": {
       "code": "40104",
       "name": "PECORINO ROMANO PDO 1/4 WHEEL",
-      "casesAvail": 30,
-      "casesInTransit": 0,
+      "casesAvail": 45,
+      "casesInTransit": 45,
       "comment": "keep 1-2 pallet in stock",
       "commentEn": "",
       "lots": [
         {
-          "lotNum": "1266067",
-          "status": "on_hand",
-          "receiptDate": "2026-01-16",
-          "eta": null,
-          "cases": 30,
+          "lotNum": "269381447",
+          "status": "in_transit",
+          "receiptDate": null,
+          "eta": "2026-10-08",
+          "cases": 45,
           "reserved": 0,
-          "netAvailLb": 1777.3,
-          "expDate": "2026-10-10",
-          "expMonth": null,
+          "netAvailLb": 575.95,
+          "expDate": null,
+          "expMonth": "2027-05",
           "comment": ""
         }
       ]
@@ -1296,33 +1425,45 @@
           "status": "on_hand",
           "receiptDate": "2026-05-15",
           "eta": null,
-          "cases": 20,
-          "reserved": 10,
-          "netAvailLb": 612.35,
+          "cases": 10,
+          "reserved": 0,
+          "netAvailLb": 306.17,
           "expDate": "2027-04-10",
           "expMonth": null,
-          "comment": "Selected 12814"
+          "comment": ""
         }
       ]
     },
     "40107": {
       "code": "40107",
       "name": "PIAVE MEZZANO PDO WHOLE WHEEL",
-      "casesAvail": 0,
+      "casesAvail": 43,
       "casesInTransit": 30,
       "comment": "",
       "commentEn": "",
       "lots": [
         {
+          "lotNum": "1328689",
+          "status": "on_hand",
+          "receiptDate": "2026-09-24",
+          "eta": null,
+          "cases": 13,
+          "reserved": 0,
+          "netAvailLb": 182.88,
+          "expDate": "2027-08-28",
+          "expMonth": null,
+          "comment": ""
+        },
+        {
           "lotNum": "635181245",
           "status": "in_transit",
           "receiptDate": null,
-          "eta": "2026-09-29",
+          "eta": "2026-10-08",
           "cases": 30,
           "reserved": 0,
-          "netAvailLb": 422.04,
+          "netAvailLb": 426.51,
           "expDate": null,
-          "expMonth": "2027-08",
+          "expMonth": "2027-09",
           "comment": ""
         }
       ]
@@ -1330,21 +1471,21 @@
     "40109": {
       "code": "40109",
       "name": "PIAVE VECCHIO PDO > 6 MONTHS",
-      "casesAvail": 0,
-      "casesInTransit": 30,
+      "casesAvail": 10,
+      "casesInTransit": 0,
       "comment": "",
       "commentEn": "",
       "lots": [
         {
-          "lotNum": "635182245",
-          "status": "in_transit",
-          "receiptDate": null,
-          "eta": "2026-09-29",
-          "cases": 30,
+          "lotNum": "1328710",
+          "status": "on_hand",
+          "receiptDate": "2026-09-24",
+          "eta": null,
+          "cases": 10,
           "reserved": 0,
-          "netAvailLb": 408.4,
-          "expDate": null,
-          "expMonth": "2027-08",
+          "netAvailLb": 142.266,
+          "expDate": "2027-08-28",
+          "expMonth": null,
           "comment": ""
         }
       ]
@@ -1352,8 +1493,8 @@
     "40130": {
       "code": "40130",
       "name": "MONTASIO CHEESE PDO 1/4 WHEEL",
-      "casesAvail": 11,
-      "casesInTransit": 0,
+      "casesAvail": 41,
+      "casesInTransit": 30,
       "comment": "main Customer Ace Endico",
       "commentEn": "",
       "lots": [
@@ -1364,9 +1505,21 @@
           "eta": null,
           "cases": 11,
           "reserved": 0,
-          "netAvailLb": 150.7,
+          "netAvailLb": 150.696,
           "expDate": "2027-02-04",
           "expMonth": null,
+          "comment": ""
+        },
+        {
+          "lotNum": "269381403",
+          "status": "in_transit",
+          "receiptDate": null,
+          "eta": "2026-10-08",
+          "cases": 30,
+          "reserved": 0,
+          "netAvailLb": 398.04,
+          "expDate": null,
+          "expMonth": "2027-05",
           "comment": ""
         }
       ]
@@ -1383,22 +1536,22 @@
     "40158": {
       "code": "40158",
       "name": "PIAVE VECCHIO PDO > 12 MONTHS Selezione Oro",
-      "casesAvail": 18,
-      "casesInTransit": 0,
+      "casesAvail": 60,
+      "casesInTransit": 60,
       "comment": "Ace Endico, 30 in stock?",
       "commentEn": "",
       "lots": [
         {
-          "lotNum": "1322645",
-          "status": "on_hand",
-          "receiptDate": "2026-09-01",
-          "eta": null,
-          "cases": 18,
+          "lotNum": "635183258",
+          "status": "in_transit",
+          "receiptDate": null,
+          "eta": "2026-10-08",
+          "cases": 60,
           "reserved": 0,
-          "netAvailLb": 232.21,
-          "expDate": "2027-07-24",
-          "expMonth": null,
-          "comment": "25 DIPALO HOLIDAY"
+          "netAvailLb": 745.59,
+          "expDate": null,
+          "expMonth": "2027-09",
+          "comment": "DI PALO HOLIDAY"
         }
       ]
     },
@@ -1451,30 +1604,6 @@
       "commentEn": "",
       "lots": [
         {
-          "lotNum": "1304225",
-          "status": "on_hand",
-          "receiptDate": "2026-06-18",
-          "eta": null,
-          "cases": 71,
-          "reserved": 0,
-          "netAvailLb": 578.845,
-          "expDate": "2027-02-04",
-          "expMonth": null,
-          "comment": "Selected?"
-        },
-        {
-          "lotNum": "1312779",
-          "status": "on_hand",
-          "receiptDate": "2026-07-23",
-          "eta": null,
-          "cases": 80,
-          "reserved": 80,
-          "netAvailLb": 752.74,
-          "expDate": "2027-02-17",
-          "expMonth": null,
-          "comment": "Selected?"
-        },
-        {
           "lotNum": "1322669",
           "status": "on_hand",
           "receiptDate": "2026-09-01",
@@ -1485,17 +1614,42 @@
           "expDate": "2027-03-18",
           "expMonth": null,
           "comment": ""
+        },
+        {
+          "lotNum": "1304225",
+          "status": "on_hand",
+          "receiptDate": "2026-06-18",
+          "eta": null,
+          "cases": 71,
+          "reserved": 0,
+          "netAvailLb": 578.845,
+          "expDate": "2027-02-04",
+          "expMonth": null,
+          "comment": ""
         }
       ]
     },
     "40175": {
       "code": "40175",
       "name": "PECORINO TOSCANO PDO WW AGED",
-      "casesAvail": 0,
-      "casesInTransit": 0,
+      "casesAvail": 40,
+      "casesInTransit": 40,
       "comment": "Selected",
       "commentEn": "",
-      "lots": []
+      "lots": [
+        {
+          "lotNum": "TS225129",
+          "status": "in_transit",
+          "receiptDate": null,
+          "eta": "2026-10-08",
+          "cases": 40,
+          "reserved": 0,
+          "netAvailLb": 455.76,
+          "expDate": null,
+          "expMonth": "2026-12",
+          "comment": ""
+        }
+      ]
     },
     "10390000": {
       "code": "10390000",
@@ -1509,80 +1663,80 @@
     "01032": {
       "code": "01032",
       "name": "SHARP PROVOLONE (HALF CYLINDER)",
-      "casesAvail": -25,
-      "casesInTransit": 36,
+      "casesAvail": 33,
+      "casesInTransit": 0,
       "comment": "only Cowbell and Dekalb, Cheese Imp order that item",
       "commentEn": "",
       "lots": [
         {
-          "lotNum": "269423013",
-          "status": "in_transit",
-          "receiptDate": null,
-          "eta": "2026-09-29",
-          "cases": 36,
-          "reserved": 25,
-          "netAvailLb": 544.38,
-          "expDate": null,
-          "expMonth": "2027-04",
-          "comment": "Cowbell"
+          "lotNum": "1328709",
+          "status": "on_hand",
+          "receiptDate": "2026-09-24",
+          "eta": null,
+          "cases": 33,
+          "reserved": 0,
+          "netAvailLb": 480.72,
+          "expDate": "2027-04-30",
+          "expMonth": null,
+          "comment": ""
         }
       ]
     },
     "01034": {
       "code": "01034",
       "name": "SMOKED PROVOLONE 4.4 LBS",
-      "casesAvail": -288,
-      "casesInTransit": 288,
+      "casesAvail": 281,
+      "casesInTransit": 281,
       "comment": "only for SK Food when ordered",
       "commentEn": "",
       "lots": [
         {
-          "lotNum": "190826243",
+          "lotNum": "040926257, 050926257",
           "status": "in_transit",
           "receiptDate": null,
-          "eta": "2026-09-29",
+          "eta": "2026-10-08",
           "cases": 72,
-          "reserved": 72,
-          "netAvailLb": 1417.69,
+          "reserved": 0,
+          "netAvailLb": 1442.99,
           "expDate": null,
-          "expMonth": "2027-01",
-          "comment": "SK 0284257"
+          "expMonth": "2027-02",
+          "comment": "SK PO 0286755"
         },
         {
-          "lotNum": "190826243",
+          "lotNum": "50926257",
           "status": "in_transit",
           "receiptDate": null,
-          "eta": "2026-09-29",
+          "eta": "2026-10-08",
           "cases": 72,
-          "reserved": 72,
-          "netAvailLb": 1409.68,
+          "reserved": 0,
+          "netAvailLb": 1450.88,
           "expDate": null,
-          "expMonth": "2027-01",
-          "comment": "SK 0284257"
+          "expMonth": "2027-02",
+          "comment": "SK PO 0286755"
         },
         {
-          "lotNum": "250826243, 210826243",
+          "lotNum": "110926257, 120926258",
           "status": "in_transit",
           "receiptDate": null,
-          "eta": "2026-09-29",
+          "eta": "2026-10-08",
           "cases": 72,
-          "reserved": 72,
-          "netAvailLb": 1421.15,
+          "reserved": 0,
+          "netAvailLb": 1459.74,
           "expDate": null,
-          "expMonth": "2027-01",
-          "comment": "SK 0284257"
+          "expMonth": "2027-02",
+          "comment": "SK PO 0286755"
         },
         {
-          "lotNum": "280826244, 250826243",
+          "lotNum": "120926258",
           "status": "in_transit",
           "receiptDate": null,
-          "eta": "2026-09-29",
-          "cases": 72,
-          "reserved": 72,
-          "netAvailLb": 1456.79,
+          "eta": "2026-10-08",
+          "cases": 65,
+          "reserved": 0,
+          "netAvailLb": 1350.68,
           "expDate": null,
-          "expMonth": "2027-01",
-          "comment": "SK 0284257"
+          "expMonth": "2027-02",
+          "comment": "SK PO 0286755"
         }
       ]
     },
@@ -1643,23 +1797,11 @@
     "01186": {
       "code": "01186",
       "name": "SMOKED PROVOLONE CYLINDER",
-      "casesAvail": 19,
+      "casesAvail": 0,
       "casesInTransit": 0,
       "comment": "we try to have 1 pallet available in stock. Veroni-Creminelli preorder",
       "commentEn": "",
       "lots": [
-        {
-          "lotNum": "1316556",
-          "status": "on_hand",
-          "receiptDate": "2026-08-06",
-          "eta": null,
-          "cases": 19,
-          "reserved": 0,
-          "netAvailLb": 1016.286,
-          "expDate": "2027-03-12",
-          "expMonth": null,
-          "comment": ""
-        },
         {
           "lotNum": "1324268",
           "status": "on_hand",
@@ -1686,7 +1828,7 @@
     "01269": {
       "code": "01269",
       "name": "PROVOLONE PICCANTE WITH TRICOLORE ROPE",
-      "casesAvail": 20,
+      "casesAvail": 10,
       "casesInTransit": 0,
       "comment": "Cheese Importers and Dekalb01269",
       "commentEn": "",
@@ -1696,9 +1838,9 @@
           "status": "on_hand",
           "receiptDate": "2026-09-04",
           "eta": null,
-          "cases": 20,
+          "cases": 10,
           "reserved": 0,
-          "netAvailLb": 399.88,
+          "netAvailLb": 199.94,
           "expDate": "2027-04-09",
           "expMonth": null,
           "comment": ""
@@ -1708,21 +1850,21 @@
     "01299": {
       "code": "01299",
       "name": "MILD PROVOLONE STICK",
-      "casesAvail": -72,
-      "casesInTransit": 72,
+      "casesAvail": 0,
+      "casesInTransit": 0,
       "comment": "Levoni preorder",
       "commentEn": "",
       "lots": [
         {
-          "lotNum": "269423021",
-          "status": "in_transit",
-          "receiptDate": null,
-          "eta": "2026-09-29",
+          "lotNum": "1328712",
+          "status": "on_hand",
+          "receiptDate": "2026-09-24",
+          "eta": null,
           "cases": 72,
           "reserved": 72,
-          "netAvailLb": 1057.31,
-          "expDate": null,
-          "expMonth": "2027-01",
+          "netAvailLb": 1036.08,
+          "expDate": "2027-01-30",
+          "expMonth": null,
           "comment": "Levoni 10/20 delivery"
         }
       ]
@@ -1730,7 +1872,7 @@
     "02005": {
       "code": "02005",
       "name": "ASIAGO FRESCO PDO WHOLE WHEEL",
-      "casesAvail": 18,
+      "casesAvail": 10,
       "casesInTransit": 0,
       "comment": "main customer Alma, do we have < 33?",
       "commentEn": "",
@@ -1740,9 +1882,9 @@
           "status": "on_hand",
           "receiptDate": "2026-09-01",
           "eta": null,
-          "cases": 18,
+          "cases": 10,
           "reserved": 0,
-          "netAvailLb": 501.667,
+          "netAvailLb": 277.67,
           "expDate": "2027-07-23",
           "expMonth": null,
           "comment": ""
@@ -1752,45 +1894,45 @@
     "02073": {
       "code": "02073",
       "name": "ASIAGO FRESCO PDO 1/4 WHEEL NT",
-      "casesAvail": 342,
-      "casesInTransit": 0,
+      "casesAvail": 386,
+      "casesInTransit": 120,
       "comment": "Cowbell monthly plan 50x, average purchase TONY 10x, ACE Endico sometimes, Baldor 108x",
       "commentEn": "",
       "lots": [
-        {
-          "lotNum": "1312791",
-          "status": "on_hand",
-          "receiptDate": "2026-07-23",
-          "eta": null,
-          "cases": 12,
-          "reserved": 12,
-          "netAvailLb": 220.578,
-          "expDate": "2027-02-20",
-          "expMonth": null,
-          "comment": "Selected"
-        },
         {
           "lotNum": "1316588",
           "status": "on_hand",
           "receiptDate": "2026-08-06",
           "eta": null,
-          "cases": 120,
-          "reserved": 18,
-          "netAvailLb": 816.02,
+          "cases": 66,
+          "reserved": 0,
+          "netAvailLb": 448.81,
           "expDate": "2027-03-11",
           "expMonth": null,
-          "comment": "Selected"
+          "comment": ""
         },
         {
           "lotNum": "1308183",
           "status": "on_hand",
           "receiptDate": "2026-07-03",
           "eta": null,
-          "cases": 240,
+          "cases": 200,
           "reserved": 0,
-          "netAvailLb": 1701.72,
+          "netAvailLb": 1418.1,
           "expDate": "2027-02-03",
           "expMonth": null,
+          "comment": ""
+        },
+        {
+          "lotNum": "269381444",
+          "status": "in_transit",
+          "receiptDate": null,
+          "eta": "2026-10-08",
+          "cases": 120,
+          "reserved": 0,
+          "netAvailLb": 865.2,
+          "expDate": null,
+          "expMonth": "2027-05",
           "comment": ""
         }
       ]
@@ -1798,29 +1940,29 @@
     "02091": {
       "code": "02091",
       "name": "ASIAGO FRESCO PDO 7 OZ EW",
-      "casesAvail": 16,
-      "casesInTransit": 0,
+      "casesAvail": 14,
+      "casesInTransit": 24,
       "comment": "always 5-10 cases/month available per Lettieri",
       "commentEn": "",
       "lots": [
         {
-          "lotNum": "1316584",
-          "status": "on_hand",
-          "receiptDate": "2026-08-06",
-          "eta": null,
-          "cases": 16,
-          "reserved": 0,
-          "netAvailLb": 84.48,
-          "expDate": "2027-03-11",
-          "expMonth": null,
-          "comment": ""
+          "lotNum": "269381432",
+          "status": "in_transit",
+          "receiptDate": null,
+          "eta": "2026-10-08",
+          "cases": 24,
+          "reserved": 10,
+          "netAvailLb": 126.72,
+          "expDate": null,
+          "expMonth": "2027-05",
+          "comment": "Lettieri 0003200"
         }
       ]
     },
     "02206": {
       "code": "02206",
       "name": "MOUNTAIN ASIAGO FRESCO PDO WW",
-      "casesAvail": 55,
+      "casesAvail": 52,
       "casesInTransit": 0,
       "comment": "3x CowBell monthly plan?",
       "commentEn": "",
@@ -1830,9 +1972,9 @@
           "status": "on_hand",
           "receiptDate": "2026-05-15",
           "eta": null,
-          "cases": 7,
+          "cases": 4,
           "reserved": 0,
-          "netAvailLb": 207.29,
+          "netAvailLb": 118.449,
           "expDate": "2026-12-16",
           "expMonth": null,
           "comment": ""
@@ -1875,24 +2017,11 @@
     "03003": {
       "code": "03003",
       "name": "ASIAGO VECCHIO PDO WHOLE WHEEL",
-      "casesAvail": 20,
+      "casesAvail": 0,
       "casesInTransit": 0,
       "comment": "De Kalb 30 per month, next container if we go down <30",
       "commentEn": "",
-      "lots": [
-        {
-          "lotNum": "1290749",
-          "status": "on_hand",
-          "receiptDate": "2026-04-24",
-          "eta": null,
-          "cases": 20,
-          "reserved": 0,
-          "netAvailLb": 381.166,
-          "expDate": "2027-03-22",
-          "expMonth": null,
-          "comment": ""
-        }
-      ]
+      "lots": []
     },
     "03010": {
       "code": "03010",
@@ -1906,23 +2035,11 @@
     "03014": {
       "code": "03014",
       "name": "ASIAGO VECCHIO PDO 1/4 WHEEL",
-      "casesAvail": 39,
+      "casesAvail": 34,
       "casesInTransit": 0,
       "comment": "Selected, <24?",
       "commentEn": "",
       "lots": [
-        {
-          "lotNum": "1304212",
-          "status": "on_hand",
-          "receiptDate": "2026-06-18",
-          "eta": null,
-          "cases": 15,
-          "reserved": 0,
-          "netAvailLb": 74.905,
-          "expDate": "2027-01-09",
-          "expMonth": null,
-          "comment": ""
-        },
         {
           "lotNum": "1312795",
           "status": "on_hand",
@@ -1934,13 +2051,25 @@
           "expDate": "2027-02-20",
           "expMonth": null,
           "comment": ""
+        },
+        {
+          "lotNum": "1304212",
+          "status": "on_hand",
+          "receiptDate": "2026-06-18",
+          "eta": null,
+          "cases": 10,
+          "reserved": 0,
+          "netAvailLb": 49.936,
+          "expDate": "2027-01-09",
+          "expMonth": null,
+          "comment": ""
         }
       ]
     },
     "03023": {
       "code": "03023",
       "name": "ASIAGO AGED WHOLE WHEEL",
-      "casesAvail": 21,
+      "casesAvail": 15,
       "casesInTransit": 0,
       "comment": "occasionally DeKalb, as long as we are >20, no thanks",
       "commentEn": "",
@@ -1950,9 +2079,9 @@
           "status": "on_hand",
           "receiptDate": "2026-01-29",
           "eta": null,
-          "cases": 21,
+          "cases": 15,
           "reserved": 0,
-          "netAvailLb": 389.34,
+          "netAvailLb": 278.1,
           "expDate": "2026-08-30",
           "expMonth": null,
           "comment": ""
@@ -1989,11 +2118,23 @@
     "04028": {
       "code": "04028",
       "name": "DRUNKEN CHEESE WHOLE WHEEL (IMBRIAGO)",
-      "casesAvail": 40,
+      "casesAvail": 37,
       "casesInTransit": 0,
       "comment": "monitor <30?",
       "commentEn": "",
       "lots": [
+        {
+          "lotNum": "1290754",
+          "status": "on_hand",
+          "receiptDate": "2026-04-24",
+          "eta": null,
+          "cases": 12,
+          "reserved": 0,
+          "netAvailLb": 78.59,
+          "expDate": "2026-11-22",
+          "expMonth": null,
+          "comment": ""
+        },
         {
           "lotNum": "1300466",
           "status": "on_hand",
@@ -2007,25 +2148,13 @@
           "comment": ""
         },
         {
-          "lotNum": "1290754",
-          "status": "on_hand",
-          "receiptDate": "2026-04-24",
-          "eta": null,
-          "cases": 12,
-          "reserved": 0,
-          "netAvailLb": 78.592,
-          "expDate": "2026-11-22",
-          "expMonth": null,
-          "comment": ""
-        },
-        {
           "lotNum": "1312777",
           "status": "on_hand",
           "receiptDate": "2026-07-23",
           "eta": null,
-          "cases": 24,
+          "cases": 21,
           "reserved": 0,
-          "netAvailLb": 144.89,
+          "netAvailLb": 126.778,
           "expDate": "2027-02-24",
           "expMonth": null,
           "comment": ""
@@ -2066,7 +2195,7 @@
     "04145": {
       "code": "04145",
       "name": "LAGORAI CHEESE 1/4 WHEEL",
-      "casesAvail": 15,
+      "casesAvail": 5,
       "casesInTransit": 0,
       "comment": "Lettieri doesn't order much",
       "commentEn": "",
@@ -2077,11 +2206,11 @@
           "receiptDate": "2026-05-15",
           "eta": null,
           "cases": 15,
-          "reserved": 0,
+          "reserved": 10,
           "netAvailLb": 101.768,
           "expDate": "2026-12-16",
           "expMonth": null,
-          "comment": ""
+          "comment": "Lettieri 3302"
         }
       ]
     },
@@ -2100,7 +2229,7 @@
           "eta": null,
           "cases": 5,
           "reserved": 0,
-          "netAvailLb": 150.628,
+          "netAvailLb": 150.63,
           "expDate": "2026-09-13",
           "expMonth": null,
           "comment": ""
@@ -2128,33 +2257,33 @@
     "04176": {
       "code": "04176",
       "name": "DRUNKEN CHEESE 7 OZ EW (IMBRIAGO)",
-      "casesAvail": 23,
-      "casesInTransit": 271,
+      "casesAvail": 342,
+      "casesInTransit": 48,
       "comment": "KeHE + Olio&Olive + HEB",
       "commentEn": "",
       "lots": [
         {
-          "lotNum": "269423003",
-          "status": "in_transit",
-          "receiptDate": null,
-          "eta": "2026-09-29",
-          "cases": 144,
-          "reserved": 0,
-          "netAvailLb": 760.32,
-          "expDate": null,
-          "expMonth": "2027-04",
-          "comment": ""
-        },
-        {
-          "lotNum": "269423004",
-          "status": "in_transit",
-          "receiptDate": null,
-          "eta": "2026-09-29",
+          "lotNum": "1328728",
+          "status": "on_hand",
+          "receiptDate": "2026-09-24",
+          "eta": null,
           "cases": 127,
           "reserved": 0,
           "netAvailLb": 670.56,
-          "expDate": null,
-          "expMonth": "2027-04",
+          "expDate": "2027-04-30",
+          "expMonth": null,
+          "comment": ""
+        },
+        {
+          "lotNum": "1328703",
+          "status": "on_hand",
+          "receiptDate": "2026-09-24",
+          "eta": null,
+          "cases": 144,
+          "reserved": 0,
+          "netAvailLb": 760.32,
+          "expDate": "2027-04-29",
+          "expMonth": null,
           "comment": ""
         },
         {
@@ -2168,6 +2297,18 @@
           "expDate": "2027-03-11",
           "expMonth": null,
           "comment": "KeHE 3898594"
+        },
+        {
+          "lotNum": "269381429",
+          "status": "in_transit",
+          "receiptDate": null,
+          "eta": "2026-10-08",
+          "cases": 48,
+          "reserved": 0,
+          "netAvailLb": 253.44,
+          "expDate": null,
+          "expMonth": "2027-05",
+          "comment": ""
         }
       ]
     },
@@ -2186,7 +2327,7 @@
           "eta": null,
           "cases": 14,
           "reserved": 0,
-          "netAvailLb": 284.53,
+          "netAvailLb": 284.525,
           "expDate": "2027-04-15",
           "expMonth": null,
           "comment": ""
@@ -2223,7 +2364,7 @@
     "04211": {
       "code": "04211",
       "name": "ALPEGGIO CHEESE 7 OZ EW",
-      "casesAvail": 12,
+      "casesAvail": 0,
       "casesInTransit": 0,
       "comment": "Lettieri sometimes orders 10-15 cases",
       "commentEn": "",
@@ -2234,42 +2375,30 @@
           "receiptDate": "2026-08-06",
           "eta": null,
           "cases": 12,
-          "reserved": 0,
+          "reserved": 12,
           "netAvailLb": 63.36,
           "expDate": "2027-03-11",
           "expMonth": null,
-          "comment": ""
+          "comment": "Lettieri 003302"
         }
       ]
     },
     "05001": {
       "code": "05001",
       "name": "GRANA PADANO PDO WHOLE WHEEL",
-      "casesAvail": 30,
+      "casesAvail": 28,
       "casesInTransit": 0,
       "comment": "slow mover but keep some in stock",
       "commentEn": "",
       "lots": [
         {
-          "lotNum": "1304221",
-          "status": "on_hand",
-          "receiptDate": "2026-06-18",
-          "eta": null,
-          "cases": 10,
-          "reserved": 10,
-          "netAvailLb": 819.63,
-          "expDate": "2027-05-07",
-          "expMonth": null,
-          "comment": ""
-        },
-        {
           "lotNum": "1312775",
           "status": "on_hand",
           "receiptDate": "2026-07-23",
           "eta": null,
-          "cases": 30,
+          "cases": 28,
           "reserved": 0,
-          "netAvailLb": 2484.17,
+          "netAvailLb": 2314.77,
           "expDate": "2027-06-18",
           "expMonth": null,
           "comment": ""
@@ -2279,92 +2408,56 @@
     "05007": {
       "code": "05007",
       "name": "GRANA PADANO PDO 1/8 WHEEL",
-      "casesAvail": 1718,
+      "casesAvail": 1292,
       "casesInTransit": 0,
       "comment": "",
       "commentEn": "",
       "lots": [
         {
-          "lotNum": "1308161",
+          "lotNum": "1322677",
           "status": "on_hand",
-          "receiptDate": "2026-07-03",
+          "receiptDate": "2026-09-01",
           "eta": null,
-          "cases": 50,
-          "reserved": 0,
-          "netAvailLb": 1045.82,
-          "expDate": "2027-01-30",
+          "cases": 104,
+          "reserved": 104,
+          "netAvailLb": 2259.24,
+          "expDate": "2027-03-24",
           "expMonth": null,
-          "comment": ""
+          "comment": "Gordon 4514914235"
         },
         {
-          "lotNum": "1308164",
+          "lotNum": "1322678",
           "status": "on_hand",
-          "receiptDate": "2026-07-03",
+          "receiptDate": "2026-09-01",
+          "eta": null,
+          "cases": 104,
+          "reserved": 104,
+          "netAvailLb": 2220.76,
+          "expDate": "2027-03-24",
+          "expMonth": null,
+          "comment": "Gordon 4514914235"
+        },
+        {
+          "lotNum": "1322679",
+          "status": "on_hand",
+          "receiptDate": "2026-09-01",
+          "eta": null,
+          "cases": 104,
+          "reserved": 104,
+          "netAvailLb": 2256.08,
+          "expDate": "2027-03-24",
+          "expMonth": null,
+          "comment": "Gordon 4514914235"
+        },
+        {
+          "lotNum": "1322680",
+          "status": "on_hand",
+          "receiptDate": "2026-09-01",
           "eta": null,
           "cases": 104,
           "reserved": 0,
-          "netAvailLb": 2234.66,
-          "expDate": "2027-01-30",
-          "expMonth": null,
-          "comment": ""
-        },
-        {
-          "lotNum": "1308176",
-          "status": "on_hand",
-          "receiptDate": "2026-07-03",
-          "eta": null,
-          "cases": 104,
-          "reserved": 0,
-          "netAvailLb": 2224.38,
-          "expDate": "2027-01-30",
-          "expMonth": null,
-          "comment": ""
-        },
-        {
-          "lotNum": "1308162",
-          "status": "on_hand",
-          "receiptDate": "2026-07-03",
-          "eta": null,
-          "cases": 104,
-          "reserved": 0,
-          "netAvailLb": 2149.43,
-          "expDate": "2027-01-31",
-          "expMonth": null,
-          "comment": ""
-        },
-        {
-          "lotNum": "1308167",
-          "status": "on_hand",
-          "receiptDate": "2026-07-03",
-          "eta": null,
-          "cases": 104,
-          "reserved": 0,
-          "netAvailLb": 2182.45,
-          "expDate": "2027-01-31",
-          "expMonth": null,
-          "comment": ""
-        },
-        {
-          "lotNum": "1312765",
-          "status": "on_hand",
-          "receiptDate": "2026-07-23",
-          "eta": null,
-          "cases": 104,
-          "reserved": 0,
-          "netAvailLb": 2240.29,
-          "expDate": "2027-02-20",
-          "expMonth": null,
-          "comment": ""
-        },
-        {
-          "lotNum": "1312771",
-          "status": "on_hand",
-          "receiptDate": "2026-07-23",
-          "eta": null,
-          "cases": 104,
-          "reserved": 0,
-          "netAvailLb": 2252.32,
-          "expDate": "2027-02-20",
+          "netAvailLb": 2258.6,
+          "expDate": "2027-03-24",
           "expMonth": null,
           "comment": ""
         },
@@ -2429,50 +2522,26 @@
           "comment": ""
         },
         {
-          "lotNum": "1322677",
+          "lotNum": "1312765",
           "status": "on_hand",
-          "receiptDate": "2026-09-01",
+          "receiptDate": "2026-07-23",
           "eta": null,
           "cases": 104,
           "reserved": 0,
-          "netAvailLb": 2259.24,
-          "expDate": "2027-03-24",
+          "netAvailLb": 2240.29,
+          "expDate": "2027-02-20",
           "expMonth": null,
           "comment": ""
         },
         {
-          "lotNum": "1322678",
+          "lotNum": "1312771",
           "status": "on_hand",
-          "receiptDate": "2026-09-01",
+          "receiptDate": "2026-07-23",
           "eta": null,
           "cases": 104,
           "reserved": 0,
-          "netAvailLb": 2220.76,
-          "expDate": "2027-03-24",
-          "expMonth": null,
-          "comment": ""
-        },
-        {
-          "lotNum": "1322679",
-          "status": "on_hand",
-          "receiptDate": "2026-09-01",
-          "eta": null,
-          "cases": 104,
-          "reserved": 0,
-          "netAvailLb": 2256.08,
-          "expDate": "2027-03-24",
-          "expMonth": null,
-          "comment": ""
-        },
-        {
-          "lotNum": "1322680",
-          "status": "on_hand",
-          "receiptDate": "2026-09-01",
-          "eta": null,
-          "cases": 104,
-          "reserved": 0,
-          "netAvailLb": 2258.6,
-          "expDate": "2027-03-24",
+          "netAvailLb": 2252.32,
+          "expDate": "2027-02-20",
           "expMonth": null,
           "comment": ""
         },
@@ -2485,6 +2554,54 @@
           "reserved": 0,
           "netAvailLb": 2345.59,
           "expDate": "2027-02-20",
+          "expMonth": null,
+          "comment": ""
+        },
+        {
+          "lotNum": "1308162",
+          "status": "on_hand",
+          "receiptDate": "2026-07-03",
+          "eta": null,
+          "cases": 104,
+          "reserved": 0,
+          "netAvailLb": 2149.43,
+          "expDate": "2027-01-31",
+          "expMonth": null,
+          "comment": ""
+        },
+        {
+          "lotNum": "1308167",
+          "status": "on_hand",
+          "receiptDate": "2026-07-03",
+          "eta": null,
+          "cases": 104,
+          "reserved": 0,
+          "netAvailLb": 2182.45,
+          "expDate": "2027-01-31",
+          "expMonth": null,
+          "comment": ""
+        },
+        {
+          "lotNum": "1308161",
+          "status": "on_hand",
+          "receiptDate": "2026-07-03",
+          "eta": null,
+          "cases": 40,
+          "reserved": 0,
+          "netAvailLb": 836.656,
+          "expDate": "2027-01-30",
+          "expMonth": null,
+          "comment": ""
+        },
+        {
+          "lotNum": "1308176",
+          "status": "on_hand",
+          "receiptDate": "2026-07-03",
+          "eta": null,
+          "cases": 104,
+          "reserved": 0,
+          "netAvailLb": 2224.38,
+          "expDate": "2027-01-30",
           "expMonth": null,
           "comment": ""
         }
@@ -2508,7 +2625,7 @@
           "netAvailLb": 589.076,
           "expDate": "2026-12-16",
           "expMonth": null,
-          "comment": "Selected?"
+          "comment": ""
         },
         {
           "lotNum": "1296217",
@@ -2536,45 +2653,33 @@
     "05025": {
       "code": "05025",
       "name": "PARMIGIANO REGGIANO PDO 1/8 WHEEL",
-      "casesAvail": 0,
-      "casesInTransit": 198,
+      "casesAvail": 198,
+      "casesInTransit": 0,
       "comment": "always have at least 1/2 pallet (check with Stefano)",
       "commentEn": "",
       "lots": [
         {
-          "lotNum": "1312774",
+          "lotNum": "1328699",
           "status": "on_hand",
-          "receiptDate": "2026-07-23",
+          "receiptDate": "2026-09-24",
           "eta": null,
-          "cases": 77,
-          "reserved": 77,
-          "netAvailLb": 1701.241,
-          "expDate": "2027-06-18",
-          "expMonth": null,
-          "comment": "Selected"
-        },
-        {
-          "lotNum": "95209",
-          "status": "in_transit",
-          "receiptDate": null,
-          "eta": "2026-09-29",
-          "cases": 99,
-          "reserved": 0,
-          "netAvailLb": 2183.69,
-          "expDate": null,
-          "expMonth": "2027-08",
-          "comment": ""
-        },
-        {
-          "lotNum": "95209",
-          "status": "in_transit",
-          "receiptDate": null,
-          "eta": "2026-09-30",
           "cases": 99,
           "reserved": 0,
           "netAvailLb": 2241.95,
-          "expDate": null,
-          "expMonth": "2027-08",
+          "expDate": "2027-08-20",
+          "expMonth": null,
+          "comment": ""
+        },
+        {
+          "lotNum": "1328708",
+          "status": "on_hand",
+          "receiptDate": "2026-09-24",
+          "eta": null,
+          "cases": 99,
+          "reserved": 0,
+          "netAvailLb": 2183.69,
+          "expDate": "2027-08-20",
+          "expMonth": null,
           "comment": ""
         }
       ]
@@ -2603,23 +2708,45 @@
     },
     "05034": {
       "code": "05034",
+      "name": "PARMIGIANO REGGIANO PDO WHOLE WHEEL",
+      "casesAvail": 25,
+      "casesInTransit": 0,
+      "comment": "",
+      "commentEn": "",
+      "lots": [
+        {
+          "lotNum": "1328700",
+          "status": "on_hand",
+          "receiptDate": "2026-09-24",
+          "eta": null,
+          "cases": 25,
+          "reserved": 0,
+          "netAvailLb": 2255.48,
+          "expDate": "2027-08-20",
+          "expMonth": null,
+          "comment": ""
+        }
+      ]
+    },
+    "05035": {
+      "code": "05035",
       "name": "PARMIGIANO REGGIANO PDO WHOLE WHEEL 18mo",
-      "casesAvail": 0,
+      "casesAvail": 30,
       "casesInTransit": 30,
       "comment": "",
       "commentEn": "",
       "lots": [
         {
-          "lotNum": "269423011",
+          "lotNum": "70926",
           "status": "in_transit",
           "receiptDate": null,
-          "eta": "2026-09-29",
+          "eta": "2026-10-08",
           "cases": 30,
           "reserved": 0,
-          "netAvailLb": 2691.68,
+          "netAvailLb": 2660.77,
           "expDate": null,
-          "expMonth": "2027-08",
-          "comment": ""
+          "expMonth": "2027-09",
+          "comment": "25 DIPALO HOLIDAY"
         }
       ]
     },
@@ -2635,11 +2762,23 @@
     "05093": {
       "code": "05093",
       "name": "GRANA PADANO WW 16 MESI",
-      "casesAvail": 14,
-      "casesInTransit": 15,
+      "casesAvail": 59,
+      "casesInTransit": 30,
       "comment": "",
       "commentEn": "",
       "lots": [
+        {
+          "lotNum": "1328715",
+          "status": "on_hand",
+          "receiptDate": "2026-09-24",
+          "eta": null,
+          "cases": 15,
+          "reserved": 0,
+          "netAvailLb": 1190.48,
+          "expDate": "2027-08-20",
+          "expMonth": null,
+          "comment": ""
+        },
         {
           "lotNum": "1324226",
           "status": "on_hand",
@@ -2650,18 +2789,18 @@
           "netAvailLb": 1125.76,
           "expDate": "2027-08-05",
           "expMonth": null,
-          "comment": "25 DIPALO HOLIDAY"
+          "comment": ""
         },
         {
-          "lotNum": "32025129",
+          "lotNum": "22025109",
           "status": "in_transit",
           "receiptDate": null,
-          "eta": "2026-09-29",
-          "cases": 15,
+          "eta": "2026-10-08",
+          "cases": 30,
           "reserved": 0,
-          "netAvailLb": 1190.48,
+          "netAvailLb": 2421.34,
           "expDate": null,
-          "expMonth": "2027-08",
+          "expMonth": "2027-09",
           "comment": ""
         }
       ]
@@ -2700,23 +2839,11 @@
     "05411": {
       "code": "05411",
       "name": "GRANA PADANO PDO RISERVA WHOLE WHEEL",
-      "casesAvail": 60,
+      "casesAvail": 40,
       "casesInTransit": 0,
       "comment": "Greg 12x monthly plan and ACE, we monitor, next",
       "commentEn": "",
       "lots": [
-        {
-          "lotNum": "1308166",
-          "status": "on_hand",
-          "receiptDate": "2026-07-03",
-          "eta": null,
-          "cases": 30,
-          "reserved": 0,
-          "netAvailLb": 2484.11,
-          "expDate": "2027-06-04",
-          "expMonth": null,
-          "comment": "15 DIPALO HOLIDAY"
-        },
         {
           "lotNum": "1322642",
           "status": "on_hand",
@@ -2727,6 +2854,18 @@
           "netAvailLb": 2489.73,
           "expDate": "2027-07-12",
           "expMonth": null,
+          "comment": "DIPALO HOLIDAY"
+        },
+        {
+          "lotNum": "1308166",
+          "status": "on_hand",
+          "receiptDate": "2026-07-03",
+          "eta": null,
+          "cases": 10,
+          "reserved": 0,
+          "netAvailLb": 828.036,
+          "expDate": "2027-06-04",
+          "expMonth": null,
           "comment": ""
         }
       ]
@@ -2735,23 +2874,10 @@
       "code": "05417",
       "name": "GRANA PADANO PDO 1/8 WHEEL 16 MONTHS",
       "casesAvail": 0,
-      "casesInTransit": 24,
+      "casesInTransit": 0,
       "comment": "ACE Endico pre order?",
       "commentEn": "",
-      "lots": [
-        {
-          "lotNum": "269423022",
-          "status": "in_transit",
-          "receiptDate": null,
-          "eta": "2026-09-29",
-          "cases": 24,
-          "reserved": 0,
-          "netAvailLb": 506.83,
-          "expDate": null,
-          "expMonth": "2027-04",
-          "comment": ""
-        }
-      ]
+      "lots": []
     },
     "05422": {
       "code": "05422",
@@ -2770,52 +2896,6 @@
       "comment": "only for Christmas (boxes to add to the orders in November, or to send per FedEx)",
       "commentEn": "",
       "lots": []
-    },
-    "0911": {
-      "code": "0911",
-      "name": "CRACKERS WITH OLIVE OIL BULK 5 KG",
-      "casesAvail": 0,
-      "casesInTransit": 216,
-      "comment": "",
-      "commentEn": "",
-      "lots": [
-        {
-          "lotNum": "L-26239",
-          "status": "in_transit",
-          "receiptDate": null,
-          "eta": "2026-09-29",
-          "cases": 72,
-          "reserved": 72,
-          "netAvailLb": 793.66,
-          "expDate": null,
-          "expMonth": "2027-10",
-          "comment": "SK 0283916"
-        },
-        {
-          "lotNum": "L-26239",
-          "status": "in_transit",
-          "receiptDate": null,
-          "eta": "2026-09-29",
-          "cases": 72,
-          "reserved": 72,
-          "netAvailLb": 793.66,
-          "expDate": null,
-          "expMonth": "2027-10",
-          "comment": "SK 0283916"
-        },
-        {
-          "lotNum": "L-26239",
-          "status": "in_transit",
-          "receiptDate": null,
-          "eta": "2026-09-29",
-          "cases": 72,
-          "reserved": 72,
-          "netAvailLb": 793.66,
-          "expDate": null,
-          "expMonth": "2027-10",
-          "comment": "SK 0283916"
-        }
-      ]
     }
   }
 }
