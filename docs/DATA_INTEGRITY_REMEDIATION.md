@@ -37,13 +37,24 @@ the .mov binaries, caught before pushing. Committing large binaries into git his
 undo; a `.gitignore` entry is trivially reversible. Rick has not decided whether to add one.
 Meanwhile: **stage explicit paths in this repo, never a bare `git add -A .`**
 
-### 2. Email activity on the CRM card — Path 1 or Path 2?
-The private app can never read email engagements (see the HubSpot section below — the scope is
-ungrantable). Two ways out, fully specced there:
-- **Path 1, recommended** — contact properties (`notes_last_contacted`,
-  `hs_last_sales_activity_timestamp`). Live, free, no HubSpot change, and it fixes the
-  account-join bug the old feed had. Costs the subject line.
-- **Path 2** — connector + a fifth publish pipeline. Richer, not live, more to maintain.
+### 2. ~~Email activity on the CRM card~~ — RESOLVED 2026-09-26, shipped as **Path 3**
+Neither of the two options originally written up. Searching HubSpot's property catalogue turned
+up a third and better answer: **the engagement roll-up already on the COMPANY object.**
+
+`notes_last_contacted` is defined by HubSpot as *"the last time a call, chat conversation,
+LinkedIn message, postal mail, meeting, **sales email**, SMS, or WhatsApp message was logged for a
+company"* — the same history the dead feed was reaching for, pre-aggregated, and readable with
+`crm.objects.companies.read`, which `crm-hubspot.js` has always had. Verified populated on 66
+companies before building.
+
+Better than both earlier paths on every axis: live (Path 2 was not), no new pipeline (Path 2
+needed a fifth), and it joins natively — these properties sit ON the company row, where Path 1
+needed a contact→company hop and the old feed matched by substring on the shop name.
+
+Shipped in `ec9730a`: five properties added to the existing company fetch, an Engagement block on
+the account drawer, and the old "add the emails.read scope" notice **deleted** — it told Rick to
+do something HubSpot does not permit, which is worse than saying nothing. Trade-off accepted
+knowingly: you get *when and how often*, not *what was said*. No subject lines.
 
 ### 3. `allowCompanyCreate` guard on `crm-push.js`
 `crm.objects.companies.write` must stay granted (the contact↔company association needs it), so
