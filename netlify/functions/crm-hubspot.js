@@ -44,7 +44,8 @@ const rawHandler = async (event, context) => {
     // sweeps are up to 10 paginated searches EACH — run them SEQUENTIALLY (≈2-3 req/s) so a
     // parallel burst can't 429 the whole payload into zeros. Email activity (3 non-search-heavy
     // calls) still runs alongside. hsSearch() below adds a 429/5xx backoff retry on every page.
-    const emailActivityP = fetchEmailActivity(token).catch((e) => ({ activity: [], activityNote: `email fetch failed: ${e?.message || e}` }));
+    const tenantId = (event.queryStringParameters?.tenant || "").replace(/[^a-z0-9-]/gi, "");
+    const emailActivityP = fetchEmailActivity(token, tenantId).catch((e) => ({ activity: [], activityNote: `email fetch failed: ${e?.message || e}` }));
     const companies = await fetchAllCompanies(token);
     const contactsRes = await fetchAllContacts(token);
     const emailActivity = await emailActivityP;
@@ -127,8 +128,33 @@ const rawHandler = async (event, context) => {
 const EMAIL_LIMIT = 20;
 const EMAIL_TYPES = new Set(["EMAIL", "INCOMING_EMAIL", "FORWARDED_EMAIL"]);
 
-async function fetchEmailActivity(token) {
+// HOUSE (OPERATIONAL) DOMAINS — excluded from this feed. Rick, 2026-09-26:
+//   "the house emails are from every monti trentini email address... these are not CRM monitored
+//    items. these are operational."
+//
+// Order confirmations, invoices, tariff credits, WEBID logistics threads. They are real work, but
+// they already surface in the Priority — response needed recap, and this console exists to show
+// BUYER activity. Before this filter they took 15 of the 20 slots (11 Stefano + 4 Federica), so
+// on a busy operations day genuine buyer email was pushed off the list entirely — the feed was
+// technically correct and practically useless.
+//
+// Two domains, both verified against HubSpot 2026-09-26: the US importer and the Italian
+// producer. 7 contacts total — sales@ (Rick), stefano@, order@, customerservice@ on the -usa
+// domain; federica@, export@, marketing@ on the .com.
+//
+// WHY THIS LIVES HERE AND NOT IN TENANT CONFIG: netlify.toml sets no `included_files`, so a
+// function cannot read config/clients/<tenant>.json at runtime, and a static import would pin
+// this multi-tenant function to one tenant. This is a display filter, not business logic, so a
+// documented map is the honest trade — MOVE IT to tenant config when a second real tenant exists
+// and the plumbing is worth building. An unknown tenant simply filters nothing.
+const HOUSE_DOMAINS = {
+  montitrentini: ["montitrentini-usa.com", "montitrentini.com"],
+};
+const domainOf = (email) => String(email || "").toLowerCase().split("@")[1] || "";
+
+async function fetchEmailActivity(token, tenantId) {
   const headers = { Authorization: `Bearer ${token}`, "content-type": "application/json" };
+  const house = new Set(HOUSE_DOMAINS[tenantId] || []);
 
   // Recent engagements, newest first. `count` is engagements of ALL types, so ask for more than
   // EMAIL_LIMIT and filter down — otherwise a busy day of calls/notes crowds the emails out.
@@ -146,15 +172,17 @@ async function fetchEmailActivity(token) {
   if (!res.ok) throw new Error(`HubSpot engagements ${res.status}`);
 
   const results = (await res.json()).results || [];
-  const emails = results
-    .filter((r) => EMAIL_TYPES.has(r.engagement?.type))
-    .slice(0, EMAIL_LIMIT);
-  if (!emails.length) return { activity: [] };
+  // Take a WIDE pool before the house filter. Slicing to EMAIL_LIMIT first would let operational
+  // traffic claim the slots and then get removed, leaving an almost-empty feed on exactly the
+  // busy days when you most want to see who else wrote in.
+  const pool = results.filter((r) => EMAIL_TYPES.has(r.engagement?.type)).slice(0, EMAIL_LIMIT * 3);
+  if (!pool.length) return { activity: [] };
 
-  // Contact names, one batch call. Pure enrichment — the feed still renders without it, showing
-  // "Outbound email" instead of a person's name.
+  // Contact names AND emails, one batch call. Names are enrichment (the feed still renders
+  // without them); the emails are what the house filter below needs.
   const contactNames = {};
-  const ids = [...new Set(emails.flatMap((e) => e.associations?.contactIds || []).map(String))].slice(0, 100);
+  const contactEmails = {};
+  const ids = [...new Set(pool.flatMap((e) => e.associations?.contactIds || []).map(String))].slice(0, 100);
   if (ids.length) {
     try {
       const cRes = await fetch("https://api.hubapi.com/crm/v3/objects/contacts/batch/read", {
@@ -170,10 +198,26 @@ async function fetchEmailActivity(token) {
           const p = c.properties || {};
           const name = [p.firstname, p.lastname].filter(Boolean).join(" ") || p.email || "";
           contactNames[c.id] = p.company ? `${name} — ${p.company}` : name;
+          contactEmails[c.id] = p.email || "";
         }
       }
     } catch { /* enrichment only */ }
   }
+
+  // Drop a thread only when EVERY resolved participant is on a house domain — that is pure
+  // internal operations. A thread where a buyer is on it stays, even if Stefano is copied,
+  // because that IS buyer activity. Anything we could not resolve is KEPT: an unrecognised
+  // counterparty is more likely a new prospect than internal traffic, and silently hiding email
+  // is a worse failure than showing one line too many.
+  const isHouseOnly = (e) => {
+    if (!house.size) return false;
+    const domains = (e.associations?.contactIds || [])
+      .map((c) => domainOf(contactEmails[String(c)]))
+      .filter(Boolean);
+    return domains.length > 0 && domains.every((d) => house.has(d));
+  };
+  const emails = pool.filter((e) => !isHouseOnly(e)).slice(0, EMAIL_LIMIT);
+  if (!emails.length) return { activity: [] };
 
   const activity = emails.map((e) => {
     const meta = e.metadata || {};
