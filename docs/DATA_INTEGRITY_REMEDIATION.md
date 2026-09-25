@@ -1,11 +1,59 @@
 # Data integrity remediation — living plan
 
-**Status:** open · **Owner:** Rick · **Opened:** 2026-09-25
+**Status:** open · **Owner:** Rick · **Opened:** 2026-09-25 · **Last updated:** 2026-09-26
+
+**→ Start at "PARKED — decisions waiting on Rick" directly below. That is the short list.**
+
+> Note on where things get written: Claude also keeps notes in its own memory across sessions, but
+> **Rick cannot browse those** — they only surface when a future session reads context. So anything
+> that needs a human decision, or that Rick should be able to find on his own, belongs HERE, in the
+> repo, not in memory. Memory is for continuity between sessions; this file is for Rick.
 
 > This is a LIVING doc, deliberately undated in its filename. Tick items as they ship.
 > **Delete this file when the list is empty.** It is not a handoff or a snapshot — do not
 > archive it, do not write a successor. The review that produced it is summarized here in
 > full; there is no second document to find.
+
+---
+
+# ⭑ PARKED — decisions waiting on Rick
+
+**This section is the one Rick actually reads. Everything below it is supporting detail.**
+Nothing here is broken or urgent; each is a fork where the next step is a decision, not work.
+When one is settled, move it into the relevant section below and delete it from here.
+
+### 1. Video assets + the Social/Content campaign manager — PINNED 2026-09-26
+The repo carries untracked `videos/` projects (`.media/video/*.mov` sources, `renders/*.mp4`
+outputs) and untracked video tooling in `.agents/skills/` and `.claude/skills/`. **Rick's call:
+do not decide how these are stored or versioned yet** — they belong to the Social Media / Content
+campaign manager, which is item 7 on the 09-03 roadmap and does not exist. Deciding the storage
+model before the consumer exists is backwards.
+
+*Not a cleanup task. Do not propose committing or organising these.* Revisit when item 7 starts.
+
+**Separate and still open — the accident risk, which is not the same decision:** because these
+sit untracked, any `git add -A` sweeps them in. One nearly did on 2026-09-26 — 870 files including
+the .mov binaries, caught before pushing. Committing large binaries into git history is painful to
+undo; a `.gitignore` entry is trivially reversible. Rick has not decided whether to add one.
+Meanwhile: **stage explicit paths in this repo, never a bare `git add -A .`**
+
+### 2. Email activity on the CRM card — Path 1 or Path 2?
+The private app can never read email engagements (see the HubSpot section below — the scope is
+ungrantable). Two ways out, fully specced there:
+- **Path 1, recommended** — contact properties (`notes_last_contacted`,
+  `hs_last_sales_activity_timestamp`). Live, free, no HubSpot change, and it fixes the
+  account-join bug the old feed had. Costs the subject line.
+- **Path 2** — connector + a fifth publish pipeline. Richer, not live, more to maintain.
+
+### 3. `allowCompanyCreate` guard on `crm-push.js`
+`crm.objects.companies.write` must stay granted (the contact↔company association needs it), so
+the guard against accidentally creating duplicate companies has to live in code instead. Proposed:
+an explicit `allowCompanyCreate: true` flag, default off — same shape as `--promote` on
+sync-inventory. Costs nothing today; every current row resolves `from-account-book`.
+
+### 4. `01174` — two products, one item number, one UPC
+Smoked Provolone Wedge (`exwPiece 3.79`) and Disc (`3.52`). **Anyone quoting the Disc quotes 7.6%
+high.** Commercial, not technical — needs Stefano, not code.
 
 ---
 
