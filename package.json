@@ -20,7 +20,9 @@
     "inventory:check": "node scripts/sync-inventory.mjs --check",
     "inventory:publish": "node scripts/publish-inventory.mjs",
     "validate:items": "node scripts/validate-item-standards.mjs",
-    "test:notes": "node scripts/test-note-history.mjs"
+    "test:notes": "node scripts/test-note-history.mjs",
+    "test:freshness": "node scripts/test-inventory-freshness.mjs",
+    "test": "npm run test:notes && npm run test:freshness"
   },
   "dependencies": {
     "@netlify/blobs": "^8.2.0",
