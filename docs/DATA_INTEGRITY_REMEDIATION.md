@@ -33,20 +33,22 @@ Validation should get *stronger* as data approaches the buyer. Here it gets weak
 
 The strongest gate is furthest from production **and is opt-in**: `--require-drive-meta`
 (`sync-inventory.mjs:221-231`) is the only thing that blocks a hand-typed date from reaching
-buyers, it appears in no `package.json` script, and its only caller is a scheduled task that
-is currently disabled.
+buyers, and it appears in no `package.json` script. Its one caller is the `monti-inventory-watch`
+task — which was disabled when this was written, and is enabled again as of 2026-09-25.
 
-Three concrete consequences, all live today:
+Three concrete consequences. **1 and 2 are fixed; 3 is still open:**
 
-1. `node scripts/sync-inventory.mjs` with **no flag** writes the canonical `inventory.json`
-   with zero validation and no backup (`:45` sets `OUT` to the canonical path, `:460` writes
-   it). `validate()` lives inside the `--promote`/`--check` branch at `:430`. One forgotten
-   flag replaces the buyer catalog's offline fallback with an unvalidated parse.
-2. `publish-inventory.mjs --in <anything>` publishes that file. `src/data/montitrentini/inventory.NEW.json`
-   — a scratch artifact dated **2026-07-25**, still git-tracked — passes the server validator.
-   Two-month-old stock is one command away from live.
-3. Nothing anywhere asserts freshness. No check says "`lastUpdated` is within N days of today."
-   A disabled scheduler, a stuck gate, and a healthy pipeline all look identical from the app.
+1. ~~`node scripts/sync-inventory.mjs` with **no flag** writes the canonical file unvalidated~~ —
+   **FIXED 2026-09-25.** It now exits 5 and writes nothing. The gate moved from "remember the
+   flag" to "the script refuses."
+2. ~~`publish-inventory.mjs --in <anything>` publishes it, and `inventory.NEW.json` passes~~ —
+   **half fixed.** The July scratch file is deleted, so the specific loaded gun is gone. But
+   `--in` still accepts any path, so point it at a bad file and it still publishes. The real fix
+   is the freshness assertion below.
+3. **STILL OPEN — nothing asserts freshness.** No check says "`lastUpdated` is within N days of
+   today." A disabled scheduler, a stuck gate, and a healthy pipeline still look identical from
+   the app. This is now the single highest-value remaining item: it would have caught the
+   disabled scheduler, the two-day gate block, AND the future-dated banner, with one check.
 
 ## Root cause 2 — N writers, 1 gate
 
@@ -128,18 +130,20 @@ informed. It compounds, and it compounds faster the more you build.
 is written down nowhere. `npm run validate:items` — which `CLAUDE.md:149` presents as *the* gate
 — reads 4 of those 10. It covers 40%.
 
-## B. Operational — two things to act on today
+## B. Operational — ~~two things to act on today~~ FIXED 2026-09-25
 
-1. **`monti-inventory-watch` is disabled** (`enabled: false`, last ran 2026-09-24). The only
-   pipeline that touches the buyer-facing catalog is not running. Docs still assert it is:
-   `docs/DATA_UPDATES.md:124` and `docs/DASHBOARD_AUTO_UPDATE_ARCHITECTURE.md:67`.
-2. **`weekly-improvement-review` is enabled, ran today, and depends on it.** Its SKILL.md:18
-   computes shelf-life "from the live inventory, *kept current by the daily monti-inventory-watch
-   task*." That premise is false. It publishes expired/urgent/at-risk counts with a green exit 0
-   from whatever is on disk. **Wrong data, published successfully, by a healthy automation.**
-   That is the worst failure shape in the system, and it is running weekly.
+1. ~~**`monti-inventory-watch` is disabled**~~ — **RESOLVED.** Re-enabled 2026-09-25, runs 07:10
+   daily. Its premise-breaking bug (searching Drive by a name Monti had changed) is fixed too.
+   Still open: `docs/DATA_UPDATES.md:124` and `docs/DASHBOARD_AUTO_UPDATE_ARCHITECTURE.md:67`
+   were *accidentally* correct again, but only by luck — neither was edited.
+2. ~~**`weekly-improvement-review` depends on it**~~ — **premise now true again.** Its SKILL.md:18
+   assumes `inventory.json` is kept current by the daily task; it is, as of 09-25. A caveat was
+   added to `CLAUDE.md` telling future readers to re-verify that assumption rather than trust it,
+   because this is the failure shape to fear: *wrong data, published successfully, by a healthy
+   automation.*
 
-**Inventory is the only one of five publish pipelines with no failure email.** The other four
+~~**Inventory is the only one of five publish pipelines with no failure email.**~~ **FIXED** — it
+has one now, and it reports staleness in days. Kept below for the reasoning. The other four
 (market news, signals, priority, improvement review) email on failure. Inventory — highest
 stakes — reports to a chat transcript. It sat blocked for two consecutive days (23rd, 24th)
 and the only reason it surfaced is that you happened to read the transcript.
@@ -155,20 +159,36 @@ the bundled file, and `_sentry.js:67` only captures on `>= 500`. A Blobs outage 
 
 ## C. Remediation, ranked by (damage prevented ÷ effort)
 
-### Do this week
+### Do this week — ALL SHIPPED 2026-09-25, verified 2026-09-26
 
-- [ ] **Re-enable `monti-inventory-watch`, or decide out loud that it's manual.** If manual,
-      fix the two docs that claim otherwise and the improvement-review premise.
-- [ ] **Add a failure email to the inventory task**, copying the block from
-      `daily-news-watch/SKILL.md:134-156`. One paste. Closes the "blocked for two days,
-      nobody knew" hole.
-- [ ] **Delete `src/data/montitrentini/inventory.NEW.json`.** July scratch file, git-tracked,
-      passes the live validator. Flagged in `BUILD_LOG.md:1226` two months ago.
-- [ ] **Make the unvalidated write impossible.** In `sync-inventory.mjs`, refuse to write when
-      `OUT` resolves to the canonical path unless `--promote` was passed. Three lines.
-- [ ] **Fix the three wrong `CLAUDE.md` claims** (improvement-review inert; `imageForCode`
-      consumer list; "only `imageForCode` resolves photos" — state plainly that there are three
-      paths and one is the target). Highest-leverage edit in the repo: every agent reads it first.
+- [x] **Re-enable `monti-inventory-watch`.** Done — `enabled: true`, next run 07:10 daily.
+      Also fixed a latent killer while in there: the task's DETECT step searched Drive for the
+      sheet *by name*, but Monti renamed it to "THE Book" on 09-23. A name search now returns
+      nothing, which is indistinguishable from "no new drop" — it would have reported success
+      daily while the catalog froze. Now keyed on the stable fileId.
+- [x] **Failure email added.** Triggers on exit 2/4/5 or any publish failure; reports how many
+      days stale the live catalog now is, and escalates in the subject line if blocked 3 days
+      running. Silent on exit 3 (no new drop), which is the normal quiet outcome.
+- [x] **`inventory.NEW.json` deleted.** (`0ad41b9`)
+- [x] **Unvalidated canonical write is now impossible.** `sync-inventory.mjs` exits 5 and writes
+      nothing if it would touch `inventory.json` without `--promote`. Tested: unflagged run
+      refuses, `--check` still validates, scratch `--out` still works. (`0ad41b9`)
+- [x] **The three wrong `CLAUDE.md` claims corrected.** (`0ad41b9`)
+
+Also shipped the same day, not originally on this list:
+- [x] **Call-note history** — a second call to the same buyer used to silently overwrite the
+      first, because `note` was one string and the POST replaced the whole document. Server now
+      appends to `notes[]` (client unchanged, so a stale tab can't truncate history). Legacy
+      single notes are promoted, not lost. 15 unit tests: `npm run test:notes`. (`c0217cf`)
+- [x] **Call log on the CRM account drawer** — enrichment notes were keyed by the same HubSpot
+      company id the CRM page uses, but no reader outside the campaign that captured them. (`c0217cf`)
+- [x] **The email feed now says why it is empty** instead of hiding. `activityNote` had been
+      produced by `crm-hubspot.js` and read by nothing, so a never-enabled integration looked
+      exactly like a quiet week. (`2bd2643`, `09cb599`, `117906f`)
+- [x] **Stale "no HubSpot write path exists" claims corrected** in three places including
+      on-screen text that told Rick to export CSVs by hand. (`9b61ad4`, `a72caa9`)
+
+**All 12 commits are UNPUSHED.** Nothing above is live until deployed.
 
 ### Do this month
 
