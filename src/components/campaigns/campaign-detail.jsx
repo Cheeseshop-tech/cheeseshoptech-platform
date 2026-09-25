@@ -2063,9 +2063,10 @@ function ProspectPanel({ c, resolved, scripts = [], enrichment = {}, onEnrich, c
 
         {isEnrichment && (
           <p className="mt-3 border-t border-border pt-3 text-xs text-fg-muted">
-            Captured here, not written to HubSpot — the private app is read-only by design. Export the cleared rows
-            as a HubSpot-import CSV (contact properties map 1:1, and the company record ID associates them).
-            A live write-back needs <code className="rounded bg-bg px-1 py-0.5 font-mono">crm.objects.contacts.write</code> added to the private app.
+            Captured here first, then pushed to HubSpot — use <strong>Push to HubSpot</strong> above. It dry-runs
+            by default, showing you create-vs-update and the matched contact for every row before anything is
+            written. Only cleared rows with both an email and a buyer name are eligible. The CSV export is still
+            there as a fallback if you'd rather eyeball a batch in a spreadsheet first.
           </p>
         )}
       </div>
