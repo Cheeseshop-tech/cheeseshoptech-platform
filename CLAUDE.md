@@ -50,12 +50,24 @@ image model moves from today's *one image per SKU* (`imageForCode` takes the fir
 **type-tagged, ordered multi-image set per code** — a design item to fold into the catalog/media
 build (see `docs/IMAGE_PIPELINE_SPEC.md`, `docs/ASSET_LIBRARY_SPEC.md`, `docs/MEDIA_HUB.md`).
 
-> **TRIGGER (2026-08-15) — read before touching `src/lib/images.js` or any SKU-image consumer.**
-> `imageForCode` has four consumers (Catalog, Proposals, Pricing, Studio Director). Changing its
-> return shape in place breaks all four in one deploy. The migration is planned expand → adapter →
-> contract in `docs/IMAGE_PIPELINE_SPEC.md` § "Migration plan — one image per code → typed, ordered
-> series"; backlog item under **Next**. Rick's Cloudinary type-tagging pass can run now, ahead of
-> any code change.
+> **TRIGGER (2026-08-15, corrected 2026-09-25) — read before touching `src/lib/images.js` or any
+> SKU-image consumer.**
+> `imageForCode`/`codeImageUrl` has **four** consumers, and they are NOT the four this note used
+> to name. Verified 2026-09-25 by `grep -rn "imageForCode\|codeImageUrl" src/`:
+> `proposal-builder.jsx:319` · `proposal-view.jsx:193,210,239,259` · `pricing-tool.jsx:247,248` ·
+> `quote-builder.jsx:919`. Changing the return shape in place breaks all four in one deploy.
+>
+> **There are three SKU→photo resolution paths in production, not one.** The old claim that only
+> `imageForCode()` resolves a SKU's photo is false; treat one-path as the TARGET, not the state:
+> 1. `src/lib/images.js` — `imageForCode()` / `codeImageUrl()`, the intended choke point
+> 2. `src/components/catalog/buyer-catalog.jsx:96` — builds its own code→images map inline
+> 3. `src/lib/studio-director.js:18` — resolves via `pickAsset()` from `media.js` instead
+> Consolidating 2 and 3 onto 1 is the real prerequisite for the typed-series migration below.
+>
+> That migration (expand → adapter → contract, `docs/IMAGE_PIPELINE_SPEC.md` § "Migration plan")
+> is **planned, 0% executed** — that spec's own header still reads "(not started)" and no
+> `imagesForCode` or typed-series API exists. Do not read it as in-flight. Rick's Cloudinary
+> type-tagging pass can still run now, ahead of any code change.
 
 **Ownership (Rick is driving the manual pass):**
 - Rick will **put item numbers on all product-catalog shots** — this tags existing hub images to
@@ -97,9 +109,17 @@ useful once, gone a week later. It now also writes `src/data/cst/improvement-rev
 runs `scripts/publish-improvement-review.mjs`, which POSTs it (via `AGENT_GATE_PASSCODE`, same
 credential as every other unattended write) to the new `improvement-review.js` function → Netlify
 Blobs → the Agency Console's "Weekly improvement review" panel, same no-rebuild pattern as
-market-news/inventory. Code shipped 2026-09-18; inert until Rick creates
-`scripts/.improvement-review-publish.json` (gitignored, one-time). Full wiring:
-`docs/WEEKLY_IMPROVEMENT_REVIEW_AUTOMATION.md`.
+market-news/inventory. Code shipped 2026-09-18; **LIVE since 2026-09-18 23:27**, when
+`scripts/.improvement-review-publish.json` was created. It has run every Friday since and
+committed a run on 2026-09-25 (`8adf706`) — this note previously said "inert until Rick creates
+the sidecar," which was true for about six hours and wrong for a week. Full wiring:
+`docs/WEEKLY_IMPROVEMENT_REVIEW_AUTOMATION.md` (its "open step" to create the sidecar is
+likewise stale).
+
+> **Caveat, 2026-09-25:** this task's shelf-life numbers assume `inventory.json` is kept current
+> by the daily `monti-inventory-watch` task. Verify that assumption still holds before trusting
+> its expired/urgent/at-risk counts — a stale inventory file produces a confident, wrong review
+> with a green exit 0.
 
 **2026-09-17 — `AGENT_GATE_PASSCODE`: a dedicated write/read credential for automation.** The old
 shared `PORTAL_*` passcodes are retired (env vars deleted 2026-08-17; the live login screen is now

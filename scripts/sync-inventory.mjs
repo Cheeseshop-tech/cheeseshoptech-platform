@@ -20,7 +20,9 @@
    --require-drive-meta: hard-fail (exit 4) if the Drive sidecar is missing, so an
    unattended run can never publish the sheet's hand-typed date. Use it in cron.
    Defaults: newest source/availability_*.csv  ->  inventory.json
-   Safe-by-default for review: pass --out inventory.NEW.json to avoid replacing.
+   The canonical inventory.json can ONLY be written by --promote (exit 5 otherwise) —
+   it validates and takes an archive backup first. To preview, name a scratch --out,
+   e.g. --out inventory.PREVIEW.json, and delete it when you are done reading it.
 */
 import fs from "node:fs";
 import path from "node:path";
@@ -455,6 +457,26 @@ if (args.includes("--promote") || args.includes("--check")) {
   log(`✓ PROMOTED -> ${path.relative(process.cwd(), CANON)}  (SKUs ${skuCount} | lots ${lotCount} | sellable-now ${withStock})`);
   diff.lines.slice(0, 12).forEach((l) => log("   " + l));
   process.exit(0);
+}
+
+// THE CANONICAL FILE IS REACHABLE ONLY THROUGH --promote (2026-09-25).
+// Everything above this line is the un-gated preview path: no validate(), no archive backup,
+// no diff. That is fine for a scratch --out, and catastrophic for inventory.json, which is both
+// the buyer catalog's offline fallback and the file publish-inventory.mjs ships to the live
+// store. Before this guard, ONE forgotten flag silently replaced it with an unvalidated parse.
+// The gates that matter — expiry present, per-lot case counts, the in-transit silent-zero check,
+// the item-reference cross-check — all live inside the --promote branch above, so reaching the
+// canonical path without them is never something a caller meant to do.
+if (path.resolve(OUT) === path.resolve(CANON)) {
+  console.error("");
+  console.error("x REFUSING to write the canonical inventory.json without validation.");
+  console.error("x   This path runs no validate(), takes no archive backup, and checks no diff.");
+  console.error("x   Use:  node scripts/sync-inventory.mjs --promote          (validates + backs up)");
+  console.error("x     or: node scripts/sync-inventory.mjs --check            (validates, writes nothing)");
+  console.error("x   To preview without touching the live file, name a different --out:");
+  console.error("x         node scripts/sync-inventory.mjs --out inventory.PREVIEW.json");
+  console.error("");
+  process.exit(5); // distinct code: "refused an unvalidated canonical write"
 }
 
 fs.writeFileSync(OUT, JSON.stringify(out, null, 2) + "\n");
