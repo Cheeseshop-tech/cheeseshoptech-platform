@@ -1,41 +1,51 @@
 {
-  "weekOf": "2026-09-18",
-  "shippedSummary": "Full spec-sheet/document pipeline for Media Hub + Buyer Catalog landed 2026-09-17 (14+ PDFs uploaded, font-embedded, viewable with thumbnails/inline/download, typed doc views, manifest resync) plus a new per-item onboarding docs page shareable by link. Today's inventory auto-sync failed validation and was not promoted.",
+  "weekOf": "2026-09-25",
+  "shippedSummary": "Heavy campaign-infrastructure week. Territory became a first-class entity (ADR-002), the campaign manager went roster-first and scoped by the territory book, rep territory assignments turned into a real per-rep call list, and per-rep email drafts now pull the campaign's own copy and documents. Also landed: address verification in the enrichment call console, campaign document uploads plus a Media Hub picker, a commitments computation layer (Phase 2, no UI yet), the Trade Shows & Events campaign type, a booth-history auth fix, and PDF upload support in the Media Hub. The never-built Make campaigns webhook seam was retired. Daily inventory sync recorded exports on 09-23 and 09-24 but was blocked from promoting on both.",
   "shelfLife": {
     "expired": 5,
-    "urgent": 19,
-    "watch": 32,
-    "atRiskCases": 490,
+    "urgent": 18,
+    "watch": 35,
+    "atRiskCases": 445,
     "topLots": [
-      { "code": "20438", "name": "PROVOLONE CYLINDER CHEESE", "lot": "1206510", "exp": "2026-01-15", "cases": 38, "dleft": -246 },
-      { "code": "20438", "name": "PROVOLONE CYLINDER CHEESE", "lot": "1206511", "exp": "2026-01-15", "cases": 72, "dleft": -246 },
-      { "code": "03023", "name": "ASIAGO AGED WHOLE WHEEL", "lot": "1268920", "exp": "2026-08-30", "cases": 21, "dleft": -19 }
+      { "code": "20438", "name": "PROVOLONE CYLINDER CHEESE", "lot": "1206510", "exp": "2026-01-15", "cases": 38, "dleft": -253 },
+      { "code": "20438", "name": "PROVOLONE CYLINDER CHEESE", "lot": "1206511", "exp": "2026-01-15", "cases": 72, "dleft": -253 },
+      { "code": "03023", "name": "ASIAGO AGED WHOLE WHEEL", "lot": "1268920", "exp": "2026-08-30", "cases": 21, "dleft": -26 },
+      { "code": "20480", "name": "CACIOTTA MNT HERBS 7 OZ EW", "lot": "1270351", "exp": "2026-09-08", "cases": 22, "dleft": -17 },
+      { "code": "04154", "name": "LAGORAI CHEESE WHOLE WHEEL", "lot": "1248589", "exp": "2026-09-13", "cases": 5, "dleft": -12 }
     ]
   },
-  "dataFreshnessNote": "Shelf-life numbers are from the last promoted sync (source availability_2026-09-16.csv, as of 2026-09-14) — the 2026-09-18 auto-sync attempt failed validation and was not promoted. The two Provolone lots (110 cases, ~8 months past expiry) look like a write-off/data-hygiene issue rather than live risk; worth confirming with Traffic/Inventory Manager.",
+  "dataFreshnessNote": "Shelf-life numbers come from the last promoted sync (source availability_2026-09-23.csv, generated 2026-09-24; Drive sheet last modified 2026-09-22). The 2026-09-24 export was recorded to the repo but promote was blocked, and 2026-09-23 also failed validation before a later retry landed. That is two blocked promotes in one week, and the failure is silent unless someone reads the commit messages — worth treating as a reliability item, not a one-off. Separately, the two Provolone lots (110 cases, ~8.5 months past expiry) have now carried unchanged for two consecutive weekly reviews; that is a write-off / data-hygiene issue, not live risk, and needs Inventory Manager to close it.",
   "backlogNow": [
-    "[high/low] Flip Sentry on — code shipped, waiting on Rick to create the account, set env vars, redeploy",
-    "[med/med] Catch vs exact weight in UI + invoice states"
+    "[low/low] Wire up improvement-review publishing — credentials file scripts/.improvement-review-publish.json now exists; this run tests it end to end",
+    "[high/low] Check Sentry for the 2026-09-18 Buyer Catalog crash, then add a new-issue alert rule; also confirm the functions-side SENTRY_DSN",
+    "[med/med] Catch vs exact weight in the UI + invoice states — mark catch-weight lines estimate and exact-weight firm; carry proforma to weighed to final-invoice states"
   ],
   "backlogNext": [
-    "[med/high] Product copy & provenance research project",
-    "[high/med] Buyer Onboarding Kit",
-    "[high/med] Photo series per SKU (typed, ordered)",
-    "[high/high] Product Compliance Documents",
-    "[med/med] Create a campaign from the UI",
-    "[med/med] Campaign results from the ESP",
-    "[med/high] Forecasting view",
-    "[med/low] Shelf-life to action"
+    "[med/high] Product copy & provenance research project — longDescription filled on 0 of 123 items; 0 assets carry the map-reference tag",
+    "[high/med] Buyer Onboarding Kit — forks the Proposal engine; needs the buyer-email gate first",
+    "[high/med] Photo series per SKU (typed, ordered) — expand/adapter/contract migration off imageForCode",
+    "[high/high] Product Compliance Documents — spec sheets, nutrition/allergen, UPC/EAN, per-customer packets",
+    "[med/med] Create a campaign from the UI — write path for campaign definitions",
+    "[med/med] Campaign results from the ESP — wire opens/clicks from Brevo",
+    "[low/low] Widen the HubSpot company read — company size + proven-customer flag",
+    "[med/high] Forecasting view — monthly run-rate + YoY in the Movement tab",
+    "[med/low] Shelf-life to action — one-click clear-out list / draft for a chosen customer group",
+    "[low/low] Weekly shelf-life email — auto-draft the under-4-month list (extends monti-inventory-watch)",
+    "[low/low] Consolidate publish auth to AGENT_GATE_PASSCODE — retire INVENTORY_PUBLISH_SECRET and MARKETNEWS_PUBLISH_SECRET",
+    "[low/low] Extract a shared _blob-doc.js helper — wait for a fifth Blobs-backed dashboard"
   ],
   "recommendation": {
-    "title": "Buyer Onboarding Kit",
-    "why": "Forks the Proposal engine and directly extends what just shipped (the per-item onboarding docs page went live 2026-09-17) — momentum is already there, and it's high-impact/medium-effort. Needs the buyer-email gate as a prerequisite, which this batch would build. Runner-up: Photo series per SKU, since Rick's Cloudinary tagging pass can start now ahead of any code change."
+    "title": "Shelf-life to action (one-click clear-out list) — paired with Rick's 20-minute Sentry check",
+    "why": "445 net cases sit expired or under four months, and 35 more lots enter the watch band within six. The platform can see the exposure but still offers no way to act on it: there is no path from the Shelf Life tab to a customer-facing clear-out sheet or draft. It is scored med/low, it reuses the proposal/sales-sheet rendering already built, and it is the only Next item that converts directly into moved product. Everything else queued (onboarding kit, photo series, compliance docs) is med/high or high/high and will eat the week. Alongside it, do the Sentry check — high impact, low effort, and it has now carried unaddressed for a full week while a crash from 2026-09-18 most likely sits unread in the dashboard."
   },
   "blocked": [
-    { "item": "Class-of-trade margin alignment", "blocker": "Stefano / Sales Management's real margin numbers" },
-    { "item": "Promote 3 orphan Media Hub assets (01114, 20482, 01286) to catalog items", "blocker": "Rick — a few clicks in Media Hub, not code" }
+    { "item": "Class-of-trade margin alignment (importer +15% / retail distrib +20-30% / food-service +25-35%)", "blocker": "Sales Management's real numbers — queue it on the next client data request to Monti" },
+    { "item": "Promote 3 orphan assets to real catalog items (01114, 20482 spec sheets; 01286 photo)", "blocker": "Rick in Media Hub — set usage to Product Catalog, approval to Approved for Press, add the Items tab rows. A few clicks, no code" }
   ],
   "openRisks": [
-    "Real replacement photography still open for the 11 SKUs flagged in the 2026-09-17 Cut & Wrap portion-rule audit (7 non-compliant, 4 missing)"
+    "Cut & Wrap 7 oz packshot compliance is still open and is NOT on the backlog: 7 non-compliant SKUs had their images unlinked on 2026-09-17 (01190, 03044, 04165, 04182, 04211, 05091, 01174) and 4 were already missing (40086, 40184, 03073, 05600). That is 11 SKUs showing no packshot in the Buyer Catalog eight days later. Real replacement photography is the fix; it needs to become a tracked item with an owner, not a note in a postmortem.",
+    "Inventory promote failed twice this week (09-23, 09-24) and neither failure surfaced anywhere a human would see without reading git log. The daily watch task records the export either way, so the dashboard silently serves older data. Consider a visible staleness badge or a failure notification.",
+    "Rick's manual Cloudinary pass — item numbers on all product-catalog shots, and requesting missing/replacement images — is the unblocker for both the photo-series migration and the Cut & Wrap gap, and has no date against it.",
+    "Repo hygiene: ~200 stray vite.config.js.timestamp-*.mjs files are committed at the repo root. Cosmetic, but it makes the root unreadable and buries the COMMIT scripts that are supposed to be findable there. One .gitignore line plus a delete."
   ]
 }
