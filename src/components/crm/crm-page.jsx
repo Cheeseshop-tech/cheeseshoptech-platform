@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getCrmData, getOutreach, saveOutreach, OUTREACH_STAGES, FUNNEL_STAGES, regionOf, stateOf, crmIsSample, addressOf, mapUrlOf, websiteUrlOf, composeUrl } from "@/lib/crm.js";
+import { getEnrichment } from "@/lib/campaigns.js";
+import { NoteLog } from "@/components/ui/note-log.jsx";
 
 // CRM page — THE OUTREACH CONSOLE, cloned 1:1 from the campaign-CRM artifact
 // (Prospecting Phase 10, `MontiTrentini_Campaign_CRM.html`). The artifact's faceplate is kept
@@ -113,6 +115,10 @@ export function CrmPage({ resolved, onNavigate }) {
   const [page, setPage] = useState(0);
   const [lookup, setLookup] = useState(null); // company id open in the prospect quick-look card, or null
   const [refreshing, setRefreshing] = useState(false);
+  // Call notes captured in the enrichment console, keyed by the SAME HubSpot company id this page
+  // already uses. The data was always account-shaped; it just had no reader outside the campaign
+  // it was captured in (Rick, 2026-09-25: "I want to keep notes made in the app for reference").
+  const [enrichment, setEnrichment] = useState({});
   const timer = useRef(null);
   const entriesRef = useRef(entries);
   entriesRef.current = entries;
@@ -130,6 +136,19 @@ export function CrmPage({ resolved, onNavigate }) {
         setData(crm); setEntries(outreach.entries || {}); setState("ok");
       })
       .catch(() => alive && setState("error"));
+    return () => { alive = false; };
+  }, [resolved.id]);
+
+  // Enrichment loads SEPARATELY and never gates the page. Call notes are supplementary context:
+  // if the read fails the account drawer should say "no notes on file", not take the whole CRM
+  // down. That is the opposite call to the crm/outreach pair above, where a blank overlay would
+  // let a later autosave overwrite real saved status — nothing here is written back, so a blank
+  // is safe.
+  useEffect(() => {
+    let alive = true;
+    getEnrichment(resolved)
+      .then((d) => { if (alive && d?.entries) setEnrichment(d.entries); })
+      .catch(() => { /* notes are optional context, not a page dependency */ });
     return () => { alive = false; };
   }, [resolved.id]);
 
@@ -424,6 +443,7 @@ export function CrmPage({ resolved, onNavigate }) {
         <ProspectCard
           company={companies.find((c) => c.id === lookup)}
           entry={entryOf(lookup)}
+          enrichment={enrichment[lookup]}
           activity={data?.activity}
           calendar={resolved.calendar}
           refreshing={refreshing}
@@ -440,7 +460,7 @@ export function CrmPage({ resolved, onNavigate }) {
 // outreach status/notes, and any matching recent email activity, plus one-tap Call/Email. This
 // is the "just before a call" window: everything a rep needs in one place, with a Refresh button
 // that re-pulls HubSpot without losing the table's search/filter state underneath.
-function ProspectCard({ company, entry, activity, calendar, refreshing, onClose, onPatch, onRefresh }) {
+function ProspectCard({ company, entry, enrichment, activity, calendar, refreshing, onClose, onPatch, onRefresh }) {
   if (!company) return null;
   const addr = addressOf(company);
   const mapUrl = mapUrlOf(company);
@@ -509,6 +529,17 @@ function ProspectCard({ company, entry, activity, calendar, refreshing, onClose,
               defaultValue={entry?.note || ""}
               onChange={(e) => onPatch({ note: e.target.value })}
             />
+          </div>
+        </div>
+        {/* Call log — READ-ONLY here on purpose. These notes are captured in the enrichment
+            console during a phone pass and keyed by this same HubSpot company id; this is the
+            place you look them up afterwards, which is where they were missing. Editing stays
+            where the call happens, so there is one capture point and one history. The textarea
+            above is a different thing: a scratch note you write BEFORE the call. */}
+        <div className="pc-row">
+          <div className="pc-l">Call log</div>
+          <div className="pc-v">
+            <NoteLog entry={enrichment} empty="No calls logged for this account yet." max={5} />
           </div>
         </div>
 

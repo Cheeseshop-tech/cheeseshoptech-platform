@@ -19,7 +19,8 @@
     "inventory:promote": "node scripts/sync-inventory.mjs --promote",
     "inventory:check": "node scripts/sync-inventory.mjs --check",
     "inventory:publish": "node scripts/publish-inventory.mjs",
-    "validate:items": "node scripts/validate-item-standards.mjs"
+    "validate:items": "node scripts/validate-item-standards.mjs",
+    "test:notes": "node scripts/test-note-history.mjs"
   },
   "dependencies": {
     "@netlify/blobs": "^8.2.0",

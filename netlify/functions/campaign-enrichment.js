@@ -30,7 +30,10 @@
 // POST { tenant, entries }   → { ok, updatedAt }        (house/client-admin passcode)
 //   entries = { [companyId]: { buyer, title, email, phone, instagram, outcome, note, calledAt,
 //                               campaignId, street, city, state, zip, addressVerifiedAt,
-//                               addressVerdict } }
+//                               addressVerdict, notes[] } }
+//   note   = the LATEST call note (unchanged contract — every existing reader still uses this).
+//   notes[] = the call-note HISTORY, { at, text, campaignId?, outcome? }, appended SERVER-SIDE
+//             and capped at the newest 25. Clients do not send it; see the block below.
 //   street/city/state/zip (2026-09-21, docs/ADDRESS_VERIFICATION_SPEC_2026-09-21.md): what a
 //   rep captures/corrects in the call console, same relationship to HubSpot's read-only
 //   address/city/state/zip as buyer/email are to HubSpot's owner/ownerEmail. addressVerifiedAt +
@@ -60,6 +63,65 @@ const json = (status, body) => ({
   body: JSON.stringify(body),
 });
 const str = (v, max) => (typeof v === "string" ? v.trim().slice(0, max) : "");
+
+// ---- Call-note history (2026-09-25) --------------------------------------------------------
+// `note` used to be a single string per company, and a POST replaces the whole document — so the
+// second call to the same buyer SILENTLY OVERWROTE the first. Every push to HubSpot creates a new
+// note object, which meant HubSpot accumulated a call history while this app, the place the call
+// was actually taken, kept only the latest line. Rick, 2026-09-25: "I want to keep notes made in
+// the app for reference."
+//
+// `notes[]` is now the history and the SERVER owns the append. The client keeps sending `note`
+// exactly as before and needs no change: if the text differs from the newest entry already on
+// file, the server appends. That placement is deliberate — a client that holds a stale copy of
+// the array cannot truncate the history by sending it back, which is the failure mode of doing
+// this in the browser.
+//
+// `note` is retained as "the latest note" so enrichmentCsv(), the crm-push rows, and every
+// existing reader keep working untouched. This is the expand half of expand → migrate → contract;
+// nothing reads `notes[]` yet except the two surfaces added alongside this.
+const MAX_NOTES = 25;
+const NOTE_MAX = 1000;
+
+/** Prior history for a company, seeding legacy single-string notes as entry #1.
+ *  Exported for tests only — not part of the HTTP contract. */
+export function priorNotes(prev) {
+  if (!prev) return [];
+  if (Array.isArray(prev.notes)) {
+    return prev.notes
+      .filter((n) => n && typeof n === "object" && typeof n.text === "string" && n.text.trim())
+      .map((n) => ({
+        at: str(n.at, 40) || str(prev.calledAt, 40) || "",
+        text: str(n.text, NOTE_MAX),
+        ...(ID_RE.test(n.campaignId || "") ? { campaignId: n.campaignId } : {}),
+        ...(OUTCOMES.includes(n.outcome) ? { outcome: n.outcome } : {}),
+      }))
+      .slice(-MAX_NOTES);
+  }
+  // Legacy shape: one string, no history. Promote it so the first line of the log isn't lost.
+  const legacy = str(prev.note, NOTE_MAX);
+  if (!legacy) return [];
+  return [{
+    at: str(prev.calledAt, 40) || "",
+    text: legacy,
+    ...(ID_RE.test(prev.campaignId || "") ? { campaignId: prev.campaignId } : {}),
+    ...(OUTCOMES.includes(prev.outcome) ? { outcome: prev.outcome } : {}),
+  }];
+}
+
+/** Append `text` to the history only when it actually says something new.
+ *  Exported for tests only — not part of the HTTP contract. */
+export function appendNote(history, text, { at, campaignId, outcome }) {
+  if (!text) return history;
+  const last = history[history.length - 1];
+  if (last && last.text === text) return history; // re-save of an unchanged row, not a new call
+  return history.concat([{
+    at: at || new Date().toISOString(),
+    text,
+    ...(ID_RE.test(campaignId || "") ? { campaignId } : {}),
+    ...(OUTCOMES.includes(outcome) ? { outcome } : {}),
+  }]).slice(-MAX_NOTES);
+}
 
 const rawHandler = async (event, context) => {
   if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: CORS, body: "" };
@@ -98,6 +160,17 @@ const rawHandler = async (event, context) => {
     return json(400, { error: "Missing/invalid entries" });
   }
 
+  // Read the CURRENT document before writing. Required for note history: the POST replaces the
+  // whole document, so without this read the server has no memory to append to. A read failure is
+  // not fatal — we fall back to an empty prior, which costs history for this one save rather than
+  // failing a call capture the rep just made.
+  let prevEntries = {};
+  try {
+    connectLambda(event);
+    const prevRaw = await getStore("campaign-enrichment").get(tenant);
+    if (prevRaw) prevEntries = JSON.parse(prevRaw).entries || {};
+  } catch { /* no prior document, or unreadable — treat as empty */ }
+
   const clean = {};
   for (const [companyId, e] of Object.entries(entries)) {
     // HubSpot company record ids are numeric; keep the check as loose as crm-outreach.js's.
@@ -120,9 +193,17 @@ const rawHandler = async (event, context) => {
       ...(verdict ? { addressVerdict: verdict, addressVerifiedAt: str(e.addressVerifiedAt, 40) || new Date().toISOString() } : {}),
     };
     // Nothing captured = nothing stored, so an accidental focus/blur never writes a row.
+    // A row that carries ONLY prior note history is still nothing new — history alone never
+    // resurrects a row the client has emptied.
     if (!rec.buyer && !rec.email && !rec.note && !rec.outcome && !rec.phone && !rec.title && !rec.instagram
         && !rec.street && !rec.city && !rec.state && !rec.zip) continue;
-    clean[companyId] = { ...rec, calledAt: str(e.calledAt, 40) || new Date().toISOString() };
+    const calledAt = str(e.calledAt, 40) || new Date().toISOString();
+    const notes = appendNote(priorNotes(prevEntries[companyId]), rec.note, {
+      at: calledAt,
+      campaignId: rec.campaignId,
+      outcome: rec.outcome,
+    });
+    clean[companyId] = { ...rec, calledAt, ...(notes.length ? { notes } : {}) };
   }
 
   const updatedAt = new Date().toISOString();

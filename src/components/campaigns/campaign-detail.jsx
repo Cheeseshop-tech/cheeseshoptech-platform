@@ -8,6 +8,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card.jsx";
 import { Button } from "@/components/ui/button.jsx";
 import { Badge } from "@/components/ui/badge.jsx";
+import { NoteLog, notesOf } from "@/components/ui/note-log.jsx";
 import { Input, Textarea } from "@/components/ui/input.jsx";
 import { Label } from "@/components/ui/label.jsx";
 import { Checkbox } from "@/components/ui/checkbox.jsx";
@@ -2322,6 +2323,19 @@ function CallRow({ co, rec, canWrite, onPatch, saveState, resolved }) {
                 id={`n-${co.id}`} className="min-h-[2.5rem] text-sm" placeholder="What they said, distributor, best time to call back…"
                 defaultValue={rec.note || ""} disabled={!canWrite} onChange={(e) => onPatch({ note: e.target.value })}
               />
+              {/* Earlier calls to this same buyer. Before 2026-09-25 a second call silently
+                  overwrote the first; the history is kept server-side now, so show it here where
+                  the next call is about to be made. */}
+              {notesOf(rec).length > 1 && (
+                <details className="mt-1">
+                  <summary className="cursor-pointer text-xs text-fg-muted">
+                    Earlier notes ({notesOf(rec).length - 1})
+                  </summary>
+                  <div className="mt-2">
+                    <NoteLog entry={{ ...rec, notes: (rec.notes || []).slice(0, -1) }} max={5} />
+                  </div>
+                </details>
+              )}
             </div>
           </div>
           {outcome === "not-a-prospect" && (
