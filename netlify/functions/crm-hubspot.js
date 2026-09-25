@@ -12,7 +12,8 @@
 // in Settings > Properties > Company properties. If this returns channel:null for every company,
 // open that property in HubSpot and check its internal name, then fix CHANNEL_PROPERTY below.
 // Service-key scopes required: crm.objects.companies.read, crm.objects.contacts.read.
-// For the email-activity feed additionally: sales-email-read (degrades to an empty feed
+// For the email-activity feed additionally: crm.objects.emails.read (NOT the legacy
+// `sales-email-read`, deprecated Sept 2025 — see fetchEmailActivity) (degrades to an empty feed
 // without it — check the JSON's activityNote field when the card doesn't show).
 const CHANNEL_PROPERTY = "channel";
 // Lead taxonomy (docs/LEAD_TAXONOMY.md): `channel` is the coarse route to market and is
@@ -123,8 +124,14 @@ async function fetchEmailActivity(token) {
     }),
   });
   if (search.status === 403) {
-    // Private app is missing the sales-email-read scope — not an error, just not enabled yet.
-    return { activity: [], activityNote: "HubSpot token lacks sales-email-read scope" };
+    // Not an error — the integration just isn't switched on.
+    //
+    // CORRECTED 2026-09-25: this used to name `sales-email-read`, which is the LEGACY Engagements
+    // API scope and was deprecated by HubSpot in September 2025. The call above is against
+    // /crm/v3/objects/emails/search — a CRM object read — so the scope that actually grants it is
+    // `crm.objects.emails.read`, the same family as crm.objects.contacts.read. Naming the dead
+    // scope sent Rick hunting through the scope picker for a string that no longer exists.
+    return { activity: [], activityNote: "HubSpot app lacks the crm.objects.emails.read scope" };
   }
   if (!search.ok) throw new Error(`HubSpot emails search ${search.status}`);
   const emails = (await search.json()).results || [];

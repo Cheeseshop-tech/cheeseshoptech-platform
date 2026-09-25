@@ -365,8 +365,8 @@ export function CrmPage({ resolved, onNavigate }) {
           <h3>Email activity <span className="muted">(not enabled)</span></h3>
           <div className="ritem">
             <div className="rs">
-              {/sales-email-read/.test(data.activityNote)
-                ? "The HubSpot private app is missing the sales-email-read scope, so sends, replies and bounces can't be read. Add it in HubSpot → Settings → Integrations → Private Apps → Scopes."
+              {/emails\.read/.test(data.activityNote)
+                ? "The HubSpot private app is missing the crm.objects.emails.read scope, so sends, replies and bounces can't be read. Add it in HubSpot → Settings → Integrations → Private Apps → Scopes → Add new scope, and search \"emails\" (not \"sales-email\" — that one is deprecated)."
                 : data.activityNote}
             </div>
           </div>
@@ -575,8 +575,8 @@ function ProspectCard({ company, entry, enrichment, activity, activityNote, cale
           <div className="pc-activity">
             <div className="pc-l" style={{ marginBottom: 4 }}>Recent activity</div>
             <div className="pc-act-item muted">
-              {/sales-email-read/.test(activityNote)
-                ? "Email activity is off — HubSpot app missing the sales-email-read scope."
+              {/emails\.read/.test(activityNote)
+                ? "Email activity is off — HubSpot app missing the crm.objects.emails.read scope."
                 : activityNote}
             </div>
           </div>
