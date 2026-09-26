@@ -23,9 +23,11 @@ const opts = (labels) => labels.map((label, i) => ({ label, value: label, displa
 
 // Territory vocabulary. The SAME list must exist on Company and Contact — the rep→account join is
 // a string match, so "New England" on a rep and "New England " on an account will not join.
+// Ten values, matching what was actually built in HubSpot on 2026-09-25 and verified by API.
+// Philadelphia/PA and Southeast/FL are SEPARATE options, not compound ones.
 const TERRITORIES = [
-  "NY Metro", "New Jersey", "Philadelphia / PA", "New England",
-  "Upstate NY", "Mid-Atlantic", "Southeast / FL", "National",
+  "NY Metro", "New Jersey", "Philadelphia", "PA", "New England",
+  "Upstate NY", "Mid-Atlantic", "Southeast", "FL", "National",
 ];
 
 const PLAN = [

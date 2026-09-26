@@ -149,8 +149,11 @@ scheduled task → HubSpot export → src/data/montitrentini/crm-snapshot/YYYY-M
 
 Each step is usable on its own. Do not start the next until the current one is done.
 
-- [ ] **1. Create the four HubSpot properties** — `relationship`, `outreach_stage`, `territory`
-      (Company); `contact_role`, `territory` (Contact). Rick, in HubSpot settings. ~15 minutes.
+- [x] **1. Create the five HubSpot properties** — `relationship`, `outreach_stage`, `territory`
+      (Company); `contact_role`, `territory` (Contact). **DONE 2026-09-25**, verified by API. Built
+      by hand in the UI: the private app cannot be granted `crm.schemas.*.write` on this portal, so
+      `scripts/create-crm-properties.mjs` 403s and exists only as the machine-readable definition.
+      As-built spec and the UI gotchas: `docs/HUBSPOT_PROPERTY_SPEC.md`.
 - [ ] **2. Mark the accounts that generate traffic.** Not all 748 — the ~20 with real email
       volume. Claude generates the ranked shortlist; Rick sets `relationship` on each.
 - [ ] **3. Point the app at the new fields.** `crm-hubspot.js` requests them; the CRM console and
