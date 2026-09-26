@@ -76,3 +76,35 @@ delete authority, matching the "one front door" spirit of the original rule.
 - No Media Hub-side "which campaign is this for" filter yet — the `campaignId` context field is
   captured and stored, but nothing in media-hub.jsx surfaces or filters by it today. Small
   follow-up if useful once there's real volume.
+
+## Addendum (2026-09-22): approval + comments, reversing decision 2 above
+
+Rick asked for "a view window for the documents field that allows for approval and comments...
+saving the download step... a full size view to open on a click of the pill." Flagged directly
+against the 2026-09-21 call above ("a simple list, no approval step... reference material, not
+content pending review") before building, since it's a same-week reversal — confirmed: build it.
+
+**What changed:**
+- Each document row is now a pill (`DocumentsPanel` in `campaign-detail.jsx`). Clicking it opens
+  `DocumentViewerDialog` — a full-size view instead of the old direct-to-download link.
+- The dialog previews inline where it can: images render directly, PDFs get the browser's native
+  viewer via an `<iframe>`. Campaign documents upload as Cloudinary `resource_type: raw` (see
+  `uploadDocument()`), so there's no server-side page rasterization available the way the buyer
+  catalog's spec-sheet PDFs get one — DOC/XLS/PPT and anything else falls back to an
+  open-or-download prompt rather than a broken preview.
+- Approve / Request changes — a single reviewer, two outcomes, no multi-stage pipeline (that's
+  the Content Library's job for social posts/scripts, not this). Status: pending → approved or
+  rejected, who and when recorded.
+- A comment thread per document (author, timestamp, text) — modeled on the campaign-level
+  Updates log, but scoped to one document.
+
+**Where it's stored:** still inside each document object in the campaign's `documents` array —
+no new top-level state. `netlify/functions/campaign-state.js` now sanitizes and caps
+`approvalStatus`/`approvedBy`/`approvedAt` and a `comments` array (max 40) per document, same
+validation style as everywhere else in that file (id pattern, string-length caps, allow-listed
+fields only).
+
+**Still not done:** no notification when a document is approved/rejected or commented on — it's
+pull, not push, same as the campaign-level Updates log today. No per-reviewer permissions beyond
+the existing `canWrite` gate (house/client-admin) — anyone who can edit the campaign can approve
+or reject any document on it.

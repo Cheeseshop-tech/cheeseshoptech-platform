@@ -1,63 +1,55 @@
 #!/bin/bash
-# CREATE CRM PROPERTIES — double-click to add the five people-spine fields to HubSpot.
+# CREATE CRM PROPERTIES — RETIRED 2026-09-25. This button cannot work and no longer tries.
 #
-# Contract: docs/PEOPLE_DATA_OWNERSHIP.md
-#   Company: Relationship · Outreach stage · Territory
-#   Contact: Contact role · Territory
+# It asked for a HubSpot token and POSTed five property definitions. That requires
+# crm.schemas.companies.write / crm.schemas.contacts.write, which are NOT offered in this
+# portal's private-app scope picker. Every call returned 403. The properties were built by hand
+# in the HubSpot UI instead, on 2026-09-25, and verified by API.
 #
-# The token is typed in, used for this run only, and never written to disk — same pattern as
-# VALIDATE ITEMS LIVE.command. Safe to run more than once: existing properties are skipped.
+# scripts/create-crm-properties.mjs is KEPT as the machine-readable definition of what these
+# five properties are — names, types, option lists. It is documentation that happens to be
+# executable, not a path anyone should run. If HubSpot ever exposes those scopes, restore this
+# button from git history.
 
 cd "$(dirname "$0")" || exit 1
-export GIT_PAGER=cat PAGER=cat
 
-echo ""
-echo "======================================================================"
-echo "  CREATE CRM PROPERTIES  —  5 fields, HubSpot"
-echo "======================================================================"
-echo ""
-echo "  BEFORE YOU RUN THIS, the private app needs two scopes it does not"
-echo "  have yet. In HubSpot:"
-echo ""
-echo "     Settings (gear) -> Integrations -> Private Apps -> your app"
-echo "     -> Edit app -> Scopes -> Add new scope"
-echo "     -> search 'schemas', tick BOTH:"
-echo "            crm.schemas.companies.write"
-echo "            crm.schemas.contacts.write"
-echo "     -> Commit changes   (ticking alone does not save)"
-echo ""
-echo "  Then paste the private app's ACCESS TOKEN below. It starts 'pat-'."
-echo "  Find it on the same app page under the 'Auth' tab -> Access token"
-echo "  -> Show token -> Copy. Nothing is saved to disk."
-echo ""
-read -r -s -p "  HubSpot private app token: " HUBSPOT_TOKEN
-echo ""
+cat <<'EOF'
 
-if [ -z "$HUBSPOT_TOKEN" ]; then
-  echo ""
-  echo "  No token entered — nothing was changed."
-  echo ""
-  read -n 1 -s -r -p "Press any key to close..."
-  exit 1
-fi
+======================================================================
+  CREATE CRM PROPERTIES  —  RETIRED
+======================================================================
 
-export HUBSPOT_TOKEN
-node scripts/create-crm-properties.mjs
-STATUS=$?
-unset HUBSPOT_TOKEN
+  This button does nothing. It cannot work.
 
-echo ""
-if [ $STATUS -eq 0 ]; then
-  echo "======================================================================"
-  echo "  Done. Check one record to see the fields:"
-  echo "  HubSpot -> Contacts -> Companies -> open Eataly -> scroll the"
-  echo "  left-hand property panel for Relationship / Outreach stage / Territory"
-  echo "======================================================================"
-else
-  echo "  Something failed above — read the line marked 'x'."
-  echo "  A 403 means the two schema scopes are missing or were not committed."
-  echo "  Nothing partial is left behind: properties either exist or they don't."
-fi
-echo ""
+  Creating HubSpot properties over the API needs two scopes:
+      crm.schemas.companies.write
+      crm.schemas.contacts.write
+  Neither is offered in this portal's private-app scope picker, so
+  every attempt returns 403. Not a configuration mistake - there is
+  no configuration that fixes it.
+
+  THE FIVE PROPERTIES ALREADY EXIST. Built by hand in the HubSpot UI
+  on 2026-09-25 and verified by API:
+
+      Company  relationship     4 options
+      Company  outreach_stage   7 options
+      Company  territory       10 options
+      Contact  contact_role     5 options
+      Contact  territory       10 options   (identical list to Company)
+
+  To change them, or to build the same set in another portal:
+      docs/HUBSPOT_PROPERTY_SPEC.md     as-built spec + the UI traps
+      scripts/create-crm-properties.mjs machine-readable definition
+
+  Two traps that cost the most time, repeated here so they are not
+  rediscovered:
+    - An option's INTERNAL VALUE is write-once. Renaming the label
+      never moves the stored value.
+    - The options table lives on the "Field type" TAB inside the
+      property editor. Clicking a property's name opens a read-only
+      preview, which is not the editor.
+
+EOF
+
 read -n 1 -s -r -p "Press any key to close..."
 echo ""

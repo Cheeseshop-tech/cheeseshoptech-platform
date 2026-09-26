@@ -57,3 +57,27 @@ Richard_Posada_Resume.docx
 *_Resume.docx
 *Cover_Letter*.docx
 _archive/logs/
+
+# Rendered video working files — 281MB as of 2026-09-25 and growing. Same reasoning as the
+# Blender frame stacks above: intermediate output, reproducible, and a single `git add -A`
+# away from wrecking the repo. Finished pieces that need to SHIP go to Cloudinary via the
+# Media Hub, not into git.
+videos/
+
+# Vendored third-party skills, installed from GitHub by the skills tooling (8.5MB in .agents/
+# alone). skills-lock.json IS committed — it pins source + hash for every one, so the set is
+# reproducible without carrying the bodies. Same split as package-lock.json vs node_modules/.
+# .claude/skills/accurate-maps is OURS and stays tracked (already committed; a gitignore rule
+# never un-tracks a tracked file, but the negation makes the intent explicit).
+.agents/
+.claude/skills/*
+!.claude/skills/accurate-maps/
+.claude/launch.json
+
+# Claude scratch output — the session's working folder, not deliverables. Anything here that
+# matters gets copied into docs/ or design/ deliberately.
+Claude outputs/
+
+# Editor backups and stray commit-message drafts
+*.bak
+.commit-msg-*.txt
