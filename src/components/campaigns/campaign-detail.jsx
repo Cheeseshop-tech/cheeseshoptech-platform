@@ -233,6 +233,10 @@ export function CampaignDetail({
         <ProspectPanel
           c={c} resolved={resolved} scripts={contentItems} allCampaigns={allCampaigns}
           enrichment={enrichment} onEnrich={onEnrich} canWrite={canWrite} saveState={saveState}
+          // Lets the panel declare a new question on this campaign. Same campaign-state patch
+          // path the checklist's custom items already use — `fields` is the same kind of thing.
+          onAddField={(f) => onPatch({ fields: [...(entry.fields || []), f] })}
+          onRemoveField={(id) => onPatch({ fields: (entry.fields || []).filter((x) => x.id !== id) })}
         />
       </Section>
 
@@ -1792,7 +1796,7 @@ const hash = (s) => { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 
 const CHANNEL_TIER = { distributor: 0, retail: 1, foodservice: 2 };
 const tierOf = (co) => CHANNEL_TIER[CHANNEL_TO_AUDIENCE[co?.channel]] ?? 3;
 
-function ProspectPanel({ c, resolved, scripts = [], enrichment = {}, onEnrich, canWrite, allCampaigns = [], saveState = "idle" }) {
+function ProspectPanel({ c, resolved, scripts = [], enrichment = {}, onEnrich, canWrite, allCampaigns = [], saveState = "idle", onAddField, onRemoveField }) {
   const [crm, setCrm] = useState(undefined);
   const [pick, setPick] = useState(null); // {level:'region'|'state'|'city', key, state?}
   // Which slice of the gap list to show. "remaining" is the working view, but a row DROPS OFF
@@ -2033,11 +2037,21 @@ function ProspectPanel({ c, resolved, scripts = [], enrichment = {}, onEnrich, c
                     ? " Marked Not a prospect, with the reason captured on each row — use Restore to send one back to the call list."
                     : " Open any row to correct what was captured before it goes to HubSpot."}
               </p>
+              {/* Declared right where the calls happen — see the component comment for why. */}
+              {onAddField && (
+                <CampaignFieldsEditor
+                  fields={c.fields || []} canWrite={canWrite}
+                  onAdd={onAddField} onRemove={onRemoveField}
+                />
+              )}
               <ul className="mt-3 max-h-[36rem] space-y-2 overflow-y-auto pr-1">
                 {gaps.slice(0, 200).map((co) => (
                   <CallRow
                     key={co.id} co={co} rec={enrichment[co.id] || {}} canWrite={canWrite} saveState={saveState}
                     resolved={resolved}
+                    // Questions THIS campaign asks, on top of the standard form. Declared on the
+                    // campaign, answered per prospect. See campaign-state.js `fields`.
+                    fields={c.fields || []}
                     onPatch={(part) => onEnrich(co.id, { campaignId: c.id, ...part })}
                   />
                 ))}
@@ -2162,7 +2176,103 @@ function removalReasonOf(rec) {
   return m ? m[1] : last;
 }
 
-function CallRow({ co, rec, canWrite, onPatch, saveState, resolved }) {
+/* What THIS campaign asks about each prospect, and the control to add one mid-campaign.
+ *
+ * Rick, 2026-09-26: "leave room for the development and discovery of details per campaign, we
+ * can improve as we go." The standard form asks the same five things of every prospect in every
+ * campaign. A campaign's own questions — does this account already carry a PDO line, who prints
+ * their shelf tags — are discovered on call nine, not designed on day one.
+ *
+ * Lives beside the call list rather than in campaign settings on purpose: the moment you need a
+ * new question is the moment you are on a call discovering you need it. Burying this two screens
+ * away means the question gets typed into the free-text note instead, where nothing can count it.
+ */
+function CampaignFieldsEditor({ fields = [], canWrite, onAdd, onRemove }) {
+  const [open, setOpen] = useState(false);
+  const [label, setLabel] = useState("");
+  const [type, setType] = useState("text");
+  const [options, setOptions] = useState("");
+
+  function add() {
+    const clean = label.trim();
+    if (!clean) return;
+    const opts = options.split(",").map((o) => o.trim()).filter(Boolean).slice(0, 12);
+    // A select with no options is a dead control — the server drops it, so refuse here where
+    // the reason can actually be shown.
+    if (type === "select" && !opts.length) return;
+    onAdd({
+      // Suffixed with the current count so re-adding a deleted label cannot collide with an id
+      // that still has answers stored against it.
+      id: `f-${slug(clean)}-${fields.length + 1}`,
+      label: clean,
+      type,
+      ...(type === "select" ? { options: opts } : {}),
+      addedAt: new Date().toISOString(),
+    });
+    setLabel(""); setOptions(""); setType("text"); setOpen(false);
+  }
+
+  return (
+    <div className="mt-3 rounded-base border border-dashed border-border p-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-xs font-medium text-fg-muted">
+          This campaign asks{fields.length ? ` ${fields.length} extra question${fields.length > 1 ? "s" : ""}` : " nothing beyond the standard form"}
+          <span className="ml-2 font-normal">· answers stay in CST, never pushed to HubSpot</span>
+        </p>
+        {canWrite && fields.length < 12 && (
+          <Button type="button" size="sm" variant="outline" onClick={() => setOpen((v) => !v)}>
+            {open ? "Cancel" : "Add a question"}
+          </Button>
+        )}
+      </div>
+
+      {fields.length > 0 && (
+        <ul className="mt-2 flex flex-wrap gap-2">
+          {fields.map((f) => (
+            <li key={f.id} className="flex items-center gap-1.5 rounded-base border border-border bg-surface px-2 py-1 text-xs text-fg">
+              <span>{f.label}</span>
+              <span className="text-fg-muted">{f.type === "select" ? (f.options || []).join(" / ") : f.type}</span>
+              {canWrite && (
+                <button
+                  type="button" onClick={() => onRemove(f.id)}
+                  // Deliberate: removing the question hides the control but the answers already
+                  // captured stay on their rows. Deleting a question should not delete what
+                  // people said.
+                  title="Remove this question (answers already captured are kept)"
+                  className="text-fg-muted hover:text-error"
+                >×</button>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {open && (
+        <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_9rem_1fr_auto]">
+          <Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="e.g. Carries a PDO line?" />
+          <select
+            value={type} onChange={(e) => setType(e.target.value)}
+            className="h-10 rounded-base border border-border bg-surface px-3 text-sm text-fg"
+          >
+            <option value="text">Text</option>
+            <option value="select">Choices</option>
+            <option value="check">Yes / no</option>
+          </select>
+          <Input
+            value={options} onChange={(e) => setOptions(e.target.value)}
+            placeholder={type === "select" ? "comma, separated, choices" : "—"}
+            disabled={type !== "select"}
+          />
+          <Button type="button" size="sm" onClick={add} disabled={!label.trim() || (type === "select" && !options.trim())}>
+            Add
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CallRow({ co, rec, canWrite, onPatch, saveState, resolved, fields = [] }) {
   const [open, setOpen] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [verifyError, setVerifyError] = useState("");
@@ -2370,6 +2480,59 @@ function CallRow({ co, rec, canWrite, onPatch, saveState, resolved }) {
               </div>
             </div>
           </div>
+          {/* ---- This campaign's own questions (2026-09-26) -------------------------------
+              Declared on the campaign, answered per prospect. Rendered BELOW the HubSpot-owned
+              pickers and visually separated, because the promotion boundary has to stay legible:
+              everything above goes to the CRM of record, everything here stays in CST.
+
+              Rick, 2026-09-26: "leave room for the development and discovery of details per
+              campaign, we can improve as we go." A campaign learns its own questions while it
+              runs — add one and it appears on every row in this campaign, with no code change
+              and no silent drop. */}
+          {fields.length > 0 && (
+            <div className="rounded-base border border-dashed border-border bg-surface-muted/40 p-3">
+              <p className="mb-2 text-xs font-medium text-fg-muted">
+                For this campaign
+                <span className="ml-2 font-normal">· stays in CST, not pushed to HubSpot</span>
+              </p>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {fields.map((f) => {
+                  const val = rec.custom?.[f.id] || "";
+                  const set = (v) => onPatch({ custom: { ...(rec.custom || {}), [f.id]: v } });
+                  return (
+                    <div key={f.id} className="grid gap-1.5">
+                      <Label htmlFor={`cf-${co.id}-${f.id}`}>{f.label}</Label>
+                      {f.type === "select" ? (
+                        <select
+                          id={`cf-${co.id}-${f.id}`} value={val} disabled={!canWrite}
+                          onChange={(e) => set(e.target.value)}
+                          className="h-10 rounded-base border border-border bg-surface px-3 text-sm text-fg disabled:opacity-40"
+                        >
+                          <option value="">— not set —</option>
+                          {(f.options || []).map((o) => <option key={o} value={o}>{o}</option>)}
+                        </select>
+                      ) : f.type === "check" ? (
+                        <label className="flex h-10 cursor-pointer items-center gap-2 text-sm text-fg">
+                          <input
+                            type="checkbox" checked={val === "1"} disabled={!canWrite}
+                            onChange={(e) => set(e.target.checked ? "1" : "")}
+                            className="h-4 w-4 accent-accent disabled:opacity-40"
+                          />
+                          {f.hint || "Yes"}
+                        </label>
+                      ) : (
+                        <Input
+                          id={`cf-${co.id}-${f.id}`} value={val} placeholder={f.hint || ""}
+                          disabled={!canWrite} onChange={(e) => set(e.target.value)}
+                        />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           <div className="grid gap-3 sm:grid-cols-[14rem_1fr]">
             <div className="grid gap-1.5">
               <Label htmlFor={`o-${co.id}`}>Call outcome</Label>

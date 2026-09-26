@@ -37,6 +37,9 @@
 //     Still written on every save. Do NOT add new readers of this — use byCampaign.
 //
 //   rec = { buyer, title, email, phone, instagram, outcome, note, calledAt,
+//           custom{},                                 ← answers to THIS campaign's declared
+//             questions (campaign-state `fields`). App-side process state, never promoted to
+//             HubSpot — that gate is what stops this becoming a shadow CRM.
 //           contactRole, relationship, territory[],   ← people-spine, 2026-09-26. STAGED ONLY:
 //             HubSpot owns these; crm-push promotes them. Validated against the shared
 //             vocabularies in src/lib/people-fields.js, so an invalid value is dropped here
@@ -88,6 +91,38 @@ const ID_RE = /^[a-z0-9][a-z0-9-]{0,63}$/i;
 const pickOne = (v, allowed) => (allowed.includes(v) ? v : "");
 const pickMany = (v, allowed) =>
   (Array.isArray(v) ? v.filter((x) => allowed.includes(x)) : []).slice(0, allowed.length);
+
+// ---- Per-campaign discovered fields (2026-09-26) --------------------------------------------
+// Answers to the questions a campaign declares for itself — see the `fields` block in
+// campaign-state.js for what they are and why they live there.
+//
+// This is the ONE place the allow-list is deliberately open, because the whole point is that the
+// server cannot know the questions in advance. The trade is made safe by three limits rather than
+// by a vocabulary: bounded key count, bounded key shape, bounded value length. A campaign cannot
+// turn this into an unbounded document.
+//
+// Values are stored as strings regardless of the field's declared type. A checkbox arrives as
+// "1"/"" and a select as its option text. Keeping one storage type means a field whose type is
+// changed mid-campaign — text to select, say — does not orphan the answers already collected.
+// That WILL happen: the field is being invented while the campaign runs.
+//
+// These never reach HubSpot. crm-push does not read `custom`, and that is the gate keeping this
+// from becoming a shadow CRM (docs/PEOPLE_DATA_OWNERSHIP.md guardrail 1). A discovered detail
+// that proves durable graduates into a real HubSpot property by a deliberate decision.
+const MAX_CUSTOM_KEYS = 12;
+const CUSTOM_VALUE_MAX = 400;
+const cleanCustom = (v) => {
+  if (!v || typeof v !== "object" || Array.isArray(v)) return {};
+  const out = {};
+  for (const [k, val] of Object.entries(v)) {
+    if (Object.keys(out).length >= MAX_CUSTOM_KEYS) break;
+    if (!ID_RE.test(k)) continue;
+    const s = typeof val === "boolean" ? (val ? "1" : "") : str(val, CUSTOM_VALUE_MAX);
+    if (!s) continue; // an unanswered question is absence, not an empty string
+    out[k] = s;
+  }
+  return out;
+};
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -305,6 +340,7 @@ const rawHandler = async (event, context) => {
     const contactRole = pickOne(e.contactRole, CONTACT_ROLE);
     const relationship = pickOne(e.relationship, RELATIONSHIP);
     const territory = pickMany(e.territory, TERRITORY);
+    const custom = cleanCustom(e.custom);
     const rec = {
       buyer: str(e.buyer, 120),
       title: str(e.title, 120),
@@ -322,6 +358,8 @@ const rawHandler = async (event, context) => {
       ...(contactRole ? { contactRole } : {}),
       ...(relationship ? { relationship } : {}),
       ...(territory.length ? { territory } : {}),
+      // Answers to this campaign's declared questions. App-side only — never promoted.
+      ...(Object.keys(custom).length ? { custom } : {}),
       ...(ID_RE.test(e.campaignId || "") ? { campaignId: e.campaignId } : {}),
       ...(verdict ? { addressVerdict: verdict, addressVerifiedAt: str(e.addressVerifiedAt, 40) || new Date().toISOString() } : {}),
     };
@@ -333,7 +371,9 @@ const rawHandler = async (event, context) => {
         // Without these three, setting ONLY a role/territory/relationship — with no other edit —
         // would be silently discarded as an empty row. That is a real capture: "this person is a
         // Rep" is the whole fact sometimes.
-        && !rec.contactRole && !rec.relationship && !rec.territory?.length) continue;
+        && !rec.contactRole && !rec.relationship && !rec.territory?.length
+        // An answer to a campaign's own question is a real capture too.
+        && !Object.keys(rec.custom || {}).length) continue;
     const calledAt = str(e.calledAt, 40) || new Date().toISOString();
     const scope = scopeOf(rec);
     // History comes from THIS campaign's prior row. Falling back to the flat row keeps the log

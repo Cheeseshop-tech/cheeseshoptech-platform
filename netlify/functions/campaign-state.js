@@ -13,7 +13,7 @@
 //
 // GET  ?tenant=<id>                → { entries, updatedAt }   (any valid passcode tier)
 // POST { tenant, entries }         → { ok, updatedAt }        (house/client-admin passcode)
-//   entries = { [campaignId]: { status, items, custom, hidden, results, comments, documents,
+//   entries = { [campaignId]: { status, items, custom, hidden, fields, results, comments, documents,
 //                                closedAt, updatedAt } }
 //   — comments = a shared, campaign-level running-update log (separate from the per-checklist-
 //   item notes in `items`); closedAt = set once, the moment a campaign's status first becomes
@@ -44,6 +44,12 @@ const STATUSES = ["draft", "building", "ready", "launched", "complete"];
 const RESULT_KEYS = ["sends", "opens", "clicks", "replies", "meetings", "won", "submissions"];
 const MAX_CUSTOM_ITEMS = 40; // a checklist longer than this is a runbook, not a launch gate
 const MAX_COMMENTS = 50; // a running per-campaign update log, not a chat transcript
+// Per-campaign discovered fields (2026-09-26). Capped low on purpose: a campaign that needs more
+// than a dozen extra questions per prospect is not discovering details, it is building a survey,
+// and the answer there is a real schema rather than more bolt-ons.
+const MAX_FIELDS = 12;
+const MAX_FIELD_OPTIONS = 12;
+const FIELD_TYPES = ["text", "select", "check"];
 const MAX_DOCUMENTS = 30; // reference material for one campaign, not a document archive
 const MAX_DOC_COMMENTS = 40; // per-document review thread — same order of magnitude as MAX_COMMENTS
 const DOC_APPROVAL_STATUSES = ["pending", "approved", "rejected"];
@@ -138,6 +144,51 @@ const rawHandler = async (event, context) => {
     // hidden: template item ids removed from this campaign.
     const hidden = (Array.isArray(e.hidden) ? e.hidden : []).slice(0, MAX_CUSTOM_ITEMS)
       .filter((h) => ID_RE.test(String(h || "")));
+
+    // ---- fields: what THIS campaign asks about each prospect (2026-09-26) -------------------
+    //
+    // Rick, 2026-09-26: "let's create the system and leave room for the development and discovery
+    // of details per campaign, we can improve as we go."
+    //
+    // The standard enrichment form asks the same questions of every prospect in every campaign —
+    // buyer, title, email, phone, address. But a campaign discovers its own questions while it
+    // runs: a DOP push wants to know if they already carry a PDO line; a shelf-tag program wants
+    // to know who prints the tags. Before this, there was nowhere to put that. The enrichment
+    // store has a hard allow-list, so an unrecognised field was not rejected — it was SILENTLY
+    // DROPPED, which is the worst of both.
+    //
+    // Definitions live HERE, in campaign STATE, not in src/lib/campaigns.js, and deliberately so.
+    // The architectural split (CLAUDE.md, 2026-08-03) is that campaign *definitions* are seeded in
+    // code and versioned with it, while campaign *state* is per-campaign and editable at runtime.
+    // A question discovered on call number nine is state by that definition — it is exactly the
+    // same shape of thing as `custom` checklist items above, and it is stored the same way.
+    //
+    // THE BOUNDARY THAT MATTERS: these are CST process state. They are NEVER promoted to HubSpot
+    // automatically. If a discovered detail turns out to be durable and universal, it graduates
+    // deliberately into a real HubSpot property — that promotion is a decision someone makes, not
+    // a side effect. Without that gate this becomes the sixth overlay store the ownership map
+    // exists to prevent (docs/PEOPLE_DATA_OWNERSHIP.md, guardrail 1).
+    const fields = (Array.isArray(e.fields) ? e.fields : []).slice(0, MAX_FIELDS)
+      .filter((f) => f && typeof f === "object" && ID_RE.test(f.id || ""))
+      .map((f) => {
+        const type = FIELD_TYPES.includes(f.type) ? f.type : "text";
+        // Options only mean anything for a select; carrying them on a text field would be a lie
+        // about the shape of the data.
+        const options = type === "select"
+          ? (Array.isArray(f.options) ? f.options : [])
+            .map((o) => str(o, 60)).filter(Boolean).slice(0, MAX_FIELD_OPTIONS)
+          : [];
+        return {
+          id: f.id,
+          label: str(f.label, 120) || f.id,
+          type,
+          ...(options.length ? { options } : {}),
+          ...(str(f.hint, 160) ? { hint: str(f.hint, 160) } : {}),
+          addedAt: str(f.addedAt, 40) || new Date().toISOString(),
+        };
+      })
+      // A select with no options can never be answered — drop it rather than render a dead control.
+      .filter((f) => f.type !== "select" || f.options?.length);
 
     // comments: the campaign-level update log (separate from per-checklist-item notes above).
     // `kind: "wrapup"` marks the note captured when a campaign is closed out — the headline of
@@ -307,7 +358,7 @@ const rawHandler = async (event, context) => {
 
     if (!status && !Object.keys(items).length && !custom.length && !hidden.length
         && !Object.keys(results).length && !comments.length && !documents.length && !closedAt
-        && !repVisits && !repRoster) {
+        && !repVisits && !repRoster && !fields.length) {
       continue; // nothing worth storing for this campaign
     }
     clean[id] = {
@@ -315,6 +366,7 @@ const rawHandler = async (event, context) => {
       ...(Object.keys(items).length ? { items } : {}),
       ...(custom.length ? { custom } : {}),
       ...(hidden.length ? { hidden } : {}),
+      ...(fields.length ? { fields } : {}),
       ...(Object.keys(results).length ? { results } : {}),
       ...(comments.length ? { comments } : {}),
       ...(documents.length ? { documents } : {}),

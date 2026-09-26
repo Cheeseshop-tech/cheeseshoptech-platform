@@ -1101,6 +1101,11 @@ export function mergeCampaign(def, state = {}, book = null) {
     // Reference documents uploaded to the campaign (2026-09-21) — pointers into Cloudinary, see
     // campaign-state.js's doc comment.
     documents: state.documents || [],
+    // Questions THIS campaign asks about each prospect, on top of the standard enrichment form
+    // (2026-09-26). Declared at runtime and stored in campaign STATE, not seeded in the def —
+    // same reasoning as `custom` checklist items: a question discovered on call nine is state.
+    // Answers live on the enrichment row's `custom` bag and never reach HubSpot.
+    fields: state.fields || [],
     closedAt: state.closedAt || null,
     // Live-HubSpot rep→region assignments, raw (for the editor UI) — see deriveRepFilter() above
     // for how this turns into `audience.filter`.
