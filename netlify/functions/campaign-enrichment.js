@@ -26,9 +26,17 @@
 // different facts — the buyer name and email that were MISSING, plus the call outcome — so it
 // gets its own shape rather than bending the outreach schema around a second job.
 //
-// GET  ?tenant=<id>          → { entries, updatedAt }   (any valid passcode tier)
-// POST { tenant, entries }   → { ok, updatedAt }        (house/client-admin passcode)
-//   entries = { [companyId]: { buyer, title, email, phone, instagram, outcome, note, calledAt,
+// GET  ?tenant=<id>          → { entries, byCampaign, updatedAt }   (any valid passcode tier)
+// POST { tenant, entries }   → { ok, updatedAt }                    (house/client-admin passcode)
+//
+//   byCampaign = { [campaignId]: { [companyId]: rec } }  ← the authoritative store, 2026-09-26.
+//     One row per company PER CAMPAIGN. Rows with no campaignId live under "_shared".
+//     See the "Campaign scoping" block below for why this exists and what it fixed.
+//   entries    = { [companyId]: rec }                    ← the flat latest-wins view, derived.
+//     Unchanged meaning and unchanged contract: exactly what every existing reader already uses.
+//     Still written on every save. Do NOT add new readers of this — use byCampaign.
+//
+//   rec = { buyer, title, email, phone, instagram, outcome, note, calledAt,
 //                               campaignId, street, city, state, zip, addressVerifiedAt,
 //                               addressVerdict, notes[] } }
 //   note   = the LATEST call note (unchanged contract — every existing reader still uses this).
@@ -83,6 +91,75 @@ const str = (v, max) => (typeof v === "string" ? v.trim().slice(0, max) : "");
 const MAX_NOTES = 25;
 const NOTE_MAX = 1000;
 
+// ---- Campaign scoping (2026-09-26) ---------------------------------------------------------
+// THE BUG THIS FIXES. `entries` is keyed by companyId ALONE. `campaignId` was written onto the
+// row as a tag, never as part of the key — so when a second campaign enriched a company the first
+// campaign had already worked, it overwrote that campaign's buyer, title, email, phone, address
+// and outcome. One slot per company, tenant-wide. The Fall Tasting pass and a spring pass could
+// not both hold a record of the same account.
+//
+// Rick, 2026-09-26: "leave room for the development and discovery of details per campaign."
+// There was no room: there was one row.
+//
+// `byCampaign` is the campaign-scoped store: { [campaignId]: { [companyId]: rec } }. Rows with no
+// campaignId land under SHARED_SCOPE, which is a real bucket and not a discard — a row captured
+// outside any campaign is still a fact somebody wrote down.
+//
+// EXPAND PHASE. Both shapes are written on every save and `entries` keeps its exact former
+// meaning — the flat, latest-wins view every current reader already uses (enrichmentCsv, the
+// crm-push rows, campaigns-page, the CRM account card). Nothing is migrated off it in this pass
+// and nothing downstream changes. The contract phase — readers moving to `byCampaign` and
+// `entries` becoming derived-only — is a separate deploy, after this one is proven in production.
+//
+// Backfill is LAZY and IDEMPOTENT: seedScopes() promotes any legacy `entries` row that has no
+// counterpart in `byCampaign` into its own campaign's bucket, using the campaignId already on the
+// row. It runs on every write, costs nothing once complete, and needs no migration script or
+// downtime. A row already present under its scope is never overwritten by the legacy copy.
+const SHARED_SCOPE = "_shared";
+
+/** Which campaign bucket a row belongs to. Rows with no valid campaignId are shared, not dropped.
+ *  Exported for tests only — not part of the HTTP contract. */
+export function scopeOf(rec) {
+  return ID_RE.test(rec?.campaignId || "") ? rec.campaignId : SHARED_SCOPE;
+}
+
+/** Promote legacy flat `entries` into `byCampaign` without clobbering anything already scoped.
+ *  Idempotent: a second run over an already-seeded document changes nothing.
+ *  Exported for tests only — not part of the HTTP contract. */
+export function seedScopes(entries, byCampaign) {
+  const out = {};
+  for (const [scope, rows] of Object.entries(byCampaign || {})) {
+    if (!rows || typeof rows !== "object") continue;
+    out[scope] = { ...rows };
+  }
+  for (const [companyId, rec] of Object.entries(entries || {})) {
+    if (!rec || typeof rec !== "object") continue;
+    const scope = scopeOf(rec);
+    if (!out[scope]) out[scope] = {};
+    // Already scoped — the scoped copy is authoritative, the flat one is a shadow of some save.
+    if (out[scope][companyId]) continue;
+    out[scope][companyId] = rec;
+  }
+  return out;
+}
+
+/** The flat, latest-wins view. Preserves `entries` exactly as every current reader expects it:
+ *  one row per company, most recently written scope winning. Ordering is by each row's calledAt so
+ *  the winner is the genuinely newest capture rather than whichever scope happened to enumerate
+ *  last. Exported for tests only — not part of the HTTP contract. */
+export function flattenScopes(byCampaign) {
+  const newest = {};
+  for (const rows of Object.values(byCampaign || {})) {
+    for (const [companyId, rec] of Object.entries(rows || {})) {
+      const prev = newest[companyId];
+      if (!prev || String(rec?.calledAt || "") >= String(prev?.calledAt || "")) {
+        newest[companyId] = rec;
+      }
+    }
+  }
+  return newest;
+}
+
 /** Prior history for a company, seeding legacy single-string notes as entry #1.
  *  Exported for tests only — not part of the HTTP contract. */
 export function priorNotes(prev) {
@@ -134,9 +211,15 @@ const rawHandler = async (event, context) => {
     try {
       connectLambda(event);
       const raw = await getStore("campaign-enrichment").get(tenant);
-      if (!raw) return json(200, { entries: {}, updatedAt: null });
+      if (!raw) return json(200, { entries: {}, byCampaign: {}, updatedAt: null });
       const rec = JSON.parse(raw);
-      return json(200, { entries: rec.entries || {}, updatedAt: rec.updatedAt || null });
+      // Both shapes are returned. `entries` is unchanged for every existing reader; `byCampaign`
+      // is additive, so a client that does not know about it is unaffected.
+      return json(200, {
+        entries: rec.entries || {},
+        byCampaign: rec.byCampaign || {},
+        updatedAt: rec.updatedAt || null,
+      });
     } catch (err) {
       return json(200, { entries: {}, updatedAt: null, note: String(err?.message || err) });
     }
@@ -165,13 +248,26 @@ const rawHandler = async (event, context) => {
   // not fatal — we fall back to an empty prior, which costs history for this one save rather than
   // failing a call capture the rep just made.
   let prevEntries = {};
+  let prevByCampaign = {};
   try {
     connectLambda(event);
     const prevRaw = await getStore("campaign-enrichment").get(tenant);
-    if (prevRaw) prevEntries = JSON.parse(prevRaw).entries || {};
+    if (prevRaw) {
+      const prevDoc = JSON.parse(prevRaw);
+      prevEntries = prevDoc.entries || {};
+      prevByCampaign = prevDoc.byCampaign || {};
+    }
   } catch { /* no prior document, or unreadable — treat as empty */ }
 
-  const clean = {};
+  // Lazy backfill: promote any legacy flat row that has no scoped counterpart yet. Idempotent, so
+  // it is a no-op once every row has been through one save. See the seedScopes comment above.
+  const scopes = seedScopes(prevEntries, prevByCampaign);
+
+  // Rows the client just sent, grouped by the campaign they belong to. A save REPLACES the scopes
+  // it touches and leaves every other scope untouched — that is the whole fix. Replacing rather
+  // than merging within a touched scope preserves the existing delete semantics: a row the client
+  // has dropped from its map stays dropped, and history alone never resurrects it.
+  const incoming = {};
   for (const [companyId, e] of Object.entries(entries)) {
     // HubSpot company record ids are numeric; keep the check as loose as crm-outreach.js's.
     if (!/^[0-9]+$/.test(companyId) || !e || typeof e !== "object") continue;
@@ -198,22 +294,37 @@ const rawHandler = async (event, context) => {
     if (!rec.buyer && !rec.email && !rec.note && !rec.outcome && !rec.phone && !rec.title && !rec.instagram
         && !rec.street && !rec.city && !rec.state && !rec.zip) continue;
     const calledAt = str(e.calledAt, 40) || new Date().toISOString();
-    const notes = appendNote(priorNotes(prevEntries[companyId]), rec.note, {
+    const scope = scopeOf(rec);
+    // History comes from THIS campaign's prior row. Falling back to the flat row keeps the log
+    // intact for any company that has not been through a scoped save yet.
+    const prior = scopes[scope]?.[companyId] || prevEntries[companyId];
+    const notes = appendNote(priorNotes(prior), rec.note, {
       at: calledAt,
       campaignId: rec.campaignId,
       outcome: rec.outcome,
     });
-    clean[companyId] = { ...rec, calledAt, ...(notes.length ? { notes } : {}) };
+    if (!incoming[scope]) incoming[scope] = {};
+    incoming[scope][companyId] = { ...rec, calledAt, ...(notes.length ? { notes } : {}) };
   }
 
+  // Replace touched scopes; leave the rest exactly as they were.
+  const nextByCampaign = { ...scopes };
+  for (const [scope, rows] of Object.entries(incoming)) nextByCampaign[scope] = rows;
+
+  // `entries` stays the flat latest-wins view — unchanged contract for every current reader.
+  const clean = flattenScopes(nextByCampaign);
+
   const updatedAt = new Date().toISOString();
-  const payload = JSON.stringify({ entries: clean, updatedAt });
+  const payload = JSON.stringify({ entries: clean, byCampaign: nextByCampaign, updatedAt });
   if (Buffer.byteLength(payload) > MAX_BYTES) return json(413, { error: "Enrichment document too large" });
 
   try {
     connectLambda(event);
     await getStore("campaign-enrichment").set(tenant, payload);
-    await logWrite(event, { fn: "campaign-enrichment", ok: true, tenant, role: writeAuth.role, count: Object.keys(clean).length });
+    await logWrite(event, {
+      fn: "campaign-enrichment", ok: true, tenant, role: writeAuth.role,
+      count: Object.keys(clean).length, scopes: Object.keys(nextByCampaign).length,
+    });
     return json(200, { ok: true, updatedAt });
   } catch (err) {
     return json(502, { error: String(err?.message || err) });

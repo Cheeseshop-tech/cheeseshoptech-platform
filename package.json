@@ -22,7 +22,8 @@
     "validate:items": "node scripts/validate-item-standards.mjs",
     "test:notes": "node scripts/test-note-history.mjs",
     "test:freshness": "node scripts/test-inventory-freshness.mjs",
-    "test": "npm run test:notes && npm run test:freshness"
+    "test:scoping": "node scripts/test-enrichment-scoping.mjs",
+    "test": "npm run test:notes && npm run test:freshness && npm run test:scoping"
   },
   "dependencies": {
     "@netlify/blobs": "^8.2.0",
