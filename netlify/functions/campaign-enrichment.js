@@ -37,6 +37,10 @@
 //     Still written on every save. Do NOT add new readers of this — use byCampaign.
 //
 //   rec = { buyer, title, email, phone, instagram, outcome, note, calledAt,
+//           contactRole, relationship, territory[],   ← people-spine, 2026-09-26. STAGED ONLY:
+//             HubSpot owns these; crm-push promotes them. Validated against the shared
+//             vocabularies in src/lib/people-fields.js, so an invalid value is dropped here
+//             rather than failing a batch push later.
 //                               campaignId, street, city, state, zip, addressVerifiedAt,
 //                               addressVerdict, notes[] } }
 //   note   = the LATEST call note (unchanged contract — every existing reader still uses this).
@@ -50,6 +54,9 @@
 import { connectLambda, getStore } from "@netlify/blobs";
 import { requireReadAuth, requireWriteAuth, jsonUnauthorized } from "./_write-guard.js";
 import { logWrite } from "./_write-log.js";
+// One definition of the people-spine vocabularies, shared with the UI and crm-push. Retyping
+// these is what produced four drifted option strings on 2026-09-25. See src/lib/people-fields.js.
+import { RELATIONSHIP, CONTACT_ROLE, TERRITORY } from "../../src/lib/people-fields.js";
 
 import { withMonitoring } from "./_sentry.js";
 const MAX_BYTES = 600_000;
@@ -59,6 +66,28 @@ const MAX_BYTES = 600_000;
 const OUTCOMES = ["not-called", "cleared", "left-message", "no-answer", "callback", "bad-number", "do-not-contact", "not-a-prospect"];
 const VERDICTS = ["confirmed", "corrected", "unconfirmed"];
 const ID_RE = /^[a-z0-9][a-z0-9-]{0,63}$/i;
+
+// ---- People-spine fields (2026-09-26) ------------------------------------------------------
+// contactRole / territory / relationship are DURABLE FACTS about a person or an account, so
+// HubSpot owns them (docs/PEOPLE_DATA_OWNERSHIP.md: "HubSpot is the organizer"). They are
+// captured here for the same reason buyer and email are — the fact exists the moment it is
+// spoken, and promotion to HubSpot is a separate deliberate step via crm-push.
+//
+// This store is therefore a STAGING BUFFER for these three, never their home. That is the one
+// rule the ownership doc turns on: "an app store is either a staging buffer that promotes to
+// HubSpot, or it is CST process state. Nothing else owns a fact about a person or an account."
+//
+// Values are validated against the shared vocabularies rather than free text. A value HubSpot
+// would reject is dropped HERE, where the rep can see the picker did nothing, rather than
+// surviving until a batch push fails with a less legible error.
+//
+// Rick, 2026-09-26, on why these are pickers rather than a bulk backfill: "why not just have the
+// clickable option in a dropdown so we select as we enrich the contact and relationship." Setting
+// contact_role on ~100 distributor contacts by inference would have been guessing dressed as
+// data — the same error guardrail 2 forbids for relationship.
+const pickOne = (v, allowed) => (allowed.includes(v) ? v : "");
+const pickMany = (v, allowed) =>
+  (Array.isArray(v) ? v.filter((x) => allowed.includes(x)) : []).slice(0, allowed.length);
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -273,6 +302,9 @@ const rawHandler = async (event, context) => {
     if (!/^[0-9]+$/.test(companyId) || !e || typeof e !== "object") continue;
     const outcome = OUTCOMES.includes(e.outcome) ? e.outcome : "";
     const verdict = VERDICTS.includes(e.addressVerdict) ? e.addressVerdict : "";
+    const contactRole = pickOne(e.contactRole, CONTACT_ROLE);
+    const relationship = pickOne(e.relationship, RELATIONSHIP);
+    const territory = pickMany(e.territory, TERRITORY);
     const rec = {
       buyer: str(e.buyer, 120),
       title: str(e.title, 120),
@@ -285,6 +317,11 @@ const rawHandler = async (event, context) => {
       state: str(e.state, 40),
       zip: str(e.zip, 20),
       ...(outcome && outcome !== "not-called" ? { outcome } : {}),
+      // Staged for promotion to HubSpot by crm-push. Omitted when unset so an untouched picker
+      // never writes an empty string over a value HubSpot already holds.
+      ...(contactRole ? { contactRole } : {}),
+      ...(relationship ? { relationship } : {}),
+      ...(territory.length ? { territory } : {}),
       ...(ID_RE.test(e.campaignId || "") ? { campaignId: e.campaignId } : {}),
       ...(verdict ? { addressVerdict: verdict, addressVerifiedAt: str(e.addressVerifiedAt, 40) || new Date().toISOString() } : {}),
     };
@@ -292,7 +329,11 @@ const rawHandler = async (event, context) => {
     // A row that carries ONLY prior note history is still nothing new — history alone never
     // resurrects a row the client has emptied.
     if (!rec.buyer && !rec.email && !rec.note && !rec.outcome && !rec.phone && !rec.title && !rec.instagram
-        && !rec.street && !rec.city && !rec.state && !rec.zip) continue;
+        && !rec.street && !rec.city && !rec.state && !rec.zip
+        // Without these three, setting ONLY a role/territory/relationship — with no other edit —
+        // would be silently discarded as an empty row. That is a real capture: "this person is a
+        // Rep" is the whole fact sometimes.
+        && !rec.contactRole && !rec.relationship && !rec.territory?.length) continue;
     const calledAt = str(e.calledAt, 40) || new Date().toISOString();
     const scope = scopeOf(rec);
     // History comes from THIS campaign's prior row. Falling back to the flat row keeps the log

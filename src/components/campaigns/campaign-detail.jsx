@@ -29,6 +29,9 @@ import {
 // The tenant-wide territory book (ADR-002) — read-only here. Editing lives in the Territory Book
 // tool, because a territory outlives any one campaign.
 import { territoriesOfRep, accountIdsOfRep } from "@/lib/territories.js";
+// The people-spine vocabularies, defined once and shared with campaign-enrichment and crm-push.
+// Never retype these — four option strings drifted when they were typed twice on 2026-09-25.
+import { CONTACT_ROLE, RELATIONSHIP, TERRITORY } from "@/lib/people-fields.js";
 // Per-recipient email drafts. Documents travel as LINKS — a compose URL has no attachment
 // parameter — and nothing is ever sent: every draft opens for a human to read first.
 import { buildDraft, emailScripts, firstNameOf, DEFAULT_TEMPLATE } from "@/lib/mail-merge.js";
@@ -2306,6 +2309,67 @@ function CallRow({ co, rec, canWrite, onPatch, saveState, resolved }) {
           {rec.addressVerifiedAt && !verifyError && (
             <p className="text-xs text-fg-muted">Address last verified {rec.addressVerifiedAt.slice(0, 16).replace("T", " ")}</p>
           )}
+
+          {/* ---- People spine (2026-09-26) ------------------------------------------------
+              Three facts HubSpot owns. Captured here because this is where they are learned —
+              you find out someone is a Rep by talking to them, not by running a query.
+
+              Deliberately NOT backfilled in bulk. Rick, 2026-09-26: "why not just have the
+              clickable option in a dropdown so we select as we enrich the contact and
+              relationship." Setting contact_role on ~100 distributor contacts from job titles
+              and email domains would have been inference presented as fact — the error
+              guardrail 2 forbids for relationship, and the same error one object down.
+
+              These stage into campaign-enrichment and promote to HubSpot via crm-push. This app
+              never owns them; see docs/PEOPLE_DATA_OWNERSHIP.md. */}
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[12rem_12rem_1fr]">
+            <div className="grid gap-1.5">
+              <Label htmlFor={`cr-${co.id}`}>Contact role</Label>
+              <select
+                id={`cr-${co.id}`} value={rec.contactRole || ""} disabled={!canWrite}
+                onChange={(e) => onPatch({ contactRole: e.target.value })}
+                className="h-10 rounded-base border border-border bg-surface px-3 text-sm text-fg disabled:opacity-40"
+              >
+                <option value="">— not set —</option>
+                {CONTACT_ROLE.map((r) => <option key={r} value={r}>{r}</option>)}
+              </select>
+            </div>
+            <div className="grid gap-1.5">
+              <Label htmlFor={`rel-${co.id}`}>Account relationship</Label>
+              <select
+                id={`rel-${co.id}`} value={rec.relationship || ""} disabled={!canWrite}
+                onChange={(e) => onPatch({ relationship: e.target.value })}
+                className="h-10 rounded-base border border-border bg-surface px-3 text-sm text-fg disabled:opacity-40"
+              >
+                <option value="">— not set —</option>
+                {RELATIONSHIP.map((r) => <option key={r} value={r}>{r}</option>)}
+              </select>
+            </div>
+            <div className="grid gap-1.5">
+              <Label>Territory {rec.contactRole === "Rep" ? "(which areas they cover)" : ""}</Label>
+              {/* Multi-select: crossover is normal (ADR-002), so an account or a rep can sit in
+                  two areas. Checkboxes rather than a multi-select listbox because the whole set
+                  has to be visible — a hidden option is one that never gets ticked. */}
+              <div className="flex flex-wrap gap-x-3 gap-y-1.5 rounded-base border border-border bg-surface p-2">
+                {TERRITORY.map((t) => {
+                  const on = (rec.territory || []).includes(t);
+                  return (
+                    <label key={t} className="flex cursor-pointer items-center gap-1.5 text-xs text-fg">
+                      <input
+                        type="checkbox" checked={on} disabled={!canWrite}
+                        onChange={() => {
+                          const cur = rec.territory || [];
+                          onPatch({ territory: on ? cur.filter((x) => x !== t) : cur.concat([t]) });
+                        }}
+                        className="h-3.5 w-3.5 accent-accent disabled:opacity-40"
+                      />
+                      {t}
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
           <div className="grid gap-3 sm:grid-cols-[14rem_1fr]">
             <div className="grid gap-1.5">
               <Label htmlFor={`o-${co.id}`}>Call outcome</Label>

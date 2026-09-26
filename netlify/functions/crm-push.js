@@ -22,6 +22,11 @@
 
 import { requireWriteAuth, jsonUnauthorized } from "./_write-guard.js";
 import { logWrite } from "./_write-log.js";
+// People-spine vocabularies + the HubSpot property names, defined once in src/lib/people-fields.js
+// and shared with the capture form and campaign-enrichment. Retyping them is what produced four
+// drifted option strings on 2026-09-25; an option's internal value is write-once, so each one
+// cost a property rebuild.
+import { CONTACT_ROLE, RELATIONSHIP, TERRITORY, PROPERTY, serializeMulti } from "../../src/lib/people-fields.js";
 
 import { withMonitoring } from "./_sentry.js";
 const HS = "https://api.hubapi.com";
@@ -193,6 +198,12 @@ const rawHandler = async (event, context) => {
       phone: str(r.phone, 40),
       instagram: str(r.instagram, 120),
       note: str(r.note, 1000),
+      // People spine (2026-09-26). Re-validated here even though campaign-enrichment already
+      // validated on capture: this endpoint accepts a posted body, so it cannot trust that the
+      // rows came through that path. A value HubSpot would reject is dropped rather than sent.
+      contactRole: CONTACT_ROLE.includes(r.contactRole) ? r.contactRole : "",
+      relationship: RELATIONSHIP.includes(r.relationship) ? r.relationship : "",
+      territory: Array.isArray(r.territory) ? r.territory.filter((t) => TERRITORY.includes(t)) : [],
     }));
 
   if (!rows.length) return json(400, { error: "No cleared rows to push (each needs an email and a buyer name)" });
@@ -220,6 +231,10 @@ const rawHandler = async (event, context) => {
         ...(r.title ? { jobtitle: r.title } : {}),
         ...(r.phone ? { phone: r.phone } : {}),
         ...(r.companyName ? { company: r.companyName } : {}),
+        // People spine. Omitted when unset so a push NEVER blanks a value HubSpot already holds —
+        // the capture form leaving a picker untouched must not erase what someone set by hand.
+        ...(r.contactRole ? { [PROPERTY.contactRole]: r.contactRole } : {}),
+        ...(r.territory.length ? { [PROPERTY.territory]: serializeMulti(r.territory) } : {}),
       };
 
       const plan = {
@@ -231,6 +246,11 @@ const rawHandler = async (event, context) => {
         associateCompanyId: r.companyId || null,
         // Instagram has no native HubSpot property; carried as a note rather than silently dropped.
         noteWillBeWritten: !!(r.note || r.instagram),
+        // Surfaced in the dry run so Rick can see the spine fields BEFORE they are written —
+        // these are the values everything downstream filters on, so a wrong one is expensive.
+        ...(r.contactRole ? { contactRole: r.contactRole } : {}),
+        ...(r.territory.length ? { territory: r.territory.join(", ") } : {}),
+        ...(r.relationship ? { relationship: r.relationship } : {}),
       };
       // Resolve the company READ-ONLY first, so a dry run shows exactly which account this will
       // attach to — including "this would create a new company", which is the one outcome worth
@@ -258,6 +278,22 @@ const rawHandler = async (event, context) => {
           await hs(token, `/crm/v4/objects/contacts/${contactId}/associations/default/companies/${companyId}`, { method: "PUT" });
         } catch (e) {
           plan.associationError = String(e.message || e);
+        }
+      }
+
+      // 3b. `relationship` is a COMPANY fact, not a contact one, so it needs its own PATCH once
+      //     the company is resolved. Failure is recorded and does not abort the row: the contact
+      //     write above is the thing the rep just earned, and losing it because an account-level
+      //     field would not set would be the wrong trade.
+      if (companyId && r.relationship) {
+        try {
+          await hs(token, `/crm/v3/objects/companies/${companyId}`, {
+            method: "PATCH",
+            body: { properties: { [PROPERTY.relationship]: r.relationship } },
+          });
+          plan.relationshipWritten = true;
+        } catch (e) {
+          plan.relationshipError = String(e.message || e);
         }
       }
 
