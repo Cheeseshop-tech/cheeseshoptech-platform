@@ -24,7 +24,8 @@
     "test:freshness": "node scripts/test-inventory-freshness.mjs",
     "test:scoping": "node scripts/test-enrichment-scoping.mjs",
     "test:fields": "node scripts/test-people-fields.mjs",
-    "test": "npm run test:notes && npm run test:freshness && npm run test:scoping && npm run test:fields"
+    "test:stages": "node scripts/test-campaign-stages.mjs",
+    "test": "npm run test:notes && npm run test:freshness && npm run test:scoping && npm run test:fields && npm run test:stages"
   },
   "dependencies": {
     "@netlify/blobs": "^8.2.0",

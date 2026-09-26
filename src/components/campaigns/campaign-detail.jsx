@@ -32,6 +32,9 @@ import { territoriesOfRep, accountIdsOfRep } from "@/lib/territories.js";
 // The people-spine vocabularies, defined once and shared with campaign-enrichment and crm-push.
 // Never retype these — four option strings drifted when they were typed twice on 2026-09-25.
 import { CONTACT_ROLE, RELATIONSHIP, TERRITORY } from "@/lib/people-fields.js";
+// How the page changes shape as the campaign moves through its lifecycle. The table and the
+// reasoning live in one place; this file just renders what it says.
+import { modeFor, orderFor, isOpen, isHidden, nextActionFor } from "@/lib/campaign-stages.js";
 // Per-recipient email drafts. Documents travel as LINKS — a compose URL has no attachment
 // parameter — and nothing is ever sent: every draft opens for a human to read first.
 import { buildDraft, emailScripts, firstNameOf, DEFAULT_TEMPLATE } from "@/lib/mail-merge.js";
@@ -168,9 +171,27 @@ export function CampaignDetail({
     return ok;
   }
 
+  // Which sections Rick has opened or closed by hand on THIS campaign. Undefined until he
+  // touches one — deliberately tri-state, so "never touched" stays distinguishable from
+  // "explicitly closed" and the auto-fold rule knows whether it is still allowed to act.
+  //
+  // Not persisted. This is presentation, not a fact about the campaign, and campaign-state is for
+  // facts (docs/PEOPLE_DATA_OWNERSHIP.md's one rule applied to a different store). If it turns
+  // out Rick wants his folds to survive a reload, that is a deliberate later decision, not
+  // something to leak into the store by default.
+  const [folds, setFolds] = useState({});
+  const sectionProps = (id, summary) => ({
+    id, status: c.status, summary,
+    override: folds[id],
+    onToggle: (open) => setFolds((f) => ({ ...f, [id]: open })),
+  });
+
   return (
-    <div className="space-y-6">
-      <div>
+    // flex-col + order: the display-mode table sorts sections by CSS order rather than by
+    // restructuring the JSX. Primaries float to the top, folded summaries sink. Keeps the source
+    // readable as a build-time sequence while the page reads as a stage-appropriate workspace.
+    <div className="flex flex-col gap-6">
+      <div style={{ order: -1 }}>
         <Button variant="ghost" size="sm" onClick={onBack} className="-ml-3 mb-3">
           <ArrowLeft className="h-4 w-4" /> All campaigns
         </Button>
@@ -195,41 +216,43 @@ export function CampaignDetail({
         </div>
       </div>
 
-      <LaunchGate
-        c={c} r={r} onSetStatus={setStatus} onRequestComplete={() => setCompleteOpen(true)}
-        canWrite={canWrite} saveState={saveState} onSaveNow={onSaveNow}
-      />
+      <div style={{ order: -1 }}>
+        <LaunchGate
+          c={c} r={r} onSetStatus={setStatus} onRequestComplete={() => setCompleteOpen(true)}
+          canWrite={canWrite} saveState={saveState} onSaveNow={onSaveNow}
+        />
+      </div>
 
-      <Section id="updates" title="Updates" description="A running log for the team — status notes, decisions, what changed. Separate from the task notes on the checklist below, and what the Past Campaigns record is built from.">
+      <Section {...sectionProps("updates", `${(c.comments || []).length} update${(c.comments || []).length === 1 ? "" : "s"}`)} title="Updates" description="A running log for the team — status notes, decisions, what changed. Separate from the task notes on the checklist below, and what the Past Campaigns record is built from.">
         <UpdatesPanel comments={c.comments || []} canWrite={canWrite} onAdd={addComment} />
       </Section>
 
-      <Section id="checklist" title="Launch readiness" description="Every required task must be done before this campaign can be marked ready to launch.">
+      <Section {...sectionProps("checklist", r.ready ? `${r.done} of ${r.total} done · all required ✓` : `${r.requiredTotal - r.requiredDone} required outstanding`)} title="Launch readiness" description="Every required task must be done before this campaign can be marked ready to launch.">
         <ChecklistPanel
           c={c} r={r} entry={entry} canWrite={canWrite}
           onToggle={toggleItem} onNote={noteItem} onAdd={addItem} onRemove={removeItem} onRestore={restoreHidden}
         />
       </Section>
 
-      <Section id="strategy" title="Campaign strategy" description="The positioning and mechanic for this campaign.">
+      <Section {...sectionProps("strategy", c.strategy?.summary ? c.strategy.summary.slice(0, 80) : "No strategy note")} title="Campaign strategy" description="The positioning and mechanic for this campaign.">
         <StrategyPanel strategy={c.strategy} />
       </Section>
 
-      <Section id="content" title="Content & approvals" description="Written here, catalogued in the Content Library — which owns approval. Files live in the Media Hub and are linked.">
+      <Section {...sectionProps("content", `${contentItems.length} item${contentItems.length === 1 ? "" : "s"}`)} title="Content & approvals" description="Written here, catalogued in the Content Library — which owns approval. Files live in the Media Hub and are linked.">
         <ContentPanel
           linked={c.content} sequence={c.sequence} items={contentItems} canWrite={canWrite}
           onAdd={onAddContent} onPatch={onPatchContent} onRemove={onRemoveContent}
         />
       </Section>
 
-      <Section id="documents" title="Documents" description="Special offers, spec sheets, or anything else the team needs on hand for this campaign — uploaded here, also visible in the Media Hub's Documents tab. Click a document to review, approve, or comment without downloading it.">
+      <Section {...sectionProps("documents", `${(c.documents || []).length} document${(c.documents || []).length === 1 ? "" : "s"}`)} title="Documents" description="Special offers, spec sheets, or anything else the team needs on hand for this campaign — uploaded here, also visible in the Media Hub's Documents tab. Click a document to review, approve, or comment without downloading it.">
         <DocumentsPanel
           documents={c.documents || []} canWrite={canWrite} resolved={resolved} campaignId={c.id}
           onAdd={addDocument} onRemove={removeDocument} onApprove={setDocumentApproval} onComment={addDocumentComment}
         />
       </Section>
 
-      <Section id="prospects" title={c.type === "enrichment" ? "Call console" : "Target prospects"} description={c.type === "enrichment" ? "Work the gap list — the approved script, the number, and what the call produced." : "Who this campaign reaches — live from the same HubSpot data as the CRM console."}>
+      <Section {...sectionProps("prospects", c.audience?.label || "")} title={c.type === "enrichment" ? "Call console" : "Target prospects"} description={c.type === "enrichment" ? "Work the gap list — the approved script, the number, and what the call produced." : "Who this campaign reaches — live from the same HubSpot data as the CRM console."}>
         <ProspectPanel
           c={c} resolved={resolved} scripts={contentItems} allCampaigns={allCampaigns}
           enrichment={enrichment} onEnrich={onEnrich} canWrite={canWrite} saveState={saveState}
@@ -241,7 +264,7 @@ export function CampaignDetail({
       </Section>
 
       <Section
-        id="repvisits"
+        {...sectionProps("repvisits", `${Object.keys(c.repRoster?.reps || {}).length} rep${Object.keys(c.repRoster?.reps || {}).length === 1 ? "" : "s"}`)}
         title="Rep roster & territory"
         description="Pick the reps this campaign is working — no territory needed to start. Email the roster, follow up by phone, and each rep's territory fills in as you talk to them. Target Prospects above is scoped to the accounts in their territories; the territories themselves live in the Territory Book, because they outlive this campaign."
       >
@@ -253,7 +276,7 @@ export function CampaignDetail({
 
       {c.audience?.salesReps?.length > 0 && (
         <Section
-          id="salesreps"
+          {...sectionProps("salesreps", `${c.audience.salesReps.length} contact${c.audience.salesReps.length === 1 ? "" : "s"}`)}
           title="Sales Rep Contacts"
           description="The distributor's own team, kept separate from the target-prospect accounts above — confirm territory, find out whose accounts fit Monti Trentini, and book booth time with that rep for the show."
         >
@@ -261,7 +284,7 @@ export function CampaignDetail({
         </Section>
       )}
 
-      <Section id="results" title="Results" description={c.status === "launched" || c.status === "complete" ? "Performance since launch." : "Fills in once the campaign launches."}>
+      <Section {...sectionProps("results", "")} title="Results" description={c.status === "launched" || c.status === "complete" ? "Performance since launch." : "Fills in once the campaign launches."}>
         <ResultsPanel c={c} onChange={setResults} canWrite={canWrite} />
       </Section>
 
@@ -272,13 +295,61 @@ export function CampaignDetail({
   );
 }
 
-function Section({ id, title, description, children }) {
+/* A section of the campaign detail page, which changes shape as the campaign moves through its
+ * lifecycle. See src/lib/campaign-stages.js for the table and the reasoning.
+ *
+ * Three states:
+ *   hidden   — not applicable at this status (Results before launch). Renders nothing.
+ *   open     — the card as it always was.
+ *   folded   — one clickable line showing the section's own state. NEVER hides data; one click
+ *              and it is back. That distinction is what makes auto-folding safe.
+ *
+ * `summary` is what the folded line says. A section that does not supply one still folds, but it
+ * folds to just its title — which is worse, because the fold then costs information instead of
+ * only costing space. Supply one.
+ */
+function Section({ id, title, description, children, status, summary, override, onToggle }) {
   const Icon = SECTION_ICON[id] || ListChecks;
+  if (isHidden(id, status)) return null;
+
+  const open = isOpen(id, status, override);
+  const style = { order: orderFor(id, status) };
+
+  if (!open) {
+    return (
+      <Card style={style} className="border-border/60">
+        <button
+          type="button"
+          onClick={() => onToggle?.(true)}
+          className="flex w-full items-center gap-2 px-6 py-3 text-left hover:bg-surface-muted/40"
+          aria-expanded="false"
+        >
+          <ChevronRight className="h-4 w-4 shrink-0 text-fg-muted" />
+          <Icon className="h-4 w-4 shrink-0 text-fg-muted" />
+          <span className="font-heading text-sm text-fg">{title}</span>
+          {summary && <span className="ml-auto truncate text-xs text-fg-muted">{summary}</span>}
+        </button>
+      </Card>
+    );
+  }
+
   return (
-    <Card>
+    <Card style={style}>
       <CardHeader>
         <CardTitle className="flex items-center gap-2 not-italic font-heading">
-          <Icon className="h-5 w-5 text-fg-muted" /> {title}
+          {/* Only offer the fold where folding is the rule at this status — a section that is
+              primary right now should not invite you to close the thing you came here to do. */}
+          {modeFor(id, status) === "summary" ? (
+            <button
+              type="button" onClick={() => onToggle?.(false)} aria-expanded="true"
+              className="flex items-center gap-2 text-left"
+            >
+              <ChevronDown className="h-4 w-4 text-fg-muted" />
+              <Icon className="h-5 w-5 text-fg-muted" /> {title}
+            </button>
+          ) : (
+            <><Icon className="h-5 w-5 text-fg-muted" /> {title}</>
+          )}
         </CardTitle>
         <CardDescription>{description}</CardDescription>
       </CardHeader>
@@ -988,6 +1059,10 @@ function Dot({ on, label }) {
 // The status control is where the checklist stops being decoration: anything at or past "ready"
 // is disabled while a required task is outstanding, and the reason is named.
 function LaunchGate({ c, r, onSetStatus, onRequestComplete, canWrite, saveState = "idle", onSaveNow }) {
+  const next = nextActionFor(c.status);
+  // Reuse the SAME gate the pills use, so the button can never offer a move the gate would
+  // refuse. One source of truth for "is this allowed", two places that render it.
+  const nextGate = next ? canAdvanceTo(c, next.to) : { ok: false };
   return (
     <Card className={r.ready ? "border-success" : undefined}>
       <CardContent className="p-5">
@@ -1018,7 +1093,34 @@ function LaunchGate({ c, r, onSetStatus, onRequestComplete, canWrite, saveState 
             )}
           </div>
 
-          <div className="flex flex-wrap gap-1.5">
+          {/* ---- The next action ----------------------------------------------------------
+              One stated next step, not five equal pills. When it's blocked it SAYS what is
+              blocking it rather than greying out silently — the system knowing the answer and
+              not saying it is the failure this replaces. Status is still Rick's assertion; the
+              pills below are now an override for moving backwards. */}
+          {next && (
+            <div className="flex min-w-[14rem] flex-col items-stretch gap-1.5">
+              <Button
+                type="button"
+                size="lg"
+                disabled={!canWrite || !nextGate.ok}
+                title={!nextGate.ok ? nextGate.reason : next.blurb}
+                onClick={() => (next.to === "complete" ? onRequestComplete() : onSetStatus(next.to))}
+              >
+                {next.label}
+              </Button>
+              <p className="text-center text-xs text-fg-muted">
+                {!canWrite ? "Read-only" : nextGate.ok ? next.blurb : nextGate.reason}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* The old five-pill row, demoted. Still the way to move a campaign BACKWARDS — which is
+            rare, and should look rare. */}
+        <details className="mt-4">
+          <summary className="cursor-pointer text-xs text-fg-muted">Set status manually</summary>
+          <div className="mt-2 flex flex-wrap gap-1.5">
             {LIFECYCLE.map((s) => {
               const gate = canAdvanceTo(c, s.id);
               const disabled = !canWrite || (!gate.ok && s.id !== c.status);
@@ -1044,7 +1146,7 @@ function LaunchGate({ c, r, onSetStatus, onRequestComplete, canWrite, saveState 
               );
             })}
           </div>
-        </div>
+        </details>
       </CardContent>
     </Card>
   );
