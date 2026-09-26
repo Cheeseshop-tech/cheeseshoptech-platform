@@ -9,6 +9,51 @@ First tenant: **Monti Trentini**. Canonical detail: `docs/POSITIONING.md`, `docs
 
 ## Remember
 
+> **TRAP (2026-09-26) — "the commit button doesn't work" is almost always a stale
+> `.git/index.lock`.** Symptom: a `COMMIT <FEATURE>.command` appears to run and nothing changes.
+> HEAD doesn't move, the same files stay modified, and re-running does nothing. The real cause is
+> a zero-byte `.git/index.lock` left behind by an earlier git process; every `git add` and
+> `git commit` then dies instantly with `fatal: Unable to create '.git/index.lock': File exists.`
+>
+> **Claude's sandbox creates these and cannot clean them up.** A plain `git status` from
+> `mcp__workspace__bash` takes the index lock, and the FUSE mount refuses the unlink
+> (`Operation not permitted` — same limitation already noted in `.gitignore` for `_to_delete/`).
+> So Claude leaves a lock it is unable to remove, and Rick's buttons silently fail from then on.
+>
+> **Fix:** Rick runs `rm "<repo>/.git/index.lock"` in Terminal, then re-runs the button.
+> **Prevention:** Claude uses `git --no-optional-locks status` (and `log`, which never takes the
+> lock) for every read-only check against the mounted repo. Never a bare `git status`.
+>
+> This cost an hour on 2026-09-25 and was invisible because `DEPLOY TO STAGING.command` reported
+> success the whole time — see the next note.
+
+**2026-09-26 — A script's exit code is not evidence the work shipped.**
+`git push` with nothing to send prints "Everything up-to-date" and **exits 0**.
+`DEPLOY TO STAGING.command` treated that as success and printed "Pushed. Netlify is building" —
+a message identical to a real fifteen-commit deploy. On 2026-09-25 that masked a commit step that
+had never run (stale index.lock, above): deploy was run four times, reported success four times,
+and the work sat uncommitted throughout. Fixed 2026-09-26 (`6dad22f`): the script now counts
+commits with `git rev-list --count`, lists uncommitted files before acting, and states plainly
+when a dirty tree plus zero commits ahead means the commit step did not run. **Generalize this:
+every button that reports success must assert the state it claims to have produced, not merely
+that its last command exited 0.** The same class of bug as the inventory sync writing a canonical
+file without validating it — a green exit 0 over a wrong result.
+
+**2026-09-26 — The people spine exists. HubSpot is the organizer; CST owns the mirror.**
+Five properties built by hand in the HubSpot UI and verified by API: Company `relationship` (4) ·
+`outreach_stage` (7) · `territory` (10); Contact `contact_role` (5) · `territory` (10). Both
+Territory lists are identical string-for-string — the rep→account join is a plain string match, so
+a mismatch returns nothing rather than erroring. **Schema cannot be created by script:**
+`crm.schemas.companies.write` / `crm.schemas.contacts.write` are not offered in this portal's
+private-app scope picker, so `scripts/create-crm-properties.mjs` 403s and survives only as the
+machine-readable definition; `CREATE CRM PROPERTIES.command` is retired and now explains why.
+Two UI traps, both of which cost a rebuild: **an option's internal value is write-once** (renaming
+the label never moves the stored value), and **the options table lives on the "Field type" tab
+inside the editor** — clicking a property's name opens a read-only preview that looks broken.
+The fields exist but are **unpopulated** — next step is marking `relationship` on the ~20 accounts
+with real email traffic, before any screen reads them (guardrail 4). As-built spec:
+`docs/HUBSPOT_PROPERTY_SPEC.md`. Contract: `docs/PEOPLE_DATA_OWNERSHIP.md`.
+
 **2026-09-20 — Campaigns' Make webhook seam retired (never built, made redundant).**
 `netlify/functions/campaigns.js` (`MAKE_CAMPAIGNS_WEBHOOK_URL`, `VITE_CAMPAIGNS_BACKEND=make`) is
 gone. It was designed pre-`campaign-defs.js` (2026-06 era) to fetch campaign *definitions* from an
