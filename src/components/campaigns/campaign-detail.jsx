@@ -35,6 +35,7 @@ import { CONTACT_ROLE, RELATIONSHIP, TERRITORY } from "@/lib/people-fields.js";
 // How the page changes shape as the campaign moves through its lifecycle. The table and the
 // reasoning live in one place; this file just renders what it says.
 import { modeFor, orderFor, isOpen, isHidden, nextActionFor } from "@/lib/campaign-stages.js";
+import { lifecycleFor, isPlanning } from "@/lib/lifecycles.js";
 // Per-recipient email drafts. Documents travel as LINKS — a compose URL has no attachment
 // parameter — and nothing is ever sent: every draft opens for a human to read first.
 import { buildDraft, emailScripts, firstNameOf, DEFAULT_TEMPLATE } from "@/lib/mail-merge.js";
@@ -284,7 +285,7 @@ export function CampaignDetail({
         </Section>
       )}
 
-      <Section {...sectionProps("results", "")} title="Results" description={c.status === "launched" || c.status === "complete" ? "Performance since launch." : "Fills in once the campaign launches."}>
+      <Section {...sectionProps("results", "")} title="Results" description={!isPlanning(c) ? "Performance since launch." : "Fills in once the campaign launches."}>
         <ResultsPanel c={c} onChange={setResults} canWrite={canWrite} />
       </Section>
 
@@ -681,6 +682,99 @@ function RepRosterPanel({ c, resolved, canWrite, onPatch, saveState = "idle", bo
   function patchRoster(next) {
     onPatch({ repRoster: { ...(source ? { source } : {}), reps: next } });
   }
+
+  // ---- The rep card (2026-09-26) ----------------------------------------------------------
+  // Rick: "open a card for the rep. And in there, I want to be able to assign accounts. I want to
+  // see at least their top three accounts for each of the reps... a drop down where I can click
+  // in and assign a territory." Design + decisions: docs/DISTRIBUTOR_CAMPAIGN_PHASES_2026-09-26.md
+  const [acctQ, setAcctQ] = useState("");
+  const [pushOpen, setPushOpen] = useState(false);
+
+  const hubspotByEmail = useMemo(() => {
+    const m = new Map();
+    for (const p of crm?.people || []) if (p.email) m.set(p.email.toLowerCase(), p);
+    return m;
+  }, [crm]);
+  const companyById = useMemo(
+    () => new Map((crm?.companies || []).map((co) => [String(co.id), co])),
+    [crm]
+  );
+
+  /** A rep's territory: what this campaign has staged, else what HubSpot already holds.
+   *  HubSpot owns this fact (PEOPLE_DATA_OWNERSHIP.md). The roster only STAGES a change, so a rep
+   *  who already has a territory in HubSpot shows it — rather than an empty picker that invites
+   *  someone to set it again, differently. */
+  function territoryOf(email) {
+    const staged = reps[email]?.territory;
+    if (staged?.length) return { values: staged, from: "staged" };
+    const hs = hubspotByEmail.get(email)?.territory || [];
+    return { values: hs, from: hs.length ? "hubspot" : "none" };
+  }
+  /** Staged differs from what HubSpot holds — i.e. there is something to push. */
+  function territoryDirty(email) {
+    const staged = reps[email]?.territory || [];
+    if (!staged.length) return false;
+    const hs = hubspotByEmail.get(email)?.territory || [];
+    return [...staged].sort().join("|") !== [...hs].sort().join("|");
+  }
+  function setRepField(email, part) {
+    patchRoster({ ...reps, [email]: { ...reps[email], ...part } });
+  }
+  function toggleRepTerritory(email, t) {
+    const cur = territoryOf(email).values;
+    setRepField(email, { territory: cur.includes(t) ? cur.filter((x) => x !== t) : cur.concat([t]) });
+  }
+  function addKeyAccount(email, id) {
+    const cur = reps[email]?.keyAccounts || [];
+    if (cur.includes(String(id)) || cur.length >= 10) return;
+    setRepField(email, { keyAccounts: cur.concat([String(id)]) });
+    setAcctQ("");
+  }
+  function removeKeyAccount(email, id) {
+    setRepField(email, { keyAccounts: (reps[email]?.keyAccounts || []).filter((x) => x !== String(id)) });
+  }
+
+  /** Account search for the key-account picker. Active customers first — that field was set from
+   *  the producer's own sales list, so it is the one signal here that actually means "buys".
+   *  Engagement counts are deliberately NOT used to rank: docs/CUSTOMER_GAP_2026-09-26.md showed
+   *  three paying customers with zero engagement the same morning. */
+  function accountMatches(email) {
+    const needle = acctQ.trim().toLowerCase();
+    if (needle.length < 2) return [];
+    const picked = new Set(reps[email]?.keyAccounts || []);
+    const rank = { "Active customer": 0, Prospect: 1, Dormant: 2, Lost: 3 };
+    return (crm?.companies || [])
+      .filter((co) => !picked.has(String(co.id)) && String(co.name || "").toLowerCase().includes(needle))
+      .sort((a, b) => (rank[a.relationship] ?? 4) - (rank[b.relationship] ?? 4) || String(a.name).localeCompare(String(b.name)))
+      .slice(0, 8);
+  }
+
+  /** Rows for the HubSpot push: reps whose staged territory differs from HubSpot's. Reuses
+   *  PushDialog + crm-push unchanged — no second write path. companyDomain comes from the rep's
+   *  own work email, which is how crm-push resolves the distributor they belong to.
+   *
+   *  contact_role is deliberately NOT set to "Rep" here, even though these people are on a rep
+   *  roster. A roster can hold a distributor's merchandising manager or owner; being worked in a
+   *  rep campaign does not make someone a Rep. Rick set that rule himself on 2026-09-26 — role is
+   *  picked, never inferred. */
+  const repPushRows = useMemo(() => {
+    const out = [];
+    for (const [email, r] of Object.entries(reps)) {
+      if (r.dropped || !territoryDirty(email)) continue;
+      out.push({
+        email,
+        buyer: r.name || email,
+        title: r.jobtitle || "",
+        phone: r.phone || "",
+        companyName: source || "",
+        companyDomain: email.split("@")[1] || "",
+        territory: r.territory,
+      });
+    }
+    return out;
+  // territoryDirty reads reps + hubspotByEmail, both listed.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reps, hubspotByEmail, source]);
   function saveSource(next) {
     setSource(next);
     onPatch({ repRoster: { ...(next ? { source: next } : {}), reps } });
@@ -976,12 +1070,23 @@ function RepRosterPanel({ c, resolved, canWrite, onPatch, saveState = "idle", bo
                     <div className="mt-1 flex flex-wrap items-center gap-2 text-xs">
                       <Dot on={r.progress.emailed} label={r.emailedAt ? `Emailed ${r.emailedAt.slice(5, 10)}` : "Not emailed"} />
                       <Dot on={r.progress.called} label={r.progress.called ? OUTCOME_LABEL[r.call.outcome] || "Called" : "No call yet"} />
-                      <Dot on={r.progress.territory} label={r.progress.territory ? r.call.territory : "No territory yet"} />
-                      <Dot on={r.accounts > 0} label={`${r.accounts} account${r.accounts === 1 ? "" : "s"}`} />
+                      {/* Territory now reads the picker (staged, else HubSpot) rather than the old
+                          free-text call note — that string was unvalidated and could not be joined on. */}
+                      {(() => {
+                        const tt = territoryOf(r.email);
+                        return <Dot on={tt.values.length > 0} label={tt.values.length ? tt.values.join(", ") : "No territory yet"} />;
+                      })()}
+                      <Dot on={(reps[r.email]?.keyAccounts || []).length > 0} label={`${(reps[r.email]?.keyAccounts || []).length} key account${(reps[r.email]?.keyAccounts || []).length === 1 ? "" : "s"}`} />
                     </div>
-                    {r.territories.length > 0 && (
+                    {/* Top three key accounts, visible WITHOUT opening the card — Rick: "I want to see
+                        at least their top three accounts for each of the reps." "Top" means the first
+                        three he picked, in the order he picked them; there is no value data to rank
+                        by, and ranking by email volume would be actively misleading. */}
+                    {(reps[r.email]?.keyAccounts || []).length > 0 && (
                       <div className="mt-1 text-xs text-fg-muted">
-                        Covers: {r.territories.map((t) => t.name).join(" · ")}
+                        Key: {(reps[r.email].keyAccounts).slice(0, 3)
+                          .map((id) => companyById.get(id)?.name || `#${id}`).join(" · ")}
+                        {(reps[r.email].keyAccounts).length > 3 && ` · +${reps[r.email].keyAccounts.length - 3} more`}
                       </div>
                     )}
                   </div>
@@ -991,8 +1096,8 @@ function RepRosterPanel({ c, resolved, canWrite, onPatch, saveState = "idle", bo
                       <Mail className="mr-1.5 h-4 w-4" />
                       {r.progress.emailed ? "Draft again" : "Draft email"}
                     </Button>
-                    <Button size="sm" variant="outline" onClick={() => setOpenRep(openRep === r.email ? "" : r.email)}>
-                      {openRep === r.email ? "Close" : "Log call"}
+                    <Button size="sm" variant="outline" onClick={() => { setOpenRep(openRep === r.email ? "" : r.email); setAcctQ(""); }}>
+                      {openRep === r.email ? "Close" : "Open card"}
                     </Button>
                     <Button size="sm" variant="ghost" disabled={!canWrite} onClick={() => toggleRoster({ email: r.email })}>
                       Drop
@@ -1000,33 +1105,120 @@ function RepRosterPanel({ c, resolved, canWrite, onPatch, saveState = "idle", bo
                   </div>
                 </div>
 
-                {openRep === r.email && (
-                  <div className="mt-3 grid gap-2 border-t border-border pt-3 sm:grid-cols-[180px_1fr]">
-                    <select
-                      aria-label={`Call outcome for ${r.name}`}
-                      className="h-9 rounded-md border border-border bg-bg px-2 text-sm"
-                      value={r.call.outcome || "not-called"}
-                      disabled={!canWrite}
-                      onChange={(e) => patchRepCall(r.email, { outcome: e.target.value })}
-                    >
-                      {CALL_OUTCOMES.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
-                    </select>
-                    <Input
-                      placeholder="Territory they gave you — type it as they said it"
-                      defaultValue={r.call.territory || ""}
-                      disabled={!canWrite}
-                      onBlur={(e) => patchRepCall(r.email, { territory: e.target.value })}
-                    />
-                    <div className="sm:col-span-2">
-                      <Textarea
-                        placeholder="Notes from the call…"
-                        defaultValue={r.call.note || ""}
-                        disabled={!canWrite}
-                        onBlur={(e) => patchRepCall(r.email, { note: e.target.value })}
-                      />
+                {openRep === r.email && (() => {
+                  const tt = territoryOf(r.email);
+                  const keys = reps[r.email]?.keyAccounts || [];
+                  const matches = accountMatches(r.email);
+                  return (
+                    <div className="mt-3 space-y-4 border-t border-border pt-3">
+
+                      {/* ---- Territory — HubSpot owns it; this stages a change ---------------- */}
+                      <div className="grid gap-1.5">
+                        <div className="flex flex-wrap items-baseline justify-between gap-2">
+                          <Label>Territory</Label>
+                          <span className="text-xs text-fg-muted">
+                            {tt.from === "hubspot" && "From HubSpot"}
+                            {tt.from === "staged" && (territoryDirty(r.email) ? "Changed here · push to HubSpot below" : "Matches HubSpot")}
+                            {tt.from === "none" && "Not set anywhere yet"}
+                          </span>
+                        </div>
+                        <div className="flex flex-wrap gap-x-3 gap-y-1.5 rounded-base border border-border bg-surface p-2">
+                          {TERRITORY.map((t) => (
+                            <label key={t} className="flex cursor-pointer items-center gap-1.5 text-xs text-fg">
+                              <input
+                                type="checkbox" checked={tt.values.includes(t)} disabled={!canWrite}
+                                onChange={() => toggleRepTerritory(r.email, t)}
+                                className="h-3.5 w-3.5 accent-accent disabled:opacity-40"
+                              />
+                              {t}
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* ---- Key accounts — campaign-only, picked not ranked ------------------ */}
+                      <div className="grid gap-1.5">
+                        <div className="flex flex-wrap items-baseline justify-between gap-2">
+                          <Label>Key accounts for this campaign</Label>
+                          <span className="text-xs text-fg-muted">{keys.length}/10 · stays with this campaign</span>
+                        </div>
+                        {keys.length > 0 && (
+                          <ul className="flex flex-wrap gap-1.5">
+                            {keys.map((id, i) => {
+                              const co = companyById.get(id);
+                              return (
+                                <li key={id} className="flex items-center gap-1.5 rounded-base border border-border bg-surface px-2 py-1 text-xs">
+                                  <span className="text-fg-muted">{i + 1}.</span>
+                                  <span className="text-fg">{co?.name || `Account #${id}`}</span>
+                                  {co?.relationship && <Badge variant={co.relationship === "Active customer" ? "success" : "muted"}>{co.relationship}</Badge>}
+                                  {canWrite && (
+                                    <button type="button" onClick={() => removeKeyAccount(r.email, id)}
+                                      className="text-fg-muted hover:text-error" title="Remove">×</button>
+                                  )}
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        )}
+                        {canWrite && keys.length < 10 && (
+                          <div className="relative">
+                            <Input
+                              value={acctQ} onChange={(e) => setAcctQ(e.target.value)}
+                              placeholder={crm === undefined ? "Loading accounts…" : "Search accounts to add — active customers listed first"}
+                              disabled={!crm}
+                            />
+                            {matches.length > 0 && (
+                              <ul className="mt-1 max-h-56 overflow-y-auto rounded-base border border-border bg-surface">
+                                {matches.map((co) => (
+                                  <li key={co.id}>
+                                    <button type="button" onClick={() => addKeyAccount(r.email, co.id)}
+                                      className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm hover:bg-surface-muted/60">
+                                      <span className="min-w-0 truncate">
+                                        {co.name}
+                                        <span className="ml-2 text-xs text-fg-muted">{[co.city, co.state].filter(Boolean).join(", ")}</span>
+                                      </span>
+                                      {co.relationship && <Badge variant={co.relationship === "Active customer" ? "success" : "muted"}>{co.relationship}</Badge>}
+                                    </button>
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                            {acctQ.trim().length >= 2 && matches.length === 0 && crm && (
+                              <p className="mt-1 text-xs text-fg-muted">No account matches "{acctQ}". If it's a real customer, it may not be in HubSpot yet — see docs/CUSTOMER_GAP_2026-09-26.md.</p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* ---- The call — unchanged, still in campaign-rep-calls ---------------- */}
+                      <div className="grid gap-2 sm:grid-cols-[180px_1fr]">
+                        <select
+                          aria-label={`Call outcome for ${r.name}`}
+                          className="h-9 rounded-md border border-border bg-bg px-2 text-sm"
+                          value={r.call.outcome || "not-called"}
+                          disabled={!canWrite}
+                          onChange={(e) => patchRepCall(r.email, { outcome: e.target.value })}
+                        >
+                          {CALL_OUTCOMES.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
+                        </select>
+                        <Textarea
+                          placeholder="Notes from the call…"
+                          defaultValue={r.call.note || ""}
+                          disabled={!canWrite}
+                          onBlur={(e) => patchRepCall(r.email, { note: e.target.value })}
+                        />
+                        {/* The old free-text territory, shown read-only if a call captured one before
+                            the picker existed — so nothing Rick typed disappears, it just stops being
+                            the place territory lives. */}
+                        {r.call.territory && (
+                          <p className="text-xs text-fg-muted sm:col-span-2">
+                            Earlier note on territory: "{r.call.territory}" — set it with the checkboxes above.
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
               </li>
             ))}
           </ul>
@@ -1034,6 +1226,22 @@ function RepRosterPanel({ c, resolved, canWrite, onPatch, saveState = "idle", bo
           {onlyToCall && ordered.length === 0 && (
             <p className="text-sm text-fg-muted">Nobody is waiting on a call — everyone emailed has been rung.</p>
           )}
+
+          {/* Territories set on rep cards are STAGED until pushed — HubSpot owns them. Surfaced as a
+              count so an unpushed change can't sit here silently, which is how a store becomes a
+              second home for a fact (docs/PEOPLE_DATA_OWNERSHIP.md guardrail 3). Key accounts are
+              not in this push and never will be: they are campaign state. */}
+          {repPushRows.length > 0 && (
+            <div className="flex flex-wrap items-center justify-between gap-2 rounded-base border border-warning/50 bg-warning/5 p-3">
+              <p className="text-sm text-fg">
+                <strong>{repPushRows.length}</strong> rep territor{repPushRows.length === 1 ? "y" : "ies"} changed here and not yet in HubSpot.
+              </p>
+              <Button size="sm" disabled={!canWrite} onClick={() => setPushOpen(true)}>
+                Review &amp; push to HubSpot
+              </Button>
+            </div>
+          )}
+          <PushDialog open={pushOpen} onClose={() => setPushOpen(false)} rows={repPushRows} resolved={resolved} />
 
           <p className="text-xs text-fg-muted">
             Target Prospects above is scoped to the accounts in these reps’ territories. Territories
@@ -1059,7 +1267,8 @@ function Dot({ on, label }) {
 // The status control is where the checklist stops being decoration: anything at or past "ready"
 // is disabled while a required task is outstanding, and the reason is named.
 function LaunchGate({ c, r, onSetStatus, onRequestComplete, canWrite, saveState = "idle", onSaveNow }) {
-  const next = nextActionFor(c.status);
+  // The campaign's OWN lifecycle — Setup → Connect → Execute for a distributor campaign.
+  const next = nextActionFor(c.status, c.type);
   // Reuse the SAME gate the pills use, so the button can never offer a move the gate would
   // refuse. One source of truth for "is this allowed", two places that render it.
   const nextGate = next ? canAdvanceTo(c, next.to) : { ok: false };
@@ -1105,7 +1314,7 @@ function LaunchGate({ c, r, onSetStatus, onRequestComplete, canWrite, saveState 
                 size="lg"
                 disabled={!canWrite || !nextGate.ok}
                 title={!nextGate.ok ? nextGate.reason : next.blurb}
-                onClick={() => (next.to === "complete" ? onRequestComplete() : onSetStatus(next.to))}
+                onClick={() => (next.closing ? onRequestComplete() : onSetStatus(next.to))}
               >
                 {next.label}
               </Button>
@@ -1121,7 +1330,7 @@ function LaunchGate({ c, r, onSetStatus, onRequestComplete, canWrite, saveState 
         <details className="mt-4">
           <summary className="cursor-pointer text-xs text-fg-muted">Set status manually</summary>
           <div className="mt-2 flex flex-wrap gap-1.5">
-            {LIFECYCLE.map((s) => {
+            {lifecycleFor(c.type).map((s) => {
               const gate = canAdvanceTo(c, s.id);
               const disabled = !canWrite || (!gate.ok && s.id !== c.status);
               const active = c.status === s.id;
@@ -1131,7 +1340,7 @@ function LaunchGate({ c, r, onSetStatus, onRequestComplete, canWrite, saveState 
                   type="button"
                   disabled={disabled}
                   title={disabled && !gate.ok ? gate.reason : s.blurb}
-                  onClick={() => (s.id === "complete" && !active ? onRequestComplete() : onSetStatus(s.id))}
+                  onClick={() => (s.kind === "closed" && !active ? onRequestComplete() : onSetStatus(s.id))}
                   className={[
                     "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand",
@@ -2882,7 +3091,8 @@ const RESULT_FIELDS = [
 
 function ResultsPanel({ c, onChange, canWrite }) {
   const res = c.results || {};
-  const launched = c.status === "launched" || c.status === "complete";
+  // Live or closed — i.e. past planning. A kind question, so Connect and Execute count too.
+  const launched = !isPlanning(c);
   const openRate = pct(res.opens || 0, res.sends || 0);
   const replyRate = pct(res.replies || 0, res.sends || 0);
 
@@ -3118,6 +3328,19 @@ function PushDialog({ open, onClose, rows, resolved }) {
                   <div className="min-w-0">
                     <p className="truncate text-sm text-fg">{p.buyer} · <span className="text-fg-muted">{p.email}</span></p>
                     <p className="text-xs text-fg-muted">{p.companyName}</p>
+                    {/* The people-spine values this push will write. CORRECTED 2026-09-26: e3e494b's
+                        commit message said these were "surfaced in the dry run so Rick can see the
+                        spine fields BEFORE they are written." crm-push did return them in the plan —
+                        but this dialog never rendered them, so the check it described did not exist
+                        on screen. These are the values everything downstream filters on; a wrong
+                        one is expensive, and this is the last place to catch it. */}
+                    {(p.contactRole || p.territory || p.relationship) && (
+                      <p className="mt-0.5 text-xs text-fg">
+                        {p.contactRole && <span className="mr-2">Role: <strong>{p.contactRole}</strong></span>}
+                        {p.territory && <span className="mr-2">Territory: <strong>{p.territory}</strong></span>}
+                        {p.relationship && <span>Account: <strong>{p.relationship}</strong></span>}
+                      </p>
+                    )}
                   </div>
                   <div className="flex shrink-0 items-center gap-1.5">
                     {p.noteWillBeWritten && <Badge variant="muted">+ note</Badge>}

@@ -12,18 +12,29 @@
 // in Settings > Properties > Company properties. If this returns channel:null for every company,
 // open that property in HubSpot and check its internal name, then fix CHANNEL_PROPERTY below.
 // Service-key scopes required: crm.objects.companies.read, crm.objects.contacts.read.
-// For the email-activity feed additionally: crm.objects.emails.read (NOT the legacy
-// `sales-email-read`, deprecated Sept 2025 — see fetchEmailActivity) (degrades to an empty feed
-// without it — check the JSON's activityNote field when the card doesn't show).
+// For the email-activity feed additionally: `sales-email-read`, which grants the Engagements v1
+// API that fetchEmailActivity uses. CORRECTED 2026-09-26 — this comment previously said the
+// opposite: that `crm.objects.emails.read` was needed and `sales-email-read` was deprecated. That
+// was believed on 2026-09-25, disproved the same day when Rick found `sales-email-read` in the
+// scope picker, and the feed was moved to Engagements v1 (b66acba). `crm.objects.emails.read` is
+// not offered on this portal's private app at all. (The feed degrades to empty without the scope —
+// check the JSON's activityNote field when the card doesn't show.)
 const CHANNEL_PROPERTY = "channel";
 // Lead taxonomy (docs/LEAD_TAXONOMY.md): `channel` is the coarse route to market and is
 // already populated on 189 companies; these two are the finer grain added alongside it.
 // Both are safe to request before they exist in HubSpot — unknown properties come back
 // undefined rather than erroring, so this ships ahead of the HubSpot-side setup.
 const BUSINESS_TYPE_PROPERTY = "business_type";
-const CONTACT_ROLE_PROPERTY = "contact_role";
-
 import { requireReadAuth, jsonUnauthorized } from "./_write-guard.js";
+// Property names and the multi-select parser from the one shared definition — the same helpers
+// crm-push serialises with, so the read and the write can never disagree about the format.
+import { PROPERTY, parseMulti } from "../../src/lib/people-fields.js";
+// Both were local string literals before 2026-09-26. contact_role predated people-fields.js and
+// was a second copy of a name that file now owns; retyping property names is exactly how the four
+// option strings drifted on 2026-09-25.
+const CONTACT_ROLE_PROPERTY = PROPERTY.contactRole;
+const TERRITORY_PROPERTY = PROPERTY.territory;
+const RELATIONSHIP_PROPERTY = PROPERTY.relationship;
 
 import { withMonitoring } from "./_sentry.js";
 const HUBSPOT_SEARCH = "https://api.hubapi.com/crm/v3/objects/companies/search";
@@ -301,6 +312,12 @@ async function fetchAllCompanies(token) {
         "name", CHANNEL_PROPERTY, BUSINESS_TYPE_PROPERTY, "city", "state", "address", "zip", "domain", "phone",
         "notes_last_contacted", "notes_last_updated", "num_contacted_notes",
         "hs_last_logged_call_date", "hs_last_booked_meeting_date",
+        // Read back 2026-09-26. Set on 30 accounts that morning from the producer's own 2024-2025
+        // sales list, and until now read by no code at all — written, then invisible. It is the
+        // signal that actually answers "is this a customer", which engagement counts do not
+        // (docs/CUSTOMER_GAP_2026-09-26.md). The rep card's key-account picker shows it so Rick
+        // is picking a rep's key customers from facts rather than from email volume.
+        RELATIONSHIP_PROPERTY,
       ],
       ...(after ? { after } : {}),
     });
@@ -312,6 +329,7 @@ async function fetchAllCompanies(token) {
         // domain instead of a "(no name)" wall at the top of the alphabetically-sorted console.
         name: r.properties?.name || r.properties?.domain || "(no name)",
         channel: r.properties?.[CHANNEL_PROPERTY] || null,
+        relationship: r.properties?.[RELATIONSHIP_PROPERTY] || null,
         // Fine-grained class (docs/LEAD_TAXONOMY.md). Null until the property exists in
         // HubSpot — the app falls back to guessing from `channel`, so this is additive.
         businessType: r.properties?.[BUSINESS_TYPE_PROPERTY] || null,
@@ -350,7 +368,14 @@ async function fetchAllContacts(token) {
   for (let page = 0; page < MAX_PAGES; page++) {
     const data = await hsSearch(token, "https://api.hubapi.com/crm/v3/objects/contacts/search", {
       limit: PAGE_SIZE,
-      properties: ["firstname", "lastname", "email", "phone", "company", CONTACT_ROLE_PROPERTY],
+      properties: [
+        "firstname", "lastname", "email", "phone", "company", CONTACT_ROLE_PROPERTY,
+        // Read back 2026-09-26. Before this, Contact.territory was WRITTEN (crm-push) and NEVER
+        // READ — populated in HubSpot, then invisible to the app that wrote it. A rep who already
+        // had a territory showed an empty picker, which invites someone to set it again,
+        // differently. Same property name on Company and Contact; see src/lib/people-fields.js.
+        TERRITORY_PROPERTY,
+      ],
       ...(after ? { after } : {}),
     });
     if (!data) break; // degrade: whatever we joined so far still renders
@@ -363,6 +388,10 @@ async function fetchAllContacts(token) {
         phone: p.phone || null,
         company: p.company || null,
         role: p[CONTACT_ROLE_PROPERTY] || null,
+        // HubSpot serialises a multiple-checkbox property as a semicolon string; the app works in
+        // arrays. Parsed with the same helper crm-push serialises with, so the round trip is
+        // guaranteed symmetric.
+        territory: parseMulti(p[TERRITORY_PROPERTY]),
       });
     }
     after = data.paging?.next?.after;

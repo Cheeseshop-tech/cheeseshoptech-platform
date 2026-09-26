@@ -36,10 +36,16 @@ import { requireReadAuth, requireWriteAuth, jsonUnauthorized } from "./_write-gu
 import { logWrite } from "./_write-log.js";
 
 import { withMonitoring } from "./_sentry.js";
+// The shared territory vocabulary — the same list the call console, crm-push and crm-hubspot use.
+import { TERRITORY } from "../../src/lib/people-fields.js";
+import { ALL_STEP_IDS } from "../../src/lib/lifecycles.js";
 const MAX_BYTES = 400_000;
 // Mirrors LIFECYCLE in src/lib/campaigns.js. Kept as a literal (not imported) because Netlify
 // functions bundle separately from the Vite app — same reason crm-outreach.js re-lists STAGES.
-const STATUSES = ["draft", "building", "ready", "launched", "complete"];
+// Every step of every lifecycle (src/lib/lifecycles.js). Was a literal copy of the generic five
+// until 2026-09-26 — which would have silently DROPPED "setup"/"connect"/"execute" on save, and
+// a distributor campaign would have reverted to its previous status without a word.
+const STATUSES = ALL_STEP_IDS;
 // Results counters the UI tracks. Anything else in a posted results object is dropped.
 const RESULT_KEYS = ["sends", "opens", "clicks", "replies", "meetings", "won", "submissions"];
 const MAX_CUSTOM_ITEMS = 40; // a checklist longer than this is a runbook, not a launch gate
@@ -72,6 +78,53 @@ const int = (v) => {
   const n = Number(v);
   return Number.isFinite(n) && n >= 0 ? Math.min(Math.floor(n), 1e9) : 0;
 };
+
+// ---- One rep on a campaign's roster --------------------------------------------------------
+//
+// Extracted 2026-09-26 when the rep card gained two fields, so the sanitizer is testable on its
+// own (scripts/test-rep-card.mjs). The two new fields sit on opposite sides of the ownership line,
+// and the difference is the whole point:
+//
+//   territory[]    — a DURABLE FACT about the rep. HubSpot Contact.territory owns it. The roster
+//                    only STAGES it, validated against the shared vocabulary so a value HubSpot
+//                    would reject never gets this far. crm-push promotes it. This is the "staging
+//                    buffer that promotes to HubSpot" half of the one rule in
+//                    docs/PEOPLE_DATA_OWNERSHIP.md.
+//
+//   keyAccounts[]  — CAMPAIGN PROCESS STATE. Which accounts THIS campaign is working through this
+//                    rep. Rick, 2026-09-26: specific to the campaign — a different campaign with
+//                    the same rep picks its own set. Never promoted; HubSpot never sees it.
+//
+// Key accounts are PICKED, never computed. There is no revenue, order or deal data anywhere in
+// this codebase to rank by, and the one ranking that exists — email engagement — was shown the
+// same morning to be actively misleading (docs/CUSTOMER_GAP_2026-09-26.md: three paying customers
+// had zero engagement). Rick's phrase was "selecting their key customers." That is the design.
+const MAX_KEY_ACCOUNTS = 10;
+const COMPANY_ID_RE = /^[0-9]{1,20}$/; // HubSpot company ids are numeric
+
+export function cleanRosterRep(r) {
+  const territory = Array.isArray(r?.territory)
+    ? [...new Set(r.territory.filter((t) => TERRITORY.includes(t)))]
+    : [];
+  const keyAccounts = Array.isArray(r?.keyAccounts)
+    ? [...new Set(r.keyAccounts.map((id) => String(id ?? "").trim()).filter((id) => COMPANY_ID_RE.test(id)))]
+      .slice(0, MAX_KEY_ACCOUNTS)
+    : [];
+  return {
+    ...(str(r?.name, 160) ? { name: str(r.name, 160) } : {}),
+    ...(str(r?.phone, 40) ? { phone: str(r.phone, 40) } : {}),
+    ...(str(r?.jobtitle, 120) ? { jobtitle: str(r.jobtitle, 120) } : {}),
+    addedAt: str(r?.addedAt, 40) || new Date().toISOString(),
+    // Absent until the rep is actually emailed — this is the fact the ✉ progress dot reads, so it
+    // must never be set speculatively.
+    ...(str(r?.emailedAt, 40) ? { emailedAt: str(r.emailedAt, 40) } : {}),
+    ...(r?.dropped === true ? { dropped: true } : {}),
+    // Omitted when empty so an untouched picker never writes `[]` — and so crm-push can tell
+    // "never set" from "deliberately cleared" if that distinction is ever needed.
+    ...(territory.length ? { territory } : {}),
+    ...(keyAccounts.length ? { keyAccounts } : {}),
+  };
+}
 
 const rawHandler = async (event, context) => {
   if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: CORS, body: "" };
@@ -320,9 +373,14 @@ const rawHandler = async (event, context) => {
       : null;
 
     // repRoster (2026-09-22, REP_TERRITORY_ASSIGNMENTS_SPEC Revision 4 + ADR-002) — WHO this
-    // campaign is working. Stored per campaign because that is a campaign decision, while
-    // everything you LEARN about a rep (their calls, their territories) is tenant-wide and lives
-    // in campaign-rep-calls / territory-book.
+    // campaign is working. Stored per campaign because that is a campaign decision.
+    //
+    // CHANGED 2026-09-26 — this comment previously said a rep's territories are "tenant-wide and
+    // live in campaign-rep-calls / territory-book." Superseded by Rick's decision that day
+    // (docs/DISTRIBUTOR_CAMPAIGN_PHASES_2026-09-26.md): a rep's territory is a durable fact and
+    // HubSpot `Contact.territory` owns it. The roster STAGES it (`territory[]`) and crm-push
+    // promotes it. territory-book held zero records and is being retired; the free-text territory
+    // on campaign-rep-calls is superseded by the picker. See cleanRosterRep() below.
     //
     // This exists because the panel previously held five different "which reps" selections and
     // only the account-assignment map survived a reload — so a rep was in the campaign only once
@@ -335,16 +393,7 @@ const rawHandler = async (event, context) => {
         .slice(0, MAX_ROSTER)
         .map(([email, r]) => [String(email || "").trim().toLowerCase(), r])
         .filter(([email, r]) => EMAIL_RE.test(email) && r && typeof r === "object")
-        .map(([email, r]) => [email, {
-          ...(str(r.name, 160) ? { name: str(r.name, 160) } : {}),
-          ...(str(r.phone, 40) ? { phone: str(r.phone, 40) } : {}),
-          ...(str(r.jobtitle, 120) ? { jobtitle: str(r.jobtitle, 120) } : {}),
-          addedAt: str(r.addedAt, 40) || new Date().toISOString(),
-          // Absent until the rep is actually emailed — this is the fact the ✉ progress dot
-          // reads, so it must never be set speculatively.
-          ...(str(r.emailedAt, 40) ? { emailedAt: str(r.emailedAt, 40) } : {}),
-          ...(r.dropped === true ? { dropped: true } : {}),
-        }])
+        .map(([email, r]) => [email, cleanRosterRep(r)])
     );
     const repRoster = (rosterSource || Object.keys(rosterReps).length)
       ? {
