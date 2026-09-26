@@ -18,6 +18,8 @@
  * Design record: docs/CAMPAIGN_UI_REDESIGN_2026-09-26.md
  */
 
+import { lifecycleFor } from "./lifecycles.js";
+
 /** The four ways a section can render.
  *  `summary` NEVER hides data — it folds a section to one line showing its own state, one click
  *  from open. That distinction is the whole safety of this design: nothing becomes unreachable,
@@ -45,31 +47,38 @@ export const SECTION_ORDER = [
  * `salesreps` mirrors `repvisits` for the same reason; it is already conditionally rendered on
  * the campaign having sales reps at all.
  */
+/* KEYED BY STEP ID since 2026-09-26, not by array position — so any lifecycle works. Step ids are
+ * unique per meaning across lifecycles (src/lib/lifecycles.js invariant I2), which is what makes
+ * one flat table safe. `complete` is shared: both lifecycles end the same way.
+ *
+ * DISTRIBUTOR columns (setup / connect / execute): the rep roster — Rick's "necessary part for every
+ * distributor-anchored campaign" — is PRIMARY through Setup AND Connect, where the generic
+ * lifecycle had it at secondary, position 7 of 9. Content (sales materials) is primary in Setup,
+ * because embedding them is Setup's work. The call console is primary in Connect, because Connect
+ * IS the calling.
+ */
 const TABLE = {
-  //              draft        building     ready        launched     complete
-  updates:      ["secondary", "secondary", "secondary", "secondary", "secondary"],
-  checklist:    ["secondary", "primary",   "primary",   "summary",   "summary"],
-  strategy:     ["primary",   "secondary", "summary",   "summary",   "summary"],
-  content:      ["hidden",    "primary",   "secondary", "summary",   "summary"],
-  documents:    ["hidden",    "secondary", "secondary", "summary",   "summary"],
-  prospects:    ["hidden",    "secondary", "secondary", "primary",   "summary"],
-  repvisits:    ["hidden",    "secondary", "secondary", "secondary", "summary"],
-  salesreps:    ["hidden",    "secondary", "secondary", "secondary", "summary"],
-  results:      ["hidden",    "hidden",    "hidden",    "primary",   "primary"],
+  //            generic ──────────────────────────────────────────────────   distributor ─────────────────────────   shared
+  updates:   { draft: "secondary", building: "secondary", ready: "secondary", launched: "secondary", setup: "secondary", connect: "secondary", execute: "secondary", complete: "secondary" },
+  checklist: { draft: "secondary", building: "primary",   ready: "primary",   launched: "summary",   setup: "primary",   connect: "summary",   execute: "summary",   complete: "summary" },
+  strategy:  { draft: "primary",   building: "secondary", ready: "summary",   launched: "summary",   setup: "secondary", connect: "summary",   execute: "summary",   complete: "summary" },
+  content:   { draft: "hidden",    building: "primary",   ready: "secondary", launched: "summary",   setup: "primary",   connect: "secondary", execute: "summary",   complete: "summary" },
+  documents: { draft: "hidden",    building: "secondary", ready: "secondary", launched: "summary",   setup: "secondary", connect: "secondary", execute: "summary",   complete: "summary" },
+  prospects: { draft: "hidden",    building: "secondary", ready: "secondary", launched: "primary",   setup: "secondary", connect: "primary",   execute: "secondary", complete: "summary" },
+  repvisits: { draft: "hidden",    building: "secondary", ready: "secondary", launched: "secondary", setup: "primary",   connect: "primary",   execute: "secondary", complete: "summary" },
+  salesreps: { draft: "hidden",    building: "secondary", ready: "secondary", launched: "secondary", setup: "primary",   connect: "primary",   execute: "secondary", complete: "summary" },
+  results:   { draft: "hidden",    building: "hidden",    ready: "hidden",    launched: "primary",   setup: "hidden",    connect: "secondary", execute: "primary",   complete: "primary" },
 };
-
-const STATUS_INDEX = { draft: 0, building: 1, ready: 2, launched: 3, complete: 4 };
 
 /** The mode a section renders in at a given status.
  *  Unknown sections default to `secondary` — a section this table has never heard of should show
  *  up normally rather than vanish. A new section that nobody remembered to add here must be
- *  visible, not silently hidden; that failure mode is how features become invisible. */
+ *  visible, not silently hidden; that failure mode is how features become invisible. The same goes
+ *  for an unknown status, and for a step a future lifecycle adds before anyone adds its column. */
 export function modeFor(sectionId, status) {
   const row = TABLE[sectionId];
   if (!row) return "secondary";
-  const i = STATUS_INDEX[status];
-  if (i == null) return "secondary"; // unknown status — show everything rather than guess
-  return row[i] || "secondary";
+  return row[status] || "secondary";
 }
 
 /** Render order: primaries first, then secondaries, then folded summaries. Hidden sections are
@@ -120,15 +129,24 @@ export function isHidden(sectionId, status) {
  */
 
 /** The single next step from a given status, or null when there isn't one.
- *  `complete` is the end of the line: a finished campaign has no next action.
- *  Returns { to, label, blurb } — `to` is the status it moves to. */
-export function nextActionFor(status) {
-  switch (status) {
-    case "draft":    return { to: "building",  label: "Start building",       blurb: "Move into build — work the checklist, content and audience." };
-    case "building": return { to: "ready",     label: "Mark ready to launch", blurb: "Every required task is done. Say it's ready." };
-    case "ready":    return { to: "launched",  label: "Launch",               blurb: "Start the campaign. Results begin accruing." };
-    case "launched": return { to: "complete",  label: "Close out",            blurb: "Wrap it up and file it in Past campaigns." };
-    default:         return null; // complete, or a status we don't know
-  }
+ *
+ *  Walks the campaign TYPE's own lifecycle (src/lib/lifecycles.js) since 2026-09-26. It was a
+ *  hardcoded switch over the generic five — so a distributor campaign in Setup would have been
+ *  offered no next action at all. `type` is optional; omitted means generic, which keeps every
+ *  existing caller and test unchanged.
+ *
+ *  Deliberately does NOT normalize an unknown status: by the time a status reaches the UI,
+ *  mergeCampaign() has already normalized it, so an unknown one here is a bug worth seeing rather
+ *  than papering over with a guessed action.
+ *
+ *  Returns { to, label, blurb, closing } — `to` is the step it moves to; `closing` is true when
+ *  that step is the lifecycle's closed step (the Complete dialog, not a plain status set). */
+export function nextActionFor(status, type) {
+  const steps = lifecycleFor(type);
+  const i = steps.findIndex((s) => s.id === status);
+  if (i < 0 || i === steps.length - 1) return null;
+  const cur = steps[i];
+  const nxt = steps[i + 1];
+  return { to: nxt.id, label: cur.next, blurb: nxt.blurb, closing: nxt.kind === "closed" };
 }
 

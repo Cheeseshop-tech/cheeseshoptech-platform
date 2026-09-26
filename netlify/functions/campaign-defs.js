@@ -39,10 +39,16 @@ import { withMonitoring } from "./_sentry.js";
 
 const MAX_BYTES = 400_000;
 const ID_RE = /^[a-z0-9][a-z0-9-]{0,63}$/i;
-// Mirrors CAMPAIGN_TYPES/CHANNELS in src/lib/campaigns.js. Kept as literals (not imported) —
-// Netlify Functions bundle separately from the Vite app, same reason campaign-state.js re-lists
-// STATUSES rather than importing LIFECYCLE.
-const TYPES = ["email", "social", "enrichment", "event"];
+// Campaign types come from src/lib/lifecycles.js — the same list the pill nav and the new-campaign
+// form render. CORRECTED 2026-09-26: this used to be a literal copy, with a comment saying
+// "Netlify Functions bundle separately from the Vite app" and so could not import. That was never
+// true (ai-compose.js has always imported from src/lib; esbuild bundles it fine, verified
+// 2026-09-26). The false belief is the only reason the copy existed — and a copy is how a new
+// type gets offered in the UI and then refused by the server.
+import { CAMPAIGN_TYPE_IDS, initialStatusFor } from "../../src/lib/lifecycles.js";
+const TYPES = CAMPAIGN_TYPE_IDS;
+// CHANNELS still mirrors src/lib/campaigns.js by hand. Same fix applies; not done here to keep
+// this change to what the lifecycle work needs.
 const CHANNEL_KEYS = ["retail", "dtc", "social", "foodservice"];
 
 const CORS = {
@@ -169,7 +175,9 @@ const rawHandler = async (event, context) => {
     // Enrichment campaigns can name the send they unblock (src/lib/campaigns.js scopeOf()).
     ...(input.type === "enrichment" && ID_RE.test(input.serves || "") ? { serves: input.serves } : {}),
     content: [],
-    seedStatus: "draft",
+    // The first step of THIS type's lifecycle. Was hardcoded "draft", which would have created
+    // every distributor campaign in a status its own lifecycle does not have.
+    seedStatus: initialStatusFor(input.type),
     seedDone: [],
     custom: true, // flags a UI-created def vs. seeded/webhook — src/lib/campaigns.js getCampaigns()
     createdAt: new Date().toISOString(),

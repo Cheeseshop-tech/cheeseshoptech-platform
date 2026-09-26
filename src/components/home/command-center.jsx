@@ -10,6 +10,7 @@ import {
   getCampaigns, getCampaignState, mergeCampaign, readinessOf, isLive,
   CHANNELS, STATUS_TONE, STATUS_LABEL, campaignsAreSample,
 } from "@/lib/campaigns.js";
+import { isPlanning } from "@/lib/lifecycles.js";
 import { getSignals } from "@/lib/signals.js";
 import { rankOpportunities } from "@/lib/opportunities.js";
 import { getBrandKit } from "@/lib/brandKit.js";
@@ -92,7 +93,11 @@ export function CommandCenter({ resolved, onNavigate }) {
   // "In flight" = actually in market, else the ones being worked on. Showing only `launched`
   // would leave the card empty for most of a campaign's life, which is when it needs watching.
   const live = (campaigns || []).filter(isLive);
-  const inFlight = (live.length ? live : (campaigns || []).filter((c) => c.status === "ready" || c.status === "building")).slice(0, 4);
+  // Fallback when nothing is live: campaigns still being planned. Was `ready || building` by
+  // string, which a distributor campaign in Setup would never have matched — it would have been
+  // missing from the home dashboard. Behaviour change worth knowing: drafts now appear here too,
+  // since a draft is planning. That is the honest answer to "what is in flight".
+  const inFlight = (live.length ? live : (campaigns || []).filter(isPlanning)).slice(0, 4);
   const overdue = crm?.invoices?.filter((i) => i.status === "Overdue") || [];
   const maxStage = crm ? Math.max(...crm.pipeline.map((p) => p.value), 1) : 1;
 

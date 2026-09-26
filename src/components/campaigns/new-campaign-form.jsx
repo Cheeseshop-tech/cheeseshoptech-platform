@@ -9,6 +9,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Badge } from "@/components/ui/badge.jsx";
 import { useAuth } from "@/lib/auth-context.jsx";
 import { CAMPAIGN_TYPES, CHANNELS, templateFor, createCampaign } from "@/lib/campaigns.js";
+import { initialStatusFor, stepLabel } from "@/lib/lifecycles.js";
 
 const TYPE_ICON = { email: Mail, social: Share2, enrichment: PhoneCall, event: Tent };
 
@@ -221,7 +222,9 @@ export function NewCampaignForm({ resolved, allCampaigns, onCreated }) {
               <Button type="submit" disabled={busy || !name.trim()}>
                 {busy ? "Creating…" : "Create campaign"}
               </Button>
-              {type && <Badge variant="muted">Starts as Draft</Badge>}
+              {/* The first step of THIS type's lifecycle — "Setup" for a distributor campaign. Was
+                  hardcoded "Draft", which the server now also no longer assumes (campaign-defs.js). */}
+              {type && <Badge variant="muted">Starts as {stepLabel(initialStatusFor(type))}</Badge>}
             </div>
           </form>
         </CardContent>

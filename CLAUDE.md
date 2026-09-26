@@ -27,6 +27,23 @@ First tenant: **Monti Trentini**. Canonical detail: `docs/POSITIONING.md`, `docs
 > This cost an hour on 2026-09-25 and was invisible because `DEPLOY TO STAGING.command` reported
 > success the whole time — see the next note.
 
+> **TRAP (2026-09-26) — a commit button captures files when it RUNS, not when it is written.**
+> The Netlify build of `63fe915` failed: `Could not load src/lib/lifecycles.js`. Claude wrote
+> `COMMIT REP CARD.command`, then kept building in two files on its list; those files picked up an
+> import of a new file that was NOT on the list. Rick ran the button, it shipped the two files
+> without their dependency, and every local check passed — tests, lint, all of them read the
+> working tree, and the working tree was not what shipped.
+>
+> **Rules, for every future COMMIT button:**
+> 1. **Never edit a file named in a commit button Rick has not run yet.** If more work is needed in
+>    those files, rewrite the button first, or wait until it has run.
+> 2. **Every button runs `node scripts/check-imports.mjs --index` between `git add` and
+>    `git commit`**, and stops on failure. It reads the STAGED tree from git, so a file that exists
+>    on disk but was never added cannot satisfy an import. `DEPLOY TO STAGING` runs `--head`.
+> 3. **Every button sets `set -o pipefail`.** `git commit ... | cat || stop` checks `cat`'s exit
+>    status (always 0), so without pipefail a failed commit never stops the script. Every button
+>    written before `COMMIT LIFECYCLES.command` had this bug.
+
 **2026-09-26 — A script's exit code is not evidence the work shipped.**
 `git push` with nothing to send prints "Everything up-to-date" and **exits 0**.
 `DEPLOY TO STAGING.command` treated that as success and printed "Pushed. Netlify is building" —

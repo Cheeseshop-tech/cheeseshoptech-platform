@@ -113,5 +113,48 @@ while (nextActionFor(cur) && steps < 10) { cur = nextActionFor(cur).to; steps++;
 t("four steps", steps === 4, steps);
 t("ends at complete", cur === "complete", cur);
 
+console.log("\n15. DISTRIBUTOR lifecycle — the same vanishing guards, across setup/connect/execute/complete");
+const DIST = ["setup", "connect", "execute", "complete"];
+for (const s of SECTION_ORDER) {
+  t(`${s}: valid mode at every distributor step`, DIST.every((st) => MODES.includes(modeFor(s, st))));
+  t(`${s}: reachable during a distributor campaign`, DIST.some((st) => isOpen(s, st, undefined) && !isHidden(s, st)));
+}
+
+console.log("\n16. the rep roster is primary through Setup AND Connect (Rick: 'necessary for every distributor campaign')");
+t("repvisits primary at setup", modeFor("repvisits", "setup") === "primary", modeFor("repvisits", "setup"));
+t("repvisits primary at connect", modeFor("repvisits", "connect") === "primary", modeFor("repvisits", "connect"));
+t("it now sorts ABOVE strategy in setup", orderFor("repvisits", "setup") < orderFor("strategy", "setup"));
+t("sales materials (content) primary in setup", modeFor("content", "setup") === "primary");
+
+console.log("\n17. Connect is the calling phase; Execute is results");
+t("call console primary at connect", modeFor("prospects", "connect") === "primary");
+t("checklist folds once past setup", modeFor("checklist", "connect") === "summary");
+t("results primary at execute", modeFor("results", "execute") === "primary");
+t("results hidden during setup", isHidden("results", "setup"));
+
+console.log("\n18. the generic columns are untouched by the restructure");
+// Restructured 2026-09-26 from array positions to step-id keys. Every generic answer must be
+// identical to before — these reproduce the original table exactly.
+const ORIGINAL = {
+  updates: ["secondary", "secondary", "secondary", "secondary", "secondary"],
+  checklist: ["secondary", "primary", "primary", "summary", "summary"],
+  strategy: ["primary", "secondary", "summary", "summary", "summary"],
+  content: ["hidden", "primary", "secondary", "summary", "summary"],
+  documents: ["hidden", "secondary", "secondary", "summary", "summary"],
+  prospects: ["hidden", "secondary", "secondary", "primary", "summary"],
+  repvisits: ["hidden", "secondary", "secondary", "secondary", "summary"],
+  salesreps: ["hidden", "secondary", "secondary", "secondary", "summary"],
+  results: ["hidden", "hidden", "hidden", "primary", "primary"],
+};
+for (const [s, row] of Object.entries(ORIGINAL)) {
+  t(`${s}: generic column unchanged`, STATUSES.every((st, i) => modeFor(s, st) === row[i]), STATUSES.map((st) => modeFor(s, st)));
+}
+
+console.log("\n19. nextActionFor walks the distributor lifecycle");
+t("setup -> Start connecting", nextActionFor("setup", "distributor")?.label === "Start connecting", nextActionFor("setup", "distributor"));
+t("connect -> Move to execution", nextActionFor("connect", "distributor")?.label === "Move to execution");
+t("execute -> Close out, via the Complete dialog", nextActionFor("execute", "distributor")?.closing === true);
+t("a generic status on a distributor campaign offers nothing (it was normalized upstream)", nextActionFor("building", "distributor") === null);
+
 console.log(`\n${fail === 0 ? "PASS" : "FAIL"} — ${pass} passed, ${fail} failed\n`);
 process.exit(fail === 0 ? 0 : 1);

@@ -14,6 +14,7 @@ import {
   canViewCampaigns, CAMPAIGN_TYPES, STATUS_TONE, STATUS_LABEL, CHANNELS, campaignsAreSample, compact,
   isClosed, typeLabel,
 } from "@/lib/campaigns.js";
+import { isPlanning } from "@/lib/lifecycles.js";
 // Campaign content lives in the CONTENT LIBRARY, not a per-campaign store (Rick, 2026-08-03).
 // The Library is "the organized catalog of finished, approved work" and owns the one approval
 // vocabulary (submitted -> posted / returned). A campaign's pieces are Library entries tagged
@@ -346,7 +347,9 @@ function CampaignCard({ c, serves, servedBy, onOpen }) {
             <div className="flex flex-wrap items-center gap-2">
               <h3 className="font-heading text-lg text-fg">{c.name}</h3>
               <Badge variant={STATUS_TONE[c.status] || "muted"}>{STATUS_LABEL[c.status] || c.status}</Badge>
-              {r.ready && c.status !== "launched" && c.status !== "complete" && (
+              {/* "Gate clear" only means something while still planning. A kind question, so a
+                  distributor campaign in Connect or Execute does not keep showing it. */}
+              {r.ready && isPlanning(c) && (
                 <Badge variant="success">Gate clear</Badge>
               )}
             </div>

@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/dialog.jsx";
 import { ProgressBar, SaveChip, SaveNowButton } from "./campaigns-page.jsx";
 import {
-  LIFECYCLE, STATUS_TONE, STATUS_LABEL, CHANNELS, readinessOf, canAdvanceTo, groupChecklist, pct, typeLabel,
+  STATUS_TONE, STATUS_LABEL, CHANNELS, readinessOf, canAdvanceTo, groupChecklist, pct, typeLabel,
   CALL_OUTCOMES, OUTCOME_TONE, OUTCOME_LABEL, isCleared, isResolved, hasGap, enrichmentCsv, downloadCsv,
   callSummary, pushToHubspot,
   scopeOf, segmentEnrichment, geoBreakdown, cityKeyOf, isLongIsland, isNYCBorough,
@@ -35,7 +35,7 @@ import { CONTACT_ROLE, RELATIONSHIP, TERRITORY } from "@/lib/people-fields.js";
 // How the page changes shape as the campaign moves through its lifecycle. The table and the
 // reasoning live in one place; this file just renders what it says.
 import { modeFor, orderFor, isOpen, isHidden, nextActionFor } from "@/lib/campaign-stages.js";
-import { lifecycleFor, isPlanning } from "@/lib/lifecycles.js";
+import { lifecycleFor, isPlanning, hasCallConsole } from "@/lib/lifecycles.js";
 // Per-recipient email drafts. Documents travel as LINKS — a compose URL has no attachment
 // parameter — and nothing is ever sent: every draft opens for a human to read first.
 import { buildDraft, emailScripts, firstNameOf, DEFAULT_TEMPLATE } from "@/lib/mail-merge.js";
@@ -253,7 +253,7 @@ export function CampaignDetail({
         />
       </Section>
 
-      <Section {...sectionProps("prospects", c.audience?.label || "")} title={c.type === "enrichment" ? "Call console" : "Target prospects"} description={c.type === "enrichment" ? "Work the gap list — the approved script, the number, and what the call produced." : "Who this campaign reaches — live from the same HubSpot data as the CRM console."}>
+      <Section {...sectionProps("prospects", c.audience?.label || "")} title={hasCallConsole(c.type) ? "Call console" : "Target prospects"} description={hasCallConsole(c.type) ? "Work the gap list — the approved script, the number, and what the call produced." : "Who this campaign reaches — live from the same HubSpot data as the CRM console."}>
         <ProspectPanel
           c={c} resolved={resolved} scripts={contentItems} allCampaigns={allCampaigns}
           enrichment={enrichment} onEnrich={onEnrich} canWrite={canWrite} saveState={saveState}
@@ -2117,7 +2117,10 @@ function ProspectPanel({ c, resolved, scripts = [], enrichment = {}, onEnrich, c
   const [query, setQuery] = useState("");
   const [summaryOpen, setSummaryOpen] = useState(false);
   const [pushOpen, setPushOpen] = useState(false);
-  const isEnrichment = c.type === "enrichment";
+  // Named for what it was when only enrichment campaigns made calls. Now a CAPABILITY check —
+  // distributor campaigns work the call console too (src/lib/lifecycles.js hasCallConsole). The
+  // name is kept so the eight uses below read unchanged; what it means is "this campaign calls".
+  const isEnrichment = hasCallConsole(c.type);
 
   useEffect(() => {
     let alive = true;

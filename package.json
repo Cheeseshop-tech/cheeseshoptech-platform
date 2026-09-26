@@ -27,6 +27,7 @@
     "test:stages": "node scripts/test-campaign-stages.mjs",
     "test:repcard": "node scripts/test-rep-card.mjs",
     "test:lifecycles": "node scripts/test-lifecycles.mjs",
+    "check:imports": "node scripts/check-imports.mjs --index",
     "test": "npm run test:notes && npm run test:freshness && npm run test:scoping && npm run test:fields && npm run test:stages && npm run test:repcard && npm run test:lifecycles"
   },
   "dependencies": {

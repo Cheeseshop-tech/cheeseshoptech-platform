@@ -59,6 +59,22 @@ echo ""
 git --no-pager log "origin/$BRANCH..HEAD" --oneline | sed 's/^/      /' | cat
 echo ""
 
+# --- Preflight 3: is what we're pushing COMPLETE? -------------------------------------------
+#
+# 2026-09-26: 63fe915 was pushed with two files importing src/lib/lifecycles.js — a file that was
+# on this Mac but never committed. Every local check passed, because every local check reads the
+# working tree, and the working tree was not what shipped. Netlify's clean checkout failed with
+# "Could not load src/lib/lifecycles.js". This reads the COMMITTED tree from git itself, so a file
+# that exists on disk but was never added cannot satisfy an import.
+if ! node scripts/check-imports.mjs --head; then
+  echo "  NOT PUSHED. The commit above would fail to build on Netlify."
+  echo "  Add the missing file(s) to a commit, then run this again."
+  echo ""
+  read -r -p "Press Return to close…"
+  exit 1
+fi
+echo ""
+
 if git push origin "$BRANCH"; then
   echo ""
   echo "  Pushed $AHEAD commit(s). Netlify is building — live in ~1–2 min at:"

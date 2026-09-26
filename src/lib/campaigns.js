@@ -22,46 +22,34 @@ import { regionOf, stateOf } from "./crm.js";
 // The tenant-wide territory book (ADR-002). campaigns.js depends on territories.js and never the
 // other way round, so there is no cycle — territories.js knows about accounts, not campaigns.
 import { scopeForRoster } from "./territories.js";
+// Types + lifecycles. See the "Types and lifecycles" block below.
+import {
+  CAMPAIGN_TYPES, LIFECYCLES, lifecycleFor, normalizeStatus, requiresReadiness,
+  STATUS_TONE, STATUS_LABEL, isLive, isClosed, isAwaitingLaunch, isBuilding,
+} from "./lifecycles.js";
+import { CHECKLIST_TEMPLATES, templateFor } from "./checklist-templates.js";
 
 export function canViewCampaigns(user) {
   const roles = rolesOf(user);
   return roles.includes("admin") || roles.includes("client");
 }
 
-// ---- Type registry (drives the pill sub-nav) ---------------------------------------------
-// Order here is the pill order. `id` is the campaign.type value and the tab key.
-// Enrichment is its OWN type, not a checklist item on an email campaign (Rick, 2026-08-03) —
-// confirmed by FALL_TASTING_LAUNCH_RUNBOOK.md, which calls the 94-account phone-outreach effort
-// "a separate initiative... not part of this campaign's scope". An email campaign can still
-// DEPEND on one via `dependsOn`, without owning its lifecycle.
-export const CAMPAIGN_TYPES = [
-  { id: "email", label: "Email Campaigns", blurb: "Sends, sequences, and the launch gate." },
-  { id: "social", label: "Social Media", blurb: "Post batches and social pushes." },
-  { id: "enrichment", label: "Enrichment Campaigns", blurb: "Phone passes that fill contact gaps before a send." },
-  { id: "event", label: "Trade Shows & Events", blurb: "Industry shows and on-site activations, booth to follow-up." },
-];
+// ---- Types and lifecycles: now owned by src/lib/lifecycles.js (2026-09-26) ------------------
+// Moved there so the server can import the same list (this file imports auth + fetch helpers, so
+// a Netlify function cannot import it). Re-exported here so no importer has to change.
+// Design: docs/DESIGN_PER_TYPE_LIFECYCLES_2026-09-26.md
+//
+// Enrichment is still its OWN type, not a checklist item on an email campaign (Rick, 2026-08-03) —
+// confirmed by FALL_TASTING_LAUNCH_RUNBOOK.md. An email campaign can DEPEND on one via
+// `dependsOn`. Distributor campaigns (added 2026-09-26) follow their own Setup → Connect → Execute
+// lifecycle; everything else follows the generic draft → launched one.
+export { CAMPAIGN_TYPES, STATUS_TONE, STATUS_LABEL, isLive, isClosed, lifecycleFor };
 export const typeLabel = (id) => CAMPAIGN_TYPES.find((t) => t.id === id)?.label || id;
 
-// ---- Lifecycle ----------------------------------------------------------------------------
-// draft → building → ready → launched → complete. `ready` is GATED: a campaign cannot be marked
-// ready until every REQUIRED checklist item is done (see canAdvanceTo / readinessOf). That gate
-// is the whole point of the checklist — status stops being a label you set and becomes a fact.
-export const LIFECYCLE = [
-  { id: "draft", label: "Draft", tone: "muted", blurb: "Idea captured, nothing built yet." },
-  { id: "building", label: "Building", tone: "info", blurb: "Assets and audience in progress." },
-  { id: "ready", label: "Ready to launch", tone: "warning", blurb: "Every required task is done." },
-  { id: "launched", label: "Launched", tone: "success", blurb: "In market, results accruing." },
-  { id: "complete", label: "Complete", tone: "outline", blurb: "Closed out, results final." },
-];
+/** The GENERIC lifecycle, kept for back-compat. New code should call lifecycleFor(type) — a
+ *  distributor campaign does not have these steps. */
+export const LIFECYCLE = LIFECYCLES.generic;
 export const LIFECYCLE_IDS = LIFECYCLE.map((s) => s.id);
-export const STATUS_TONE = Object.fromEntries(LIFECYCLE.map((s) => [s.id, s.tone]));
-export const STATUS_LABEL = Object.fromEntries(LIFECYCLE.map((s) => [s.id, s.label]));
-/** A campaign is "live" (in market) once launched, until it's closed out. */
-export const isLive = (c) => c?.status === "launched";
-
-/** A campaign is closed once it's Complete — everything else counts as "in flight." Drives the
- * open/closed split in the Campaign Management pills and the Past Campaigns archive. */
-export const isClosed = (c) => c?.status === "complete";
 
 export const CHANNELS = { retail: "Retail", dtc: "DTC", social: "Social", foodservice: "Foodservice" };
 
@@ -70,79 +58,12 @@ export const money = (n) => fmtUSD.format(n || 0);
 export const compact = (n) => new Intl.NumberFormat("en-US", { notation: "compact" }).format(n || 0);
 export const pct = (n, d) => (d ? Math.round((n / d) * 100) : 0);
 
-// ---- Checklist templates ------------------------------------------------------------------
-// Rick's call (2026-08-03): the template SEEDS a campaign's checklist, then it's editable per
-// campaign — add items, hide template items you don't need, all persisted in the state overlay.
-// The email template is generalized from FALL_TASTING_LAUNCH_RUNBOOK.md's real work-back
-// schedule, so it encodes what actually blocks a send here (DMARC and an ESP with open tracking
-// are the two that have bitten this account before).
-// Shared "Discipline" checklist items — forward-looking reminders distilled from the Standing
-// Lessons below (2026-09-21, ACE Fall Show post-mortem template Rick uploaded). Appended to
-// every checklist template so the same operational gaps get flagged on every campaign type, not
-// just events. Left non-required (Rick, 2026-09-21): required would retroactively flag every
-// already-launched campaign as "not ready" the moment this shipped — these are visible, checkable
-// reminders instead, not a launch-gate blocker.
-const DISCIPLINE_ITEMS = [
-  { id: "one-system", group: "Discipline", label: "All outreach/tracking lives in ONE system — no parallel spreadsheet", required: false },
-  { id: "owner-checkpoint", group: "Discipline", label: "Every execution item has a named owner + confirm-it-happened checkpoint", required: false },
-  { id: "fallback", group: "Discipline", label: "Must-make connections have a fallback plan, not just \"we'll catch them\"", required: false },
-  { id: "tested-e2e", group: "Discipline", label: "Key systems tested end-to-end under real conditions, not a click-test", required: false },
-];
-
-export const CHECKLIST_TEMPLATES = {
-  email: [
-    { id: "offer", group: "Decide", label: "Offer + mechanic locked", required: true },
-    { id: "audience", group: "Decide", label: "Audience list assembled", required: true },
-    { id: "copy", group: "Decide", label: "Email copy chosen (A/B decided)", required: true },
-    { id: "approval", group: "Decide", label: "Client campaign approval", required: true },
-    { id: "form", group: "Build", label: "CTA target live (form / landing page)", required: true },
-    { id: "blog", group: "Build", label: "Supporting content published", required: false },
-    { id: "fulfillment", group: "Build", label: "Fulfillment confirmed (packing + shipping)", required: true },
-    { id: "dmarc", group: "Wire", label: "DMARC published on sending domain", required: true },
-    { id: "esp", group: "Wire", label: "ESP account open + sender verified", required: true },
-    { id: "suppression", group: "Wire", label: "Suppression pass done (live threads, unsubs, dupes)", required: true },
-    { id: "seed", group: "Wire", label: "Outreach console seeded with the cohort", required: false },
-    { id: "test", group: "Test", label: "End-to-end test send verified", required: true },
-    { id: "date", group: "Test", label: "Send date locked (go / no-go)", required: true },
-    { id: "schedule", group: "Launch", label: "Email 1 scheduled in the ESP", required: true },
-    ...DISCIPLINE_ITEMS,
-  ],
-  social: [
-    { id: "concept", group: "Decide", label: "Concept + posting cadence agreed", required: true },
-    { id: "assets", group: "Build", label: "Assets pulled from the Media Hub", required: true },
-    { id: "captions", group: "Build", label: "Captions written + approved", required: true },
-    { id: "approval", group: "Decide", label: "Client approval on the batch", required: true },
-    { id: "scheduled", group: "Launch", label: "Posts scheduled", required: true },
-    ...DISCIPLINE_ITEMS,
-  ],
-  enrichment: [
-    { id: "source", group: "Build", label: "Source list assembled + gaps identified", required: true },
-    { id: "priority", group: "Build", label: "Call priority order set", required: true },
-    { id: "script", group: "Build", label: "Call script / ask drafted", required: true },
-    { id: "calls", group: "Run", label: "Calls completed", required: true },
-    { id: "writeback", group: "Run", label: "Results written back to the CRM", required: true },
-    ...DISCIPLINE_ITEMS,
-  ],
-  // Trade shows / on-site activations — modeled on the "Industry Show / Campaign Planning"
-  // template Rick uploaded (2026-09-21), built from the ACE Fall Show 2026 post-mortem.
-  event: [
-    { id: "outreach-plan", group: "Workstreams", label: "Outreach / enrichment calling — plan, owner, tracking method set", required: true },
-    { id: "capture-tool", group: "Workstreams", label: "On-site capture tool selected + process defined", required: true },
-    { id: "promo-plan", group: "Workstreams", label: "Promo / incentive — approval chain, publish + promote plan set", required: true },
-    { id: "swag-plan", group: "Workstreams", label: "Swag / giveaways assembled + distribution plan set", required: true },
-    { id: "ambassador-plan", group: "Workstreams", label: "Ambassador / partner activation — role + asks defined", required: true },
-    { id: "followup-plan", group: "Workstreams", label: "Follow-up plan set (recap emails, next-step cadence)", required: true },
-    { id: "arrival-locked", group: "Pre-event checklist", label: "Arrival time locked in — booth-ready 30–45 min before doors open", required: true },
-    { id: "promo-signoff", group: "Pre-event checklist", label: "Promo / incentive has full sign-off (internal + partner) before the event", required: true },
-    { id: "capture-tested", group: "Pre-event checklist", label: "On-site capture tool tested end-to-end, including under weak wifi/signal", required: true },
-    { id: "recap-tested", group: "Pre-event checklist", label: "Recap/follow-up automation tested for a real send-through, not just a click-test", required: true },
-    ...DISCIPLINE_ITEMS,
-    { id: "dayof-log", group: "Day-of & wrap-up", label: "Day-of execution log captured (contacts made, who was missed, what broke)", required: false },
-    { id: "results-captured", group: "Day-of & wrap-up", label: "Results captured (new contacts, deals/POs, uptake, comparison to past events)", required: false },
-    { id: "gap-analysis", group: "Day-of & wrap-up", label: "Gap analysis done (planned vs. executed vs. left undone, one row per workstream)", required: false },
-  ],
-};
-export const templateFor = (type) => CHECKLIST_TEMPLATES[type] || [];
+// ---- Checklist templates: now owned by src/lib/checklist-templates.js (2026-09-26) ------------
+// Moved so they can be tested under Node (this file cannot load there). Re-exported unchanged.
+// Imported, not just re-exported: mergeCampaign() below calls templateFor() locally, and an
+// `export { x } from` statement creates NO local binding — it would have thrown "templateFor is not
+// defined" on every campaign load.
+export { CHECKLIST_TEMPLATES, templateFor };
 
 // Standing lessons — carried forward from the ACE Fall Show 2026 post-mortem template Rick
 // uploaded (2026-09-21). Reviewable at planning time; surfaced again in the Mark Complete
@@ -331,7 +252,13 @@ const SEEDS = {
       // count: 23 PA accounts in Philadelphia/Pittsburgh/Reading (of 33 total in the state; 10
       // excluded for being outside the 5 target cities) — total audience now ~252.
       id: "ace-fall-show-2026",
-      type: "enrichment",
+      // Retyped enrichment → distributor 2026-09-26 (Rick's call). Its own goal — "work Ace
+      // Endico's own reps... which of their accounts fit Monti Trentini" — is a distributor
+      // campaign. Safe to retype because: stored `building` resolves to `setup` via
+      // normalizeStatus(); the distributor checklist reuses every enrichment item id, so existing
+      // ticks keep rendering; and hasCallConsole() keeps its ~252-prospect call list, which a
+      // `c.type === "enrichment"` check would have silently removed.
+      type: "distributor",
       // Renamed + consolidated 2026-09-01 (Rick: "combine all the instances of email campaign
       // prospecting and sales rep work that we will be covering into one tab. Call it ACE FALL
       // SHOW sales rep and prospect alignment" — then, on seeing 3 live cards: "there are these 3
@@ -453,7 +380,9 @@ const SEEDS = {
           { name: "Jim Cannillo", jobtitle: "Director of Imports", phone: "+19737140958", email: "jcannillo@aceendico.com" },
         ],
       },
-      seedStatus: "building",
+      // Was "building" under the enrichment lifecycle. Any status already stored in Blobs is
+      // still normalized on read; this just keeps the seed valid under its own lifecycle.
+      seedStatus: "setup",
       seedDone: ["source"],
     },
   ],
@@ -1093,7 +1022,11 @@ export function mergeCampaign(def, state = {}, book = null) {
     ...def,
     audience,
     checklist,
-    status: state.status || def.seedStatus || "draft",
+    // Normalized to THIS type's lifecycle (2026-09-26). A campaign retyped from enrichment to
+    // distributor keeps its stored `building`, which resolves to `setup` here — nothing in storage
+    // is rewritten until the status is next changed. Without this a retyped campaign would carry a
+    // status its own lifecycle does not have, and every step lookup would miss.
+    status: normalizeStatus(def.type, state.status || def.seedStatus),
     results: { ...(def.results || {}), ...(state.results || {}) },
     stateUpdatedAt: state.updatedAt || null,
     // Campaign-level update log + when it was closed out — see campaign-state.js's doc comment.
@@ -1144,9 +1077,10 @@ export function readinessOf(campaign) {
  * fights that gets worked around instead of used.
  */
 export function canAdvanceTo(campaign, status) {
-  if (status === "complete") return { ok: true };
-  const gatedFrom = LIFECYCLE_IDS.indexOf("ready");
-  if (LIFECYCLE_IDS.indexOf(status) < gatedFrom) return { ok: true };
+  // Lifecycle-aware since 2026-09-26: where the gate sits is declared per lifecycle in
+  // src/lib/lifecycles.js (generic: at `ready`; distributor: at `connect`). Behaviour for generic
+  // campaigns is unchanged — scripts/test-lifecycles.mjs asserts it step by step.
+  if (!requiresReadiness(campaign?.type, status)) return { ok: true };
   const r = readinessOf(campaign);
   if (r.ready) return { ok: true };
   return { ok: false, reason: `${r.requiredTotal - r.requiredDone} required task${r.requiredTotal - r.requiredDone === 1 ? "" : "s"} outstanding` };
@@ -1165,9 +1099,11 @@ export function groupChecklist(checklist) {
 
 /** Headline numbers for the pill's stat row. */
 export function summarize(list) {
+  // Kind questions, not string comparisons (2026-09-26) — a distributor campaign in Setup counts as
+  // building and one in Connect or Execute counts as live, with no new words taught here.
   const live = list.filter(isLive).length;
-  const ready = list.filter((c) => c.status === "ready").length;
-  const building = list.filter((c) => c.status === "building" || c.status === "draft").length;
+  const ready = list.filter(isAwaitingLaunch).length;
+  const building = list.filter(isBuilding).length;
   const audience = list.reduce((s, c) => s + (c.audience?.size || 0), 0);
   const replies = list.reduce((s, c) => s + (c.results?.replies || 0), 0);
   const won = list.reduce((s, c) => s + (c.results?.won || 0), 0);
